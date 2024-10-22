@@ -1,83 +1,71 @@
 class LoginModel {
   LoginModel({
-    required this.token,
-    required this.user,
     required this.message,
+    required this.user,
+    required this.token,
   });
 
-  final String? token;
-  final String? message;
-  final User? user;
+  String? message;
+  User? user;
+  String? token;
 
   factory LoginModel.fromJson(Map<String, dynamic> json) {
     return LoginModel(
-      token: json["token"],
       message: json["message"],
+      token: json["token"],
       user: json["user"] == null ? null : User.fromJson(json["user"]),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        "token": token,
         "message": message,
+        "token": token,
         "user": user?.toJson(),
       };
 }
 
 class User {
   User({
-    required this.userId,
-    required this.fullName,
-    required this.email,
-    required this.phone,
+    required this.name,
     required this.username,
     required this.password,
-    required this.role,
-    required this.token,
-    required this.imageId,
-    required this.status,
-    required this.branch,
+    required this.capabilities,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.isActive,
+    required this.id,
   });
 
-  final String? userId;
-  final String? fullName;
-  final String? email;
-  final String? phone;
-  final String? username;
-  final String? password;
-  final String? role;
-  final dynamic token;
-  final dynamic imageId;
-  final String? status;
-  final String? branch;
+  String? name;
+  String? username;
+  String? password;
+  List<String> capabilities;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  bool? isActive;
+  String? id;
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      userId: json["user_id"],
-      fullName: json["full_name"],
-      email: json["email"],
-      phone: json["phone"],
+      name: json["name"],
       username: json["username"],
       password: json["password"],
-      role: json["role"],
-      token: json["token"],
-      imageId: json["image_id"],
-      status: json["status"],
-      branch: json["branch_name"],
+      capabilities: json["capabilities"] == null ? [] : List<String>.from(json["capabilities"]!.map((x) => x)),
+      createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+      updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
+      isActive: json["isActive"],
+      id: json["id"],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        "user_id": userId,
-        "full_name": fullName,
-        "email": email,
-        "phone": phone,
+        "name": name,
         "username": username,
         "password": password,
-        "role": role,
-        "token": token,
-        "image_id": imageId,
-        "status": status,
-        "branch_name": branch,
+        "capabilities": capabilities.map((x) => x).toList(),
+        "createdAt": createdAt?.toIso8601String(),
+        "updatedAt": updatedAt?.toIso8601String(),
+        "isActive": isActive,
+        "id": id,
       };
 }

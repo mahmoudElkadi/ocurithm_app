@@ -9,7 +9,9 @@ class CustomScaffold extends StatelessWidget {
   final Widget body;
   final String title;
   final List<Widget>? actions;
-  const CustomScaffold({super.key, required this.body, required this.title, this.actions});
+  final bool showTitle;
+
+  const CustomScaffold({super.key, required this.body, required this.title, this.actions, this.showTitle = true});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class CustomScaffold extends StatelessWidget {
           scrolledUnderElevation: 0,
           title: Text(
             title,
-            style: appStyle(context, 22, Colorz.primaryColor, FontWeight.bold),
+            style: appStyle(context, 22, showTitle ? Colorz.primaryColor : Colors.transparent, FontWeight.bold),
           ),
           actions: actions,
           centerTitle: true,

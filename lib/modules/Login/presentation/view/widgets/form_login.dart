@@ -57,13 +57,7 @@ class _LoginFormState extends State<LoginForm> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: Colorz.white,
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.grey.shade200,
-                            spreadRadius: 2,
-                            blurRadius: 4,
-                            offset: const Offset(0, 1))
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 2, blurRadius: 4, offset: const Offset(0, 1))],
                     ),
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
@@ -71,12 +65,11 @@ class _LoginFormState extends State<LoginForm> {
                           controller: email,
                           radius: 20,
                           type: TextInputType.emailAddress,
-                          suffixIcon: Icon(Icons.person_outline_outlined,
-                              color: Colorz.blue),
+                          suffixIcon: Icon(Icons.person_outline_outlined, color: Colorz.blue),
                           fillColor: Colors.white,
                           borderColor: Colorz.blue,
                           hintText: S.of(context).username,
-                          required: false,
+                          required: true,
                         )),
                   ),
                   const HeightSpacer(size: 20),
@@ -85,13 +78,7 @@ class _LoginFormState extends State<LoginForm> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: Colorz.white,
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.grey.shade200,
-                            spreadRadius: 1.5,
-                            blurRadius: 1,
-                            offset: const Offset(0, 1))
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 1.5, blurRadius: 1, offset: const Offset(0, 1))],
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
@@ -99,18 +86,17 @@ class _LoginFormState extends State<LoginForm> {
                         controller: password,
                         radius: 20,
                         borderColor: Colorz.blue,
+                        required: true,
                         type: TextInputType.visiblePassword,
                         isPassword: LoginCubit.get(context).obscureText,
                         onSubmit: (value) {
                           if (formKey.currentState!.validate()) {
-                            LoginCubit.get(context).userLogin(
-                                username: email.text, password: password.text);
+                            LoginCubit.get(context).userLogin(username: email.text, password: password.text);
                           }
                         },
                         suffixIcon: GestureDetector(
                           onTap: () {
-                            LoginCubit.get(context).obscureText =
-                                !LoginCubit.get(context).obscureText;
+                            LoginCubit.get(context).obscureText = !LoginCubit.get(context).obscureText;
                           },
                           child: LoginCubit.get(context).obscureText == false
                               ? Icon(Icons.visibility, color: Colorz.blue)
@@ -118,7 +104,6 @@ class _LoginFormState extends State<LoginForm> {
                         ),
                         fillColor: Colors.white,
                         hintText: S.of(context).password,
-                        required: false,
                       ),
                     ),
                   ),
@@ -128,8 +113,7 @@ class _LoginFormState extends State<LoginForm> {
                       onPressed: () {},
                       child: Text(
                         S.of(context).forgetPassword,
-                        style:
-                            appStyle(context, 16, Colorz.grey, FontWeight.w500),
+                        style: appStyle(context, 16, Colorz.grey, FontWeight.w500),
                       ),
                     ),
                   ),
@@ -137,8 +121,7 @@ class _LoginFormState extends State<LoginForm> {
                   MyElevatedButton(
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
-                          LoginCubit.get(context).userLogin(
-                              username: email.text, password: password.text);
+                          LoginCubit.get(context).userLogin(username: email.text, password: password.text);
                         }
                       },
                       boxShadow: [
@@ -169,8 +152,7 @@ class _LoginFormState extends State<LoginForm> {
                               children: [
                                 Text(
                                   S.of(context).signin,
-                                  style: appStyle(context, 18, Colorz.white,
-                                      FontWeight.w600),
+                                  style: appStyle(context, 18, Colorz.white, FontWeight.w600),
                                 ),
                                 const WidthSpacer(size: 10),
                                 Icon(

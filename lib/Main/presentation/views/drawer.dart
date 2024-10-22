@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -80,8 +78,8 @@ class CustomDrawer extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(shape: BoxShape.circle),
-                      child: CircleAvatar(
+                      decoration: const BoxDecoration(shape: BoxShape.circle),
+                      child: const CircleAvatar(
                         radius: 38,
                         backgroundColor: Colors.white,
                         child: Icon(
@@ -91,7 +89,7 @@ class CustomDrawer extends StatelessWidget {
                         ),
                       ),
                     ),
-                    HeightSpacer(size: 0),
+                    const HeightSpacer(size: 0),
                     Text(
                       "Name",
                       style: appStyle(context, 18, Colors.black, FontWeight.w600),
@@ -113,32 +111,6 @@ class CustomDrawer extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDrawerItem(BuildContext context, DrawerItem item, MainCubit cubit, int index) {
-    final bool isSelected = index == cubit.selectedIndex;
-    return ListTile(
-      leading: SvgPicture.asset(
-        item.icon,
-        color: isSelected ? Colorz.primaryColor : Colorz.black,
-      ),
-      title: Text(
-        item.title,
-        style: appStyle(
-          context,
-          16,
-          isSelected ? Colorz.primaryColor : Colorz.black,
-          isSelected ? FontWeight.w700 : FontWeight.w600,
-        ),
-      ),
-      // tileColor: isSelected ? Colorz.primaryColor.withOpacity(0.1) : null,
-      onTap: () {
-        log(cubit.pages[item.index].toString());
-        log(item.index.toString());
-        cubit.navigateToPage(context, item.index);
-        //  Navigator.pop(context);
-      },
     );
   }
 

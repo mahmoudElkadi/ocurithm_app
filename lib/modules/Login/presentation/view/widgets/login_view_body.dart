@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ocurithm/generated/l10n.dart';
 
@@ -53,12 +54,12 @@ class LoginViewBody extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      //   SvgPicture.asset("assets/icons/login_icon.svg"),
+                      SvgPicture.asset("assets/icons/login_icon.svg"),
                       Text(S.of(context).pleaseSignInToYourAccount, style: appStyle(context, 16, Colorz.blue, FontWeight.w400)),
-                      // SvgPicture.asset(
-                      //   "assets/icons/login_icon.svg",
-                      //   colorFilter: ColorFilter.mode(Colors.transparent, BlendMode.srcIn),
-                      // ),
+                      SvgPicture.asset(
+                        "assets/icons/login_icon.svg",
+                        colorFilter: ColorFilter.mode(Colors.transparent, BlendMode.srcIn),
+                      ),
                     ],
                   ),
                 ]),

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +7,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/modules/Admin/Home/presentation/views/admin_home_view.dart';
 
 import '../../../core/Network/shared.dart';
+import '../../../core/utils/app_style.dart';
 import '../../../modules/Admin/Receptionist/presentation/views/receptionist_view.dart';
 import '../../../modules/Login/presentation/view/login_view.dart';
 import 'main_state.dart';
@@ -15,15 +15,6 @@ import 'main_state.dart';
 class MainCubit extends Cubit<MainState> {
   MainCubit() : super(MainInitial());
   static MainCubit get(context) => BlocProvider.of(context);
-
-  int _currentIndex = 0;
-
-  int get currentIndex => _currentIndex;
-
-  set currentIndex(int newIndex) {
-    _currentIndex = newIndex;
-    emit(MainSuccess());
-  }
 
   bool isBackEnabled = false;
   void enableBack() {
@@ -45,6 +36,25 @@ class MainCubit extends Cubit<MainState> {
     return pages[index];
   }
 
+  int _currentIndex = 0;
+  bool _isTransitioning = false;
+
+  int get currentIndex => _currentIndex;
+
+  set currentIndex(int newIndex) {
+    if (newIndex != _currentIndex && !_isTransitioning) {
+      _isTransitioning = true;
+      _currentIndex = newIndex;
+      emit(PageTransitionStarted(newIndex));
+
+      // Allow next transition after current one completes
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _isTransitioning = false;
+        emit(PageTransitionCompleted(newIndex));
+      });
+    }
+  }
+
   bool? result;
 
   Future<void> check() async {
@@ -54,12 +64,10 @@ class MainCubit extends Cubit<MainState> {
 
   int notificationIndex = -1;
 
-  List<DrawerItem> getStatusList() {
-    List capabilities = ["receptionist", "doctor"];
-
+  Future<List<DrawerItem>> getStatusList({context, required List capabilities}) async {
     Map<String, List<dynamic>> statusMappings = {
       "doctor": ["Dashboard", const AdminHomeView(), "assets/icons/dashboard.svg"],
-      "receptionist": ["Receptionist", const ReceptionistView(), "assets/icons/receptionist.svg"],
+      "admin": ["Receptionist", const ReceptionistView(), "assets/icons/receptionist.svg"],
       "branch": ["Branch", const AdminHomeView(), "assets/icons/dashboard.svg"],
     };
 
@@ -86,21 +94,33 @@ class MainCubit extends Cubit<MainState> {
       }
     }
 
+    if (drawerItems.isEmpty || pages.isEmpty || capabilities == []) {
+      await logOut();
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Login Failed"),
+            content: const Text("You don't have permission to access this application"),
+            actions: [
+              TextButton(
+                child: Text(
+                  "OK",
+                  style: appStyle(context, 18, Colors.black, FontWeight.w600),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Dismiss the dialog
+                },
+              ),
+            ],
+          );
+        },
+      );
+      emit(LogOutUserSuccess());
+    }
+
     emit(DrawerItemsLoaded()); // Emit a new state when drawer items are loaded
     return drawerItems;
-  }
-
-  void navigateToPage(BuildContext context, int index) {
-    if (index >= 0 && index < pages.length) {
-      selectedIndex = index;
-      log("Selected index: $index");
-      currentView = pages[index];
-      getx.Get.offAll(() => pages[index], transition: getx.Transition.rightToLeft, duration: const Duration(milliseconds: 500));
-      // Navigator.of(context).pushReplacement(
-      //   MaterialPageRoute(builder: (context) => pages[index]),
-      // );
-      emit(NavigateToPageState());
-    }
   }
 
   void changeView(int index) {

@@ -16,22 +16,24 @@ class LoginView extends StatelessWidget {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: Colorz.background,
+        // resizeToAvoidBottomInset: false,
+        backgroundColor: Colorz.white,
         body: const LoginViewBody(),
-        bottomNavigationBar:Platform.isIOS ? const SizedBox() : BottomAppBar(
-          padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-          height: 70,
-          elevation: 0,
-          color: Colors.white,
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: SvgPicture.asset(
-              "assets/icons/circle.svg",
-              height: 70,
-            ),
-          ),
-        ),
+        bottomNavigationBar: Platform.isIOS
+            ? const SizedBox()
+            : BottomAppBar(
+                padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                height: 70,
+                elevation: 0,
+                color: Colors.white,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: SvgPicture.asset(
+                    "assets/icons/circle.svg",
+                    height: 70,
+                  ),
+                ),
+              ),
       ),
     );
   }

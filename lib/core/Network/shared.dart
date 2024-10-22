@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../modules/Login/data/model/login_response.dart';
 
 class CacheHelper {
   static late SharedPreferences sharedPreferences;
@@ -31,6 +32,31 @@ class CacheHelper {
   static List<dynamic> getListOfMaps(String key) {
     String jsonString = sharedPreferences.getString(key) ?? '[]';
     return jsonDecode(jsonString);
+  }
+
+  static Future<void> saveObject(String key, object) async {
+    String encodedString = jsonEncode(object);
+    await sharedPreferences.setString(key, encodedString);
+  }
+
+  // Get object from SharedPreferences
+  static Map<String, dynamic> getObject(String key) {
+    String jsonString = sharedPreferences.getString(key) ?? '{}';
+    return jsonDecode(jsonString);
+  }
+
+  static Future<bool> saveUser(String key, User user) async {
+    final String userJson = jsonEncode(user.toJson());
+    return await sharedPreferences.setString(key, userJson);
+  }
+
+  // Get User object
+  static User? getUser(String key) {
+    final String? userJson = sharedPreferences.getString(key);
+    if (userJson != null) {
+      return User.fromJson(jsonDecode(userJson));
+    }
+    return null;
   }
 
   static dynamic getData({

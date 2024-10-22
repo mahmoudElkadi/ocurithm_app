@@ -7,7 +7,8 @@ import '../manger/main_state.dart';
 import 'main_screen.dart';
 
 class MainView extends StatefulWidget {
-  const MainView({super.key});
+  const MainView({super.key, this.capabilities = const []});
+  final List capabilities;
 
   @override
   State<MainView> createState() => _MainViewState();
@@ -20,13 +21,12 @@ class _MainViewState extends State<MainView> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (BuildContext context) => MainCubit()
-        ..getStatusList()
+        ..getStatusList(context: context, capabilities: widget.capabilities)
         ..enableBack()
         ..check(),
       child: BlocBuilder<MainCubit, MainState>(
         builder: (BuildContext context, state) {
           final mainCubit = MainCubit.get(context);
-
           if (mainCubit.result == false) {
             return const NoInternetScreen();
           }

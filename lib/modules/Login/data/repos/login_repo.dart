@@ -1,3 +1,5 @@
+import '../model/login_response.dart';
+
 abstract class LoginRepo {
-  Future<dynamic> loginUser(String username, String password);
+  Future<LoginModel> loginUser({required String username, required String password, bool? rememberMe});
 }

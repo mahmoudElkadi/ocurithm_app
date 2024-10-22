@@ -18,6 +18,16 @@ class NavigateToPageState extends MainState {}
 
 class DrawerItemsLoaded extends MainState {}
 
+class PageTransitionStarted extends MainState {
+  final int newIndex;
+  PageTransitionStarted(this.newIndex);
+}
+
+class PageTransitionCompleted extends MainState {
+  final int newIndex;
+  PageTransitionCompleted(this.newIndex);
+}
+
 class ChangeViewState extends MainState {}
 
 class GetCapabilitiesLoading extends MainState {}

@@ -25,25 +25,20 @@ class MainScreen extends StatelessWidget {
               ),
             ),
             child: PageTransitionSwitcher(
+              duration: const Duration(milliseconds: 300),
               transitionBuilder: (
-                Widget child,
-                Animation<double> animation,
-                Animation<double> secondaryAnimation,
+                child,
+                animation,
+                secondaryAnimation,
               ) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: animation.drive(
-                      Tween(
-                        begin: const Offset(0.1, 0),
-                        end: Offset.zero,
-                      ).chain(CurveTween(curve: Curves.easeInOut)),
-                    ),
-                    child: child,
-                  ),
+                return SharedAxisTransition(
+                  animation: animation,
+                  secondaryAnimation: secondaryAnimation,
+                  transitionType: SharedAxisTransitionType.horizontal,
+                  child: child,
+                  fillColor: Colors.transparent,
                 );
               },
-              duration: const Duration(milliseconds: 300),
               child: KeyedSubtree(
                 key: ValueKey<int>(mainCubit.currentIndex),
                 child: mainCubit.currentScreen(mainCubit.currentIndex),
