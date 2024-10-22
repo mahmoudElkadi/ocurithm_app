@@ -11,67 +11,54 @@ import '../manger/main_cubit.dart';
 import '../manger/main_state.dart';
 
 class CustomDrawer extends StatelessWidget {
+  const CustomDrawer({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MainCubit, MainState>(
       builder: (context, state) {
-        final MainCubit cubit = MainCubit.get(context);
-        final List<DrawerItem> drawerItems = cubit.getStatusList();
-        return SafeArea(
-          child: Drawer(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _buildUserInfo(context),
+        final mainCubit = MainCubit.get(context);
+        final drawerItems = mainCubit.drawerItems;
 
-              // First Section: User Info
-              // Container(
-              //   padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 15),
-              //   color: Colorz.primaryColor.withOpacity(0.1),
-              //   child: Center(
-              //     child: Row(
-              //       mainAxisAlignment: MainAxisAlignment.start,
-              //       crossAxisAlignment: CrossAxisAlignment.center,
-              //       children: [
-              //         Container(
-              //           alignment: Alignment.center,
-              //           height: 80.h,
-              //           width: 80.w,
-              //           decoration: const BoxDecoration(
-              //             shape: BoxShape.circle,
-              //             color: Colors.white,
-              //             //  image: DecorationImage(image: svg.Svg("assets/icons/doc_avatar.svg"), fit: BoxFit.contain),
-              //           ),
-              //         ),
-              //         const WidthSpacer(size: 10),
-              //         Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             Text(
-              //               CacheHelper.getData(key: "name") != null ? "Dr. ${CacheHelper.getData(key: "name")}" : "Doctor",
-              //               style: appStyle(context, 18, HexColor("#2D2EBB"), FontWeight.w600),
-              //             ),
-              //             const HeightSpacer(size: 5),
-              //             Text(
-              //               "Dentist",
-              //               style: appStyle(context, 16, Colorz.primaryColor, FontWeight.w600),
-              //             ),
-              //           ],
-              //         )
-              //       ],
-              //     ),
-              //   ),
-              // ),
-              // Second Section: List of Pages
+        return Drawer(
+          child: Column(
+            children: [
+              _buildUserInfo(context),
               Expanded(
                 child: ListView.builder(
+                  padding: EdgeInsets.zero,
                   itemCount: drawerItems.length,
                   itemBuilder: (context, index) {
                     final item = drawerItems[index];
-                    return _buildDrawerItem(context, item, cubit, index);
+                    final bool isSelected = index == mainCubit.currentIndex;
+
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      child: ListTile(
+                        leading: SvgPicture.asset(
+                          item.icon,
+                          color: isSelected ? Colorz.primaryColor : Colorz.black,
+                        ),
+                        title: Text(
+                          item.title,
+                          style: appStyle(
+                            context,
+                            16,
+                            isSelected ? Colorz.primaryColor : Colorz.black,
+                            isSelected ? FontWeight.w700 : FontWeight.w600,
+                          ),
+                        ),
+                        onTap: () {
+                          mainCubit.currentIndex = index;
+                          Navigator.pop(context);
+                        },
+                      ),
+                    );
                   },
                 ),
               ),
-              _buildLogoutButton(context, cubit),
-            ]),
+              _buildLogoutButton(context, mainCubit),
+            ],
           ),
         );
       },

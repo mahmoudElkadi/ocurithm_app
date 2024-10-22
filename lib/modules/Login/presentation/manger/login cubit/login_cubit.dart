@@ -3,8 +3,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:ocurithm/modules/Admin/Home/presentation/views/admin_home_view.dart';
 
+import '../../../../../Main/presentation/views/main_view.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../data/repos/login_repo.dart';
 import 'login_state.dart';
@@ -35,7 +35,7 @@ class LoginCubit extends Cubit<LoginState> {
   userLogin({context, required String username, required String password}) {
     isLoading = true;
     emit(LoginUserLoading());
-    Get.to(() => const AdminHomeView());
+    Get.to(() => MainView());
 
     loginRepo.loginUser(username, password).then((response) {
       log("in success: $response");
