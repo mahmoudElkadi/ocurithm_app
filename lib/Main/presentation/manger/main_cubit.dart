@@ -8,7 +8,8 @@ import 'package:ocurithm/modules/Admin/Home/presentation/views/admin_home_view.d
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
-import '../../../modules/Admin/Receptionist/presentation/views/receptionist_view.dart';
+import '../../../modules/Admin/Branch/presentation/views/branch_view.dart';
+import '../../../modules/Admin/Receptionist/Reception Dashboard/presentation/views/receptionist_view.dart';
 import '../../../modules/Login/presentation/view/login_view.dart';
 import 'main_state.dart';
 
@@ -66,7 +67,7 @@ class MainCubit extends Cubit<MainState> {
 
   Future<List<DrawerItem>> getStatusList({context, required List capabilities}) async {
     Map<String, List<dynamic>> statusMappings = {
-      "doctor": ["Dashboard", const AdminHomeView(), "assets/icons/dashboard.svg"],
+      "doctor": ["Dashboard", const AdminBranchView(), "assets/icons/dashboard.svg"],
       "admin": ["Receptionist", const ReceptionistView(), "assets/icons/receptionist.svg"],
       "branch": ["Branch", const AdminHomeView(), "assets/icons/dashboard.svg"],
     };

@@ -26,6 +26,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "PleaseAgain":
             MessageLookupByLibrary.simpleMessage("Please try again!"),
         "add": MessageLookupByLibrary.simpleMessage("Add"),
+        "addReceptionist":
+            MessageLookupByLibrary.simpleMessage("Add Receptionist"),
         "address": MessageLookupByLibrary.simpleMessage("Address"),
         "afternoon": MessageLookupByLibrary.simpleMessage("Afternoon"),
         "appointment": MessageLookupByLibrary.simpleMessage("Appointments"),
@@ -56,6 +58,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "createAccount": MessageLookupByLibrary.simpleMessage("Create Account"),
         "createPatientAccount":
             MessageLookupByLibrary.simpleMessage("Create Patient Account"),
+        "createReceptionist":
+            MessageLookupByLibrary.simpleMessage("Create Receptionist"),
         "date": MessageLookupByLibrary.simpleMessage("Date"),
         "dateOfBirth": MessageLookupByLibrary.simpleMessage("Date of Birth"),
         "dd": MessageLookupByLibrary.simpleMessage("DD"),
@@ -98,12 +102,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "manualId": MessageLookupByLibrary.simpleMessage("Manual ID"),
         "mm": MessageLookupByLibrary.simpleMessage("MM"),
         "morning": MessageLookupByLibrary.simpleMessage("Morning"),
+        "mustBirth": MessageLookupByLibrary.simpleMessage(
+            "Date of Birth must not be Empty"),
+        "mustBranch":
+            MessageLookupByLibrary.simpleMessage("Branch must not be Empty"),
         "mustEmail":
             MessageLookupByLibrary.simpleMessage("Email must not be Empty"),
+        "mustGender":
+            MessageLookupByLibrary.simpleMessage("Gender must not be Empty"),
         "mustNotEmpty":
             MessageLookupByLibrary.simpleMessage("must not be Empty"),
         "mustPassword":
             MessageLookupByLibrary.simpleMessage("Password must not be Empty"),
+        "mustPhone":
+            MessageLookupByLibrary.simpleMessage("Phone must not be Empty"),
         "mustUsername":
             MessageLookupByLibrary.simpleMessage("Username must not be Empty"),
         "name": MessageLookupByLibrary.simpleMessage("Name"),

@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
-import 'package:ocurithm/modules/Admin/Receptionist/presentation/views/widgets/receptionist_card.dart';
 
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../core/widgets/text_field.dart';
+import 'doctor_card.dart';
 
-class ReceptionistViewBody extends StatefulWidget {
-  const ReceptionistViewBody({super.key});
+class DoctorViewBody extends StatefulWidget {
+  const DoctorViewBody({super.key});
 
   @override
-  State<ReceptionistViewBody> createState() => _ReceptionistViewBodyState();
+  State<DoctorViewBody> createState() => _DoctorViewBodyState();
 }
 
-class _ReceptionistViewBodyState extends State<ReceptionistViewBody> {
+class _DoctorViewBodyState extends State<DoctorViewBody> {
   TextEditingController searchController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [_buildSearchField(), const HeightSpacer(size: 10), const ReceptionistListView()],
+      children: [_buildSearchField(), const HeightSpacer(size: 10), const DoctorListView()],
     );
   }
 

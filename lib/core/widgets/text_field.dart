@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 import 'package:ocurithm/core/widgets/text_field_form.dart';
 
 import '../utils/app_style.dart';
-import '../utils/colors.dart';
 import 'height_spacer.dart';
 import 'width_spacer.dart';
 
@@ -75,8 +74,8 @@ class TextField2 extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius ?? 10),
-            color: fillColor ?? Colors.white,
-            boxShadow: isShadow != null
+            color: Colors.transparent,
+            boxShadow: isShadow != false
                 ? [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.2),
@@ -190,83 +189,374 @@ class TextField2 extends StatelessWidget {
 //   }
 // }
 
+// class CustomTextField extends StatelessWidget {
+//   const CustomTextField(
+//       {super.key,
+//       required this.controller,
+//       this.hintText,
+//       required this.keyboardType,
+//       this.validator,
+//       this.suffixIcon,
+//       this.obscureText,
+//       this.color,
+//       this.hintColor,
+//       this.onChanged,
+//       this.onEditingComplete,
+//       this.textColor,
+//       this.cursorColor,
+//       this.label,
+//       this.width,
+//       this.maxLines,
+//       this.prefixIcon,
+//       this.borderColor});
+//   final TextEditingController controller;
+//   final String? hintText;
+//   final String? label;
+//   final TextInputType keyboardType;
+//   final String? Function(String?)? validator;
+//   final Widget? suffixIcon;
+//   final Widget? prefixIcon;
+//   final bool? obscureText;
+//   final Color? color;
+//   final Color? hintColor;
+//   final Color? textColor;
+//   final Color? cursorColor;
+//   final Color? borderColor;
+//   final Function(String str)? onChanged;
+//   final Function()? onEditingComplete;
+//   final double? width;
+//   final int? maxLines;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       //padding: EdgeInsets.symmetric(horizontal: 15),
+//       width: width,
+//       child: TextFormField(
+//         onEditingComplete: onEditingComplete,
+//         onChanged: onChanged,
+//         keyboardType: keyboardType,
+//         obscureText: obscureText ?? false,
+//         cursorColor: cursorColor ?? Colors.black,
+//         maxLines: maxLines ?? 1,
+//         decoration: InputDecoration(
+//           prefixIconConstraints: const BoxConstraints(
+//             maxWidth: 24, // Adjust minimum width as needed
+//             maxHeight: 24, // Adjust minimum height as needed
+//           ),
+//           labelText: label,
+//           prefixIcon: prefixIcon,
+//           filled: true,
+//           fillColor: color ?? Colors.grey,
+//           hintText: hintText,
+//           suffixIcon: suffixIcon,
+//           hintStyle: appStyle(context, 16, hintColor ?? Colors.grey, FontWeight.w500),
+//           errorBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.red, width: 1), borderRadius: BorderRadius.circular(10.h)),
+//           focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colorz.blue, width: 1), borderRadius: BorderRadius.circular(10.h)),
+//           focusedErrorBorder:
+//               OutlineInputBorder(borderSide: const BorderSide(color: Colors.red, width: 1), borderRadius: BorderRadius.circular(10.h)),
+//           disabledBorder:
+//               OutlineInputBorder(borderSide: BorderSide(color: borderColor ?? Colors.black54, width: 1), borderRadius: BorderRadius.circular(10.h)),
+//           enabledBorder:
+//               OutlineInputBorder(borderSide: BorderSide(color: borderColor ?? Colors.black54, width: 1), borderRadius: BorderRadius.circular(10.h)),
+//           border: InputBorder.none,
+//         ),
+//         controller: controller,
+//         cursorHeight: 25,
+//         style: appStyle(context, 18, textColor ?? Colors.black, FontWeight.w500),
+//         validator: validator,
+//       ),
+//     );
+//   }
+// }
+
 class CustomTextField extends StatelessWidget {
-  const CustomTextField(
-      {super.key,
-      required this.controller,
-      this.hintText,
-      required this.keyboardType,
-      this.validator,
-      this.suffixIcon,
-      this.obscureText,
-      this.color,
-      this.hintColor,
-      this.onChanged,
-      this.onEditingComplete,
-      this.textColor,
-      this.cursorColor,
-      this.label,
-      this.width,
-      this.maxLines,
-      this.prefixIcon,
-      this.borderColor});
-  final TextEditingController controller;
+  final TextEditingController? controller;
+  final String? errorText;
   final String? hintText;
-  final String? label;
-  final TextInputType keyboardType;
+  final ValueChanged<String>? onChanged;
+  final TextInputType? keyboardType;
   final String? Function(String?)? validator;
-  final Widget? suffixIcon;
-  final Widget? prefixIcon;
-  final bool? obscureText;
-  final Color? color;
-  final Color? hintColor;
-  final Color? textColor;
-  final Color? cursorColor;
-  final Color? borderColor;
-  final Function(String str)? onChanged;
-  final Function()? onEditingComplete;
-  final double? width;
-  final int? maxLines;
+
+  const CustomTextField({
+    Key? key,
+    this.controller,
+    this.errorText,
+    this.hintText,
+    this.onChanged,
+    this.keyboardType,
+    this.validator,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      //padding: EdgeInsets.symmetric(horizontal: 15),
-      width: width,
-      child: TextFormField(
-        onEditingComplete: onEditingComplete,
-        onChanged: onChanged,
-        keyboardType: keyboardType,
-        obscureText: obscureText ?? false,
-        cursorColor: cursorColor ?? Colors.black,
-        maxLines: maxLines ?? 1,
-        decoration: InputDecoration(
-          prefixIconConstraints: const BoxConstraints(
-            maxWidth: 24, // Adjust minimum width as needed
-            maxHeight: 24, // Adjust minimum height as needed
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                if (errorText == null)
+                  BoxShadow(
+                    color: Colors.red.withOpacity(0.1),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 0),
+                  ),
+              ],
+            ),
+            child: TextFormField(
+              controller: controller,
+              onChanged: onChanged,
+              keyboardType: keyboardType,
+              validator: validator,
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide(
+                    color: errorText != null ? Colors.red : Colors.grey.shade300,
+                    width: 1,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide(
+                    color: errorText != null ? Colors.red : Colors.grey.shade300,
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide(
+                    color: errorText != null ? Colors.red : Colors.blue,
+                    width: 1,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(
+                    color: Colors.red,
+                    width: 1,
+                  ),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(
+                    color: Colors.red,
+                    width: 1,
+                  ),
+                ),
+              ),
+            ),
           ),
-          labelText: label,
-          prefixIcon: prefixIcon,
-          filled: true,
-          fillColor: color ?? Colors.grey,
-          hintText: hintText,
-          suffixIcon: suffixIcon,
-          hintStyle: appStyle(context, 16, hintColor ?? Colors.grey, FontWeight.w500),
-          errorBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.red, width: 1), borderRadius: BorderRadius.circular(10.h)),
-          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colorz.blue, width: 1), borderRadius: BorderRadius.circular(10.h)),
-          focusedErrorBorder:
-              OutlineInputBorder(borderSide: const BorderSide(color: Colors.red, width: 1), borderRadius: BorderRadius.circular(10.h)),
-          disabledBorder:
-              OutlineInputBorder(borderSide: BorderSide(color: borderColor ?? Colors.black54, width: 1), borderRadius: BorderRadius.circular(10.h)),
-          enabledBorder:
-              OutlineInputBorder(borderSide: BorderSide(color: borderColor ?? Colors.black54, width: 1), borderRadius: BorderRadius.circular(10.h)),
-          border: InputBorder.none,
-        ),
-        controller: controller,
-        cursorHeight: 25,
-        style: appStyle(context, 18, textColor ?? Colors.black, FontWeight.w500),
-        validator: validator,
+          if (errorText != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 4),
+              child: Text(
+                errorText!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+        ],
       ),
+    );
+  }
+}
+
+class EnhancedTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String? text;
+  final String? errorText;
+  final String hintText;
+  final bool required;
+  final bool isPassword;
+  final bool? isShadow;
+  final Widget? icon;
+  final Widget? suffixIcon;
+  final Widget? prefixIcon;
+  final Color? borderColor;
+  final Color? border;
+  final Color? fillColor;
+  final double? height;
+  final double? radius;
+  final TextInputType? keyboardType;
+  final TextStyle? hintStyle;
+  final List<TextInputFormatter>? inputFormatters;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmit;
+  final VoidCallback? onTap;
+  final String? Function(String?)? validator;
+  final int maxLines;
+
+  const EnhancedTextField({
+    Key? key,
+    required this.controller,
+    this.text,
+    this.errorText,
+    required this.hintText,
+    this.required = false,
+    this.isPassword = false,
+    this.isShadow,
+    this.icon,
+    this.suffixIcon,
+    this.prefixIcon,
+    this.borderColor,
+    this.border,
+    this.fillColor,
+    this.height,
+    this.radius,
+    this.keyboardType,
+    this.hintStyle,
+    this.inputFormatters,
+    this.onChanged,
+    this.onSubmit,
+    this.onTap,
+    this.validator,
+    this.maxLines = 1,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (text != null)
+          Row(
+            children: [
+              const SizedBox(width: 5),
+              if (icon != null) icon!,
+              const SizedBox(width: 10),
+              Text(
+                text!,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        if (text != null) const SizedBox(height: 10),
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(radius ?? 30),
+            color: fillColor ?? Colors.white,
+            boxShadow: [
+              // Only show shadow if isShadow is true AND there's no error
+              if (isShadow == false)
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                ),
+            ],
+          ),
+          child: TextFormField(
+            controller: controller,
+            maxLines: maxLines,
+            obscureText: isPassword,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
+            onChanged: onChanged,
+            onFieldSubmitted: onSubmit,
+            onTap: onTap,
+            validator: required
+                ? validator ??
+                    (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'This field is required';
+                      }
+                      return null;
+                    }
+                : validator,
+            decoration: InputDecoration(
+              hintText: hintText,
+              hintStyle: hintStyle ??
+                  TextStyle(
+                    color: Colors.grey.shade500,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: height ?? 15,
+                horizontal: 12,
+              ),
+              isDense: true,
+              filled: true,
+              fillColor: fillColor ?? Colors.grey[200]?.withOpacity(0.9),
+              suffixIcon: Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: suffixIcon,
+              ),
+              prefixIcon: prefixIcon,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(radius ?? 30),
+                borderSide: BorderSide(
+                  color: errorText != null ? Colors.red : border ?? Colors.transparent,
+                  width: 1,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(radius ?? 30),
+                borderSide: BorderSide(
+                  color: errorText != null ? Colors.red : border ?? Colors.transparent,
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(radius ?? 30),
+                borderSide: BorderSide(
+                  color: errorText != null ? Colors.red : borderColor ?? Colors.blue,
+                  width: 1,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(radius ?? 30),
+                borderSide: const BorderSide(
+                  color: Colors.red,
+                  width: 1,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(radius ?? 30),
+                borderSide: const BorderSide(
+                  color: Colors.red,
+                  width: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, top: 4),
+            child: Text(
+              errorText!,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 12,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

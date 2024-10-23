@@ -530,6 +530,46 @@ class S {
     );
   }
 
+  /// `Phone must not be Empty`
+  String get mustPhone {
+    return Intl.message(
+      'Phone must not be Empty',
+      name: 'mustPhone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Branch must not be Empty`
+  String get mustBranch {
+    return Intl.message(
+      'Branch must not be Empty',
+      name: 'mustBranch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Gender must not be Empty`
+  String get mustGender {
+    return Intl.message(
+      'Gender must not be Empty',
+      name: 'mustGender',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Date of Birth must not be Empty`
+  String get mustBirth {
+    return Intl.message(
+      'Date of Birth must not be Empty',
+      name: 'mustBirth',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Email must not be Empty`
   String get mustEmail {
     return Intl.message(
@@ -1065,6 +1105,26 @@ class S {
     return Intl.message(
       'No Internet Connection',
       name: 'noInternet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create Receptionist`
+  String get createReceptionist {
+    return Intl.message(
+      'Create Receptionist',
+      name: 'createReceptionist',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add Receptionist`
+  String get addReceptionist {
+    return Intl.message(
+      'Add Receptionist',
+      name: 'addReceptionist',
       desc: '',
       args: [],
     );

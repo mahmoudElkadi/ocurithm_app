@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
-import 'package:ocurithm/modules/Admin/Receptionist/presentation/views/widgets/receptionist_view_body.dart';
+import 'package:ocurithm/modules/Admin/Receptionist/Reception%20Dashboard/presentation/views/widgets/receptionist_view_body.dart';
 
-import '../../../../../core/utils/colors.dart';
+import '../../../../../../core/utils/colors.dart';
+import '../../../Add Receptionist/presentation/view/add_receptionist_view.dart';
 import '../manager/receptionist_cubit.dart';
 
 class ReceptionistView extends StatelessWidget {
@@ -18,7 +20,9 @@ class ReceptionistView extends StatelessWidget {
         title: "Receptionist",
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Get.to(() => CreateReceptionistView());
+            },
             icon: SvgPicture.asset(
               "assets/icons/add_user.svg",
               color: Colorz.primaryColor,

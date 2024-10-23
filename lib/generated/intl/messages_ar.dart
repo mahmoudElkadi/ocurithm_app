@@ -26,6 +26,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "PleaseAgain":
             MessageLookupByLibrary.simpleMessage("يرجى المحاولة مرة اخرى!"),
         "add": MessageLookupByLibrary.simpleMessage("اضافة"),
+        "addReceptionist": MessageLookupByLibrary.simpleMessage("اضافة مستخدم"),
         "address": MessageLookupByLibrary.simpleMessage("العنوان"),
         "afternoon": MessageLookupByLibrary.simpleMessage("مساء"),
         "appointment": MessageLookupByLibrary.simpleMessage("المواعيد"),
@@ -55,6 +56,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "createAccount": MessageLookupByLibrary.simpleMessage("إنشاء حساب"),
         "createPatientAccount":
             MessageLookupByLibrary.simpleMessage("انشاء حساب جديد"),
+        "createReceptionist":
+            MessageLookupByLibrary.simpleMessage("انشاء مستخدم"),
         "date": MessageLookupByLibrary.simpleMessage("التاريخ"),
         "dateOfBirth": MessageLookupByLibrary.simpleMessage("تاريخ الميلاد"),
         "dd": MessageLookupByLibrary.simpleMessage("يوم"),
@@ -94,12 +97,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "manualId": MessageLookupByLibrary.simpleMessage("الرقم الوظيفي"),
         "mm": MessageLookupByLibrary.simpleMessage("شهر"),
         "morning": MessageLookupByLibrary.simpleMessage("صباحا"),
+        "mustBirth": MessageLookupByLibrary.simpleMessage(
+            "تاريخ الميلاد لا يمكن ان يكون فارغ"),
+        "mustBranch":
+            MessageLookupByLibrary.simpleMessage("الفرع لا يمكن ان يكون فارغ"),
         "mustEmail": MessageLookupByLibrary.simpleMessage(
             "البريد الالكتروني لا يمكن ان يكون فارغ"),
+        "mustGender":
+            MessageLookupByLibrary.simpleMessage("الجنس لا يمكن ان يكون فارغ"),
         "mustNotEmpty":
             MessageLookupByLibrary.simpleMessage("لا يمكن ترك هذا الحقل فارغ"),
         "mustPassword": MessageLookupByLibrary.simpleMessage(
             "كلمة المرور لا يمكن ان تكون فارغة"),
+        "mustPhone": MessageLookupByLibrary.simpleMessage(
+            "رقم الهاتف لا يمكن ان يكون فارغ"),
         "mustUsername":
             MessageLookupByLibrary.simpleMessage("الاسم لا يمكن ان يكون فارغ"),
         "name": MessageLookupByLibrary.simpleMessage("الاسم"),

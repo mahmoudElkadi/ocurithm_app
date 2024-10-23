@@ -10,23 +10,23 @@ import '../../../../../../core/utils/app_style.dart';
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../core/widgets/width_spacer.dart';
-import '../../manager/receptionist_cubit.dart';
-import '../../manager/receptionist_state.dart';
+import '../../manager/branch_cubit.dart';
+import '../../manager/branch_state.dart';
 
-class ReceptionistCard extends StatefulWidget {
-  const ReceptionistCard({
+class BranchCard extends StatefulWidget {
+  const BranchCard({
     super.key,
     required this.isLoading,
-    this.receptionist,
+    this.Branch,
   });
   final bool isLoading;
-  final receptionist;
+  final Branch;
 
   @override
-  State<ReceptionistCard> createState() => _ReceptionistCardState();
+  State<BranchCard> createState() => _BranchCardState();
 }
 
-class _ReceptionistCardState extends State<ReceptionistCard> {
+class _BranchCardState extends State<BranchCard> {
   Widget _buildShimmer(Widget child) {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
@@ -144,21 +144,21 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
   }
 }
 
-class ReceptionistListView extends StatefulWidget {
-  const ReceptionistListView({Key? key}) : super(key: key);
+class BranchListView extends StatefulWidget {
+  const BranchListView({Key? key}) : super(key: key);
 
   @override
-  State<ReceptionistListView> createState() => _ReceptionistListViewState();
+  State<BranchListView> createState() => _BranchListViewState();
 }
 
-class _ReceptionistListViewState extends State<ReceptionistListView> {
+class _BranchListViewState extends State<BranchListView> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AdminReceptionCubit, AdminReceptionState>(
+    return BlocBuilder<AdminBranchCubit, AdminBranchState>(
       builder: (context, state) {
-        final cubit = context.read<AdminReceptionCubit>();
-        bool isLoading = AdminReceptionCubit.get(context).receptionist == null;
-        bool isEmpty = AdminReceptionCubit.get(context).receptionist?.orders.isEmpty ?? true;
+        final cubit = context.read<AdminBranchCubit>();
+        bool isLoading = AdminBranchCubit.get(context).branch == null;
+        bool isEmpty = AdminBranchCubit.get(context).branch?.orders.isEmpty ?? true;
         if (isLoading) {
           return _buildLoadingList();
         } else if (isEmpty) {
@@ -174,22 +174,22 @@ class _ReceptionistListViewState extends State<ReceptionistListView> {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) => const ReceptionistCard(isLoading: true),
+      itemBuilder: (context, index) => const BranchCard(isLoading: true),
       separatorBuilder: (context, index) => const HeightSpacer(size: 20),
       itemCount: 4,
     );
   }
 
-  Widget _buildOrderList(AdminReceptionCubit cubit) {
+  Widget _buildOrderList(AdminBranchCubit cubit) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) => ReceptionistCard(
-        receptionist: cubit.receptionist!.orders[index],
+      itemBuilder: (context, index) => BranchCard(
+        Branch: cubit.branch!.orders[index],
         isLoading: false,
       ),
       separatorBuilder: (context, index) => const HeightSpacer(size: 20),
-      itemCount: cubit.receptionist!.orders.length,
+      itemCount: cubit.branch!.orders.length,
     );
   }
 
@@ -202,12 +202,12 @@ class _ReceptionistListViewState extends State<ReceptionistListView> {
           Icon(Icons.inbox_outlined, size: 70, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            'No Receptionist found',
+            'No Branch found',
             style: TextStyle(fontSize: 22, color: Colors.grey[600], fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
-            'Receptionist will appear here',
+            'Branch will appear here',
             style: TextStyle(fontSize: 18, color: Colors.grey[400], fontWeight: FontWeight.w600),
           ),
         ],
