@@ -6,10 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../../../../../core/utils/app_style.dart';
-import '../../../../../../core/utils/colors.dart';
-import '../../../../../../core/widgets/height_spacer.dart';
-import '../../../../../../core/widgets/width_spacer.dart';
+import '../../../../../../../core/utils/app_style.dart';
+import '../../../../../../../core/utils/colors.dart';
+import '../../../../../../../core/widgets/height_spacer.dart';
+import '../../../../../../../core/widgets/width_spacer.dart';
 import '../../manager/doctor_cubit.dart';
 import '../../manager/doctor_state.dart';
 
@@ -17,10 +17,10 @@ class DoctorCard extends StatefulWidget {
   const DoctorCard({
     super.key,
     required this.isLoading,
-    this.Doctor,
+    this.doctor,
   });
   final bool isLoading;
-  final Doctor;
+  final doctor;
 
   @override
   State<DoctorCard> createState() => _DoctorCardState();
@@ -185,7 +185,7 @@ class _DoctorListViewState extends State<DoctorListView> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) => DoctorCard(
-        Doctor: cubit.doctor!.orders[index],
+        doctor: cubit.doctor!.orders[index],
         isLoading: false,
       ),
       separatorBuilder: (context, index) => const HeightSpacer(size: 20),

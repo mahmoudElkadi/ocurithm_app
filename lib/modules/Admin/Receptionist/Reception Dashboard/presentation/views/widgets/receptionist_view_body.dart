@@ -41,6 +41,8 @@ class _ReceptionistViewBodyState extends State<ReceptionistViewBody> {
                 hintStyle: TextStyle(color: Colorz.primaryColor, fontSize: 14.sp, fontWeight: FontWeight.w400),
                 height: 7,
                 fillColor: Colorz.primaryColor.withOpacity(0.03),
+                color: Colorz.white,
+                isShadow: false,
                 radius: 30,
                 prefixIcon: Icon(Icons.search, size: 30, color: Colorz.primaryColor),
                 onTextFieldChanged: (value) {
@@ -49,7 +51,7 @@ class _ReceptionistViewBodyState extends State<ReceptionistViewBody> {
                 required: false,
               ),
             ),
-            WidthSpacer(size: 5),
+            const WidthSpacer(size: 5),
             GestureDetector(
               onTap: () async {
                 FocusScope.of(context).unfocus();

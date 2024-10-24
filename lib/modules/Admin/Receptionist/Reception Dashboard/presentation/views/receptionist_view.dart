@@ -6,7 +6,7 @@ import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Admin/Receptionist/Reception%20Dashboard/presentation/views/widgets/receptionist_view_body.dart';
 
 import '../../../../../../core/utils/colors.dart';
-import '../../../Add Receptionist/presentation/view/add_receptionist_view.dart';
+import '../../../Receptionist Details/presentation/view/receptionist_details_view.dart';
 import '../manager/receptionist_cubit.dart';
 
 class ReceptionistView extends StatelessWidget {
@@ -21,7 +21,7 @@ class ReceptionistView extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              Get.to(() => CreateReceptionistView());
+              Get.to(() => ReceptionistDetailsView());
             },
             icon: SvgPicture.asset(
               "assets/icons/add_user.svg",

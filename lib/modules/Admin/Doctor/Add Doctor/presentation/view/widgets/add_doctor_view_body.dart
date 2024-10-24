@@ -14,24 +14,24 @@ import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/text_field.dart';
-import 'package:ocurithm/modules/Admin/Receptionist/Add%20Receptionist/presentation/view/widgets/capabilities_section.dart';
 import 'package:password_generator/password_generator.dart';
 
 import '../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../generated/l10n.dart';
-import '../../manger/Add Receptionist Cubit/add_receptionist_cubit.dart';
-import '../../manger/Add Receptionist Cubit/add_recptionist_state.dart';
+import '../../../../../Receptionist/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
+import '../../manger/Add Doctor Cubit/add_doctor_cubit.dart';
+import '../../manger/Add Doctor Cubit/add_doctor_state.dart';
 
-class CreateReceptionistViewBody extends StatefulWidget {
-  const CreateReceptionistViewBody({super.key, this.nationalId, this.readOnly});
+class CreateDoctorViewBody extends StatefulWidget {
+  const CreateDoctorViewBody({super.key, this.nationalId, this.readOnly});
   final String? nationalId;
   final bool? readOnly;
 
   @override
-  State<CreateReceptionistViewBody> createState() => _CreateReceptionistViewBodyState();
+  State<CreateDoctorViewBody> createState() => _CreateDoctorViewBodyState();
 }
 
-class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody> {
+class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -56,19 +56,22 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
     hasSymbols: true,
   );
   String? profileImageUrl;
+  List selectedCapabilities = [];
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
   final List<Capability> capabilities = [
-    Capability(id: '1', name: 'Programming'),
-    Capability(id: '2', name: 'Design'),
-    Capability(id: '3', name: 'Project Management'),
-    Capability(id: '4', name: 'Communication'),
-    Capability(id: '5', name: 'Problem Solving'),
+    Capability(name: 'Programming'),
+    Capability(name: 'Design'),
+    Capability(name: 'Project Management'),
+    Capability(name: 'Communication'),
+    Capability(name: 'Problem Solving'),
   ];
+
   @override
   Widget build(BuildContext context) {
-    final cubit = CreateReceptionistCubit.get(context);
-    return BlocBuilder<CreateReceptionistCubit, CreateReceptionistState>(
+    final cubit = CreateDoctorCubit.get(context);
+    return BlocBuilder<CreateDoctorCubit, CreateDoctorState>(
         builder: (context, state) => Padding(
               padding: const EdgeInsets.all(15),
               child: Form(
@@ -116,7 +119,7 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                     ),
                     const HeightSpacer(size: 20),
                     TextField2(
-                      // borderMain: CreateReceptionistCubit.get(context).textField == true ? Colorz.blue : null,
+                      // borderMain: CreateDoctorCubit.get(context).textField == true ? Colorz.blue : null,
                       controller: phoneNumberController,
                       type: TextInputType.phone,
                       required: true,
@@ -156,25 +159,25 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                         Expanded(
                           flex: 4,
                           child: TextField2(
-                            // borderMain: CreateReceptionistCubit.get(context).textField == true ? Colorz.blue : null,
+                            // borderMain: CreateDoctorCubit.get(context).textField == true ? Colorz.blue : null,
                             controller: passwordController,
                             required: true,
                             hintText: S.of(context).password,
                             fillColor: Colorz.white,
                             borderColor: Colorz.activeIcon,
                             radius: 30,
-                            isPassword: CreateReceptionistCubit.get(context).obscureText,
-                            suffixIcon: CreateReceptionistCubit.get(context).obscureText == false
+                            isPassword: CreateDoctorCubit.get(context).obscureText,
+                            suffixIcon: CreateDoctorCubit.get(context).obscureText == false
                                 ? IconButton(
                                     onPressed: () {
-                                      CreateReceptionistCubit.get(context).obscureText = !CreateReceptionistCubit.get(context).obscureText;
+                                      CreateDoctorCubit.get(context).obscureText = !CreateDoctorCubit.get(context).obscureText;
                                     },
                                     icon: Icon(Icons.visibility),
                                     color: Colorz.blue,
                                   )
                                 : IconButton(
                                     onPressed: () {
-                                      CreateReceptionistCubit.get(context).obscureText = !CreateReceptionistCubit.get(context).obscureText;
+                                      CreateDoctorCubit.get(context).obscureText = !CreateDoctorCubit.get(context).obscureText;
                                     },
                                     icon: Icon(Icons.visibility_off),
                                     color: Colorz.blue,
@@ -265,10 +268,12 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                     const HeightSpacer(size: 20),
                     CapabilitiesSection(
                       capabilities: capabilities,
-                      onSelectionChanged: (updatedCapabilities) {
-                        // Handle the updated selections
-                        print('Selected capabilities: ${updatedCapabilities.where((c) => c.isSelected).map((c) => c.name).toList()}');
+                      onSelectionChanged: (newSelection) {
+                        selectedCapabilities = newSelection;
+                        log(selectedCapabilities.toString());
+                        setState(() {});
                       },
+                      initialSelectedCapabilities: const [],
                     ),
                     const HeightSpacer(size: 20),
                     Divider(
@@ -305,13 +310,13 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                         ).then((selectedDate) {
                           // After selecting the date, display the time picker.
                           if (selectedDate != null) {
-                            CreateReceptionistCubit.get(context).date = DateTime(
+                            CreateDoctorCubit.get(context).date = DateTime(
                               selectedDate.year,
                               selectedDate.month,
                               selectedDate.day,
                             );
                             setState(() {
-                              log(CreateReceptionistCubit.get(context).date.toString());
+                              log(CreateDoctorCubit.get(context).date.toString());
                             });
                           }
                         });
@@ -322,8 +327,8 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                           decoration: BoxDecoration(
                             color: HexColor("#E7EDEF"),
                             borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                                color: CreateReceptionistCubit.get(context).picDate == false ? Colors.redAccent : Colors.transparent, width: 1),
+                            border:
+                                Border.all(color: CreateDoctorCubit.get(context).picDate == false ? Colors.redAccent : Colors.transparent, width: 1),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -331,9 +336,7 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    CreateReceptionistCubit.get(context).date != null
-                                        ? "${CreateReceptionistCubit.get(context).date!.day}"
-                                        : S.of(context).dd,
+                                    CreateDoctorCubit.get(context).date != null ? "${CreateDoctorCubit.get(context).date!.day}" : S.of(context).dd,
                                     style: appStyle(context, 18, Colorz.black, FontWeight.w600),
                                   ),
                                 ),
@@ -346,9 +349,7 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    CreateReceptionistCubit.get(context).date != null
-                                        ? "${CreateReceptionistCubit.get(context).date!.month}"
-                                        : S.of(context).mm,
+                                    CreateDoctorCubit.get(context).date != null ? "${CreateDoctorCubit.get(context).date!.month}" : S.of(context).mm,
                                     style: appStyle(context, 18, Colorz.black, FontWeight.w600),
                                   ),
                                 ),
@@ -361,9 +362,7 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    CreateReceptionistCubit.get(context).date != null
-                                        ? "${CreateReceptionistCubit.get(context).date!.year}"
-                                        : S.of(context).yy,
+                                    CreateDoctorCubit.get(context).date != null ? "${CreateDoctorCubit.get(context).date!.year}" : S.of(context).yy,
                                     style: appStyle(context, 18, Colorz.black, FontWeight.w600),
                                   ),
                                 ),
@@ -373,7 +372,7 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                         ),
                       ),
                     ),
-                    if (CreateReceptionistCubit.get(context).picDate == false)
+                    if (CreateDoctorCubit.get(context).picDate == false)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Column(
@@ -390,119 +389,6 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                         ),
                       ),
                     const HeightSpacer(size: 20),
-                    Text(S.of(context).gender, style: appStyle(context, 18, Colorz.black, FontWeight.w600)),
-                    const HeightSpacer(size: 0),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          CreateReceptionistCubit.get(context).selectedGender = 'male';
-                        });
-                      },
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(S.of(context).male),
-                        leading: Radio<String>(
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => CreateReceptionistCubit.get(context).gender == false ? Colors.red : Colors.black),
-                          value: 'male',
-                          groupValue: CreateReceptionistCubit.get(context).selectedGender,
-                          onChanged: (String? value) {
-                            setState(() {
-                              CreateReceptionistCubit.get(context).selectedGender = value!;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          CreateReceptionistCubit.get(context).selectedGender = 'female';
-                        });
-                      },
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(S.of(context).female),
-                        leading: Radio<String>(
-                          fillColor: MaterialStateColor.resolveWith(
-                              (states) => CreateReceptionistCubit.get(context).gender == false ? Colors.red : Colors.black),
-                          value: 'female',
-                          groupValue: CreateReceptionistCubit.get(context).selectedGender,
-                          onChanged: (String? value) {
-                            setState(() {
-                              CreateReceptionistCubit.get(context).selectedGender = value!;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    if (CreateReceptionistCubit.get(context).gender == false)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const HeightSpacer(
-                              size: 10,
-                            ),
-                            Text(
-                              S.of(context).mustGender,
-                              style: TextStyle(fontSize: 12, color: Colors.red.shade700, fontWeight: FontWeight.w400),
-                            ),
-                          ],
-                        ),
-                      ),
-                    const HeightSpacer(size: 15),
-                    // Align(
-                    //   alignment: Alignment.center,
-                    //   child: InkWell(
-                    //     onTap: () {
-                    //       log("message");
-                    //       CreateReceptionistCubit.get(context).validateFirstPage();
-                    //       log("message1");
-                    //       log(CreateReceptionistCubit.get(context).isValidate.toString());
-                    //
-                    //       setState(() {});
-                    //       if (formKey.currentState!.validate() && CreateReceptionistCubit.get(context).isValidate) {
-                    //         customLoading(context, "");
-                    //         CreateReceptionistCubit.get(context).createReceptionist(
-                    //           context: context,
-                    //           fullName: nameController.text,
-                    //           password: passwordController.text,
-                    //           phone: phoneNumberController.text,
-                    //           gender: CreateReceptionistCubit.get(context).selectedGender!,
-                    //           dateOfBirth: CreateReceptionistCubit.get(context).date.toString(),
-                    //           branchId: CreateReceptionistCubit.get(context).branchId.toString(),
-                    //         );
-                    //       }
-                    //     },
-                    //     highlightColor: Colors.transparent,
-                    //     splashColor: Colors.transparent,
-                    //     child: Ink(
-                    //       child: Container(
-                    //         padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 20.w),
-                    //         decoration: BoxDecoration(
-                    //           borderRadius: BorderRadius.circular(30),
-                    //           gradient: LinearGradient(
-                    //             begin: Alignment.bottomCenter,
-                    //             end: Alignment.topCenter,
-                    //             colors: [
-                    //               HexColor("#0E3366"),
-                    //               HexColor("#174784"),
-                    //               HexColor("#174784"),
-                    //               HexColor("#174784"),
-                    //               HexColor("#3E86DD"),
-                    //             ],
-                    //           ),
-                    //         ),
-                    //         child: Text(
-                    //           S.of(context).addReceptionist,
-                    //           style: appStyle(context, 18, Colors.white, FontWeight.w600),
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // )
                   ],
                 ),
               ),

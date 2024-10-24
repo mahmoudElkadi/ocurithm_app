@@ -20,6 +20,7 @@ class TextField2 extends StatelessWidget {
       this.kind,
       this.borderColor,
       this.fillColor,
+      this.color,
       this.suffixIcon,
       this.isPassword,
       this.height,
@@ -27,6 +28,7 @@ class TextField2 extends StatelessWidget {
       this.prefixIcon,
       this.border,
       this.isShadow,
+      this.readOnly,
       this.validator,
       this.hintStyle});
   final String? text;
@@ -35,10 +37,12 @@ class TextField2 extends StatelessWidget {
   final TextEditingController controller;
   final bool required;
   final bool? isPassword;
+  final bool? readOnly;
   final bool? isShadow;
   final Widget? icon;
   final Color? borderColor;
   final Color? border;
+  final Color? color;
   final Color? fillColor;
   final TextInputType? type;
   final Function(dynamic)? onTextFieldChanged;
@@ -74,7 +78,7 @@ class TextField2 extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius ?? 10),
-            color: Colors.transparent,
+            color: color ?? Colors.transparent,
             boxShadow: isShadow != false
                 ? [
                     BoxShadow(
@@ -87,6 +91,7 @@ class TextField2 extends StatelessWidget {
           ),
           child: defaultTextFormField(
               context: context,
+              readOnly: readOnly,
               isPass: isPassword ?? false,
               controller: controller,
               onChange: onTextFieldChanged,

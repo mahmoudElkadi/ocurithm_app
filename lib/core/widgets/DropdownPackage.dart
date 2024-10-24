@@ -83,11 +83,38 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
   OverlayEntry? _overlayEntry;
   final double _dropdownMaxHeight = 200.0;
 
+  late final ValueNotifier<bool> _isKeyboardVisible;
+
   @override
   void initState() {
     super.initState();
     _selectedValue = widget.selectedValue;
     widget.controller?._setState(this);
+    _isKeyboardVisible = ValueNotifier<bool>(false);
+
+    // Listen to keyboard visibility changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupKeyboardListener();
+    });
+  }
+
+  void _setupKeyboardListener() {
+    _isKeyboardVisible.value = MediaQuery.of(context).viewInsets.bottom > 0;
+
+    // Update overlay when keyboard visibility changes
+    _isKeyboardVisible.addListener(() {
+      if (_isDropdownOpen) {
+        _updateOverlay();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _removeOverlay();
+    _isKeyboardVisible.dispose();
+    super.dispose();
   }
 
   @override
@@ -103,13 +130,6 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
         _updateOverlay();
       });
     }
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _removeOverlay();
-    super.dispose();
   }
 
   void _toggleDropdown() {
@@ -154,24 +174,19 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
     final spaceBelow = screenHeight - offset.dy - size.height - keyboardHeight;
     final spaceAbove = offset.dy;
 
-    // Determine if dropdown should open upward
-    bool openUpward = spaceBelow < _dropdownMaxHeight && spaceAbove > spaceBelow;
+    // Force dropdown to open upward when keyboard is visible
+    bool openUpward = keyboardHeight > 0 || (spaceBelow < _dropdownMaxHeight && spaceAbove > spaceBelow);
 
     // Calculate actual dropdown height
-    double dropdownHeight = _dropdownMaxHeight;
+    double dropdownHeight = widget.dropdownHeight ?? _dropdownMaxHeight;
     if (openUpward) {
-      dropdownHeight = math.min(_dropdownMaxHeight, spaceAbove - 10);
+      dropdownHeight = math.min(dropdownHeight, spaceAbove - 10);
     } else {
-      dropdownHeight = math.min(_dropdownMaxHeight, spaceBelow - 10);
+      dropdownHeight = math.min(dropdownHeight, spaceBelow - 10);
     }
 
     // Calculate vertical position
-    double verticalOffset;
-    if (openUpward) {
-      verticalOffset = -(dropdownHeight + 5);
-    } else {
-      verticalOffset = size.height - validationHeight;
-    }
+    double verticalOffset = openUpward ? -(dropdownHeight + 5) : size.height - validationHeight;
 
     return OverlayEntry(
       builder: (context) => Stack(
@@ -186,114 +201,15 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
           Positioned(
             left: offset.dx,
             width: size.width,
-            // Modified this line to remove the extra space when opening upward
             top: openUpward ? offset.dy - dropdownHeight : offset.dy + (size.height - validationHeight),
             child: CompositedTransformFollower(
               link: _layerLink,
               showWhenUnlinked: false,
-              offset: Offset(0, verticalOffset),
+              offset: Offset(0, openUpward ? -dropdownHeight + 50 : size.height - validationHeight),
               child: Material(
                 elevation: 8,
                 borderRadius: BorderRadius.circular(8),
-                child: StatefulBuilder(
-                  builder: (context, setState) {
-                    final filteredList = _getFilteredList();
-                    return Container(
-                      constraints: BoxConstraints(
-                        maxHeight: dropdownHeight,
-                      ),
-                      decoration: BoxDecoration(
-                        color: widget.dropdownBgColor ?? Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.shade300,
-                            spreadRadius: 1,
-                            blurRadius: 3,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                            child: TextField(
-                              controller: _searchController,
-                              onChanged: (value) {
-                                setState(() {
-                                  _searchTerm = value;
-                                });
-                                _overlayEntry?.markNeedsBuild();
-                              },
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                hintText: 'Search...',
-                                hintStyle: TextStyle(color: Colors.grey.shade600),
-                                filled: true,
-                                fillColor: Colors.grey.shade100,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(color: Colors.grey.shade400),
-                                ),
-                                prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
-                              ),
-                            ),
-                          ),
-                          Divider(height: 1, color: Colors.grey.shade200),
-                          Flexible(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxHeight: (filteredList.length > 1 ? double.parse((filteredList.length * 80.0).toString()) : double.parse("120"))
-                                    .clamp(15.0, 200.0),
-                              ),
-                              child: widget.isLoading
-                                  ? const Center(child: CircularProgressIndicator())
-                                  : ListView.builder(
-                                      padding: EdgeInsets.zero,
-                                      shrinkWrap: true,
-                                      itemCount: filteredList.length,
-                                      itemBuilder: (context, index) {
-                                        final item = filteredList[index];
-                                        final isDisabled = widget.disabledItems.contains(item);
-                                        return InkWell(
-                                          onTap: isDisabled ? null : () => _selectItem(item),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 12,
-                                              horizontal: 16,
-                                            ),
-                                            child: Text(
-                                              widget.itemAsString(item),
-                                              style: (widget.dropdownTextStyle ??
-                                                      TextStyle(
-                                                        color: Colors.grey.shade800,
-                                                        fontSize: 16.0,
-                                                      ))
-                                                  .copyWith(
-                                                color: isDisabled ? Colors.grey.shade400 : null,
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                child: _buildDropdownContent(dropdownHeight),
               ),
             ),
           ),
@@ -301,6 +217,164 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
       ),
     );
   }
+
+  Widget _buildDropdownContent(double dropdownHeight) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        final filteredList = _getFilteredList();
+        return Container(
+          constraints: BoxConstraints(maxHeight: dropdownHeight),
+          decoration: BoxDecoration(
+            color: widget.dropdownBgColor ?? Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade300,
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildSearchField(setState),
+              Divider(height: 1, color: Colors.grey.shade200),
+              _buildListView(filteredList),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSearchField(StateSetter setState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) {
+          setState(() {
+            _searchTerm = value;
+          });
+          _overlayEntry?.markNeedsBuild();
+        },
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          hintText: 'Search...',
+          hintStyle: TextStyle(color: Colors.grey.shade600),
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade400),
+          ),
+          prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListView(List<T> filteredList) {
+    return Flexible(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: math.min(
+            filteredList.length * 56.0,
+            _dropdownMaxHeight - 60, // Account for search field height
+          ),
+        ),
+        child: widget.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: filteredList.length,
+                itemBuilder: (context, index) {
+                  final item = filteredList[index];
+                  final isDisabled = widget.disabledItems.contains(item);
+                  return InkWell(
+                    onTap: isDisabled ? null : () => _selectItem(item),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                      child: Text(
+                        widget.itemAsString(item),
+                        style: (widget.dropdownTextStyle ??
+                                TextStyle(
+                                  color: Colors.grey.shade800,
+                                  fontSize: 16.0,
+                                ))
+                            .copyWith(
+                          color: isDisabled ? Colors.grey.shade400 : null,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
+    );
+  }
+
+  // OverlayEntry _createOverlayEntry() {
+  //   RenderBox renderBox = context.findRenderObject() as RenderBox;
+  //   var size = renderBox.size;
+  //   var offset = renderBox.localToGlobal(Offset.zero);
+  //
+  //   bool isOffScreen = offset.dy + size.height + 200 > MediaQuery.of(context).size.height;
+  //
+  //   return OverlayEntry(
+  //     builder: (context) => Stack(
+  //       children: [
+  //         Positioned.fill(
+  //           child: GestureDetector(
+  //             onTap: () => _closeDropdown(),
+  //             onPanUpdate: (details) {
+  //               if (details.delta.dy > 0) {
+  //                 _closeDropdown();
+  //                 WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
+  //               }
+  //             },
+  //             behavior: HitTestBehavior.opaque,
+  //             child: Container(color: Colors.transparent),
+  //           ),
+  //         ),
+  //         Positioned(
+  //           left: offset.dx,
+  //           top: isOffScreen ? offset.dy - 200 : offset.dy + size.height,
+  //           width: size.width,
+  //           child: CompositedTransformFollower(
+  //             link: _layerLink,
+  //             showWhenUnlinked: false,
+  //             offset: Offset(0, isOffScreen ? -200 : size.height),
+  //             child: Material(
+  //               elevation: 8,
+  //               child: GestureDetector(
+  //                 behavior: HitTestBehavior.opaque,
+  //                 onTap: () {},
+  //                 child: StatefulBuilder(
+  //                   builder: (context, setState) => _buildDropdownList(setState),
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _closeDropdown() {
     setState(() {
@@ -471,12 +545,12 @@ class DropdownItem<T> extends StatelessWidget {
                   const SizedBox(width: 10),
                   Text(
                     label!,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ],
               )
-            : SizedBox.shrink(),
-        label != null ? const SizedBox(height: 10) : SizedBox.shrink(),
+            : const SizedBox.shrink(),
+        label != null ? const SizedBox(height: 10) : const SizedBox.shrink(),
         FlutterDropdownSearch<T>(
           items: items ?? [],
           disabledItems: disabledItems ?? [],

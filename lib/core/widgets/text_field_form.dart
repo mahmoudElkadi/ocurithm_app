@@ -19,6 +19,7 @@ Widget defaultTextFormField(
     Color? fillColor,
     bool? required,
     bool? isValid,
+    bool? readOnly,
     double? height,
     double? radius,
     TextStyle? hintStyle,
@@ -38,6 +39,7 @@ Widget defaultTextFormField(
     obscureText: isPass,
     onChanged: onChange,
     validator: validator,
+    readOnly: readOnly ?? false,
     textAlign: TextAlign.start,
     cursorColor: Colors.black,
     decoration: InputDecoration(

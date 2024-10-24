@@ -3,9 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 
-import '../../../../../../core/utils/colors.dart';
-import '../../../../../../core/widgets/height_spacer.dart';
-import '../../../../../../core/widgets/text_field.dart';
+import '../../../../../../../core/utils/colors.dart';
+import '../../../../../../../core/widgets/height_spacer.dart';
+import '../../../../../../../core/widgets/text_field.dart';
 import 'doctor_card.dart';
 
 class DoctorViewBody extends StatefulWidget {

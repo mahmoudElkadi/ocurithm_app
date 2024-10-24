@@ -19,4 +19,5 @@ class Colorz {
 
   static Color purple2 = HexColor("#894DF3");
   static Color doctorBackground = HexColor("#F5F5F5");
+  static Color errorColor = HexColor("#F44336");
 }

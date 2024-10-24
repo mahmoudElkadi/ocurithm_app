@@ -3,21 +3,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
-import 'package:ocurithm/modules/Admin/Receptionist/Add%20Receptionist/presentation/view/widgets/add_receptionist_view_body.dart';
+import 'package:ocurithm/modules/Admin/Doctor/Add%20Doctor/presentation/view/widgets/add_Doctor_view_body.dart';
 
-import '../../../../../../generated/l10n.dart';
-import '../../data/repos/add_receptionist_repo_impl.dart';
-import '../manger/Add Receptionist Cubit/add_receptionist_cubit.dart';
+import '../../data/repos/add_doctor_repo_impl.dart';
+import '../manger/Add Doctor Cubit/add_doctor_cubit.dart';
 
-class CreateReceptionistView extends StatelessWidget {
-  const CreateReceptionistView({super.key, this.nationalId, this.readOnly});
+class CreateDoctorView extends StatelessWidget {
+  const CreateDoctorView({super.key, this.nationalId, this.readOnly});
   final String? nationalId;
   final bool? readOnly;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CreateReceptionistCubit(CreateReceptionistRepoImpl()),
+      create: (context) => CreateDoctorCubit(CreateDoctorRepoImpl()),
       child: GestureDetector(
         onTap: () {
           WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
@@ -31,7 +30,7 @@ class CreateReceptionistView extends StatelessWidget {
               onPressed: () => Get.back(),
             ),
             title: Text(
-              S.of(context).createReceptionist,
+              "Add Doctor",
               style: appStyle(context, 20, Colorz.black, FontWeight.w600),
             ),
             centerTitle: true,
@@ -55,7 +54,7 @@ class CreateReceptionistView extends StatelessWidget {
             ],
           ),
           body: SingleChildScrollView(
-              child: CreateReceptionistViewBody(
+              child: CreateDoctorViewBody(
             readOnly: readOnly,
             nationalId: nationalId,
           )),

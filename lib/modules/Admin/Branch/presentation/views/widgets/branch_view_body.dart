@@ -42,6 +42,7 @@ class _BranchViewBodyState extends State<BranchViewBody> {
                 height: 7,
                 fillColor: Colorz.primaryColor.withOpacity(0.03),
                 radius: 30,
+                isShadow: false,
                 prefixIcon: Icon(Icons.search, size: 30, color: Colorz.primaryColor),
                 onTextFieldChanged: (value) {
                   // cubit.getConditions();
