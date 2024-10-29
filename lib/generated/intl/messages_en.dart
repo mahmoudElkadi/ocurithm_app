@@ -116,6 +116,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Password must not be Empty"),
         "mustPhone":
             MessageLookupByLibrary.simpleMessage("Phone must not be Empty"),
+        "mustQualification": MessageLookupByLibrary.simpleMessage(
+            "Qualification must not be Empty"),
         "mustUsername":
             MessageLookupByLibrary.simpleMessage("Username must not be Empty"),
         "name": MessageLookupByLibrary.simpleMessage("Name"),

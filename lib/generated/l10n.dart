@@ -580,6 +580,16 @@ class S {
     );
   }
 
+  /// `Qualification must not be Empty`
+  String get mustQualification {
+    return Intl.message(
+      'Qualification must not be Empty',
+      name: 'mustQualification',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `must not be Empty`
   String get mustNotEmpty {
     return Intl.message(

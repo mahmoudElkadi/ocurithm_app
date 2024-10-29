@@ -64,51 +64,53 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Widget _buildUserInfo(BuildContext context) {
-    return Container(
-      color: Colorz.primaryColor.withOpacity(0.1),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(shape: BoxShape.circle),
-                      child: const CircleAvatar(
-                        radius: 38,
-                        backgroundColor: Colors.white,
-                        child: Icon(
-                          Icons.person,
-                          size: 40,
-                          color: Colors.grey,
+    return SafeArea(
+      child: Container(
+        color: Colorz.primaryColor.withOpacity(0.1),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(shape: BoxShape.circle),
+                        child: const CircleAvatar(
+                          radius: 38,
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            Icons.person,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
-                    ),
-                    const HeightSpacer(size: 0),
-                    Text(
-                      "Name",
-                      style: appStyle(context, 18, Colors.black, FontWeight.w600),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const HeightSpacer(size: 5),
-                    Text(
-                      "Dentist",
-                      style: appStyle(context, 16, Colors.grey, FontWeight.w500),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const HeightSpacer(size: 5),
-                  ],
+                      const HeightSpacer(size: 0),
+                      Text(
+                        "Name",
+                        style: appStyle(context, 18, Colors.black, FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const HeightSpacer(size: 5),
+                      Text(
+                        "Dentist",
+                        style: appStyle(context, 16, Colors.grey, FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const HeightSpacer(size: 5),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -111,6 +111,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "كلمة المرور لا يمكن ان تكون فارغة"),
         "mustPhone": MessageLookupByLibrary.simpleMessage(
             "رقم الهاتف لا يمكن ان يكون فارغ"),
+        "mustQualification":
+            MessageLookupByLibrary.simpleMessage("التخصص لا يمكن ان يكون فارغ"),
         "mustUsername":
             MessageLookupByLibrary.simpleMessage("الاسم لا يمكن ان يكون فارغ"),
         "name": MessageLookupByLibrary.simpleMessage("الاسم"),

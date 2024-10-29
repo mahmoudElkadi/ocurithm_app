@@ -15,32 +15,37 @@ class CustomScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: HexColor("#F7FAFF"),
-        appBar: AppBar(
-          backgroundColor: Colorz.white,
-          scrolledUnderElevation: 0,
-          title: Text(
-            title,
-            style: appStyle(context, 22, showTitle ? Colorz.primaryColor : Colors.transparent, FontWeight.bold),
+    return GestureDetector(
+      onTap: () {
+        WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+          backgroundColor: HexColor("#F7FAFF"),
+          appBar: AppBar(
+            backgroundColor: Colorz.white,
+            scrolledUnderElevation: 0,
+            title: Text(
+              title,
+              style: appStyle(context, 22, showTitle ? Colorz.primaryColor : Colors.transparent, FontWeight.bold),
+            ),
+            actions: actions,
+            centerTitle: true,
+            leading: Builder(
+              builder: (context) {
+                return IconButton(
+                  icon: Icon(
+                    Icons.menu,
+                    color: Colorz.primaryColor,
+                  ), // Change this to your custom icon
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                );
+              },
+            ),
           ),
-          actions: actions,
-          centerTitle: true,
-          leading: Builder(
-            builder: (context) {
-              return IconButton(
-                icon: Icon(
-                  Icons.menu,
-                  color: Colorz.primaryColor,
-                ), // Change this to your custom icon
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              );
-            },
-          ),
-        ),
-        drawer: CustomDrawer(),
-        body: body);
+          drawer: CustomDrawer(),
+          body: body),
+    );
   }
 }

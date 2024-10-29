@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' as getx;
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:ocurithm/modules/Admin/Home/presentation/views/admin_home_view.dart';
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
-import '../../../modules/Admin/Branch/presentation/views/branch_view.dart';
-import '../../../modules/Admin/Receptionist/Reception Dashboard/presentation/views/receptionist_view.dart';
+import '../../../modules/Admin/Doctor/presentation/views/Doctor Dashboard/presentation/views/doctor_view.dart';
+import '../../../modules/Admin/Patient/presentation/views/Patient Dashboard/presentation/views/patient_view.dart';
+import '../../../modules/Admin/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
 import '../../../modules/Login/presentation/view/login_view.dart';
 import 'main_state.dart';
 
@@ -67,9 +67,9 @@ class MainCubit extends Cubit<MainState> {
 
   Future<List<DrawerItem>> getStatusList({context, required List capabilities}) async {
     Map<String, List<dynamic>> statusMappings = {
-      "doctor": ["Dashboard", const AdminBranchView(), "assets/icons/dashboard.svg"],
+      "doctor": ["Patients", const AdminPatientView(), "assets/icons/dashboard.svg"],
       "admin": ["Receptionist", const ReceptionistView(), "assets/icons/receptionist.svg"],
-      "branch": ["Branch", const AdminHomeView(), "assets/icons/dashboard.svg"],
+      "branch": ["Doctor", const AdminDoctorView(), "assets/icons/dashboard.svg"],
     };
 
     drawerItems = [];

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:ocurithm/core/widgets/text_field_form.dart';
 
 import '../utils/app_style.dart';
+import '../utils/colors.dart';
 import 'height_spacer.dart';
 import 'width_spacer.dart';
 
@@ -30,7 +31,8 @@ class TextField2 extends StatelessWidget {
       this.isShadow,
       this.readOnly,
       this.validator,
-      this.hintStyle});
+      this.hintStyle,
+      this.maxLines});
   final String? text;
   final String? kind;
   final String hintText;
@@ -51,6 +53,7 @@ class TextField2 extends StatelessWidget {
   final Widget? prefixIcon;
   final double? height;
   final double? radius;
+  final int? maxLines;
   final TextStyle? hintStyle;
   final String? Function(String?)? validator;
 
@@ -92,6 +95,7 @@ class TextField2 extends StatelessWidget {
           child: defaultTextFormField(
               context: context,
               readOnly: readOnly,
+              maxLines: maxLines ?? 1,
               isPass: isPassword ?? false,
               controller: controller,
               onChange: onTextFieldChanged,
@@ -562,6 +566,133 @@ class EnhancedTextField extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class MultilineTextInput extends StatefulWidget {
+  final String hint;
+  final TextStyle? textStyle;
+  final TextStyle? hintStyle;
+  final InputDecoration? decoration;
+  final double? maxHeight;
+  final void Function(String)? onSubmitted;
+  final TextEditingController controller;
+  final bool? isShadow;
+  final bool? readOnly;
+  final String? Function(String?)? validator;
+  final Color? color;
+  final Color? borderColor;
+  final double? radius;
+
+  const MultilineTextInput({
+    Key? key,
+    this.hint = 'Type your text here...',
+    this.textStyle,
+    this.hintStyle,
+    this.decoration,
+    this.maxHeight,
+    this.onSubmitted,
+    required this.controller,
+    this.isShadow,
+    this.color,
+    this.radius,
+    this.borderColor,
+    this.validator,
+    this.readOnly,
+  }) : super(key: key);
+
+  @override
+  State<MultilineTextInput> createState() => _MultilineTextInputState();
+}
+
+class _MultilineTextInputState extends State<MultilineTextInput> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listener for keyboard events
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _handleSubmit();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _handleSubmit() {
+    if (widget.controller.text.isNotEmpty) {
+      widget.onSubmitted?.call(widget.controller.text);
+      widget.controller.text += '\n'; // Add new line
+      widget.controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: widget.controller.text.length),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: widget.maxHeight ?? double.infinity,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(widget.radius ?? 10),
+        color: widget.color ?? Colors.transparent,
+        boxShadow: widget.isShadow != false
+            ? [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                ),
+              ]
+            : null,
+      ),
+      child: TextFormField(
+        controller: widget.controller,
+        focusNode: _focusNode,
+        style: widget.textStyle,
+        minLines: 3,
+        maxLines: null,
+        readOnly: widget.readOnly ?? false,
+        textInputAction: TextInputAction.newline,
+        decoration: widget.decoration ??
+            InputDecoration(
+              hintText: widget.hint,
+              hintStyle: widget.hintStyle,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: Colors.transparent,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: Colors.transparent,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: widget.borderColor ?? Colors.transparent,
+                ),
+              ),
+              contentPadding: const EdgeInsets.all(12),
+            ),
+        validator: widget.validator,
+        cursorColor: Colorz.black,
+        onFieldSubmitted: (value) {
+          _handleSubmit();
+        },
+      ),
     );
   }
 }

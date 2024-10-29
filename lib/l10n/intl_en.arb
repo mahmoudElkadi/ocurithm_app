@@ -52,6 +52,7 @@
     "mustGender": "Gender must not be Empty",
     "mustBirth": "Date of Birth must not be Empty",
     "mustEmail": "Email must not be Empty",
+    "mustQualification": "Qualification must not be Empty",
     "mustNotEmpty": "must not be Empty",
     "forgetPassword": "Forgot Password?",
     "hello": "Hello!",

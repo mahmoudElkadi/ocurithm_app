@@ -35,7 +35,6 @@ class MyApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           theme: ThemeData(
-            primarySwatch: createMaterialColor(Colors.white),
             appBarTheme: const AppBarTheme(elevation: 0), // Custom white color
             // Custom white color
             useMaterial3: false,

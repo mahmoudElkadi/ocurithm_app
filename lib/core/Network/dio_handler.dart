@@ -20,6 +20,7 @@ class ApiService {
     Duration timeout = const Duration(seconds: 60),
   }) async {
     try {
+      log(url);
       final response = await _dio.request<dynamic>(
         url,
         data: data,
@@ -29,7 +30,7 @@ class ApiService {
           headers: headers ?? {'Content-Type': 'application/json'},
           sendTimeout: timeout,
           receiveTimeout: timeout,
-          validateStatus: (status) => status! <= 500,
+          validateStatus: (status) => status! <= 700,
         ),
       );
 
@@ -69,7 +70,7 @@ class ApiService {
   }
 
   static T? _handleDioError<T>(DioException e) {
-    log("DioException: ${e.message}");
+    log("DioExceptions: ${e}");
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:

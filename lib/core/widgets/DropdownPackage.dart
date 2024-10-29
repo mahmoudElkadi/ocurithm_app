@@ -140,6 +140,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
     }
     setState(() {
       _isDropdownOpen = !_isDropdownOpen;
+      WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
     });
   }
 
@@ -151,6 +152,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
   void _removeOverlay() {
     _overlayEntry?.remove();
     _overlayEntry = null;
+    WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
   }
 
   void _updateOverlay() {
@@ -158,6 +160,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
     if (_isDropdownOpen) {
       _createOverlay();
     }
+    WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
   }
 
   OverlayEntry _createOverlayEntry() {
@@ -288,13 +291,17 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
     return Flexible(
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: math.min(
-            filteredList.length * 56.0,
-            _dropdownMaxHeight - 60, // Account for search field height
-          ),
+          maxHeight: (filteredList.length > 1 ? double.parse((filteredList.length * 80.0).toString()) : double.parse("120")).clamp(15.0, 200.0),
         ),
         child: widget.isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(
+                    color: Colors.grey,
+                  ),
+                ),
+              )
             : ListView.builder(
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
@@ -328,54 +335,6 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
     );
   }
 
-  // OverlayEntry _createOverlayEntry() {
-  //   RenderBox renderBox = context.findRenderObject() as RenderBox;
-  //   var size = renderBox.size;
-  //   var offset = renderBox.localToGlobal(Offset.zero);
-  //
-  //   bool isOffScreen = offset.dy + size.height + 200 > MediaQuery.of(context).size.height;
-  //
-  //   return OverlayEntry(
-  //     builder: (context) => Stack(
-  //       children: [
-  //         Positioned.fill(
-  //           child: GestureDetector(
-  //             onTap: () => _closeDropdown(),
-  //             onPanUpdate: (details) {
-  //               if (details.delta.dy > 0) {
-  //                 _closeDropdown();
-  //                 WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
-  //               }
-  //             },
-  //             behavior: HitTestBehavior.opaque,
-  //             child: Container(color: Colors.transparent),
-  //           ),
-  //         ),
-  //         Positioned(
-  //           left: offset.dx,
-  //           top: isOffScreen ? offset.dy - 200 : offset.dy + size.height,
-  //           width: size.width,
-  //           child: CompositedTransformFollower(
-  //             link: _layerLink,
-  //             showWhenUnlinked: false,
-  //             offset: Offset(0, isOffScreen ? -200 : size.height),
-  //             child: Material(
-  //               elevation: 8,
-  //               child: GestureDetector(
-  //                 behavior: HitTestBehavior.opaque,
-  //                 onTap: () {},
-  //                 child: StatefulBuilder(
-  //                   builder: (context, setState) => _buildDropdownList(setState),
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   void _closeDropdown() {
     setState(() {
       _isDropdownOpen = false;
@@ -403,6 +362,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
     return CompositedTransformTarget(
       link: _layerLink,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
             onTap: _toggleDropdown,

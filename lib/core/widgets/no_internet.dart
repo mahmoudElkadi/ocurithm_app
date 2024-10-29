@@ -7,8 +7,9 @@ import '../utils/app_style.dart';
 import '../utils/colors.dart';
 
 class NoInternet extends StatelessWidget {
-  const NoInternet({super.key, this.onPressed});
+  const NoInternet({super.key, this.onPressed, this.withImage = true});
   final void Function()? onPressed;
+  final bool withImage;
 
   @override
   Widget build(BuildContext context) {
@@ -25,11 +26,12 @@ class NoInternet extends StatelessWidget {
               style: appStyle(context, 24, Colors.black, FontWeight.w700),
             ),
             HeightSpacer(size: 20.h),
-            SvgPicture.asset(
-              "assets/icons/no_internet.svg",
-              height: 150.h,
-              width: 150.w,
-            ),
+            if (withImage)
+              SvgPicture.asset(
+                "assets/icons/no_internet.svg",
+                height: 150.h,
+                width: 150.w,
+              ),
             const HeightSpacer(size: 20),
             Text(
               "You Are Offline ",
