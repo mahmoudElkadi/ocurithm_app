@@ -95,6 +95,7 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                     TextField2(
                       controller: widget.cubit.nameController,
                       required: true,
+                      type: TextInputType.name,
                       hintText: S.of(context).fullName,
                       fillColor: Colorz.white,
                       borderColor: Colorz.activeIcon,

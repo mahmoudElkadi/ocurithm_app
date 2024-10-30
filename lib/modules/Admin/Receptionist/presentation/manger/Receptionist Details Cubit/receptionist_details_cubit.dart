@@ -338,7 +338,15 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
           icon: Icon(Icons.check, color: Colorz.white),
         );
         Navigator.pop(context);
-        Navigator.pop(context);
+        readOnly = true;
+
+        receptionist?.branch = result.branch;
+        receptionist?.name = result.name;
+        receptionist?.image = result.image;
+        receptionist?.phone = result.phone;
+        receptionist?.birthDate = result.birthDate;
+        receptionist?.branchId = result.branchId;
+        receptionist?.capabilities = result.capabilities;
 
         final index = receptionists?.receptionists.indexWhere((receptionist) => receptionist.id == id);
         if (index != -1) {

@@ -50,7 +50,6 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
   }
 
   fetchPatientData() async {
-    log("messagecc");
     await widget.cubit.getPatient(id: widget.id);
 
     if (widget.cubit.patient != null) {
@@ -165,6 +164,7 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                         : TextField2(
                             controller: widget.cubit.nameController,
                             required: true,
+                            type: TextInputType.name,
                             hintText: S.of(context).fullName,
                             fillColor: Colorz.white,
                             borderColor: Colorz.activeIcon,
@@ -496,74 +496,88 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                         ),
                       ),
                     const HeightSpacer(size: 20),
-                    Text(S.of(context).gender, style: appStyle(context, 18, Colorz.black, FontWeight.w600)),
-                    const HeightSpacer(size: 0),
-                    GestureDetector(
-                      onTap: widget.cubit.readOnly == false
-                          ? () {
-                              setState(() {
-                                widget.cubit.selectedGender = 'Male';
-                              });
-                            }
-                          : null,
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(S.of(context).male),
-                        leading: Radio<String>(
-                          fillColor: MaterialStateColor.resolveWith((states) => widget.cubit.gender == false ? Colors.red : Colors.black),
-                          value: 'Male',
-                          groupValue: widget.cubit.selectedGender,
-                          onChanged: widget.cubit.readOnly == false
-                              ? (String? value) {
-                                  setState(() {
-                                    widget.cubit.selectedGender = value!;
-                                  });
-                                }
-                              : null,
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: widget.cubit.readOnly == false
-                          ? () {
-                              setState(() {
-                                widget.cubit.selectedGender = 'Female';
-                              });
-                            }
-                          : null,
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(S.of(context).female),
-                        leading: Radio<String>(
-                          fillColor: MaterialStateColor.resolveWith((states) => widget.cubit.gender == false ? Colors.red : Colors.black),
-                          value: 'Female',
-                          groupValue: widget.cubit.selectedGender,
-                          onChanged: widget.cubit.readOnly == false
-                              ? (String? value) {
-                                  setState(() {
-                                    widget.cubit.selectedGender = value!;
-                                  });
-                                }
-                              : null,
-                        ),
-                      ),
-                    ),
-                    if (widget.cubit.gender == false)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const HeightSpacer(
-                              size: 10,
+                    isLoading
+                        ? _buildShimmer(Container(
+                            width: MediaQuery.sizeOf(context).width,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
                             ),
-                            Text(
-                              S.of(context).mustNotEmpty,
-                              style: appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ))
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(S.of(context).gender, style: appStyle(context, 18, Colorz.black, FontWeight.w600)),
+                              const HeightSpacer(size: 0),
+                              GestureDetector(
+                                onTap: widget.cubit.readOnly == false
+                                    ? () {
+                                        setState(() {
+                                          widget.cubit.selectedGender = 'Male';
+                                        });
+                                      }
+                                    : null,
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(S.of(context).male),
+                                  leading: Radio<String>(
+                                    fillColor: MaterialStateColor.resolveWith((states) => widget.cubit.gender == false ? Colors.red : Colors.black),
+                                    value: 'Male',
+                                    groupValue: widget.cubit.selectedGender,
+                                    onChanged: widget.cubit.readOnly == false
+                                        ? (String? value) {
+                                            setState(() {
+                                              widget.cubit.selectedGender = value!;
+                                            });
+                                          }
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: widget.cubit.readOnly == false
+                                    ? () {
+                                        setState(() {
+                                          widget.cubit.selectedGender = 'Female';
+                                        });
+                                      }
+                                    : null,
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(S.of(context).female),
+                                  leading: Radio<String>(
+                                    fillColor: MaterialStateColor.resolveWith((states) => widget.cubit.gender == false ? Colors.red : Colors.black),
+                                    value: 'Female',
+                                    groupValue: widget.cubit.selectedGender,
+                                    onChanged: widget.cubit.readOnly == false
+                                        ? (String? value) {
+                                            setState(() {
+                                              widget.cubit.selectedGender = value!;
+                                            });
+                                          }
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              if (widget.cubit.gender == false)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const HeightSpacer(
+                                        size: 10,
+                                      ),
+                                      Text(
+                                        S.of(context).mustNotEmpty,
+                                        style: appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          )
                   ],
                 ),
               ),

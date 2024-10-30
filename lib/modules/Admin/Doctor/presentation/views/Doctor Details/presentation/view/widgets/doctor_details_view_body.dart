@@ -59,7 +59,7 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
       widget.cubit.phoneNumberController.text = widget.cubit.doctor?.phone ?? "";
       widget.cubit.passwordController.text = widget.cubit.doctor?.password ?? "";
       widget.cubit.date = widget.cubit.doctor?.birthDate;
-      widget.cubit.selectedBranch = widget.cubit.doctor?.branch;
+      widget.cubit.selectedBranch = widget.cubit.doctor?.branch?.name;
       widget.cubit.qualificationController.text = widget.cubit.doctor?.qualifications ?? "";
     }
     await widget.cubit.getBranches();
@@ -439,56 +439,6 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                       ),
                     const HeightSpacer(size: 20),
 
-                    // Align(
-                    //   alignment: Alignment.center,
-                    //   child: InkWell(
-                    //     onTap: () {
-                    //       log("message");
-                    //       widget.cubit.validateFirstPage();
-                    //       log("message1");
-                    //       log(widget.cubit.isValidate.toString());
-                    //
-                    //       setState(() {});
-                    //       if (formKey.currentState!.validate() && widget.cubit.isValidate) {
-                    //         customLoading(context, "");
-                    //         widget.cubit.DoctorDetails(
-                    //           context: context,
-                    //           fullName: nameController.text,
-                    //           password: passwordController.text,
-                    //           phone: phoneNumberController.text,
-                    //           gender: widget.cubit.selectedGender!,
-                    //           dateOfBirth: widget.cubit.date.toString(),
-                    //           branchId: widget.cubit.branchId.toString(),
-                    //         );
-                    //       }
-                    //     },
-                    //     highlightColor: Colors.transparent,
-                    //     splashColor: Colors.transparent,
-                    //     child: Ink(
-                    //       child: Container(
-                    //         padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 20.w),
-                    //         decoration: BoxDecoration(
-                    //           borderRadius: BorderRadius.circular(30),
-                    //           gradient: LinearGradient(
-                    //             begin: Alignment.bottomCenter,
-                    //             end: Alignment.topCenter,
-                    //             colors: [
-                    //               HexColor("#0E3366"),
-                    //               HexColor("#174784"),
-                    //               HexColor("#174784"),
-                    //               HexColor("#174784"),
-                    //               HexColor("#3E86DD"),
-                    //             ],
-                    //           ),
-                    //         ),
-                    //         child: Text(
-                    //           S.of(context).addDoctor,
-                    //           style: appStyle(context, 18, Colors.white, FontWeight.w600),
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // )
                   ],
                 ),
               ),

@@ -135,10 +135,22 @@ class DoctorRepoImpl implements DoctorRepo {
     final url = "${Config.baseUrl}${Config.doctors}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
+    Map<String, dynamic> data = {
+      "name": doctor.name?.trim(),
+      "phone": doctor.phone?.trim(),
+      "branch": doctor.branchId,
+      if (doctor.birthDate != null) "birthDate": doctor.birthDate.toString(),
+      if (doctor.capabilities != null && doctor.capabilities!.isNotEmpty) "capabilities": doctor.capabilities,
+      if (doctor.qualifications != null && doctor.qualifications!.isNotEmpty) "qualifications": doctor.qualifications,
+      if (doctor.image != null && doctor.image!.isNotEmpty) "image": doctor.image,
+    };
+
+    log("data: $data");
+
     final result = await ApiService.request<Doctor>(
       url: url,
       method: 'PUT',
-      data: doctor.toJson(),
+      data: data,
       headers: {
         "Content-Type": "application/json",
         if (token != null) 'Cookie': 'ocurithmToken=$token',

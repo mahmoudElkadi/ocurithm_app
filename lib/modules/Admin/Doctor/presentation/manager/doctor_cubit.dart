@@ -337,7 +337,14 @@ class DoctorCubit extends Cubit<DoctorState> {
           icon: Icon(Icons.check, color: Colorz.white),
         );
         Navigator.pop(context);
-        Navigator.pop(context);
+        readOnly = true;
+        doctor?.branch = result.branch;
+        doctor?.capabilities = result.capabilities;
+        doctor?.birthDate = result.birthDate;
+        doctor?.image = result.image;
+        doctor?.name = result.name;
+        doctor?.phone = result.phone;
+        emit(AdminBranchSuccess());
 
         final index = doctors?.doctors?.indexWhere((Doctor) => Doctor.id == id);
         if (index != -1) {

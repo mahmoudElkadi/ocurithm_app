@@ -59,6 +59,7 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
       widget.cubit.passwordController.text = widget.cubit.receptionist?.password ?? "";
       widget.cubit.date = widget.cubit.receptionist?.birthDate;
       widget.cubit.selectedBranch = widget.cubit.receptionist?.branch?.name;
+      widget.cubit.branchId = widget.cubit.receptionist?.branch?.id;
     }
     await widget.cubit.getBranches();
   }
@@ -132,6 +133,7 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                             controller: widget.cubit.nameController,
                             required: true,
                             hintText: S.of(context).fullName,
+                            type: TextInputType.name,
                             fillColor: Colorz.white,
                             borderColor: Colorz.activeIcon,
                             readOnly: widget.cubit.readOnly,

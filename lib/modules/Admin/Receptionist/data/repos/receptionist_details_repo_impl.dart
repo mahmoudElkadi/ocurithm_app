@@ -150,10 +150,19 @@ class ReceptionistRepoImpl implements ReceptionistRepo {
     final url = "${Config.baseUrl}${Config.receptionists}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
+    Map<String, dynamic> data = {
+      "name": receptionist.name?.trim(),
+      "phone": receptionist.phone?.trim(),
+      "branch": receptionist.branchId,
+      if (receptionist.birthDate != null) "birthDate": receptionist.birthDate.toString(),
+      if (receptionist.capabilities != null && receptionist.capabilities!.isNotEmpty) "capabilities": receptionist.capabilities,
+      if (receptionist.image != null && receptionist.image!.isNotEmpty) "image": receptionist.image,
+    };
+
     final result = await ApiService.request<Receptionist>(
       url: url,
       method: 'PUT',
-      data: receptionist.toJson(),
+      data: data,
       headers: {
         "Content-Type": "application/json",
         if (token != null) 'Cookie': 'ocurithmToken=$token',
