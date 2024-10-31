@@ -1,6 +1,8 @@
+import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:ocurithm/core/utils/keyboard_helper.dart';
 
 class FlutterDropdownSearchController {
   _FlutterDropdownSearchState? _state;
@@ -74,7 +76,7 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
   State<FlutterDropdownSearch> createState() => _FlutterDropdownSearchState<T>();
 }
 
-class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
+class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> with WidgetsBindingObserver {
   bool _isDropdownOpen = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchTerm = '';
@@ -83,38 +85,59 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
   OverlayEntry? _overlayEntry;
   final double _dropdownMaxHeight = 200.0;
 
-  late final ValueNotifier<bool> _isKeyboardVisible;
+  bool _isVisible = false;
 
   @override
   void initState() {
     super.initState();
     _selectedValue = widget.selectedValue;
     widget.controller?._setState(this);
-    _isKeyboardVisible = ValueNotifier<bool>(false);
 
     // Listen to keyboard visibility changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _setupKeyboardListener();
-    });
+    WidgetsBinding.instance.addObserver(this);
   }
 
-  void _setupKeyboardListener() {
-    _isKeyboardVisible.value = MediaQuery.of(context).viewInsets.bottom > 0;
-
-    // Update overlay when keyboard visibility changes
-    _isKeyboardVisible.addListener(() {
-      if (_isDropdownOpen) {
-        _updateOverlay();
-      }
-    });
-  }
+  // void _setupKeyboardListener() {
+  //   _isKeyboardVisible.value = WidgetsBinding.instance.window.viewInsets.bottom > 0;
+  //
+  //   // Update overlay when keyboard visibility changes
+  //   _isKeyboardVisible.addListener(() {
+  //     if (WidgetsBinding.instance.window.viewInsets.bottom > 0.0) {
+  //       log(WidgetsBinding.instance.window.viewInsets.bottom.toString());
+  //       _isVisible = true;
+  //       log("is Visible");
+  //     } else {
+  //       _isVisible = false;
+  //       log("Not Visible");
+  //     }
+  //     if (_isDropdownOpen) {
+  //       _updateOverlay();
+  //     }
+  //   });
+  // }
 
   @override
   void dispose() {
     _searchController.dispose();
     _removeOverlay();
-    _isKeyboardVisible.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
+    final newKeyboardVisible = bottomInset > 0;
+
+    // Update only if the visibility has changed
+    if (newKeyboardVisible != _isVisible) {
+      log(WidgetsBinding.instance.window.viewInsets.bottom.toString());
+      setState(() {
+        _isVisible = newKeyboardVisible;
+        log("is Visible $_isVisible");
+        setState(() {});
+      });
+    }
   }
 
   @override
@@ -173,12 +196,16 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     final validationHeight = widget.isValid == false ? 32.0 : 0.0;
 
-    // Calculate available spaces
+    // Calculate available spaces and screen sections
     final spaceBelow = screenHeight - offset.dy - size.height - keyboardHeight;
     final spaceAbove = offset.dy;
+    final upperThirdThreshold = screenHeight / 3;
 
-    // Force dropdown to open upward when keyboard is visible
-    bool openUpward = keyboardHeight > 0 || (spaceBelow < _dropdownMaxHeight && spaceAbove > spaceBelow);
+    // Determine if dropdown is in upper third of screen
+    bool isInUpperThird = offset.dy < upperThirdThreshold;
+
+    // Calculate preferred direction
+    bool openUpward = keyboardHeight > 0 || (spaceBelow < _dropdownMaxHeight && spaceAbove > spaceBelow) || isInUpperThird;
 
     // Calculate actual dropdown height
     double dropdownHeight = widget.dropdownHeight ?? _dropdownMaxHeight;
@@ -188,78 +215,85 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
       dropdownHeight = math.min(dropdownHeight, spaceBelow - 10);
     }
 
-    // Calculate vertical position
-    double verticalOffset = openUpward ? -(dropdownHeight + 5) : size.height - validationHeight;
+    double _keyboardHeight = keyboardHeight;
 
     return OverlayEntry(
-      builder: (context) => Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _closeDropdown,
-              behavior: HitTestBehavior.opaque,
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-          Positioned(
-            left: offset.dx,
-            width: size.width,
-            top: openUpward ? offset.dy - dropdownHeight : offset.dy + (size.height - validationHeight),
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              offset: Offset(0, openUpward ? -dropdownHeight + 50 : size.height - validationHeight),
-              child: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(8),
-                child: _buildDropdownContent(dropdownHeight),
+      builder: (context) => KeyboardHeightProvider(
+        onKeyboardHeightChanged: (height) {
+          _keyboardHeight = height;
+          // Force rebuild overlay when keyboard height changes
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _overlayEntry?.markNeedsBuild();
+          });
+        },
+        child: StatefulBuilder(builder: (context, setState) {
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: _closeDropdown,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(color: Colors.grey.withOpacity(0.4)),
+                ),
               ),
-            ),
-          ),
-        ],
+              Positioned(
+                left: offset.dx,
+                width: size.width,
+                top: openUpward ? offset.dy - dropdownHeight : offset.dy + size.height,
+                child: CompositedTransformFollower(
+                  link: _layerLink,
+                  showWhenUnlinked: false,
+                  offset: Offset(
+                      0,
+                      _calculateVerticalOffset(
+                          isInUpperThird: isInUpperThird,
+                          isKeyboardVisible: _isVisible || _keyboardHeight > 0,
+                          openUpward: openUpward,
+                          dropdownHeight: dropdownHeight,
+                          size: size,
+                          validationHeight: validationHeight,
+                          keyboardHeight: _keyboardHeight)),
+                  child: Material(
+                    elevation: 8,
+                    borderRadius: BorderRadius.circular(8),
+                    child: _buildDropdownContent(dropdownHeight),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildDropdownContent(double dropdownHeight) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        final filteredList = _getFilteredList();
-        return Container(
-          constraints: BoxConstraints(maxHeight: dropdownHeight),
-          decoration: BoxDecoration(
-            color: widget.dropdownBgColor ?? Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade300,
-                spreadRadius: 1,
-                blurRadius: 3,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildSearchField(setState),
-              Divider(height: 1, color: Colors.grey.shade200),
-              _buildListView(filteredList),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
+// Updated keyboard detection in search field
   Widget _buildSearchField(StateSetter setState) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: TextField(
         controller: _searchController,
+        onTap: () {
+          // Immediate visibility update
+          setState(() {
+            _isVisible = true;
+          });
+          // Force rebuild after a short delay to ensure keyboard is visible
+          Future.delayed(const Duration(milliseconds: 50), () {
+            if (_overlayEntry != null) {
+              _overlayEntry!.markNeedsBuild();
+            }
+          });
+        },
         onChanged: (value) {
           setState(() {
             _searchTerm = value;
+          });
+          _overlayEntry?.markNeedsBuild();
+        },
+        onSubmitted: (value) {
+          setState(() {
+            _isVisible = false;
           });
           _overlayEntry?.markNeedsBuild();
         },
@@ -284,6 +318,66 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> {
           prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
         ),
       ),
+    );
+  }
+
+  double _calculateVerticalOffset({
+    required bool isInUpperThird,
+    required bool isKeyboardVisible,
+    required bool openUpward,
+    required double dropdownHeight,
+    required Size size,
+    required double validationHeight,
+    required double keyboardHeight,
+  }) {
+    if (isInUpperThird) {
+      return size.height - validationHeight; // Show dropdown below when in upper third
+    }
+
+    if (isKeyboardVisible) {
+      if (openUpward) {
+        return -dropdownHeight - keyboardHeight + 50;
+      }
+      return -dropdownHeight;
+    }
+
+    if (openUpward) {
+      return -dropdownHeight + 50;
+    }
+
+    return size.height - validationHeight;
+  }
+
+  Widget _buildDropdownContent(double dropdownHeight) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        final filteredList = _getFilteredList();
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: (filteredList.length > 1 ? double.parse((filteredList.length * 80.0).toString()) : double.parse("120")).clamp(15.0, 200.0),
+          ),
+          decoration: BoxDecoration(
+            color: widget.dropdownBgColor ?? Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade300,
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildSearchField(setState),
+              Divider(height: 1, color: Colors.grey.shade200),
+              _buildListView(filteredList),
+            ],
+          ),
+        );
+      },
     );
   }
 

@@ -7,10 +7,10 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
-import '../../../modules/Admin/Doctor/presentation/views/Doctor Dashboard/presentation/views/doctor_view.dart';
-import '../../../modules/Admin/Patient/presentation/views/Patient Dashboard/presentation/views/patient_view.dart';
-import '../../../modules/Admin/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
+import '../../../modules/Appointment/presentation/views/appointment_view.dart';
 import '../../../modules/Login/presentation/view/login_view.dart';
+import '../../../modules/Patient/presentation/views/Patient Dashboard/presentation/views/patient_view.dart';
+import '../../../modules/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
 import 'main_state.dart';
 
 class MainCubit extends Cubit<MainState> {
@@ -69,7 +69,8 @@ class MainCubit extends Cubit<MainState> {
     Map<String, List<dynamic>> statusMappings = {
       "doctor": ["Patients", const AdminPatientView(), "assets/icons/dashboard.svg"],
       "admin": ["Receptionist", const ReceptionistView(), "assets/icons/receptionist.svg"],
-      "branch": ["Doctor", const AdminDoctorView(), "assets/icons/dashboard.svg"],
+      //  "branch": ["Doctor", const AdminDoctorView(), "assets/icons/dashboard.svg"],
+      "branch": ["Appointment", const AppointmentView(), "assets/icons/dashboard.svg"],
     };
 
     drawerItems = [];
