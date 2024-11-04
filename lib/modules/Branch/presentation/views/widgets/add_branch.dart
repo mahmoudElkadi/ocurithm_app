@@ -6,6 +6,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 
 import '../../../../../../core/utils/colors.dart';
+import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../data/model/add_branch_model.dart';
 import '../../manager/branch_cubit.dart';
 import '../../manager/branch_state.dart';
@@ -139,7 +140,21 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                 child: Column(
                   children: [
                     // Code TextField
-
+                    DropdownItem(
+                      radius: 30,
+                      color: Colorz.white,
+                      isShadow: true,
+                      iconData: Icon(
+                        Icons.arrow_drop_down_circle,
+                        color: Colorz.blue,
+                      ),
+                      items: ["mahmoud", "ahmed"],
+                      selectedValue: "widget.cubit.selectedBranch",
+                      hintText: 'Select Branch',
+                      itemAsString: (item) => item.toString(),
+                      onItemSelected: (item) {},
+                      isLoading: false,
+                    ),
                     TextFormField(
                       controller: _codeController,
                       cursorColor: Colors.black,

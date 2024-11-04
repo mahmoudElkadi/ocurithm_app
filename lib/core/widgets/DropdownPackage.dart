@@ -21,12 +21,16 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
   final String? validateText;
   final String? selectedValue;
   final List<T> items;
+  final bool useRootNavigator; // Add this property
+  final bool insideDialog; // Add this new property
+
   final List<T> disabledItems;
   final TextStyle? hintStyle;
   final TextStyle? style;
   final TextStyle? dropdownTextStyle;
   final IconData? suffixIcon;
   final double? dropdownHeight;
+  final double? height;
   final Color? dropdownBgColor;
   final Color? color;
   final Color? border;
@@ -53,6 +57,9 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
     this.dropdownTextStyle,
     this.suffixIcon,
     this.dropdownHeight,
+    this.useRootNavigator = false, // default to false
+    this.insideDialog = false, // Default to false
+
     this.dropdownBgColor,
     this.textFieldBorder,
     this.contentPadding,
@@ -70,6 +77,7 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
     this.controller,
     this.border,
     this.validateText,
+    this.height,
   }) : super(key: key);
 
   @override
@@ -79,12 +87,12 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
 class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> with WidgetsBindingObserver {
   bool _isDropdownOpen = false;
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode(); // Add this
   String _searchTerm = '';
   String? _selectedValue;
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   final double _dropdownMaxHeight = 200.0;
-
   bool _isVisible = false;
 
   @override
@@ -119,6 +127,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose(); // Add this
     _removeOverlay();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -163,19 +172,26 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     }
     setState(() {
       _isDropdownOpen = !_isDropdownOpen;
-      WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
     });
   }
 
   void _createOverlay() {
+    final overlay = Overlay.of(context, rootOverlay: widget.insideDialog);
     _overlayEntry = _createOverlayEntry();
-    Overlay.of(context).insert(_overlayEntry!);
+    overlay.insert(_overlayEntry!);
+
+    // Request focus after a short delay
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted && _searchFocusNode != null) {
+        _searchFocusNode.requestFocus();
+      }
+    });
   }
 
   void _removeOverlay() {
+    _searchFocusNode.unfocus();
     _overlayEntry?.remove();
     _overlayEntry = null;
-    WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
   }
 
   void _updateOverlay() {
@@ -273,27 +289,16 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: TextField(
         controller: _searchController,
+        focusNode: _searchFocusNode,
+        autofocus: true,
         onTap: () {
-          // Immediate visibility update
           setState(() {
             _isVisible = true;
-          });
-          // Force rebuild after a short delay to ensure keyboard is visible
-          Future.delayed(const Duration(milliseconds: 50), () {
-            if (_overlayEntry != null) {
-              _overlayEntry!.markNeedsBuild();
-            }
           });
         },
         onChanged: (value) {
           setState(() {
             _searchTerm = value;
-          });
-          _overlayEntry?.markNeedsBuild();
-        },
-        onSubmitted: (value) {
-          setState(() {
-            _isVisible = false;
           });
           _overlayEntry?.markNeedsBuild();
         },
@@ -433,6 +438,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     setState(() {
       _isDropdownOpen = false;
     });
+    _searchFocusNode.unfocus();
     _removeOverlay();
   }
 
@@ -445,6 +451,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
       _selectedValue = widget.itemAsString(item);
       _isDropdownOpen = false;
     });
+    _searchFocusNode.unfocus();
     _removeOverlay();
     if (widget.onItemSelected != null) {
       widget.onItemSelected!(item);
@@ -479,7 +486,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: widget.height ?? 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -493,14 +500,18 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                             ),
                           Expanded(
                             child: _selectedValue != null && _selectedValue!.isNotEmpty
-                                ? Text(
-                                    _selectedValue!,
-                                    style: widget.style ??
-                                        const TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                ? FittedBox(
+                                    alignment: Alignment.centerLeft,
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _selectedValue!,
+                                      style: widget.style ??
+                                          const TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                    ),
                                   )
                                 : Text(
                                     widget.hintText ?? 'Select an item',
@@ -562,9 +573,18 @@ class DropdownItem<T> extends StatelessWidget {
       this.isValid,
       this.controller,
       this.disabledItems,
+      this.hintStyle,
       this.border,
       this.prefixIcon,
-      this.validateText});
+      this.validateText,
+      this.height,
+      this.insideDialog = false, // Default to false
+
+      this.useRootNavigator = false,
+      this.textStyle});
+  final bool useRootNavigator; // Add this property
+
+  final bool insideDialog; // Add this new property
 
   final TextEditingController? searchController;
   final List<T>? items;
@@ -581,11 +601,13 @@ class DropdownItem<T> extends StatelessWidget {
   final String? label;
   final bool? isValid;
   final FlutterDropdownSearchController? controller;
-
+  final TextStyle? hintStyle;
+  final TextStyle? textStyle;
   final String Function(T) itemAsString; // Function to convert item to string
   final void Function(T) onItemSelected; // Callback for item selection
   final bool isLoading; // Indicates whether the data is being loaded
   final double? radius;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -613,10 +635,15 @@ class DropdownItem<T> extends StatelessWidget {
           prefixIcon: prefixIcon,
           color: color,
           isValid: isValid,
+          useRootNavigator: useRootNavigator,
           radius: radius,
           selectedValue: selectedValue,
           isShadow: isShadow,
           controller: controller,
+          height: height,
+          hintStyle: hintStyle,
+          style: textStyle,
+          insideDialog: insideDialog,
           //textController: searchController,
           hintText: hintText,
           textFieldBorder: OutlineInputBorder(

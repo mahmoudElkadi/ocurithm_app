@@ -1,9 +1,10 @@
 import 'dart:developer';
 
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/responsiveText.dart';
@@ -14,6 +15,8 @@ import 'package:table_calendar/table_calendar.dart' as tc show StartingDayOfWeek
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../widgets/DropdownPackage.dart';
+import '../../../colors.dart';
 import '../core/booking_controller.dart';
 import '../model/booking_service.dart';
 import '../model/enums.dart' as bc;
@@ -341,150 +344,273 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                           onTap: () async {
                             // log(widget.startingDayOfWeek.toString());
                             // log(widget.endingDayOfWeek.toString());
-                            String? choosenType;
-                            String? returnedType = await showGeneralDialog(
-                                barrierColor: Colors.black.withOpacity(0.5),
-                                transitionBuilder: (context, a1, a2, widget) {
-                                  return Transform.scale(
-                                    scale: a1.value,
-                                    child: Opacity(
-                                      opacity: a1.value,
-                                      child: AlertDialog(
-                                        shape: OutlineInputBorder(borderRadius: BorderRadius.circular(16.0)),
-                                        title: Text(
-                                          "Choose Examination Type",
-                                          style: TextStyle(fontWeight: FontWeight.bold),
-                                        ),
-                                        content: Padding(
-                                          padding: EdgeInsets.only(left: size.width * 0.01, top: size.height * 0.02),
-                                          child: SizedBox(
-                                            height: size.height * 0.09,
-                                            child: Column(
-                                              children: [
-                                                Container(
-                                                  width: size.width * 0.8,
-                                                  padding: EdgeInsets.only(left: 10, right: 5),
-                                                  decoration: BoxDecoration(
-                                                      border: Border.all(color: Colors.grey, width: 1), borderRadius: BorderRadius.circular(15)),
-                                                  child: DropdownSearch<String>(
-                                                    items: [
-                                                      "Examination",
-                                                      "1st Examination follow up",
-                                                      "2nd Examination follow up",
-                                                      "Surgery preparation",
-                                                      "Surgery Day",
-                                                      "1st Post-operative follow up",
-                                                      "2nd Post-operative follow up",
-                                                      "Investigation",
-                                                      "Investigation Discussion"
-                                                    ],
-                                                    clearButtonProps: ClearButtonProps(
-                                                      isVisible: true,
-                                                    ),
-                                                    popupProps: PopupProps.modalBottomSheet(
-                                                      showSearchBox: true,
-                                                      showSelectedItems: true,
-                                                    ),
-                                                    dropdownDecoratorProps: DropDownDecoratorProps(
-                                                      dropdownSearchDecoration: InputDecoration(
-                                                        border: InputBorder.none,
-                                                        hintText: "Choose Examination Type",
-                                                        hintStyle: TextStyle(
-                                                          color: Colors.black,
-                                                          fontSize: 17,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    onChanged: (newValue) {
-                                                      setState(() {
-                                                        choosenType = newValue;
-                                                      });
-                                                    },
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        actions: [
-                                          Padding(
-                                            padding: EdgeInsets.only(right: size.width * 0.05),
-                                            child: ElevatedButton(
-                                              child: Text("Continue", style: appStyle(context, 18, Colors.white, FontWeight.w600)),
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.blue,
-                                              ),
-                                              onPressed: () async {
-                                                if (choosenType != null) {
-                                                  log(" chooosenType " + choosenType.toString());
-                                                  Navigator.of(context).pop(choosenType);
-                                                }
-                                              },
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                                transitionDuration: Duration(milliseconds: 300),
-                                barrierDismissible: true,
-                                barrierLabel: '',
-                                context: context,
-                                pageBuilder: (context, animation1, animation2) {
-                                  return Container();
-                                });
-                            if (choosenType != null && returnedType != null) {
-                              controller.toggleUploading();
-                              var data = await widget.uploadBooking(
-                                newBooking: controller.generateNewBookingForUploading(),
-                                patient: controller.patient,
-                                branch: controller.branch,
-                                examinationType: returnedType.toString(),
-                              );
-
-                              controller.toggleUploading();
-                              controller.resetSelectedSlot();
-                              if (data == "Booking uploaded successfully") {
-                                Navigator.of(context).popUntil((route) => route.isFirst);
-                              } else if (data == "Error uploading booking") {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: Text(S.of(context).error),
-                                      content: Text(S.of(context).conflict),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop(); // Closes the dialog
-                                          },
-                                          child: Text('OK', style: appStyle(context, 16, Colors.black, FontWeight.w600)),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: Text(S.of(context).error),
-                                      content: Text(S.of(context).serverError),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop(); // Closes the dialog
-                                          },
-                                          child: Text('OK', style: appStyle(context, 16, Colors.black, FontWeight.w600)),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              }
-                            }
+                            // String? choosenType;
+                            // String? returnedType = await showGeneralDialog(
+                            //     barrierColor: Colors.black.withOpacity(0.5),
+                            //     transitionBuilder: (context, a1, a2, widget) {
+                            //       return Transform.scale(
+                            //         scale: a1.value,
+                            //         child: Opacity(
+                            //           opacity: a1.value,
+                            //           child: AlertDialog(
+                            //             shape: OutlineInputBorder(borderRadius: BorderRadius.circular(16.0)),
+                            //             title: Text(
+                            //               "Choose Examination Type",
+                            //               style: TextStyle(fontWeight: FontWeight.bold),
+                            //             ),
+                            //             content: Padding(
+                            //               padding: EdgeInsets.only(left: size.width * 0.01, top: size.height * 0.02),
+                            //               child: SizedBox(
+                            //                 child: Column(
+                            //                   children: [
+                            //                     Container(
+                            //                       width: size.width * 0.8,
+                            //                       padding: EdgeInsets.only(left: 10, right: 5),
+                            //                       decoration: BoxDecoration(
+                            //                           border: Border.all(color: Colors.grey, width: 1), borderRadius: BorderRadius.circular(15)),
+                            //                       child: DropdownSearch<String>(
+                            //                         items: [
+                            //                           "Examination",
+                            //                           "1st Examination follow up",
+                            //                           "2nd Examination follow up",
+                            //                           "Surgery preparation",
+                            //                           "Surgery Day",
+                            //                           "1st Post-operative follow up",
+                            //                           "2nd Post-operative follow up",
+                            //                           "Investigation",
+                            //                           "Investigation Discussion"
+                            //                         ],
+                            //                         clearButtonProps: ClearButtonProps(
+                            //                           isVisible: true,
+                            //                         ),
+                            //                         popupProps: PopupProps.modalBottomSheet(
+                            //                           showSearchBox: true,
+                            //                           showSelectedItems: true,
+                            //                         ),
+                            //                         dropdownDecoratorProps: DropDownDecoratorProps(
+                            //                           dropdownSearchDecoration: InputDecoration(
+                            //                             border: InputBorder.none,
+                            //                             hintText: "Choose Examination Type",
+                            //                             hintStyle: TextStyle(
+                            //                               color: Colors.black,
+                            //                               fontSize: 17,
+                            //                             ),
+                            //                           ),
+                            //                         ),
+                            //                         onChanged: (newValue) {
+                            //                           setState(() {
+                            //                             choosenType = newValue;
+                            //                           });
+                            //                         },
+                            //                       ),
+                            //                     ),
+                            //                     Container(
+                            //                       width: size.width * 0.8,
+                            //                       padding: EdgeInsets.only(left: 10, right: 5),
+                            //                       decoration: BoxDecoration(
+                            //                           border: Border.all(color: Colors.grey, width: 1), borderRadius: BorderRadius.circular(15)),
+                            //                       child: DropdownSearch<String>(
+                            //                         items: [
+                            //                           "Examination",
+                            //                           "1st Examination follow up",
+                            //                           "2nd Examination follow up",
+                            //                           "Surgery preparation",
+                            //                           "Surgery Day",
+                            //                           "1st Post-operative follow up",
+                            //                           "2nd Post-operative follow up",
+                            //                           "Investigation",
+                            //                           "Investigation Discussion"
+                            //                         ],
+                            //                         clearButtonProps: ClearButtonProps(
+                            //                           isVisible: true,
+                            //                         ),
+                            //                         popupProps: PopupProps.modalBottomSheet(
+                            //                           showSearchBox: true,
+                            //                           showSelectedItems: true,
+                            //                         ),
+                            //                         dropdownDecoratorProps: DropDownDecoratorProps(
+                            //                           dropdownSearchDecoration: InputDecoration(
+                            //                             border: InputBorder.none,
+                            //                             hintText: "Choose Examination Type",
+                            //                             hintStyle: TextStyle(
+                            //                               color: Colors.black,
+                            //                               fontSize: 17,
+                            //                             ),
+                            //                           ),
+                            //                         ),
+                            //                         onChanged: (newValue) {
+                            //                           setState(() {
+                            //                             choosenType = newValue;
+                            //                           });
+                            //                         },
+                            //                       ),
+                            //                     ),
+                            //                     Container(
+                            //                       width: size.width * 0.8,
+                            //                       padding: EdgeInsets.only(left: 10, right: 5),
+                            //                       decoration: BoxDecoration(
+                            //                           border: Border.all(color: Colors.grey, width: 1), borderRadius: BorderRadius.circular(15)),
+                            //                       child: DropdownSearch<String>(
+                            //                         items: [
+                            //                           "Examination",
+                            //                           "1st Examination follow up",
+                            //                           "2nd Examination follow up",
+                            //                           "Surgery preparation",
+                            //                           "Surgery Day",
+                            //                           "1st Post-operative follow up",
+                            //                           "2nd Post-operative follow up",
+                            //                           "Investigation",
+                            //                           "Investigation Discussion"
+                            //                         ],
+                            //                         clearButtonProps: ClearButtonProps(
+                            //                           isVisible: true,
+                            //                         ),
+                            //                         popupProps: PopupProps.modalBottomSheet(
+                            //                           showSearchBox: true,
+                            //                           showSelectedItems: true,
+                            //                         ),
+                            //                         dropdownDecoratorProps: DropDownDecoratorProps(
+                            //                           dropdownSearchDecoration: InputDecoration(
+                            //                             border: InputBorder.none,
+                            //                             hintText: "Choose Examination Type",
+                            //                             hintStyle: TextStyle(
+                            //                               color: Colors.black,
+                            //                               fontSize: 17,
+                            //                             ),
+                            //                           ),
+                            //                         ),
+                            //                         onChanged: (newValue) {
+                            //                           setState(() {
+                            //                             choosenType = newValue;
+                            //                           });
+                            //                         },
+                            //                       ),
+                            //                     ),
+                            //                     Container(
+                            //                       width: size.width * 0.8,
+                            //                       padding: EdgeInsets.only(left: 10, right: 5),
+                            //                       decoration: BoxDecoration(
+                            //                           border: Border.all(color: Colors.grey, width: 1), borderRadius: BorderRadius.circular(15)),
+                            //                       child: DropdownSearch<String>(
+                            //                         items: [
+                            //                           "Examination",
+                            //                           "1st Examination follow up",
+                            //                           "2nd Examination follow up",
+                            //                           "Surgery preparation",
+                            //                           "Surgery Day",
+                            //                           "1st Post-operative follow up",
+                            //                           "2nd Post-operative follow up",
+                            //                           "Investigation",
+                            //                           "Investigation Discussion"
+                            //                         ],
+                            //                         clearButtonProps: ClearButtonProps(
+                            //                           isVisible: true,
+                            //                         ),
+                            //                         popupProps: PopupProps.modalBottomSheet(
+                            //                           showSearchBox: true,
+                            //                           showSelectedItems: true,
+                            //                         ),
+                            //                         dropdownDecoratorProps: DropDownDecoratorProps(
+                            //                           dropdownSearchDecoration: InputDecoration(
+                            //                             border: InputBorder.none,
+                            //                             hintText: "Choose Examination Type",
+                            //                             hintStyle: TextStyle(
+                            //                               color: Colors.black,
+                            //                               fontSize: 17,
+                            //                             ),
+                            //                           ),
+                            //                         ),
+                            //                         onChanged: (newValue) {
+                            //                           setState(() {
+                            //                             choosenType = newValue;
+                            //                           });
+                            //                         },
+                            //                       ),
+                            //                     ),
+                            //                   ],
+                            //                 ),
+                            //               ),
+                            //             ),
+                            //             actions: [
+                            //               Padding(
+                            //                 padding: EdgeInsets.only(right: size.width * 0.05),
+                            //                 child: ElevatedButton(
+                            //                   child: Text("Continue", style: appStyle(context, 18, Colors.white, FontWeight.w600)),
+                            //                   style: ElevatedButton.styleFrom(
+                            //                     backgroundColor: Colors.blue,
+                            //                   ),
+                            //                   onPressed: () async {
+                            //                     if (choosenType != null) {
+                            //                       log(" chooosenType " + choosenType.toString());
+                            //                       Navigator.of(context).pop(choosenType);
+                            //                     }
+                            //                   },
+                            //                 ),
+                            //               )
+                            //             ],
+                            //           ),
+                            //         ),
+                            //       );
+                            //     },
+                            //     transitionDuration: Duration(milliseconds: 300),
+                            //     barrierDismissible: true,
+                            //     barrierLabel: '',
+                            //     context: context,
+                            //     pageBuilder: (context, animation1, animation2) {
+                            //       return Container();
+                            //     });
+                            // if (choosenType != null && returnedType != null) {
+                            //   controller.toggleUploading();
+                            //   var data = await widget.uploadBooking(
+                            //     newBooking: controller.generateNewBookingForUploading(),
+                            //     patient: controller.patient,
+                            //     branch: controller.branch,
+                            //     examinationType: returnedType.toString(),
+                            //   );
+                            //
+                            //   controller.toggleUploading();
+                            //   controller.resetSelectedSlot();
+                            //   if (data == "Booking uploaded successfully") {
+                            //     Navigator.of(context).popUntil((route) => route.isFirst);
+                            //   } else if (data == "Error uploading booking") {
+                            //     showDialog(
+                            //       context: context,
+                            //       builder: (BuildContext context) {
+                            //         return AlertDialog(
+                            //           title: Text(S.of(context).error),
+                            //           content: Text(S.of(context).conflict),
+                            //           actions: [
+                            //             TextButton(
+                            //               onPressed: () {
+                            //                 Navigator.of(context).pop(); // Closes the dialog
+                            //               },
+                            //               child: Text('OK', style: appStyle(context, 16, Colors.black, FontWeight.w600)),
+                            //             ),
+                            //           ],
+                            //         );
+                            //       },
+                            //     );
+                            //   } else {
+                            //     showDialog(
+                            //       context: context,
+                            //       builder: (BuildContext context) {
+                            //         return AlertDialog(
+                            //           title: Text(S.of(context).error),
+                            //           content: Text(S.of(context).serverError),
+                            //           actions: [
+                            //             TextButton(
+                            //               onPressed: () {
+                            //                 Navigator.of(context).pop(); // Closes the dialog
+                            //               },
+                            //               child: Text('OK', style: appStyle(context, 16, Colors.black, FontWeight.w600)),
+                            //             ),
+                            //           ],
+                            //         );
+                            //       },
+                            //     );
+                            //   }
+                            // }
+                            customerInfoDialog(context);
                           },
                           isDisabled: controller.selectedSlot == -1,
                           buttonActiveColor: widget.bookingButtonColor,
@@ -767,4 +893,61 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       ),
     );
   }
+}
+
+Future customerInfoDialog(BuildContext context) {
+  return showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => PopScope(
+      canPop: false,
+      onPopInvoked: (value) {
+        if (value) return;
+        Get.back(result: true);
+      },
+      child: Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        alignment: Alignment.center,
+        backgroundColor: Colorz.white,
+        insetPadding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.h),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              width: MediaQuery.sizeOf(context).width,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Appointment Info', style: appStyle(context, 18, Colorz.black, FontWeight.w600)),
+                  HeightSpacer(size: 10.h),
+                  DropdownItem(
+                    radius: 30,
+                    color: Colorz.white,
+                    isShadow: true,
+                    iconData: Icon(
+                      Icons.arrow_drop_down_circle,
+                      color: Colorz.blue,
+                    ),
+                    items: ["mahmoud", "ahmed"],
+                    selectedValue: "widget.cubit.selectedBranch",
+                    hintText: 'Select Branch',
+                    itemAsString: (item) => item.toString(),
+                    onItemSelected: (item) {},
+                    isLoading: false,
+                    insideDialog: true,
+                  ),
+                  // ... other widgets
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }

@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' as getx;
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/modules/Branch/presentation/views/branch_view.dart';
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
 import '../../../modules/Appointment/presentation/views/appointment_view.dart';
+import '../../../modules/Doctor/presentation/views/Doctor Dashboard/presentation/views/doctor_view.dart';
 import '../../../modules/Login/presentation/view/login_view.dart';
 import '../../../modules/Patient/presentation/views/Patient Dashboard/presentation/views/patient_view.dart';
 import '../../../modules/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
@@ -66,11 +68,13 @@ class MainCubit extends Cubit<MainState> {
   int notificationIndex = -1;
 
   Future<List<DrawerItem>> getStatusList({context, required List capabilities}) async {
+    capabilities = ["doctor", "receptionist", "branch", "appointment", "patient"];
     Map<String, List<dynamic>> statusMappings = {
-      "doctor": ["Patients", const AdminPatientView(), "assets/icons/dashboard.svg"],
-      "admin": ["Receptionist", const ReceptionistView(), "assets/icons/receptionist.svg"],
-      //  "branch": ["Doctor", const AdminDoctorView(), "assets/icons/dashboard.svg"],
-      "branch": ["Appointment", const AppointmentView(), "assets/icons/dashboard.svg"],
+      "patient": ["Patients", const AdminPatientView(), "assets/icons/dashboard.svg"],
+      "doctor": ["Doctors", const AdminDoctorView(), "assets/icons/dashboard.svg"],
+      "receptionist": ["Receptionists", const ReceptionistView(), "assets/icons/receptionist.svg"],
+      "branch": ["Doctor", const AdminBranchView(), "assets/icons/dashboard.svg"],
+      "appointment": ["Appointments", const AppointmentView(), "assets/icons/dashboard.svg"],
     };
 
     drawerItems = [];

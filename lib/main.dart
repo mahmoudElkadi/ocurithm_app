@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             appBarTheme: const AppBarTheme(elevation: 0), // Custom white color
             // Custom white color
+
             useMaterial3: false,
           ),
           supportedLocales: S.delegate.supportedLocales,

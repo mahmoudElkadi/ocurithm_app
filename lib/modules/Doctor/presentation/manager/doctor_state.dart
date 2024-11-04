@@ -23,3 +23,9 @@ class AdminBranchLoading extends DoctorState {}
 class AdminBranchError extends DoctorState {}
 
 class AdminBranchSuccess extends DoctorState {}
+
+class AdminDoctorLoading extends DoctorState {}
+
+class AdminDoctorError extends DoctorState {}
+
+class AdminDoctorSuccess extends DoctorState {}

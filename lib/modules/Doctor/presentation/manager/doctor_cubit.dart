@@ -46,10 +46,10 @@ class DoctorCubit extends Cubit<DoctorState> {
   TextEditingController searchController = TextEditingController();
   getDoctors() async {
     doctors = null;
-    emit(AdminBranchLoading());
+    emit(AdminDoctorLoading());
 
     connection = await InternetConnection().hasInternetAccess;
-    emit(AdminBranchLoading());
+    emit(AdminDoctorLoading());
     try {
       if (connection == false) {
         Get.snackbar(
@@ -59,18 +59,18 @@ class DoctorCubit extends Cubit<DoctorState> {
           colorText: Colorz.white,
           icon: Icon(Icons.error, color: Colorz.white),
         );
-        emit(AdminBranchError());
+        emit(AdminDoctorError());
       } else {
         doctors = await doctorRepo.getAllDoctors(page: page, search: searchController.text);
         if (doctors!.doctors!.isNotEmpty) {
-          emit(AdminBranchSuccess());
+          emit(AdminDoctorSuccess());
         } else {
-          emit(AdminBranchError());
+          emit(AdminDoctorError());
         }
       }
     } catch (e) {
       log(e.toString());
-      emit(AdminBranchError());
+      emit(AdminDoctorError());
     }
   }
 
