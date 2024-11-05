@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
@@ -11,7 +12,6 @@ import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
-import '../../../../../generated/l10n.dart';
 import '../../manager/Appointment cubit/appointment_cubit.dart';
 import '../../manager/Appointment cubit/appointment_state.dart';
 
@@ -97,89 +97,21 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
                 ],
               ),
             ),
-            const HeightSpacer(size: 20),
-            ExpandableTimeSlots(),
-            const HeightSpacer(size: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Stack(
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    padding: const EdgeInsets.only(top: 17),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        color: Colorz.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colorz.grey, width: 0.3),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          childAspectRatio: 1.5,
-                          crossAxisSpacing: 2,
-                          mainAxisSpacing: 2,
-                        ),
-                        itemCount: 13,
-                        itemBuilder: (context, index) {
-                          return Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      DateFormat("hh:mm a").format(
-                                        DateTime.now().add(Duration(minutes: 30 * index)),
-                                      ),
-                                      style: appStyle(context, 18, Colorz.blue, FontWeight.w500),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Flexible(
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          "(Ibrahim Mostafa)",
-                                          style: appStyle(context, 12, Colorz.black, FontWeight.w500),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (index % 3 != 2 && index != 12)
-                                Positioned(
-                                  right: -2,
-                                  top: 0,
-                                  bottom: 0,
-                                  child: Center(
-                                    child: Container(
-                                      width: 2.7,
-                                      height: 25,
-                                      decoration: BoxDecoration(
-                                        color: Colorz.black,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            const HeightSpacer(size: 10),
+            const ExpandableTimeSlots(
+              title: "Morning",
+              image: "assets/icons/morning.svg",
             ),
-            const HeightSpacer(size: 20),
+            const HeightSpacer(size: 10),
+            const ExpandableTimeSlots(
+              title: "Afternoon",
+              image: "assets/icons/afternoon.svg",
+            ),
+            const HeightSpacer(size: 10),
+            const ExpandableTimeSlots(
+              title: "Evening",
+              image: "assets/icons/evening.svg",
+            ),
           ],
         ),
       ),
@@ -188,7 +120,9 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
 }
 
 class ExpandableTimeSlots extends StatefulWidget {
-  const ExpandableTimeSlots({super.key});
+  const ExpandableTimeSlots({super.key, this.title, this.image});
+  final String? title;
+  final String? image;
 
   @override
   State<ExpandableTimeSlots> createState() => _ExpandableTimeSlotsState();
@@ -196,6 +130,42 @@ class ExpandableTimeSlots extends StatefulWidget {
 
 class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
   int? expandedIndex;
+  bool isExpanded = false;
+
+  void toggleExpansion() {
+    setState(() {
+      isExpanded = !isExpanded;
+    });
+  }
+
+  List<Color> getThemeColors(String theme) {
+    switch (theme.toLowerCase()) {
+      case 'afternoon':
+        return [
+          HexColor("#C2FDF2"),
+          HexColor("#CAF0F5"),
+          HexColor("#DAD6FC"),
+          HexColor("#DED0FE"),
+        ];
+      case 'morning':
+        return [HexColor("#FDF598"), HexColor("#FCE7A9"), HexColor("#FBD5BF"), HexColor("#FAC0D8"), Colors.pink.shade300];
+
+      case 'evening':
+        return [
+          HexColor("#F8F8F8"),
+          HexColor("#F0F0F0"),
+          HexColor("#E8E8E8"),
+        ];
+
+      default:
+        return [
+          HexColor("#C2FDF2"),
+          HexColor("#CAF0F5"),
+          HexColor("#DAD6FC"),
+          HexColor("#DED0FE"),
+        ];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,77 +173,105 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
       visible: true,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Stack(
-          children: [
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.only(top: 17),
-              child: Container(
+        child: GestureDetector(
+          onTap: toggleExpansion,
+          child: Stack(
+            children: [
+              // Main Container
+              Container(
                 width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                  color: Colorz.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colorz.grey, width: 0.3),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 300),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: _buildTimeSlots(),
+                padding: const EdgeInsets.only(top: 17),
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(
+                    color: Colorz.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colorz.grey, width: 0.3),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: isExpanded ? _buildTimeSlots() : [], // Only show slots when expanded
+                    ),
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              left: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
-              right: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    gradient: LinearGradient(
-                      begin: Alignment.centerRight,
-                      end: Alignment.centerLeft,
-                      colors: [
-                        HexColor("#C2FDF2"),
-                        HexColor("#CAF0F5"),
-                        HexColor("#DAD6FC"),
-                        HexColor("#DED0FE"),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(20)),
-                child: Text(
-                  S.of(context).afternoon,
-                  style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
+
+              // Afternoon Label
+              AnimatedPositioned(
+                left: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
+                right: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
+                top: isExpanded ? 0 : 29,
+                duration: const Duration(milliseconds: 300),
+                child: AnimatedContainer(
+                  padding: EdgeInsets.fromLTRB(isExpanded ? 10 : 0, 5, isExpanded ? 20 : 0, 5),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      gradient: LinearGradient(
+                        begin: Alignment.centerRight,
+                        end: Alignment.centerLeft,
+                        colors: isExpanded
+                            ? getThemeColors(widget.title ?? "Afternoon")
+                            : [
+                                Colorz.white,
+                                Colorz.white,
+                              ],
+                      ),
+                      borderRadius: BorderRadius.circular(20)),
+                  duration: const Duration(milliseconds: 300),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SvgPicture.asset(
+                        widget.image ?? "assets/icons/afternoon.svg",
+                        width: 25,
+                        height: 25,
+                      ),
+                      const WidthSpacer(size: 5),
+                      Text(
+                        widget.title ?? "Afternoon",
+                        style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Positioned(
-              right: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
-              left: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomRight,
-                      end: Alignment.topLeft,
-                      colors: [
-                        HexColor("#C2FDF2"),
-                        HexColor("#CAF0F5"),
-                        HexColor("#DAD6FC"),
-                        HexColor("#DED0FE"),
-                      ],
-                    ),
-                    shape: BoxShape.circle),
-                child: Text(
-                  4.toString(),
-                  style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
+
+              // Number Circle
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                left: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
+                right: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
+                top: isExpanded ? 0 : 28,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: isExpanded ? Colors.transparent : Colors.black, width: 0.3),
+                      gradient: isExpanded
+                          ? LinearGradient(
+                              begin: Alignment.bottomRight,
+                              end: Alignment.topLeft,
+                              colors: [
+                                HexColor("#C2FDF2"),
+                                HexColor("#CAF0F5"),
+                                HexColor("#DAD6FC"),
+                                HexColor("#DED0FE"),
+                              ],
+                            )
+                          : null,
+                      shape: BoxShape.circle),
+                  child: Text(
+                    4.toString(),
+                    style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -547,226 +545,85 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
   }
 }
 
-// class AppointmentViewBody extends StatefulWidget {
-//   const AppointmentViewBody({super.key, this.patient, required this.branch});
-//   final Patient? patient;
-//   final String branch;
-//
-//   @override
-//   State<AppointmentViewBody> createState() => _AppointmentViewBodyState();
-// }
-//
-// class _AppointmentViewBodyState extends State<AppointmentViewBody> {
-//   final now = DateTime.now();
-//   late BookingService bookingService;
-//   late StreamController<dynamic> _controller;
-//   Timer? _pollingTimer;
-//   bool _disposed = false;
-//
-//   bool _viewOnly = false;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     bookingService = BookingService(
-//       serviceName: 'Appointment Reservation',
-//       serviceDuration: 10,
-//       bookingEnd: DateTime(now.year, now.month, now.day, 18, 0),
-//       bookingStart: DateTime(now.year, now.month, now.day, 8, 0),
-//     );
-//
-//     _controller = StreamController<dynamic>.broadcast();
-//
-//     // Call fetchInitialData when the screen is opened
-//     fetchInitialData(branch: widget.branch, date: DateTime.now().toString());
-//   }
-//
-//   List<dynamic> appointments = [];
-//   bool isFirst = true;
-//   Future<void> fetchInitialData({required String date, required String branch}) async {
-//     if (_disposed) return;
-//
-//     Map<String, dynamic> data = {
-//       "date": date,
-//       "branch": widget.branch,
-//       "patient": widget.patient?.id,
-//     };
-//     log("data ${data.toString()}");
-//
-//     var dio = Dio(BaseOptions(
-//       connectTimeout: const Duration(minutes: 2),
-//       receiveTimeout: const Duration(minutes: 2),
-//     ));
-//
-//     try {
-//       var response = await dio.get(
-//         "${Config.baseUrl}appointments",
-//         data: data,
-//         options: Options(
-//           headers: {"Accept": "application/json", "Content-Type": "application/json", "Cookie": "ocurithmToken=${CacheHelper.getData(key: 'token')}"},
-//           validateStatus: (status) {
-//             return status! <= 500;
-//           },
-//         ),
-//       );
-//       log(response.realUri.toString());
-//       if (isFirst) {
-//         isFirst = false;
-//         fetchInitialData(date: date, branch: widget.branch);
-//       }
-//       if (_disposed) return;
-//       log(response.data.toString());
-//
-//       if (response.statusCode == 200) {
-//         final Map<String, dynamic> responseData = response.data;
-//
-//         // Remove appointments that are no longer present
-//
-//         // Add new appointments
-//         appointments = response.data['appointments'];
-//
-//         _controller.add(appointments);
-//       } else {
-//         throw Exception('Failed to load appointments');
-//       }
-//     } catch (e) {
-//       if (_disposed) return;
-//
-//       log('Error fetching data: $e');
-//     }
-//   }
-//
-//   @override
-//   void dispose() {
-//     _disposed = true;
-//     _controller.close();
-//     _pollingTimer?.cancel();
-//     super.dispose();
-//   }
-//
-//   Stream<dynamic>? getBookingStream({
-//     required String branch,
-//     required DateTime start,
-//     required DateTime end,
-//   }) {
-//     // Start polling
-//     _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-//       fetchInitialData(branch: widget.branch, date: start.toIso8601String());
-//     });
-//
-//     return _controller.stream;
-//   }
-//
-//   Future<dynamic> uploadBooking({
-//     required String branch,
-//     required String examinationType,
-//     required BookingService newBooking,
-//     required Patient patient,
-//   }) async {
-//     var dio = Dio();
-//
-//     try {
-//       Map<String, dynamic> data = {
-//         "branch_id": widget.branch,
-//         "examination_type": examinationType,
-//         "start": newBooking.bookingStart.toIso8601String(),
-//         "end": newBooking.bookingEnd.toIso8601String(),
-//         "patient_id": patient.id,
-//         "branch_name": patient.branch?.name,
-//         "full_name": patient.name,
-//         "phone": patient.phone,
-//       };
-//       log('Uploading booking data: $data');
-//
-//       var response = await dio.post(
-//         "${Config.baseUrl}appointment",
-//         data: data,
-//         options: Options(
-//           validateStatus: (status) {
-//             return status! < 500;
-//           },
-//         ),
-//       );
-//       log('Response: ${response.data.toString()}');
-//
-//       if (response.statusCode == 200) {
-//         return 'Booking uploaded successfully';
-//       } else if (response.data.toString().contains("Conflicting appointments found")) {
-//         isFirst = true;
-//         fetchInitialData(date: DateTime.now().toString(), branch: widget.branch);
-//         return 'Error uploading booking';
-//       } else {
-//         return 'Server Error';
-//       }
-//     } catch (e) {
-//       log('Error uploading booking: $e');
-//     }
-//   }
-//
-//   List<Map<String, dynamic>> dateTimeRanges = [];
-//
-//   List<Map<String, dynamic>> convertStreamResultToDateTimeRanges({
-//     required dynamic streamResult,
-//   }) {
-//     List<Map<String, dynamic>> dateTimeRanges = [];
-//
-//     if (streamResult is List<dynamic>) {
-//       for (var item in streamResult) {
-//         dateTimeRanges.add({
-//           "Time": DateTimeRange(
-//             start: DateTime.parse(item["start"]),
-//             end: DateTime.parse(item["end"]),
-//           ),
-//           "phoneNumber": item["phone"],
-//           "name": item["full_name"],
-//           "manualId": item["manual_id"],
-//           "examination_type": item["examination_type"],
-//           "branch": item["branch_name"],
-//         });
-//       }
-//     } else {
-//       // Handle the case where streamResult is not a List
-//       log('Invalid streamResult format');
-//     }
-//
-//     return dateTimeRanges;
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         HeightSpacer(size: 10.h),
-//         Expanded(
-//           child: BookingCalendar(
-//             bookingService: bookingService,
-//             convertStreamResultToDateTimeRanges: convertStreamResultToDateTimeRanges,
-//             getBookingStream: getBookingStream,
-//             uploadBooking: uploadBooking,
-//             hideBreakTime: false,
-//             loadingWidget: const Text('Fetching data...'),
-//             uploadingWidget: const CircularProgressIndicator(),
-//             locale: 'en',
-//             startingDayOfWeek: StartingDayOfWeek.saturday,
-//             wholeDayIsBookedWidget: const Text('Sorry, for this day everything is booked'),
-//             branch: "1",
-//             viewOnly: _viewOnly,
-//             patient: Patient(),
-//             availableSlotTextStyle: const TextStyle(
-//               fontSize: 13,
-//             ),
-//             bookedSlotTextStyle: const TextStyle(
-//               fontWeight: FontWeight.bold,
-//               fontSize: 13,
-//             ),
-//             selectedSlotTextStyle: const TextStyle(
-//               fontWeight: FontWeight.bold,
-//               fontSize: 13,
-//             ),
-//             availableSlotColor: Colorz.blue,
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
+class GradientColors {
+  static List<Color> getGradientByType(String type) {
+    switch (type.toLowerCase()) {
+      case 'afternoon':
+        return [
+          HexColor("#C2FDF2"),
+          HexColor("#CAF0F5"),
+          HexColor("#DAD6FC"),
+          HexColor("#DED0FE"),
+        ];
+
+      case 'morning':
+        return [
+          HexColor("#FFE4B5"), // Light golden
+          HexColor("#FFA07A"), // Light salmon
+          HexColor("#FF8C69"), // Salmon
+          HexColor("#FF7F50"), // Coral
+        ];
+
+      case 'evening':
+        return [
+          HexColor("#4B0082"), // Indigo
+          HexColor("#483D8B"), // Dark slate blue
+          HexColor("#6A5ACD"), // Slate blue
+          HexColor("#7B68EE"), // Medium slate blue
+        ];
+
+      case 'night':
+        return [
+          HexColor("#191970"), // Midnight blue
+          HexColor("#000080"), // Navy
+          HexColor("#00008B"), // Dark blue
+          HexColor("#0000CD"), // Medium blue
+        ];
+
+      case 'available':
+        return [
+          HexColor("#98FB98"), // Pale green
+          HexColor("#90EE90"), // Light green
+          HexColor("#7FFF00"), // Chartreuse
+          HexColor("#32CD32"), // Lime green
+        ];
+
+      case 'booked':
+        return [
+          HexColor("#FFB6C1"), // Light pink
+          HexColor("#FF69B4"), // Hot pink
+          HexColor("#FF1493"), // Deep pink
+          HexColor("#DB7093"), // Pale violet red
+        ];
+
+      case 'selected':
+        return [
+          HexColor("#E6E6FA"), // Lavender
+          HexColor("#D8BFD8"), // Thistle
+          HexColor("#DDA0DD"), // Plum
+          HexColor("#DA70D6"), // Orchid
+        ];
+
+      default:
+        return [
+          HexColor("#C2FDF2"),
+          HexColor("#CAF0F5"),
+          HexColor("#DAD6FC"),
+          HexColor("#DED0FE"),
+        ];
+    }
+  }
+
+  // Helper method for getting gradient with different directions
+  static LinearGradient getGradient({
+    required String type,
+    AlignmentGeometry begin = Alignment.centerRight,
+    AlignmentGeometry end = Alignment.centerLeft,
+  }) {
+    return LinearGradient(
+      begin: begin,
+      end: end,
+      colors: getGradientByType(type),
+    );
+  }
+}

@@ -2,9 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:get/get.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/responsiveText.dart';
@@ -15,8 +13,6 @@ import 'package:table_calendar/table_calendar.dart' as tc show StartingDayOfWeek
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../widgets/DropdownPackage.dart';
-import '../../../colors.dart';
 import '../core/booking_controller.dart';
 import '../model/booking_service.dart';
 import '../model/enums.dart' as bc;
@@ -610,7 +606,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                             //     );
                             //   }
                             // }
-                            customerInfoDialog(context);
+                            // customerInfoDialog(context);
                           },
                           isDisabled: controller.selectedSlot == -1,
                           buttonActiveColor: widget.bookingButtonColor,
@@ -893,61 +889,4 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       ),
     );
   }
-}
-
-Future customerInfoDialog(BuildContext context) {
-  return showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => PopScope(
-      canPop: false,
-      onPopInvoked: (value) {
-        if (value) return;
-        Get.back(result: true);
-      },
-      child: Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.r),
-        ),
-        alignment: Alignment.center,
-        backgroundColor: Colorz.white,
-        insetPadding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.h),
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(16.0),
-              width: MediaQuery.sizeOf(context).width,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Appointment Info', style: appStyle(context, 18, Colorz.black, FontWeight.w600)),
-                  HeightSpacer(size: 10.h),
-                  DropdownItem(
-                    radius: 30,
-                    color: Colorz.white,
-                    isShadow: true,
-                    iconData: Icon(
-                      Icons.arrow_drop_down_circle,
-                      color: Colorz.blue,
-                    ),
-                    items: ["mahmoud", "ahmed"],
-                    selectedValue: "widget.cubit.selectedBranch",
-                    hintText: 'Select Branch',
-                    itemAsString: (item) => item.toString(),
-                    onItemSelected: (item) {},
-                    isLoading: false,
-                    insideDialog: true,
-                  ),
-                  // ... other widgets
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
 }

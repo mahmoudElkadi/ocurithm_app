@@ -65,4 +65,28 @@ class AppointmentRepoImpl implements AppointmentRepo {
       throw Exception("Failed fetch branches");
     }
   }
+
+  @override
+  Future<BranchesModel> getAllAppointment() async {
+    final url = "${Config.baseUrl}${Config.appointments}";
+    final String? token = CacheHelper.getData(key: "token");
+    log("token: $token");
+
+    final result = await ApiService.request<BranchesModel>(
+      url: url,
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) 'Cookie': 'ocurithmToken=$token',
+      },
+      showError: true,
+      fromJson: (json) => BranchesModel.fromJson(json),
+    );
+
+    if (result != null) {
+      return result;
+    } else {
+      throw Exception("Failed fetch branches");
+    }
+  }
 }

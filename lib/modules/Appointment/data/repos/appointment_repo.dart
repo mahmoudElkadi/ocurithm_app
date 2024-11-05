@@ -7,4 +7,5 @@ abstract class AppointmentRepo {
     bool? isActive,
   });
   Future<BranchesModel> getAllBranches();
+  Future<BranchesModel> getAllAppointment();
 }

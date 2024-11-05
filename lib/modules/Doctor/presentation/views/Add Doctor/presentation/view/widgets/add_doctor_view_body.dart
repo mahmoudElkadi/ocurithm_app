@@ -67,6 +67,11 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    IconButton(
+                        onPressed: () {
+                          alertDialog(context);
+                        },
+                        icon: Icon(Icons.delete)),
                     Center(
                       child: ProfileImagePicker(
                         initialImageUrl: widget.cubit.imageUrl,
@@ -411,4 +416,135 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
               ),
             ));
   }
+}
+
+void alertDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Delete"),
+        content: Text("Are you sure you want to delete this item?"),
+        actions: [
+          TextButton(
+            child: Text(S.of(context).cancel),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          // DropdownItem(
+          //   radius: 30,
+          //   color: Colorz.white,
+          //   isShadow: true,
+          //   iconData: Icon(
+          //     Icons.arrow_drop_down_circle,
+          //     color: Colorz.blue,
+          //   ),
+          //   items: ["mahmoud", "ahmed"],
+          //   selectedValue: "widget.cubit.selectedBranch",
+          //   hintText: 'Select Branch',
+          //   itemAsString: (item) => item.toString(),
+          //   onItemSelected: (item) {},
+          //   isLoading: false,
+          // ),
+
+          DropdownItem2(
+            items: ["mahmoud", "ahmed"],
+            hintText: "Select an item",
+            label: "Your Label",
+            itemAsString: (item) => item,
+            onItemSelected: (item) {
+              log("Selected: ${item}");
+            },
+            isLoading: false,
+            isValid: true,
+            color: Colors.white,
+            radius: 8,
+            height: 50,
+            dropdownHeight: 200,
+            dropdownBgColor: Colors.white,
+            border: Colors.grey,
+            isShadow: true,
+            validateText: "Please select an item",
+            textStyle: const TextStyle(fontSize: 16),
+            dropdownTextStyle: const TextStyle(fontSize: 14),
+            hintStyle: const TextStyle(color: Colors.grey),
+          ),
+          DropdownItem2(
+            items: ["mahmoud", "ahmed"],
+            hintText: "Select an item",
+            label: "Your Label",
+            itemAsString: (item) => item,
+            onItemSelected: (item) {
+              log("Selected: ${item}");
+            },
+            isLoading: false,
+            isValid: true,
+            color: Colors.white,
+            radius: 8,
+            height: 50,
+            dropdownHeight: 200,
+            dropdownBgColor: Colors.white,
+            border: Colors.grey,
+            isShadow: true,
+            validateText: "Please select an item",
+            textStyle: const TextStyle(fontSize: 16),
+            dropdownTextStyle: const TextStyle(fontSize: 14),
+            hintStyle: const TextStyle(color: Colors.grey),
+          ),
+          DropdownItem2(
+            items: ["mahmoud", "ahmed"],
+            hintText: "Select an item",
+            label: "Your Label",
+            itemAsString: (item) => item,
+            onItemSelected: (item) {
+              log("Selected: ${item}");
+            },
+            isLoading: false,
+            isValid: true,
+            color: Colors.white,
+            radius: 8,
+            height: 50,
+            dropdownHeight: 200,
+            dropdownBgColor: Colors.white,
+            border: Colors.grey,
+            isShadow: true,
+            validateText: "Please select an item",
+            textStyle: const TextStyle(fontSize: 16),
+            dropdownTextStyle: const TextStyle(fontSize: 14),
+            hintStyle: const TextStyle(color: Colors.grey),
+          ),
+          DropdownItem2(
+            items: ["mahmoud", "ahmed"],
+            hintText: "Select an item",
+            label: "Your Label",
+            itemAsString: (item) => item,
+            onItemSelected: (item) {
+              log("Selected: ${item}");
+            },
+            isLoading: false,
+            isValid: true,
+            color: Colors.white,
+            radius: 8,
+            height: 50,
+            dropdownHeight: 200,
+            dropdownBgColor: Colors.white,
+            border: Colors.grey,
+            isShadow: true,
+            validateText: "Please select an item",
+            textStyle: const TextStyle(fontSize: 16),
+            dropdownTextStyle: const TextStyle(fontSize: 14),
+            hintStyle: const TextStyle(color: Colors.grey),
+          ),
+          HeightSpacer(size: 100),
+          TextButton(
+            child: Text(S.of(context).delete),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
 }

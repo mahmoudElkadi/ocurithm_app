@@ -85,4 +85,28 @@ class AppointmentCubit extends Cubit<AppointmentState> {
       emit(GetBranchError());
     }
   }
+
+  BranchesModel? appointments;
+  getAppointments() async {
+    appointments = null;
+    emit(GetBranchLoading());
+    connection = await InternetConnection().hasInternetAccess;
+    emit(GetBranchLoading());
+    try {
+      if (connection == true) {
+        branches = await appointmentRepo.getAllAppointment();
+        if (branches?.error == null && branches!.branches.isNotEmpty) {
+          loading = false;
+          emit(GetBranchSuccess());
+        } else {
+          loading = false;
+          emit(GetBranchError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      loading = false;
+      emit(GetBranchError());
+    }
+  }
 }

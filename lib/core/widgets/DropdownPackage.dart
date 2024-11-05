@@ -21,9 +21,6 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
   final String? validateText;
   final String? selectedValue;
   final List<T> items;
-  final bool useRootNavigator; // Add this property
-  final bool insideDialog; // Add this new property
-
   final List<T> disabledItems;
   final TextStyle? hintStyle;
   final TextStyle? style;
@@ -57,9 +54,6 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
     this.dropdownTextStyle,
     this.suffixIcon,
     this.dropdownHeight,
-    this.useRootNavigator = false, // default to false
-    this.insideDialog = false, // Default to false
-
     this.dropdownBgColor,
     this.textFieldBorder,
     this.contentPadding,
@@ -87,12 +81,12 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
 class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> with WidgetsBindingObserver {
   bool _isDropdownOpen = false;
   final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode(); // Add this
   String _searchTerm = '';
   String? _selectedValue;
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   final double _dropdownMaxHeight = 200.0;
+
   bool _isVisible = false;
 
   @override
@@ -127,7 +121,6 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
   @override
   void dispose() {
     _searchController.dispose();
-    _searchFocusNode.dispose(); // Add this
     _removeOverlay();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -148,21 +141,21 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
       });
     }
   }
-
-  @override
-  void didUpdateWidget(covariant FlutterDropdownSearch<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedValue == null) {
-      setState(() {
-        _selectedValue = null;
-      });
-    }
-    if (oldWidget.isLoading != widget.isLoading || oldWidget.items != widget.items) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _updateOverlay();
-      });
-    }
-  }
+  //
+  // @override
+  // void didUpdateWidget(covariant FlutterDropdownSearch<T> oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
+  //   if (widget.selectedValue == null) {
+  //     setState(() {
+  //       _selectedValue = null;
+  //     });
+  //   }
+  //   if (oldWidget.isLoading != widget.isLoading || oldWidget.items != widget.items) {
+  //     WidgetsBinding.instance.addPostFrameCallback(() {
+  //       _updateOverlay();
+  //     });
+  //   }
+  // }
 
   void _toggleDropdown() {
     if (_isDropdownOpen) {
@@ -172,26 +165,19 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     }
     setState(() {
       _isDropdownOpen = !_isDropdownOpen;
+      // WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
     });
   }
 
   void _createOverlay() {
-    final overlay = Overlay.of(context, rootOverlay: widget.insideDialog);
     _overlayEntry = _createOverlayEntry();
-    overlay.insert(_overlayEntry!);
-
-    // Request focus after a short delay
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted && _searchFocusNode != null) {
-        _searchFocusNode.requestFocus();
-      }
-    });
+    Overlay.of(context).insert(_overlayEntry!);
   }
 
   void _removeOverlay() {
-    _searchFocusNode.unfocus();
     _overlayEntry?.remove();
     _overlayEntry = null;
+    // WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
   }
 
   void _updateOverlay() {
@@ -199,7 +185,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     if (_isDropdownOpen) {
       _createOverlay();
     }
-    WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
+    // WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
   }
 
   OverlayEntry _createOverlayEntry() {
@@ -209,7 +195,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
 
     // Get screen metrics
     final screenHeight = MediaQuery.of(context).size.height;
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    var keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     final validationHeight = widget.isValid == false ? 32.0 : 0.0;
 
     // Calculate available spaces and screen sections
@@ -236,11 +222,11 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     return OverlayEntry(
       builder: (context) => KeyboardHeightProvider(
         onKeyboardHeightChanged: (height) {
-          _keyboardHeight = height;
+          keyboardHeight = height;
           // Force rebuild overlay when keyboard height changes
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _overlayEntry?.markNeedsBuild();
-          });
+          // WidgetsBinding.instance.addPostFrameCallback(() {
+          //   _overlayEntry?.markNeedsBuild();
+          // });
         },
         child: StatefulBuilder(builder: (context, setState) {
           return Stack(
@@ -289,16 +275,27 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: TextField(
         controller: _searchController,
-        focusNode: _searchFocusNode,
-        autofocus: true,
         onTap: () {
+          // Immediate visibility update
           setState(() {
             _isVisible = true;
+          });
+          // Force rebuild after a short delay to ensure keyboard is visible
+          Future.delayed(const Duration(milliseconds: 50), () {
+            if (_overlayEntry != null) {
+              _overlayEntry!.markNeedsBuild();
+            }
           });
         },
         onChanged: (value) {
           setState(() {
             _searchTerm = value;
+          });
+          _overlayEntry?.markNeedsBuild();
+        },
+        onSubmitted: (value) {
+          setState(() {
+            _isVisible = false;
           });
           _overlayEntry?.markNeedsBuild();
         },
@@ -438,7 +435,6 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     setState(() {
       _isDropdownOpen = false;
     });
-    _searchFocusNode.unfocus();
     _removeOverlay();
   }
 
@@ -451,7 +447,6 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
       _selectedValue = widget.itemAsString(item);
       _isDropdownOpen = false;
     });
-    _searchFocusNode.unfocus();
     _removeOverlay();
     if (widget.onItemSelected != null) {
       widget.onItemSelected!(item);
@@ -578,13 +573,8 @@ class DropdownItem<T> extends StatelessWidget {
       this.prefixIcon,
       this.validateText,
       this.height,
-      this.insideDialog = false, // Default to false
-
-      this.useRootNavigator = false,
       this.textStyle});
-  final bool useRootNavigator; // Add this property
-
-  final bool insideDialog; // Add this new property
+  // Add this new property
 
   final TextEditingController? searchController;
   final List<T>? items;
@@ -635,7 +625,6 @@ class DropdownItem<T> extends StatelessWidget {
           prefixIcon: prefixIcon,
           color: color,
           isValid: isValid,
-          useRootNavigator: useRootNavigator,
           radius: radius,
           selectedValue: selectedValue,
           isShadow: isShadow,
@@ -643,13 +632,429 @@ class DropdownItem<T> extends StatelessWidget {
           height: height,
           hintStyle: hintStyle,
           style: textStyle,
-          insideDialog: insideDialog,
           //textController: searchController,
           hintText: hintText,
           textFieldBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.blueAccent, width: 3),
             borderRadius: BorderRadius.circular(10),
           ),
+          itemAsString: itemAsString,
+          onItemSelected: onItemSelected,
+          isLoading: isLoading,
+        ),
+      ],
+    );
+  }
+}
+
+class PopupDropdownSearchController {
+  _PopupDropdownSearchState? _state;
+
+  void _setState(_PopupDropdownSearchState state) {
+    _state = state;
+  }
+
+  void clear() {
+    _state?._clearSelection();
+  }
+}
+
+class PopupDropdownSearch<T> extends StatefulWidget {
+  final String? hintText;
+  final String? validateText;
+  final String? selectedValue;
+  final List<T> items;
+  final List<T> disabledItems;
+  final TextStyle? hintStyle;
+  final TextStyle? style;
+  final TextStyle? dropdownTextStyle;
+  final double? dropdownHeight;
+  final double? height;
+  final Color? dropdownBgColor;
+  final Color? color;
+  final Color? border;
+  final EdgeInsetsGeometry? contentPadding;
+  final String Function(T) itemAsString;
+  final void Function(T)? onItemSelected;
+  final bool isLoading;
+  final bool? isShadow;
+  final Widget? icon;
+  final Widget? prefixIcon;
+  final double? radius;
+  final bool? isValid;
+  final PopupDropdownSearchController? controller;
+  final bool insidePopup;
+
+  const PopupDropdownSearch({
+    Key? key,
+    this.hintText,
+    required this.items,
+    this.disabledItems = const [],
+    this.hintStyle,
+    this.style,
+    this.dropdownTextStyle,
+    this.dropdownHeight,
+    this.dropdownBgColor,
+    this.contentPadding,
+    required this.itemAsString,
+    this.onItemSelected,
+    required this.isLoading,
+    this.icon,
+    this.color,
+    this.prefixIcon,
+    this.isShadow,
+    this.radius,
+    this.selectedValue,
+    this.isValid,
+    this.controller,
+    this.border,
+    this.validateText,
+    this.height,
+    this.insidePopup = true,
+  }) : super(key: key);
+
+  @override
+  State<PopupDropdownSearch<T>> createState() => _PopupDropdownSearchState<T>();
+}
+
+class _PopupDropdownSearchState<T> extends State<PopupDropdownSearch<T>> {
+  bool _isDropdownOpen = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchTerm = '';
+  String? _selectedValue;
+  OverlayEntry? _overlayEntry;
+  final LayerLink _layerLink = LayerLink();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedValue = widget.selectedValue;
+    widget.controller?._setState(this);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _removeOverlay();
+    super.dispose();
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedValue = null;
+      _searchTerm = '';
+      _searchController.clear();
+    });
+  }
+
+  void _toggleDropdown() {
+    if (_isDropdownOpen) {
+      _removeOverlay();
+    } else {
+      _showDropdown();
+    }
+    setState(() {
+      _isDropdownOpen = !_isDropdownOpen;
+    });
+  }
+
+  void _showDropdown() {
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final offset = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+
+    // Get navigator overlay instead of root overlay
+    final NavigatorState navigator = Navigator.of(context);
+    final OverlayState overlay = navigator.overlay!;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _removeOverlay,
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
+          Positioned(
+            left: offset.dx,
+            top: offset.dy + size.height,
+            width: size.width,
+            child: CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              offset: Offset(0, size.height + 5),
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(8),
+                child: _buildDropdownContent(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    overlay.insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    setState(() {
+      _isDropdownOpen = false;
+    });
+  }
+
+  Widget _buildDropdownContent() {
+    final filteredItems = widget.items.where((item) => widget.itemAsString(item).toLowerCase().contains(_searchTerm.toLowerCase())).toList();
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: widget.dropdownHeight ?? 300,
+      ),
+      decoration: BoxDecoration(
+        color: widget.dropdownBgColor ?? Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildSearchField(),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: filteredItems.length,
+              itemBuilder: (context, index) {
+                final item = filteredItems[index];
+                final isDisabled = widget.disabledItems.contains(item);
+                return _buildDropdownItem(item, isDisabled);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) {
+          setState(() {
+            _searchTerm = value;
+          });
+          _overlayEntry?.markNeedsBuild();
+        },
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          hintText: 'Search...',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownItem(T item, bool isDisabled) {
+    return InkWell(
+      onTap: isDisabled ? null : () => _selectItem(item),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Text(
+          widget.itemAsString(item),
+          style: widget.dropdownTextStyle?.copyWith(
+                color: isDisabled ? Colors.grey : null,
+              ) ??
+              TextStyle(
+                color: isDisabled ? Colors.grey : Colors.black,
+                fontSize: 16,
+              ),
+        ),
+      ),
+    );
+  }
+
+  void _selectItem(T item) {
+    setState(() {
+      _selectedValue = widget.itemAsString(item);
+      _isDropdownOpen = false;
+    });
+    _removeOverlay();
+    widget.onItemSelected?.call(item);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: _toggleDropdown,
+            child: Container(
+              height: widget.height,
+              decoration: BoxDecoration(
+                color: widget.color ?? Colors.white,
+                borderRadius: BorderRadius.circular(widget.radius ?? 8),
+                border: Border.all(
+                  color: widget.isValid == false ? Colors.red : widget.border ?? Colors.transparent,
+                ),
+                boxShadow: widget.isShadow == true
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              padding: widget.contentPadding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                children: [
+                  if (widget.prefixIcon != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: widget.prefixIcon,
+                    ),
+                  Expanded(
+                    child: Text(
+                      _selectedValue ?? widget.hintText ?? 'Select an option',
+                      style: _selectedValue != null ? widget.style : widget.hintStyle ?? const TextStyle(color: Colors.grey),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  widget.icon ?? const Icon(Icons.arrow_drop_down),
+                ],
+              ),
+            ),
+          ),
+          if (widget.isValid == false)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, left: 12),
+              child: Text(
+                widget.validateText ?? 'This field is required',
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class DropdownItem2<T> extends StatelessWidget {
+  const DropdownItem2({
+    super.key,
+    this.searchController,
+    required this.items,
+    required this.hintText,
+    this.label,
+    required this.itemAsString,
+    required this.onItemSelected,
+    required this.isLoading,
+    this.icon,
+    this.iconData,
+    this.color,
+    this.isShadow,
+    this.radius,
+    this.selectedValue,
+    this.isValid,
+    this.controller,
+    this.disabledItems,
+    this.hintStyle,
+    this.dropdownTextStyle,
+    this.border,
+    this.prefixIcon,
+    this.validateText,
+    this.height,
+    this.textStyle,
+    this.dropdownHeight,
+    this.dropdownBgColor,
+  });
+
+  final TextEditingController? searchController;
+  final List<T>? items;
+  final List<T>? disabledItems;
+  final String hintText;
+  final String? selectedValue;
+  final Widget? icon;
+  final Widget? iconData;
+  final Color? color;
+  final Color? border;
+  final bool? isShadow;
+  final Widget? prefixIcon;
+  final String? validateText;
+  final String? label;
+  final bool? isValid;
+  final PopupDropdownSearchController? controller;
+  final TextStyle? hintStyle;
+  final TextStyle? textStyle;
+  final TextStyle? dropdownTextStyle;
+  final String Function(T) itemAsString;
+  final void Function(T) onItemSelected;
+  final bool isLoading;
+  final double? radius;
+  final double? height;
+  final double? dropdownHeight;
+  final Color? dropdownBgColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (label != null) ...[
+          Row(
+            children: [
+              icon ?? const SizedBox.shrink(),
+              if (icon != null) const SizedBox(width: 10),
+              Text(
+                label!,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isValid == false ? Colors.red : null,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+        ],
+        PopupDropdownSearch<T>(
+          items: items ?? [],
+          disabledItems: disabledItems ?? [],
+          border: border,
+          icon: iconData,
+          prefixIcon: prefixIcon,
+          color: color,
+          isValid: isValid,
+          radius: radius,
+          selectedValue: selectedValue,
+          isShadow: isShadow,
+          controller: controller,
+          height: height,
+          hintStyle: hintStyle,
+          style: textStyle,
+          dropdownTextStyle: dropdownTextStyle,
+          dropdownHeight: dropdownHeight,
+          dropdownBgColor: dropdownBgColor,
+          validateText: validateText,
+          hintText: hintText,
           itemAsString: itemAsString,
           onItemSelected: onItemSelected,
           isLoading: isLoading,
