@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
+import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/appointment_form.dart';
 import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/make_appointment_view_body.dart';
 
 import '../../../../core/utils/app_style.dart';
@@ -16,9 +17,7 @@ class MakeAppointmentView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-        create: (context) => MakeAppointmentCubit(MakeAppointmentRepoImpl())
-          ..getDoctors()
-          ..getBranches(),
+        create: (context) => MakeAppointmentCubit(MakeAppointmentRepoImpl()),
         child: BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
             builder: (context, state) => Scaffold(
                   appBar: AppBar(
@@ -32,6 +31,13 @@ class MakeAppointmentView extends StatelessWidget {
                       },
                       icon: Icon(Icons.arrow_back, color: Colorz.black),
                     ),
+                    actions: [
+                      IconButton(
+                          onPressed: () {
+                            showAppointmentBottomSheet(context);
+                          },
+                          icon: Icon(Icons.calendar_month, color: Colorz.black)),
+                    ],
                   ),
                   body: MakeAppointmentCubit.get(context).connection != false
                       ? MakeAppointmentViewBody(

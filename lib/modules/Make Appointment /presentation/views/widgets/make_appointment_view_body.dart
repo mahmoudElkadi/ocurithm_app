@@ -96,7 +96,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       }
     } catch (e) {
       if (_disposed) return;
-
       log('Error fetching data: $e');
     }
   }
@@ -115,9 +114,10 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     required DateTime end,
   }) {
     // Start polling
-    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      fetchInitialData(branch: widget.branch, date: start.toIso8601String());
-    });
+    // _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    //   log("tabibooking polling");
+    //   fetchInitialData(branch: widget.branch, date: start.toIso8601String());
+    // });
 
     return _controller.stream;
   }
@@ -158,7 +158,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
         return 'Booking uploaded successfully';
       } else if (response.data.toString().contains("Conflicting appointments found")) {
         isFirst = true;
-        fetchInitialData(date: DateTime.now().toString(), branch: widget.branch);
+        // fetchInitialData(date: DateTime.now().toString(), branch: widget.branch);
         return 'Error uploading booking';
       } else {
         return 'Server Error';
@@ -179,14 +179,14 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       for (var item in streamResult) {
         dateTimeRanges.add({
           "Time": DateTimeRange(
-            start: DateTime.parse(item["start"]),
-            end: DateTime.parse(item["end"]),
+            start: DateTime.parse(item["datetime"]),
+            end: DateTime.parse(item["datetime"]).add(const Duration(minutes: 10)),
           ),
-          "phoneNumber": item["phone"],
-          "name": item["full_name"],
-          "manualId": item["manual_id"],
-          "examination_type": item["examination_type"],
-          "branch": item["branch_name"],
+          "phoneNumber": item["patient"]["phone"],
+          "name": item["patient"]["name"],
+          "manualId": item["id"],
+          "examination_type": item["examinationType"]["name"],
+          "branch": item["branch"]["name"],
         });
       }
     } else {
@@ -214,9 +214,13 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
             locale: 'en',
             startingDayOfWeek: StartingDayOfWeek.saturday,
             wholeDayIsBookedWidget: const Text('Sorry, for this day everything is booked'),
-            branch: "1",
+            branch: "67274ec7847fb059e5bae6dc",
             viewOnly: _viewOnly,
-            patient: Patient(),
+            patient: Patient(
+              id: "67274ec7847fb059e5bae6dc",
+              name: "Dr. John Doe",
+              phone: "1234567890",
+            ),
             availableSlotTextStyle: const TextStyle(
               fontSize: 13,
             ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hexcolor/hexcolor.dart';
+import 'package:ocurithm/core/utils/colors.dart';
 
 class CommonButton extends StatelessWidget {
   const CommonButton({
@@ -52,18 +52,23 @@ class CommonButton extends StatelessWidget {
       child: Container(
         width: width ?? double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration( 
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [HexColor("#113A6D"), HexColor("#235CA0"), HexColor("#3E87E5")],
-                        ),
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              Colorz.primaryColor,
+              Colorz.primaryColor.withOpacity(0.9),
+              Colorz.primaryColor.withOpacity(0.8),
+              Colorz.primaryColor.withOpacity(0.5)
+            ],
+          ),
           borderRadius: const BorderRadius.all(Radius.circular(16)),
           border: (isActive == false && isDisabled == false) ? Border.all(color: Colors.teal, width: 2) : null,
         ),
         child: Text(
           text,
-          style: buttonStyle ?? themeData.bodyMedium!.copyWith(color: _getTextColor()),
+          style: buttonStyle ?? themeData.bodyMedium!.copyWith(color: _getTextColor(), fontWeight: FontWeight.bold, fontSize: 18),
           textAlign: TextAlign.center,
         ),
       ),

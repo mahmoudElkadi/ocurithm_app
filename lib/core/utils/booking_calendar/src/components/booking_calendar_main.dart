@@ -7,6 +7,7 @@ import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/responsiveText.dart';
 import 'package:ocurithm/generated/l10n.dart';
+import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/appointment_form.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart' as tc show StartingDayOfWeek;
@@ -302,11 +303,16 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                                     isBooked: controller.isSlotBooked(index),
                                     isSelected: index == controller.selectedSlot,
                                     onTap: () {
+                                      log("message");
+                                      log("message2 ${controller.isSlotBooked(index)}");
+
                                       if (!controller.isSlotBooked(index) && controller.viewOnly == true) {
                                       } else if (!controller.isSlotBooked(index) && controller.viewOnly == false) {
                                         controller.selectSlot(index);
                                       } else if (controller.isSlotBooked(index) && controller.viewOnly == false) {
-                                      } else if (controller.isSlotBooked(index) && controller.viewOnly == true) {
+                                        log("ssss" + controller.getBookingSlotInformation(index).toString());
+                                        showAppointmentDetails(controller.getBookingSlotInformation(index));
+                                      } else if (controller.isSlotBooked(index) && controller.viewOnly == false) {
                                         showAppointmentDetails(controller.getBookingSlotInformation(index));
                                         log(controller.getBookingSlotInformation(index).toString());
                                       }
@@ -338,275 +344,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                       ? CommonButton(
                           text: widget.bookingButtonText ?? S.of(context).makeAppointment,
                           onTap: () async {
-                            // log(widget.startingDayOfWeek.toString());
-                            // log(widget.endingDayOfWeek.toString());
-                            // String? choosenType;
-                            // String? returnedType = await showGeneralDialog(
-                            //     barrierColor: Colors.black.withOpacity(0.5),
-                            //     transitionBuilder: (context, a1, a2, widget) {
-                            //       return Transform.scale(
-                            //         scale: a1.value,
-                            //         child: Opacity(
-                            //           opacity: a1.value,
-                            //           child: AlertDialog(
-                            //             shape: OutlineInputBorder(borderRadius: BorderRadius.circular(16.0)),
-                            //             title: Text(
-                            //               "Choose Examination Type",
-                            //               style: TextStyle(fontWeight: FontWeight.bold),
-                            //             ),
-                            //             content: Padding(
-                            //               padding: EdgeInsets.only(left: size.width * 0.01, top: size.height * 0.02),
-                            //               child: SizedBox(
-                            //                 child: Column(
-                            //                   children: [
-                            //                     Container(
-                            //                       width: size.width * 0.8,
-                            //                       padding: EdgeInsets.only(left: 10, right: 5),
-                            //                       decoration: BoxDecoration(
-                            //                           border: Border.all(color: Colors.grey, width: 1), borderRadius: BorderRadius.circular(15)),
-                            //                       child: DropdownSearch<String>(
-                            //                         items: [
-                            //                           "Examination",
-                            //                           "1st Examination follow up",
-                            //                           "2nd Examination follow up",
-                            //                           "Surgery preparation",
-                            //                           "Surgery Day",
-                            //                           "1st Post-operative follow up",
-                            //                           "2nd Post-operative follow up",
-                            //                           "Investigation",
-                            //                           "Investigation Discussion"
-                            //                         ],
-                            //                         clearButtonProps: ClearButtonProps(
-                            //                           isVisible: true,
-                            //                         ),
-                            //                         popupProps: PopupProps.modalBottomSheet(
-                            //                           showSearchBox: true,
-                            //                           showSelectedItems: true,
-                            //                         ),
-                            //                         dropdownDecoratorProps: DropDownDecoratorProps(
-                            //                           dropdownSearchDecoration: InputDecoration(
-                            //                             border: InputBorder.none,
-                            //                             hintText: "Choose Examination Type",
-                            //                             hintStyle: TextStyle(
-                            //                               color: Colors.black,
-                            //                               fontSize: 17,
-                            //                             ),
-                            //                           ),
-                            //                         ),
-                            //                         onChanged: (newValue) {
-                            //                           setState(() {
-                            //                             choosenType = newValue;
-                            //                           });
-                            //                         },
-                            //                       ),
-                            //                     ),
-                            //                     Container(
-                            //                       width: size.width * 0.8,
-                            //                       padding: EdgeInsets.only(left: 10, right: 5),
-                            //                       decoration: BoxDecoration(
-                            //                           border: Border.all(color: Colors.grey, width: 1), borderRadius: BorderRadius.circular(15)),
-                            //                       child: DropdownSearch<String>(
-                            //                         items: [
-                            //                           "Examination",
-                            //                           "1st Examination follow up",
-                            //                           "2nd Examination follow up",
-                            //                           "Surgery preparation",
-                            //                           "Surgery Day",
-                            //                           "1st Post-operative follow up",
-                            //                           "2nd Post-operative follow up",
-                            //                           "Investigation",
-                            //                           "Investigation Discussion"
-                            //                         ],
-                            //                         clearButtonProps: ClearButtonProps(
-                            //                           isVisible: true,
-                            //                         ),
-                            //                         popupProps: PopupProps.modalBottomSheet(
-                            //                           showSearchBox: true,
-                            //                           showSelectedItems: true,
-                            //                         ),
-                            //                         dropdownDecoratorProps: DropDownDecoratorProps(
-                            //                           dropdownSearchDecoration: InputDecoration(
-                            //                             border: InputBorder.none,
-                            //                             hintText: "Choose Examination Type",
-                            //                             hintStyle: TextStyle(
-                            //                               color: Colors.black,
-                            //                               fontSize: 17,
-                            //                             ),
-                            //                           ),
-                            //                         ),
-                            //                         onChanged: (newValue) {
-                            //                           setState(() {
-                            //                             choosenType = newValue;
-                            //                           });
-                            //                         },
-                            //                       ),
-                            //                     ),
-                            //                     Container(
-                            //                       width: size.width * 0.8,
-                            //                       padding: EdgeInsets.only(left: 10, right: 5),
-                            //                       decoration: BoxDecoration(
-                            //                           border: Border.all(color: Colors.grey, width: 1), borderRadius: BorderRadius.circular(15)),
-                            //                       child: DropdownSearch<String>(
-                            //                         items: [
-                            //                           "Examination",
-                            //                           "1st Examination follow up",
-                            //                           "2nd Examination follow up",
-                            //                           "Surgery preparation",
-                            //                           "Surgery Day",
-                            //                           "1st Post-operative follow up",
-                            //                           "2nd Post-operative follow up",
-                            //                           "Investigation",
-                            //                           "Investigation Discussion"
-                            //                         ],
-                            //                         clearButtonProps: ClearButtonProps(
-                            //                           isVisible: true,
-                            //                         ),
-                            //                         popupProps: PopupProps.modalBottomSheet(
-                            //                           showSearchBox: true,
-                            //                           showSelectedItems: true,
-                            //                         ),
-                            //                         dropdownDecoratorProps: DropDownDecoratorProps(
-                            //                           dropdownSearchDecoration: InputDecoration(
-                            //                             border: InputBorder.none,
-                            //                             hintText: "Choose Examination Type",
-                            //                             hintStyle: TextStyle(
-                            //                               color: Colors.black,
-                            //                               fontSize: 17,
-                            //                             ),
-                            //                           ),
-                            //                         ),
-                            //                         onChanged: (newValue) {
-                            //                           setState(() {
-                            //                             choosenType = newValue;
-                            //                           });
-                            //                         },
-                            //                       ),
-                            //                     ),
-                            //                     Container(
-                            //                       width: size.width * 0.8,
-                            //                       padding: EdgeInsets.only(left: 10, right: 5),
-                            //                       decoration: BoxDecoration(
-                            //                           border: Border.all(color: Colors.grey, width: 1), borderRadius: BorderRadius.circular(15)),
-                            //                       child: DropdownSearch<String>(
-                            //                         items: [
-                            //                           "Examination",
-                            //                           "1st Examination follow up",
-                            //                           "2nd Examination follow up",
-                            //                           "Surgery preparation",
-                            //                           "Surgery Day",
-                            //                           "1st Post-operative follow up",
-                            //                           "2nd Post-operative follow up",
-                            //                           "Investigation",
-                            //                           "Investigation Discussion"
-                            //                         ],
-                            //                         clearButtonProps: ClearButtonProps(
-                            //                           isVisible: true,
-                            //                         ),
-                            //                         popupProps: PopupProps.modalBottomSheet(
-                            //                           showSearchBox: true,
-                            //                           showSelectedItems: true,
-                            //                         ),
-                            //                         dropdownDecoratorProps: DropDownDecoratorProps(
-                            //                           dropdownSearchDecoration: InputDecoration(
-                            //                             border: InputBorder.none,
-                            //                             hintText: "Choose Examination Type",
-                            //                             hintStyle: TextStyle(
-                            //                               color: Colors.black,
-                            //                               fontSize: 17,
-                            //                             ),
-                            //                           ),
-                            //                         ),
-                            //                         onChanged: (newValue) {
-                            //                           setState(() {
-                            //                             choosenType = newValue;
-                            //                           });
-                            //                         },
-                            //                       ),
-                            //                     ),
-                            //                   ],
-                            //                 ),
-                            //               ),
-                            //             ),
-                            //             actions: [
-                            //               Padding(
-                            //                 padding: EdgeInsets.only(right: size.width * 0.05),
-                            //                 child: ElevatedButton(
-                            //                   child: Text("Continue", style: appStyle(context, 18, Colors.white, FontWeight.w600)),
-                            //                   style: ElevatedButton.styleFrom(
-                            //                     backgroundColor: Colors.blue,
-                            //                   ),
-                            //                   onPressed: () async {
-                            //                     if (choosenType != null) {
-                            //                       log(" chooosenType " + choosenType.toString());
-                            //                       Navigator.of(context).pop(choosenType);
-                            //                     }
-                            //                   },
-                            //                 ),
-                            //               )
-                            //             ],
-                            //           ),
-                            //         ),
-                            //       );
-                            //     },
-                            //     transitionDuration: Duration(milliseconds: 300),
-                            //     barrierDismissible: true,
-                            //     barrierLabel: '',
-                            //     context: context,
-                            //     pageBuilder: (context, animation1, animation2) {
-                            //       return Container();
-                            //     });
-                            // if (choosenType != null && returnedType != null) {
-                            //   controller.toggleUploading();
-                            //   var data = await widget.uploadBooking(
-                            //     newBooking: controller.generateNewBookingForUploading(),
-                            //     patient: controller.patient,
-                            //     branch: controller.branch,
-                            //     examinationType: returnedType.toString(),
-                            //   );
-                            //
-                            //   controller.toggleUploading();
-                            //   controller.resetSelectedSlot();
-                            //   if (data == "Booking uploaded successfully") {
-                            //     Navigator.of(context).popUntil((route) => route.isFirst);
-                            //   } else if (data == "Error uploading booking") {
-                            //     showDialog(
-                            //       context: context,
-                            //       builder: (BuildContext context) {
-                            //         return AlertDialog(
-                            //           title: Text(S.of(context).error),
-                            //           content: Text(S.of(context).conflict),
-                            //           actions: [
-                            //             TextButton(
-                            //               onPressed: () {
-                            //                 Navigator.of(context).pop(); // Closes the dialog
-                            //               },
-                            //               child: Text('OK', style: appStyle(context, 16, Colors.black, FontWeight.w600)),
-                            //             ),
-                            //           ],
-                            //         );
-                            //       },
-                            //     );
-                            //   } else {
-                            //     showDialog(
-                            //       context: context,
-                            //       builder: (BuildContext context) {
-                            //         return AlertDialog(
-                            //           title: Text(S.of(context).error),
-                            //           content: Text(S.of(context).serverError),
-                            //           actions: [
-                            //             TextButton(
-                            //               onPressed: () {
-                            //                 Navigator.of(context).pop(); // Closes the dialog
-                            //               },
-                            //               child: Text('OK', style: appStyle(context, 16, Colors.black, FontWeight.w600)),
-                            //             ),
-                            //           ],
-                            //         );
-                            //       },
-                            //     );
-                            //   }
-                            // }
-                            // customerInfoDialog(context);
+                            showAppointmentBottomSheet(context, date: controller.allBookingSlots.elementAt(controller.selectedSlot));
                           },
                           isDisabled: controller.selectedSlot == -1,
                           buttonActiveColor: widget.bookingButtonColor,
@@ -689,6 +427,60 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                         top: -15,
                         child: SvgPicture.asset(
                           'packages/booking_calendar/assets/name_icon.svg',
+                        ),
+                      )
+                    ],
+                  ),
+                  const HeightSpacer(size: 10),
+                  Text(
+                    " Phone Number",
+                    style: appStyle(context, 18, Colors.black, FontWeight.w600),
+                  ),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
+                        width: MediaQuery.sizeOf(context).width,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: GestureDetector(
+                          onTap: () async {
+                            String url = "tel:" + patientData['phoneNumber'];
+                            if (!kIsWeb && await canLaunchUrl(Uri.parse(url))) {
+                              await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Could not call ${patientData["phoneNumber"]}'),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            patientData['phoneNumber'].toString(),
+                            style: appStyle(context, 18, Colors.grey, FontWeight.w600),
+                            textAlign: TextAlign.start,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: -15,
+                        right: Directionality.of(context) == TextDirection.ltr ? 15 : null,
+                        left: Directionality.of(context) == TextDirection.ltr ? null : 15,
+                        child: SvgPicture.asset(
+                          'packages/booking_calendar/assets/phone.svg',
                         ),
                       )
                     ],

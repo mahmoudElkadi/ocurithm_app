@@ -15,3 +15,21 @@ class GetBranchLoading extends MakeAppointmentState {}
 class GetBranchError extends MakeAppointmentState {}
 
 class GetBranchSuccess extends MakeAppointmentState {}
+
+class AdminPatientLoading extends MakeAppointmentState {}
+
+class AdminPatientError extends MakeAppointmentState {}
+
+class AdminPatientSuccess extends MakeAppointmentState {}
+
+class PaymentMethodLoading extends MakeAppointmentState {}
+
+class PaymentMethodError extends MakeAppointmentState {}
+
+class PaymentMethodSuccess extends MakeAppointmentState {}
+
+class ExaminationTypeLoading extends MakeAppointmentState {}
+
+class ExaminationTypeError extends MakeAppointmentState {}
+
+class ExaminationTypeSuccess extends MakeAppointmentState {}

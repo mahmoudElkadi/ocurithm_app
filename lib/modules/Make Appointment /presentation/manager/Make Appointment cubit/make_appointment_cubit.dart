@@ -8,6 +8,9 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import '../../../../../core/utils/colors.dart';
 import '../../../../Branch/data/model/branches_model.dart';
 import '../../../../Doctor/data/model/doctor_model.dart';
+import '../../../../Examination Type/data/model/examination_type_model.dart';
+import '../../../../Patient/data/model/patients_model.dart';
+import '../../../../Payment Methods/data/model/payment_method_model.dart';
 import '../../../data/repos/make_appointment_repo.dart';
 import 'make_appointment_state.dart';
 
@@ -19,7 +22,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   bool? connection;
   MakeAppointmentRepo makeAppointmentRepo;
   DoctorModel? doctors;
-  getDoctors() async {
+  Future<void> getDoctors() async {
     doctors = null;
     emit(AdminDoctorLoading());
 
@@ -51,7 +54,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
 
   BranchesModel? branches;
   bool loading = false;
-  getBranches() async {
+  Future<void> getBranches() async {
     branches = null;
     loading = true;
     emit(GetBranchLoading());
@@ -84,5 +87,110 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
       loading = false;
       emit(GetBranchError());
     }
+  }
+
+  PatientModel? patients;
+  int page = 1;
+  TextEditingController searchController = TextEditingController();
+  Future<void> getPatients() async {
+    patients = null;
+    emit(AdminPatientLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(AdminPatientLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(AdminPatientError());
+      } else {
+        patients = await makeAppointmentRepo.getAllPatients(page: page, search: searchController.text);
+        if (patients!.patients.isNotEmpty) {
+          emit(AdminPatientSuccess());
+        } else {
+          emit(AdminPatientError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(AdminPatientError());
+    }
+  }
+
+  PaymentMethodsModel? paymentMethods;
+  Future<void> getPaymentMethods() async {
+    paymentMethods = null;
+    emit(PaymentMethodLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(PaymentMethodLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(PaymentMethodError());
+      } else {
+        paymentMethods = await makeAppointmentRepo.getAllPaymentMethods(page: page, search: searchController.text);
+        if (paymentMethods?.error == null && paymentMethods!.paymentMethods!.isNotEmpty) {
+          emit(PaymentMethodSuccess());
+        } else {
+          emit(PaymentMethodError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(PaymentMethodError());
+    }
+  }
+
+  ExaminationTypesModel? examinationTypes;
+  Future<void> getExaminationTypes() async {
+    examinationTypes = null;
+    emit(ExaminationTypeLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(ExaminationTypeLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(ExaminationTypeError());
+      } else {
+        examinationTypes = await makeAppointmentRepo.getAllExaminationTypes(page: page, search: searchController.text);
+        if (examinationTypes?.error == null && examinationTypes!.examinationTypes!.isNotEmpty) {
+          emit(ExaminationTypeSuccess());
+        } else {
+          emit(ExaminationTypeError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(ExaminationTypeError());
+    }
+  }
+
+  getAllData() async {
+    await Future.wait([
+      getBranches(),
+      getExaminationTypes(),
+      getPaymentMethods(),
+      getPatients(),
+      getDoctors(),
+    ]);
   }
 }

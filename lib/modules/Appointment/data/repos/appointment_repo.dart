@@ -1,5 +1,6 @@
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Doctor/data/model/doctor_model.dart';
+import '../models/appointment_model.dart';
 
 abstract class AppointmentRepo {
   Future<DoctorModel> getAllDoctors({
@@ -7,5 +8,5 @@ abstract class AppointmentRepo {
     bool? isActive,
   });
   Future<BranchesModel> getAllBranches();
-  Future<BranchesModel> getAllAppointment();
+  Future<AppointmentModel> getAllAppointment();
 }

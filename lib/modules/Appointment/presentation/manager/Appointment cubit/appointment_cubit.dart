@@ -8,6 +8,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import '../../../../../core/utils/colors.dart';
 import '../../../../Branch/data/model/branches_model.dart';
 import '../../../../Doctor/data/model/doctor_model.dart';
+import '../../../data/models/appointment_model.dart';
 import '../../../data/repos/appointment_repo.dart';
 import 'appointment_state.dart';
 
@@ -86,7 +87,8 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     }
   }
 
-  BranchesModel? appointments;
+  Map<String, List<Appointment>>? groupedAppointments;
+  AppointmentModel? appointments;
   getAppointments() async {
     appointments = null;
     emit(GetBranchLoading());
@@ -94,12 +96,12 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     emit(GetBranchLoading());
     try {
       if (connection == true) {
-        branches = await appointmentRepo.getAllAppointment();
-        if (branches?.error == null && branches!.branches.isNotEmpty) {
-          loading = false;
+        appointments = await appointmentRepo.getAllAppointment();
+        if (appointments?.error == null && appointments!.appointments.isNotEmpty) {
+          // Group appointments by time slot
+          groupedAppointments = AppointmentHelper.groupAppointmentsByTimeSlot(appointments!.appointments);
           emit(GetBranchSuccess());
         } else {
-          loading = false;
           emit(GetBranchError());
         }
       }
@@ -108,5 +110,46 @@ class AppointmentCubit extends Cubit<AppointmentState> {
       loading = false;
       emit(GetBranchError());
     }
+  }
+
+  List<Appointment> get morningAppointments => groupedAppointments?['morning'] ?? [];
+
+  List<Appointment> get afternoonAppointments => groupedAppointments?['afternoon'] ?? [];
+
+  List<Appointment> get eveningAppointments => groupedAppointments?['evening'] ?? [];
+
+  // Get count of appointments in a time slot
+  int getAppointmentCount(String timeSlot) => groupedAppointments?[timeSlot]?.length ?? 0;
+}
+
+class AppointmentHelper {
+  static Map<String, List<Appointment>> groupAppointmentsByTimeSlot(List<Appointment> appointments) {
+    // Initialize empty lists for each time slot
+    final Map<String, List<Appointment>> groupedAppointments = {
+      'morning': [], // 00:00 - 11:59
+      'afternoon': [], // 12:00 - 17:59
+      'evening': [], // 18:00 - 23:59
+    };
+
+    for (var appointment in appointments) {
+      if (appointment.datetime != null) {
+        final hour = appointment.datetime!.hour;
+
+        if (hour < 12) {
+          groupedAppointments['morning']!.add(appointment);
+        } else if (hour < 18) {
+          groupedAppointments['afternoon']!.add(appointment);
+        } else {
+          groupedAppointments['evening']!.add(appointment);
+        }
+      }
+    }
+
+    // Sort appointments within each time slot
+    groupedAppointments.forEach((_, appointments) {
+      appointments.sort((a, b) => (a.datetime ?? DateTime.now()).compareTo(b.datetime ?? DateTime.now()));
+    });
+
+    return groupedAppointments;
   }
 }

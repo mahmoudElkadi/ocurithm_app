@@ -18,6 +18,7 @@ class AppointmentView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
         create: (context) => AppointmentCubit(AppointmentRepoImpl())
+          ..getAppointments()
           ..getDoctors()
           ..getBranches(),
         child: BlocBuilder<AppointmentCubit, AppointmentState>(

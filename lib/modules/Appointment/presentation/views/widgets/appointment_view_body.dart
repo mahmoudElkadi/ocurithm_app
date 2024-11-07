@@ -7,11 +7,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
+import '../../../data/models/appointment_model.dart';
 import '../../manager/Appointment cubit/appointment_cubit.dart';
 import '../../manager/Appointment cubit/appointment_state.dart';
 
@@ -29,6 +31,8 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
   @override
   Widget build(BuildContext context) {
     final cubit = AppointmentCubit.get(context);
+    bool isLoading = cubit.appointments == null;
+    bool isEmpty = cubit.appointments?.appointments.isEmpty ?? true;
     return BlocBuilder<AppointmentCubit, AppointmentState>(
       builder: (context, state) => SingleChildScrollView(
         child: Column(
@@ -98,20 +102,7 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
               ),
             ),
             const HeightSpacer(size: 10),
-            const ExpandableTimeSlots(
-              title: "Morning",
-              image: "assets/icons/morning.svg",
-            ),
-            const HeightSpacer(size: 10),
-            const ExpandableTimeSlots(
-              title: "Afternoon",
-              image: "assets/icons/afternoon.svg",
-            ),
-            const HeightSpacer(size: 10),
-            const ExpandableTimeSlots(
-              title: "Evening",
-              image: "assets/icons/evening.svg",
-            ),
+            const AppointmentListView()
           ],
         ),
       ),
@@ -120,9 +111,16 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
 }
 
 class ExpandableTimeSlots extends StatefulWidget {
-  const ExpandableTimeSlots({super.key, this.title, this.image});
+  const ExpandableTimeSlots({
+    super.key,
+    this.title,
+    this.image,
+    required this.appointments, // Add appointments list parameter
+  });
+
   final String? title;
   final String? image;
+  final List<Appointment> appointments; // List of appointments for this time slot
 
   @override
   State<ExpandableTimeSlots> createState() => _ExpandableTimeSlotsState();
@@ -149,14 +147,12 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
         ];
       case 'morning':
         return [HexColor("#FDF598"), HexColor("#FCE7A9"), HexColor("#FBD5BF"), HexColor("#FAC0D8"), Colors.pink.shade300];
-
       case 'evening':
         return [
           HexColor("#F8F8F8"),
           HexColor("#F0F0F0"),
           HexColor("#E8E8E8"),
         ];
-
       default:
         return [
           HexColor("#C2FDF2"),
@@ -169,8 +165,9 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
 
   @override
   Widget build(BuildContext context) {
+    // Only show if there are appointments
     return Visibility(
-      visible: true,
+      visible: widget.appointments.isNotEmpty,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: GestureDetector(
@@ -190,21 +187,21 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
                   child: AnimatedSize(
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 200),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: isExpanded ? _buildTimeSlots() : [], // Only show slots when expanded
+                      children: isExpanded ? _buildTimeSlots() : [],
                     ),
                   ),
                 ),
               ),
 
-              // Afternoon Label
+              // Time Slot Label
               AnimatedPositioned(
                 left: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
                 right: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
                 top: isExpanded ? 0 : 29,
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 200),
                 child: AnimatedContainer(
                   padding: EdgeInsets.fromLTRB(isExpanded ? 10 : 0, 5, isExpanded ? 20 : 0, 5),
                   decoration: BoxDecoration(
@@ -212,15 +209,10 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                       gradient: LinearGradient(
                         begin: Alignment.centerRight,
                         end: Alignment.centerLeft,
-                        colors: isExpanded
-                            ? getThemeColors(widget.title ?? "Afternoon")
-                            : [
-                                Colorz.white,
-                                Colorz.white,
-                              ],
+                        colors: isExpanded ? getThemeColors(widget.title ?? "Afternoon") : [Colorz.white, Colorz.white],
                       ),
                       borderRadius: BorderRadius.circular(20)),
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 200),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -239,14 +231,14 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                 ),
               ),
 
-              // Number Circle
+              // Appointment Count Circle
               AnimatedPositioned(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 200),
                 left: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
                 right: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
                 top: isExpanded ? 0 : 28,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   decoration: BoxDecoration(
                       color: Colors.white,
@@ -255,17 +247,12 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                           ? LinearGradient(
                               begin: Alignment.bottomRight,
                               end: Alignment.topLeft,
-                              colors: [
-                                HexColor("#C2FDF2"),
-                                HexColor("#CAF0F5"),
-                                HexColor("#DAD6FC"),
-                                HexColor("#DED0FE"),
-                              ],
+                              colors: getThemeColors(widget.title ?? "Afternoon"),
                             )
                           : null,
                       shape: BoxShape.circle),
                   child: Text(
-                    4.toString(),
+                    widget.appointments.length.toString(),
                     style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
                   ),
                 ),
@@ -279,55 +266,51 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
 
   List<Widget> _buildTimeSlots() {
     List<Widget> slots = [];
-    int totalItems = 13;
+    final appointments = widget.appointments;
     int i = 0;
 
-    while (i < totalItems) {
-      // Check if current index is the expanded one
-      if (i == expandedIndex || (i + 1 == expandedIndex && i + 1 < totalItems)) {
-        // Add the expanded item
+    while (i < appointments.length) {
+      if (i == expandedIndex || (i + 1 == expandedIndex && i + 1 < appointments.length)) {
+        // Add expanded item
         slots.add(
           AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 200),
             margin: const EdgeInsets.symmetric(vertical: 4),
-            child: _buildExpandedItem(expandedIndex!),
+            child: _buildExpandedItem(expandedIndex!, appointments[expandedIndex!]),
           ),
         );
 
-        // Handle remaining items after expanded item
         if (i == expandedIndex) {
-          // If there are more items after the expanded one
-          if (i + 1 < totalItems) {
+          if (i + 1 < appointments.length) {
             slots.add(
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Expanded(child: _buildRegularItem(i + 1)),
+                    Expanded(child: _buildRegularItem(i + 1, appointments[i + 1])),
                     const SizedBox(width: 8),
-                    // Only add third item if it exists
-                    if (i + 2 < totalItems) Expanded(child: _buildRegularItem(i + 2)) else const Expanded(child: SizedBox()),
+                    if (i + 2 < appointments.length)
+                      Expanded(child: _buildRegularItem(i + 2, appointments[i + 2]))
+                    else
+                      const Expanded(child: SizedBox()),
                   ],
                 ),
               ),
             );
-            // Skip the next two positions as we've handled them
             i += 3;
           } else {
-            // If expanded item is the last one, just increment i
             i++;
           }
         } else if (i + 1 == expandedIndex) {
-          // If second item in pair is expanded
-          if (i + 2 < totalItems) {
+          if (i + 2 < appointments.length) {
             slots.add(
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Expanded(child: _buildRegularItem(i)),
+                    Expanded(child: _buildRegularItem(i, appointments[i])),
                     const SizedBox(width: 8),
-                    Expanded(child: _buildRegularItem(i + 2)),
+                    Expanded(child: _buildRegularItem(i + 2, appointments[i + 2])),
                   ],
                 ),
               ),
@@ -339,7 +322,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Expanded(child: _buildRegularItem(i)),
+                    Expanded(child: _buildRegularItem(i, appointments[i])),
                     const SizedBox(width: 8),
                     const Expanded(child: SizedBox()),
                   ],
@@ -350,30 +333,28 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
           }
         }
       } else {
-        // Add regular pair of items
-        // Check if we have enough items for a pair
-        if (i + 1 < totalItems) {
+        // Add regular pairs
+        if (i + 1 < appointments.length) {
           slots.add(
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
-                  Expanded(child: _buildRegularItem(i)),
+                  Expanded(child: _buildRegularItem(i, appointments[i])),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildRegularItem(i + 1)),
+                  Expanded(child: _buildRegularItem(i + 1, appointments[i + 1])),
                 ],
               ),
             ),
           );
           i += 2;
         } else {
-          // Handle last single item
           slots.add(
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
-                  Expanded(child: _buildRegularItem(i)),
+                  Expanded(child: _buildRegularItem(i, appointments[i])),
                   const SizedBox(width: 8),
                   const Expanded(child: SizedBox()),
                 ],
@@ -387,10 +368,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
     return slots;
   }
 
-  Widget _buildExpandedItem(int index) {
-    // Add null check for safety
-    if (index >= 13) return const SizedBox.shrink();
-
+  Widget _buildExpandedItem(int index, Appointment appointment) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -418,13 +396,11 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      DateFormat("hh:mm a").format(
-                        DateTime.now().add(Duration(minutes: 30 * index)),
-                      ),
+                      DateFormat("hh:mm a").format(appointment.datetime ?? DateTime.now()),
                       style: appStyle(context, 18, Colorz.redColor, FontWeight.w500),
                     ),
                     Text(
-                      "(Ibrahim Mostafa)",
+                      "(${appointment.patient?.name ?? 'Unknown'})",
                       style: appStyle(context, 16, Colorz.black, FontWeight.w500),
                     ),
                   ],
@@ -446,7 +422,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                 const Icon(Icons.phone, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  "+1234567890",
+                  appointment.patient?.phone ?? 'No phone',
                   style: appStyle(context, 14, Colorz.black, FontWeight.normal),
                 ),
               ],
@@ -457,7 +433,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                 const Icon(Icons.medical_services, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  "General Checkup",
+                  "Examination type: ${appointment.examinationType?.name ?? 'Unknown'}",
                   style: appStyle(context, 14, Colorz.black, FontWeight.normal),
                 ),
               ],
@@ -467,7 +443,9 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Implement reschedule logic
+                  },
                   icon: const Icon(Icons.schedule),
                   label: const Text("Reschedule"),
                   style: ElevatedButton.styleFrom(
@@ -476,7 +454,9 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Implement cancel logic
+                  },
                   icon: const Icon(Icons.cancel),
                   label: const Text("Cancel"),
                   style: ElevatedButton.styleFrom(
@@ -492,10 +472,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
     );
   }
 
-  Widget _buildRegularItem(int index) {
-    // Add null check for safety
-    if (index >= 13) return const SizedBox.shrink();
-
+  Widget _buildRegularItem(int index, Appointment appointment) {
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -520,9 +497,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                DateFormat("hh:mm a").format(
-                  DateTime.now().add(Duration(minutes: 30 * index)),
-                ),
+                DateFormat("hh:mm a").format(appointment.datetime ?? DateTime.now()),
                 style: appStyle(context, 18, Colorz.redColor, FontWeight.w500),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -531,7 +506,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    "(Ibrahim Mostafa)",
+                    "(${appointment.patient?.name ?? 'Unknown'})",
                     style: appStyle(context, 16, Colorz.black, FontWeight.w500),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -545,85 +520,141 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
   }
 }
 
-class GradientColors {
-  static List<Color> getGradientByType(String type) {
-    switch (type.toLowerCase()) {
-      case 'afternoon':
-        return [
-          HexColor("#C2FDF2"),
-          HexColor("#CAF0F5"),
-          HexColor("#DAD6FC"),
-          HexColor("#DED0FE"),
-        ];
+class AppointmentListView extends StatefulWidget {
+  const AppointmentListView({Key? key}) : super(key: key);
 
-      case 'morning':
-        return [
-          HexColor("#FFE4B5"), // Light golden
-          HexColor("#FFA07A"), // Light salmon
-          HexColor("#FF8C69"), // Salmon
-          HexColor("#FF7F50"), // Coral
-        ];
+  @override
+  State<AppointmentListView> createState() => _AppointmentListViewState();
+}
 
-      case 'evening':
-        return [
-          HexColor("#4B0082"), // Indigo
-          HexColor("#483D8B"), // Dark slate blue
-          HexColor("#6A5ACD"), // Slate blue
-          HexColor("#7B68EE"), // Medium slate blue
-        ];
-
-      case 'night':
-        return [
-          HexColor("#191970"), // Midnight blue
-          HexColor("#000080"), // Navy
-          HexColor("#00008B"), // Dark blue
-          HexColor("#0000CD"), // Medium blue
-        ];
-
-      case 'available':
-        return [
-          HexColor("#98FB98"), // Pale green
-          HexColor("#90EE90"), // Light green
-          HexColor("#7FFF00"), // Chartreuse
-          HexColor("#32CD32"), // Lime green
-        ];
-
-      case 'booked':
-        return [
-          HexColor("#FFB6C1"), // Light pink
-          HexColor("#FF69B4"), // Hot pink
-          HexColor("#FF1493"), // Deep pink
-          HexColor("#DB7093"), // Pale violet red
-        ];
-
-      case 'selected':
-        return [
-          HexColor("#E6E6FA"), // Lavender
-          HexColor("#D8BFD8"), // Thistle
-          HexColor("#DDA0DD"), // Plum
-          HexColor("#DA70D6"), // Orchid
-        ];
-
-      default:
-        return [
-          HexColor("#C2FDF2"),
-          HexColor("#CAF0F5"),
-          HexColor("#DAD6FC"),
-          HexColor("#DED0FE"),
-        ];
-    }
+class _AppointmentListViewState extends State<AppointmentListView> {
+  Widget _buildShimmer(Widget child) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: child,
+    );
   }
 
-  // Helper method for getting gradient with different directions
-  static LinearGradient getGradient({
-    required String type,
-    AlignmentGeometry begin = Alignment.centerRight,
-    AlignmentGeometry end = Alignment.centerLeft,
-  }) {
-    return LinearGradient(
-      begin: begin,
-      end: end,
-      colors: getGradientByType(type),
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AppointmentCubit, AppointmentState>(
+      builder: (context, state) {
+        final cubit = context.read<AppointmentCubit>();
+        bool isLoading = AppointmentCubit.get(context).appointments == null;
+        bool isEmpty = AppointmentCubit.get(context).appointments?.appointments.isEmpty ?? true;
+
+        if (isLoading) {
+          return _buildLoadingList(isLoading);
+        } else if (isEmpty) {
+          return _buildEmptyState();
+        } else {
+          return _buildAppointmentList(cubit);
+        }
+      },
+    );
+  }
+
+  Widget _buildLoadingList(bool isLoading) {
+    return Column(
+      children: [
+        isLoading
+            ? _buildShimmer(Container(
+                width: MediaQuery.sizeOf(context).width * 0.95,
+                height: 40,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  color: Colors.white,
+                ),
+              ))
+            : const ExpandableTimeSlots(
+                title: "Morning",
+                image: "assets/icons/morning.svg",
+                appointments: [],
+              ),
+        const HeightSpacer(size: 10),
+        isLoading
+            ? _buildShimmer(Container(
+                width: MediaQuery.sizeOf(context).width * 0.95,
+                height: 40,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  color: Colors.white,
+                ),
+              ))
+            : const ExpandableTimeSlots(
+                title: "Afternoon",
+                image: "assets/icons/afternoon.svg",
+                appointments: [],
+              ),
+        const HeightSpacer(size: 10),
+        isLoading
+            ? _buildShimmer(Container(
+                width: MediaQuery.sizeOf(context).width * 0.95,
+                height: 40,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  color: Colors.white,
+                ),
+              ))
+            : const ExpandableTimeSlots(
+                title: "Evening",
+                image: "assets/icons/evening.svg",
+                appointments: [],
+              ),
+      ],
+    );
+  }
+
+  Widget _buildAppointmentList(AppointmentCubit cubit) {
+    return Column(
+      children: [
+        if (cubit.morningAppointments.isNotEmpty) ...[
+          ExpandableTimeSlots(
+            title: "Morning",
+            image: "assets/icons/morning.svg",
+            appointments: cubit.morningAppointments,
+          ),
+          const HeightSpacer(size: 10),
+        ],
+        if (cubit.afternoonAppointments.isNotEmpty) ...[
+          ExpandableTimeSlots(
+            title: "Afternoon",
+            image: "assets/icons/afternoon.svg",
+            appointments: cubit.afternoonAppointments,
+          ),
+          const HeightSpacer(size: 10),
+        ],
+        if (cubit.eveningAppointments.isNotEmpty) ...[
+          ExpandableTimeSlots(
+            title: "Evening",
+            image: "assets/icons/evening.svg",
+            appointments: cubit.eveningAppointments,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const HeightSpacer(size: 30),
+          Icon(Icons.event_busy, size: 70, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'No Appointments Found',
+            style: TextStyle(fontSize: 22, color: Colors.grey[600], fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Appointments will appear here',
+            style: TextStyle(fontSize: 18, color: Colors.grey[400], fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 }

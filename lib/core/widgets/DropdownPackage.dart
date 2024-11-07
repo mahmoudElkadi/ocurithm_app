@@ -340,7 +340,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
       if (openUpward) {
         return -dropdownHeight - keyboardHeight + 50;
       }
-      return -dropdownHeight;
+      return -dropdownHeight + 50;
     }
 
     if (openUpward) {
