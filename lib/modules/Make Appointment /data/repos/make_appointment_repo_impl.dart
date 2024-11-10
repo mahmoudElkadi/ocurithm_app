@@ -1,8 +1,11 @@
 import 'dart:developer';
 
+import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
+
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/config.dart';
+import '../../../Appointment/data/models/appointment_model.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Doctor/data/model/doctor_model.dart';
 import '../../../Examination Type/data/model/examination_type_model.dart';
@@ -149,6 +152,30 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
       },
       showError: true,
       fromJson: (json) => PatientModel.fromJson(json),
+    );
+
+    if (result != null) {
+      return result;
+    } else {
+      throw Exception("Failed to fetch Patients");
+    }
+  }
+
+  @override
+  Future<Appointment> makeAppointment({required MakeAppointmentModel model}) async {
+    final url = "${Config.baseUrl}${Config.appointments}";
+    final String? token = CacheHelper.getData(key: "token");
+    log(model.toJson().toString());
+    final result = await ApiService.request<Appointment>(
+      url: url,
+      method: 'POST',
+      data: model.toJson(),
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) 'Cookie': 'ocurithmToken=$token',
+      },
+      showError: true,
+      fromJson: (json) => Appointment.fromJson(json),
     );
 
     if (result != null) {

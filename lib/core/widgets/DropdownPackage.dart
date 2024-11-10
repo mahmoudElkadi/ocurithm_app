@@ -24,6 +24,7 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
   final List<T> disabledItems;
   final TextStyle? hintStyle;
   final TextStyle? style;
+  final TextEditingController? searchController;
   final TextStyle? dropdownTextStyle;
   final IconData? suffixIcon;
   final double? dropdownHeight;
@@ -43,14 +44,16 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
   final double? radius;
   final bool? isValid;
   final FlutterDropdownSearchController? controller;
+  final void Function(String)? onChanged;
 
   const FlutterDropdownSearch({
-    Key? key,
+    super.key,
     this.hintText,
     required this.items,
     this.disabledItems = const [],
     this.hintStyle,
     this.style,
+    this.onChanged,
     this.dropdownTextStyle,
     this.suffixIcon,
     this.dropdownHeight,
@@ -72,7 +75,8 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
     this.border,
     this.validateText,
     this.height,
-  }) : super(key: key);
+    this.searchController,
+  });
 
   @override
   State<FlutterDropdownSearch> createState() => _FlutterDropdownSearchState<T>();
@@ -97,6 +101,20 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
 
     // Listen to keyboard visibility changes
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didUpdateWidget(FlutterDropdownSearch<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update items when they change
+    if (widget.items != oldWidget.items) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_isDropdownOpen) {
+          log("in");
+          _overlayEntry?.markNeedsBuild();
+        }
+      });
+    }
   }
 
   // void _setupKeyboardListener() {
@@ -177,7 +195,6 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
   void _removeOverlay() {
     _overlayEntry?.remove();
     _overlayEntry = null;
-    // WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
   }
 
   void _updateOverlay() {
@@ -185,7 +202,6 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     if (_isDropdownOpen) {
       _createOverlay();
     }
-    // WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
   }
 
   OverlayEntry _createOverlayEntry() {
@@ -274,7 +290,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: TextField(
-        controller: _searchController,
+        controller: widget.searchController ?? _searchController,
         onTap: () {
           // Immediate visibility update
           setState(() {
@@ -288,10 +304,17 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
           });
         },
         onChanged: (value) {
-          setState(() {
-            _searchTerm = value;
-          });
-          _overlayEntry?.markNeedsBuild();
+          if (widget.onChanged != null) {
+            widget.onChanged!(value);
+          } else {
+            setState(() {
+              _searchTerm = value;
+            });
+          }
+          if (_overlayEntry != null) {
+            log("overlay entry not null");
+            _overlayEntry!.markNeedsBuild();
+          }
         },
         onSubmitted: (value) {
           setState(() {
@@ -356,7 +379,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
         final filteredList = _getFilteredList();
         return Container(
           constraints: BoxConstraints(
-            maxHeight: (filteredList.length > 1 ? double.parse((filteredList.length * 80.0).toString()) : double.parse("120")).clamp(15.0, 200.0),
+            maxHeight: (filteredList.length > 1 ? double.parse((filteredList.length * 80.0).toString()) : double.parse("130")).clamp(15.0, 200.0),
           ),
           decoration: BoxDecoration(
             color: widget.dropdownBgColor ?? Colors.white,
@@ -391,42 +414,60 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
         ),
         child: widget.isLoading
             ? Center(
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(
-                    color: Colors.grey,
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    child: CircularProgressIndicator(
+                      color: Colors.grey,
+                      strokeWidth: 2,
+                    ),
                   ),
                 ),
               )
-            : ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: filteredList.length,
-                itemBuilder: (context, index) {
-                  final item = filteredList[index];
-                  final isDisabled = widget.disabledItems.contains(item);
-                  return InkWell(
-                    onTap: isDisabled ? null : () => _selectItem(item),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
-                      ),
-                      child: Text(
-                        widget.itemAsString(item),
-                        style: (widget.dropdownTextStyle ??
-                                TextStyle(
-                                  color: Colors.grey.shade800,
-                                  fontSize: 16.0,
-                                ))
-                            .copyWith(
-                          color: isDisabled ? Colors.grey.shade400 : null,
-                        ),
-                      ),
+            : filteredList.isEmpty
+                ? Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "No Data",
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        color: Colors.grey.shade800,
+                        fontSize: 16.0,
+                      ).copyWith(),
                     ),
-                  );
-                },
-              ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: filteredList.length,
+                    itemBuilder: (context, index) {
+                      final item = filteredList[index];
+                      final isDisabled = widget.disabledItems.contains(item);
+                      return InkWell(
+                        onTap: isDisabled ? null : () => _selectItem(item),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                          child: Text(
+                            widget.itemAsString(item),
+                            style: (widget.dropdownTextStyle ??
+                                    TextStyle(
+                                      color: Colors.grey.shade800,
+                                      fontSize: 16.0,
+                                    ))
+                                .copyWith(
+                              color: isDisabled ? Colors.grey.shade400 : null,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
       ),
     );
   }
@@ -439,6 +480,11 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
   }
 
   List<T> _getFilteredList() {
+    if (widget.onChanged != null) {
+      // If external search is being used, return all items as filtering
+      // is handled by the parent
+      return widget.items;
+    }
     return widget.items.where((item) => widget.itemAsString(item).toLowerCase().contains(_searchTerm.toLowerCase())).toList();
   }
 
@@ -573,7 +619,8 @@ class DropdownItem<T> extends StatelessWidget {
       this.prefixIcon,
       this.validateText,
       this.height,
-      this.textStyle});
+      this.textStyle,
+      this.onChanged});
   // Add this new property
 
   final TextEditingController? searchController;
@@ -598,6 +645,7 @@ class DropdownItem<T> extends StatelessWidget {
   final bool isLoading; // Indicates whether the data is being loaded
   final double? radius;
   final double? height;
+  final void Function(String)? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -623,6 +671,7 @@ class DropdownItem<T> extends StatelessWidget {
           border: border,
           icon: iconData,
           prefixIcon: prefixIcon,
+          onChanged: onChanged,
           color: color,
           isValid: isValid,
           radius: radius,
@@ -640,7 +689,7 @@ class DropdownItem<T> extends StatelessWidget {
           ),
           itemAsString: itemAsString,
           onItemSelected: onItemSelected,
-          isLoading: isLoading,
+          isLoading: isLoading, searchController: searchController,
         ),
       ],
     );

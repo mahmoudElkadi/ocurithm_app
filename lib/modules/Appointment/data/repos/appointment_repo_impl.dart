@@ -68,14 +68,23 @@ class AppointmentRepoImpl implements AppointmentRepo {
   }
 
   @override
-  Future<AppointmentModel> getAllAppointment() async {
+  Future<AppointmentModel> getAllAppointment({DateTime? date, String? branch, String? doctor}) async {
     final url = "${Config.baseUrl}${Config.appointments}";
     final String? token = CacheHelper.getData(key: "token");
     log("token: $token");
 
+    Map<String, dynamic> quary = {
+      if (date != null) "startDate": DateTime(date.year, date.month, date.day, 0, 0, 0).toString(),
+      if (date != null) "endDate": DateTime(date.year, date.month, date.day, 23, 59, 59).toString(),
+      if (doctor != null) "doctor": doctor,
+      if (branch != null) "branch": branch
+    };
+    log(quary.toString());
+
     final result = await ApiService.request<AppointmentModel>(
       url: url,
       method: 'GET',
+      queryParameters: quary,
       headers: {
         "Content-Type": "application/json",
         if (token != null) 'Cookie': 'ocurithmToken=$token',

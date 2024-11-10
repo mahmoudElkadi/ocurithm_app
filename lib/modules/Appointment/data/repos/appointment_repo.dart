@@ -8,5 +8,5 @@ abstract class AppointmentRepo {
     bool? isActive,
   });
   Future<BranchesModel> getAllBranches();
-  Future<AppointmentModel> getAllAppointment();
+  Future<AppointmentModel> getAllAppointment({DateTime? date, String? branch, String? doctor});
 }

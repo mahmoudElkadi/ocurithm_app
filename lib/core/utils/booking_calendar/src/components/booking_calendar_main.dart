@@ -2,10 +2,10 @@ import 'dart:developer';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
-import 'package:ocurithm/core/widgets/responsiveText.dart';
 import 'package:ocurithm/generated/l10n.dart';
 import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/appointment_form.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
@@ -14,6 +14,7 @@ import 'package:table_calendar/table_calendar.dart' as tc show StartingDayOfWeek
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../colors.dart';
 import '../core/booking_controller.dart';
 import '../model/booking_service.dart';
 import '../model/enums.dart' as bc;
@@ -142,7 +143,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
   void selectNewDateRange() {
     startOfDay = _selectedDay.startOfDayService(controller.serviceOpening!);
     endOfDay = _selectedDay.add(const Duration(days: 1)).endOfDayService(controller.serviceClosing!);
-
+    widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch);
     controller.base = startOfDay;
     controller.resetSelectedSlot();
   }
@@ -219,6 +220,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                         return isSameDay(_selectedDay, day);
                       },
                       onDaySelected: (selectedDay, focusedDay) {
+                        log('selectedDay: $selectedDay');
                         if (!isSameDay(_selectedDay, selectedDay)) {
                           setState(() {
                             _selectedDay = selectedDay;
@@ -235,6 +237,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                         }
                       },
                       onPageChanged: (focusedDay) {
+                        log('focusedDay: $focusedDay');
                         _focusedDay = focusedDay;
                       },
                     ),
@@ -303,9 +306,6 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                                     isBooked: controller.isSlotBooked(index),
                                     isSelected: index == controller.selectedSlot,
                                     onTap: () {
-                                      log("message");
-                                      log("message2 ${controller.isSlotBooked(index)}");
-
                                       if (!controller.isSlotBooked(index) && controller.viewOnly == true) {
                                       } else if (!controller.isSlotBooked(index) && controller.viewOnly == false) {
                                         controller.selectSlot(index);
@@ -344,7 +344,8 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                       ? CommonButton(
                           text: widget.bookingButtonText ?? S.of(context).makeAppointment,
                           onTap: () async {
-                            showAppointmentBottomSheet(context, date: controller.allBookingSlots.elementAt(controller.selectedSlot));
+                            await showAppointmentBottomSheet(context, date: controller.allBookingSlots.elementAt(controller.selectedSlot))
+                                .then((value) => widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch));
                           },
                           isDisabled: controller.selectedSlot == -1,
                           buttonActiveColor: widget.bookingButtonColor,
@@ -363,26 +364,23 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
     );
   }
 
-  Future<String?> showAppointmentDetails(Map<String, dynamic> patientData) {
-    return showDialog<String>(
+  Future showAppointmentDetails(Map<String, dynamic> patientData) {
+    return showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          return Dialog(
+      builder: (context) => GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Dialog(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(20.r),
             ),
             alignment: Alignment.center,
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+            backgroundColor: Colorz.white,
+            insetPadding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.h),
             child: Container(
-              height: getResponsiveHeight(context, heightFactor: MediaQuery.sizeOf(context).height * 0.62),
               padding: const EdgeInsets.all(16.0),
               width: MediaQuery.sizeOf(context).width,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Colors.white,
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -653,6 +651,83 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                       )
                     ],
                   ),
+                  const HeightSpacer(size: 10),
+                  Text(
+                    "  Status",
+                    style: appStyle(context, 18, Colors.black, FontWeight.w600),
+                  ),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
+                        width: MediaQuery.sizeOf(context).width,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          "${patientData['status'].toString()} ",
+                          textAlign: TextAlign.start,
+                          style: appStyle(context, 16, Colors.grey, FontWeight.w600),
+                        ),
+                      ),
+                      Positioned(
+                        top: -15,
+                        right: Directionality.of(context) == TextDirection.ltr ? 15 : null,
+                        left: Directionality.of(context) == TextDirection.ltr ? null : 15,
+                        child: SvgPicture.asset(
+                          'packages/booking_calendar/assets/examination.svg',
+                        ),
+                      )
+                    ],
+                  ),
+                  const HeightSpacer(size: 10),
+                  Text(
+                    "  Payment Method",
+                    style: appStyle(context, 18, Colors.black, FontWeight.w600),
+                  ),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
+                        width: MediaQuery.sizeOf(context).width,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          "${patientData['paymentMethod'].toString()} ",
+                          textAlign: TextAlign.start,
+                          style: appStyle(context, 16, Colors.grey, FontWeight.w600),
+                        ),
+                      ),
+                      Positioned(
+                        top: -15,
+                        right: Directionality.of(context) == TextDirection.ltr ? 15 : null,
+                        left: Directionality.of(context) == TextDirection.ltr ? null : 15,
+                        child: SvgPicture.asset(
+                          'packages/booking_calendar/assets/examination.svg',
+                        ),
+                      )
+                    ],
+                  ),
+                  Spacer(),
                   const HeightSpacer(size: 15),
                   Center(
                     child: SizedBox(
@@ -675,9 +750,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                   )
                 ],
               ),
-            ),
-          );
-        },
+            )),
       ),
     );
   }

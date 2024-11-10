@@ -43,30 +43,33 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     _controller = StreamController<dynamic>.broadcast();
 
     // Call fetchInitialData when the screen is opened
-    fetchInitialData(branch: widget.branch, date: DateTime.now().toString());
+    fetchInitialData(branch: widget.branch, date: DateTime.now());
   }
 
   List<dynamic> appointments = [];
   bool isFirst = true;
-  Future<void> fetchInitialData({required String date, required String branch}) async {
+  Future<void> fetchInitialData({required DateTime date, required String branch}) async {
     if (_disposed) return;
+    log("fetchInitialData $date $branch");
 
-    Map<String, dynamic> data = {
-      "date": date,
-      "branch": widget.branch,
-      "patient": widget.patient?.id,
-    };
-    log("data ${data.toString()}");
+    log("data ${date.toString()}");
 
     var dio = Dio(BaseOptions(
       connectTimeout: const Duration(minutes: 2),
       receiveTimeout: const Duration(minutes: 2),
     ));
+    DateTime dateTime = DateTime.parse(date.toString());
+    Map<String, dynamic> quary = {
+      "startDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 0, 0, 0),
+      "endDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 23, 59, 59)
+    };
+    log("quary ${quary.toString()}");
 
     try {
       var response = await dio.get(
         "${Config.baseUrl}appointments",
-        data: data,
+        // data: data,
+        queryParameters: quary,
         options: Options(
           headers: {"Accept": "application/json", "Content-Type": "application/json", "Cookie": "ocurithmToken=${CacheHelper.getData(key: 'token')}"},
           validateStatus: (status) {
@@ -116,7 +119,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     // Start polling
     // _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
     //   log("tabibooking polling");
-    //   fetchInitialData(branch: widget.branch, date: start.toIso8601String());
+    fetchInitialData(branch: widget.branch, date: start);
     // });
 
     return _controller.stream;
@@ -187,6 +190,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
           "manualId": item["id"],
           "examination_type": item["examinationType"]["name"],
           "branch": item["branch"]["name"],
+          "status": item["status"],
         });
       }
     } else {

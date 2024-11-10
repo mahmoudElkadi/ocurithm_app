@@ -1,8 +1,10 @@
+import '../../../Appointment/data/models/appointment_model.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Doctor/data/model/doctor_model.dart';
 import '../../../Examination Type/data/model/examination_type_model.dart';
 import '../../../Patient/data/model/patients_model.dart';
 import '../../../Payment Methods/data/model/payment_method_model.dart';
+import '../models/make_appointment_model.dart';
 
 abstract class MakeAppointmentRepo {
   Future<DoctorModel> getAllDoctors({
@@ -19,4 +21,6 @@ abstract class MakeAppointmentRepo {
     String? branch,
     bool? isActive,
   });
+
+  Future<Appointment> makeAppointment({required MakeAppointmentModel model});
 }

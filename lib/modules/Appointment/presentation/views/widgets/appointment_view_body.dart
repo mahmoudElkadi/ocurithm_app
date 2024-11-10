@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -6,16 +5,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
+import 'package:ocurithm/modules/Appointment/presentation/views/widgets/calendar_slider.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
-import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../data/models/appointment_model.dart';
 import '../../manager/Appointment cubit/appointment_cubit.dart';
 import '../../manager/Appointment cubit/appointment_state.dart';
+import 'filter_appointment.dart';
 
 class AppointmentViewBody extends StatefulWidget {
   const AppointmentViewBody({super.key});
@@ -28,6 +29,23 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
   var selectedDoctor;
   var selectedBranch;
 
+  void onDateSelected(DateTime date) {
+    setState(() {
+      AppointmentCubit.get(context).selectedDate = date;
+      if (AppointmentCubit.get(context).selectedDate != null) {
+        AppointmentCubit.get(context).getAppointments();
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    selectedMonth = DateTime.now();
+    AppointmentCubit.get(context).selectedDate = DateTime.now();
+  }
+
   @override
   Widget build(BuildContext context) {
     final cubit = AppointmentCubit.get(context);
@@ -36,77 +54,159 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
     return BlocBuilder<AppointmentCubit, AppointmentState>(
       builder: (context, state) => SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            //const HeightSpacer(size: 10),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 16),
+            //   child: Row(
+            //     children: [
+            //       Expanded(
+            //         child: DropdownItem(
+            //           radius: 30,
+            //           color: Colorz.white,
+            //           isShadow: true,
+            //           iconData: Icon(
+            //             Icons.arrow_drop_down_circle,
+            //             color: Colorz.grey,
+            //             size: 20,
+            //           ),
+            //           height: 4,
+            //           items: cubit.branches?.branches,
+            //           selectedValue: selectedBranch,
+            //           hintText: 'Select Branch',
+            //           hintStyle: appStyle(context, 18, Colorz.grey, FontWeight.w600),
+            //           textStyle: appStyle(context, 17, Colorz.black, FontWeight.w600),
+            //           itemAsString: (item) => item.name.toString(),
+            //           onItemSelected: (item) {
+            //             setState(() {
+            //               if (item != "Not Found") {
+            //                 // widget.cubit.chooseBranch = true;
+            //                 selectedBranch = item.name;
+            //                 // widget.cubit.branchId = item.id;
+            //                 log(selectedBranch.toString());
+            //               }
+            //             });
+            //           },
+            //           isLoading: cubit.branches == null,
+            //         ),
+            //       ),
+            //       const WidthSpacer(size: 10),
+            //       Expanded(
+            //         child: DropdownItem(
+            //           radius: 30,
+            //           color: Colorz.white,
+            //           isShadow: true,
+            //           iconData: Icon(Icons.arrow_drop_down_circle, size: 20, color: Colorz.grey),
+            //           height: 6,
+            //           items: cubit.doctors?.doctors,
+            //           selectedValue: selectedDoctor,
+            //           hintText: 'Select Doctor',
+            //           hintStyle: appStyle(context, 18, Colorz.grey, FontWeight.w600),
+            //           textStyle: appStyle(context, 17, Colorz.black, FontWeight.w600),
+            //           itemAsString: (item) => item.name.toString(),
+            //           onItemSelected: (item) {
+            //             setState(() {
+            //               if (item != "Not Found") {
+            //                 // widget.cubit.chooseBranch = true;
+            //                 selectedDoctor = item.name;
+            //                 log(selectedDoctor.toString());
+            //               }
+            //             });
+            //           },
+            //           isLoading: cubit.doctors == null,
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
             const HeightSpacer(size: 10),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: DropdownItem(
-                      radius: 30,
-                      color: Colorz.white,
-                      isShadow: true,
-                      iconData: Icon(
-                        Icons.arrow_drop_down_circle,
-                        color: Colorz.grey,
-                        size: 20,
+                  GestureDetector(
+                    onTap: () => _showMonthYearPicker(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
+                      margin: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30), boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
+                        ),
+                      ]),
+                      child: Text(
+                        selectedMonth != null ? "${DateFormat('MMMM').format(selectedMonth!)}-${selectedMonth!.year}" : 'Select Month/Year',
+                        style: appStyle(context, 18, Colorz.black, FontWeight.w600),
                       ),
-                      height: 4,
-                      items: cubit.branches?.branches,
-                      selectedValue: selectedBranch,
-                      hintText: 'Select Branch',
-                      hintStyle: appStyle(context, 18, Colorz.grey, FontWeight.w600),
-                      textStyle: appStyle(context, 17, Colorz.black, FontWeight.w600),
-                      itemAsString: (item) => item.name.toString(),
-                      onItemSelected: (item) {
-                        setState(() {
-                          if (item != "Not Found") {
-                            // widget.cubit.chooseBranch = true;
-                            selectedBranch = item.name;
-                            // widget.cubit.branchId = item.id;
-                            log(selectedBranch.toString());
-                          }
-                        });
-                      },
-                      isLoading: cubit.branches == null,
                     ),
                   ),
-                  const WidthSpacer(size: 10),
-                  Expanded(
-                    child: DropdownItem(
-                      radius: 30,
-                      color: Colorz.white,
-                      isShadow: true,
-                      iconData: Icon(Icons.arrow_drop_down_circle, size: 20, color: Colorz.grey),
-                      height: 6,
-                      items: cubit.doctors?.doctors,
-                      selectedValue: selectedDoctor,
-                      hintText: 'Select Doctor',
-                      hintStyle: appStyle(context, 18, Colorz.grey, FontWeight.w600),
-                      textStyle: appStyle(context, 17, Colorz.black, FontWeight.w600),
-                      itemAsString: (item) => item.name.toString(),
-                      onItemSelected: (item) {
-                        setState(() {
-                          if (item != "Not Found") {
-                            // widget.cubit.chooseBranch = true;
-                            selectedDoctor = item.name;
-                            log(selectedDoctor.toString());
-                          }
-                        });
+                  IconButton(
+                      onPressed: () {
+                        filterAppointment(context, cubit);
                       },
-                      isLoading: cubit.doctors == null,
-                    ),
-                  ),
+                      icon: Icon(
+                        Icons.filter_alt_rounded,
+                        color: Colorz.primaryColor,
+                      ))
                 ],
               ),
             ),
+            const HeightSpacer(size: 2),
+            selectedMonth != null
+                ? Padding(
+                    padding: const EdgeInsets.only(left: 20.0, right: 4),
+                    child: CalendarSliderWidget(
+                      month: selectedMonth!.month,
+                      selectedDate: AppointmentCubit.get(context).selectedDate,
+                      onDateSelected: onDateSelected,
+                      year: selectedMonth!.year,
+                    ),
+                  )
+                : const Center(child: Text('Please select a month')),
             const HeightSpacer(size: 10),
             const AppointmentListView()
           ],
         ),
       ),
     );
+  }
+
+  DateTime? selectedMonth;
+  Future<void> _showMonthYearPicker(BuildContext context) async {
+    final selected = await showMonthPicker(
+      context: context,
+      initialDate: selectedMonth ?? DateTime.now(),
+      headerColor: Colorz.blue,
+      headerTextColor: Colors.black,
+      selectedMonthBackgroundColor: Colorz.blue.withOpacity(0.5),
+      selectedMonthTextColor: Colors.white,
+      unselectedMonthTextColor: Colors.black,
+      currentMonthTextColor: Colors.green,
+      cancelWidget: Text(
+        'Cancel',
+        style: appStyle(context, 16, Colorz.grey, FontWeight.w500),
+      ),
+      confirmWidget: Text(
+        'Ok',
+        style: appStyle(context, 16, Colorz.blue, FontWeight.w500),
+      ),
+      dismissible: true,
+      firstDate: DateTime(DateTime.now().year - 50),
+      lastDate: DateTime(DateTime.now().year + 50),
+    );
+
+    if (selected != null) {
+      setState(() {
+        selectedMonth = selected;
+        AppointmentCubit.get(context).afternoonAppointments.clear();
+        AppointmentCubit.get(context).morningAppointments.clear();
+        AppointmentCubit.get(context).eveningAppointments.clear();
+      });
+    }
   }
 }
 

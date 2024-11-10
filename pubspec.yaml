@@ -69,6 +69,7 @@ dependencies:
   table_calendar: ^3.0.6
   provider: ^6.0.3
   flutter_keyboard_size: ^1.0.1
+  async: ^2.11.0
 
   flutter_localizations:
     sdk: flutter

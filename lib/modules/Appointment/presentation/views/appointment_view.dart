@@ -24,7 +24,7 @@ class AppointmentView extends StatelessWidget {
         child: BlocBuilder<AppointmentCubit, AppointmentState>(
             builder: (context, state) => CustomScaffold(
                 body: AppointmentCubit.get(context).connection != false
-                    ? AppointmentViewBody()
+                    ? const AppointmentViewBody()
                     : NoInternet(
                         onPressed: () {
                           if (AppointmentCubit.get(context).doctors == null) {

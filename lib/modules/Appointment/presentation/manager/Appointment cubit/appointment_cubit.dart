@@ -6,9 +6,9 @@ import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 import '../../../../../core/utils/colors.dart';
-import '../../../../Branch/data/model/branches_model.dart';
+import '../../../../Branch/data/model/branches_model.dart' as branch;
 import '../../../../Doctor/data/model/doctor_model.dart';
-import '../../../data/models/appointment_model.dart';
+import '../../../data/models/appointment_model.dart' as model;
 import '../../../data/repos/appointment_repo.dart';
 import 'appointment_state.dart';
 
@@ -16,6 +16,8 @@ class AppointmentCubit extends Cubit<AppointmentState> {
   AppointmentCubit(this.appointmentRepo) : super(AppointmentInitial());
 
   static AppointmentCubit get(context) => BlocProvider.of(context);
+
+  DateTime selectedDate = DateTime.now();
 
   bool? connection;
   AppointmentRepo appointmentRepo;
@@ -50,7 +52,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     }
   }
 
-  BranchesModel? branches;
+  branch.BranchesModel? branches;
   bool loading = false;
   getBranches() async {
     branches = null;
@@ -87,8 +89,11 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     }
   }
 
-  Map<String, List<Appointment>>? groupedAppointments;
-  AppointmentModel? appointments;
+  branch.Branch? selectedBranch;
+  Doctor? selectedDoctor;
+
+  Map<String, List<model.Appointment>>? groupedAppointments;
+  model.AppointmentModel? appointments;
   getAppointments() async {
     appointments = null;
     emit(GetBranchLoading());
@@ -96,7 +101,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     emit(GetBranchLoading());
     try {
       if (connection == true) {
-        appointments = await appointmentRepo.getAllAppointment();
+        appointments = await appointmentRepo.getAllAppointment(date: selectedDate, branch: selectedBranch?.id, doctor: selectedDoctor?.id);
         if (appointments?.error == null && appointments!.appointments.isNotEmpty) {
           // Group appointments by time slot
           groupedAppointments = AppointmentHelper.groupAppointmentsByTimeSlot(appointments!.appointments);
@@ -112,20 +117,20 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     }
   }
 
-  List<Appointment> get morningAppointments => groupedAppointments?['morning'] ?? [];
+  List<model.Appointment> get morningAppointments => groupedAppointments?['morning'] ?? [];
 
-  List<Appointment> get afternoonAppointments => groupedAppointments?['afternoon'] ?? [];
+  List<model.Appointment> get afternoonAppointments => groupedAppointments?['afternoon'] ?? [];
 
-  List<Appointment> get eveningAppointments => groupedAppointments?['evening'] ?? [];
+  List<model.Appointment> get eveningAppointments => groupedAppointments?['evening'] ?? [];
 
   // Get count of appointments in a time slot
   int getAppointmentCount(String timeSlot) => groupedAppointments?[timeSlot]?.length ?? 0;
 }
 
 class AppointmentHelper {
-  static Map<String, List<Appointment>> groupAppointmentsByTimeSlot(List<Appointment> appointments) {
+  static Map<String, List<model.Appointment>> groupAppointmentsByTimeSlot(List<model.Appointment> appointments) {
     // Initialize empty lists for each time slot
-    final Map<String, List<Appointment>> groupedAppointments = {
+    final Map<String, List<model.Appointment>> groupedAppointments = {
       'morning': [], // 00:00 - 11:59
       'afternoon': [], // 12:00 - 17:59
       'evening': [], // 18:00 - 23:59

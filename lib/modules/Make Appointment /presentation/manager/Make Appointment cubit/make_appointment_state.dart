@@ -18,6 +18,8 @@ class GetBranchSuccess extends MakeAppointmentState {}
 
 class AdminPatientLoading extends MakeAppointmentState {}
 
+class ChangeState extends MakeAppointmentState {}
+
 class AdminPatientError extends MakeAppointmentState {}
 
 class AdminPatientSuccess extends MakeAppointmentState {}
@@ -33,3 +35,9 @@ class ExaminationTypeLoading extends MakeAppointmentState {}
 class ExaminationTypeError extends MakeAppointmentState {}
 
 class ExaminationTypeSuccess extends MakeAppointmentState {}
+
+class MakeAppointmentLoading extends MakeAppointmentState {}
+
+class MakeAppointmentSuccess extends MakeAppointmentState {}
+
+class MakeAppointmentError extends MakeAppointmentState {}

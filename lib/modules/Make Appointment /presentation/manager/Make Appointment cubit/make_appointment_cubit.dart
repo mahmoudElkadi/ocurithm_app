@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:developer';
 
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
 
 import '../../../../../core/utils/colors.dart';
 import '../../../../Branch/data/model/branches_model.dart';
@@ -18,6 +21,26 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   MakeAppointmentCubit(this.makeAppointmentRepo) : super(AppointmentInitial());
 
   static MakeAppointmentCubit get(context) => BlocProvider.of(context);
+
+  Widget? currentWidget;
+  int widgetIndex = 0;
+  pageTwo(context, index) {
+    widgetIndex = index;
+    if (!isClosed) emit(ChangeState());
+  }
+
+  PageController pageController = PageController();
+  int currentPage = 0;
+
+  void togglePage(int pageIndex, context) {
+    currentPage = pageIndex;
+    pageController.animateToPage(
+      currentPage,
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.easeInOut,
+    );
+    if (!isClosed) emit(ChangeState());
+  }
 
   bool? connection;
   MakeAppointmentRepo makeAppointmentRepo;
@@ -92,8 +115,11 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   PatientModel? patients;
   int page = 1;
   TextEditingController searchController = TextEditingController();
+  TextEditingController patientController = TextEditingController();
+  bool loadPatients = false;
   Future<void> getPatients() async {
     patients = null;
+    loadPatients = true;
     emit(AdminPatientLoading());
 
     connection = await InternetConnection().hasInternetAccess;
@@ -107,16 +133,20 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
           colorText: Colorz.white,
           icon: Icon(Icons.error, color: Colorz.white),
         );
+        loadPatients = false;
         emit(AdminPatientError());
       } else {
-        patients = await makeAppointmentRepo.getAllPatients(page: page, search: searchController.text);
+        patients = await makeAppointmentRepo.getAllPatients(page: page, search: patientController.text);
         if (patients!.patients.isNotEmpty) {
+          loadPatients = false;
           emit(AdminPatientSuccess());
         } else {
+          loadPatients = false;
           emit(AdminPatientError());
         }
       }
     } catch (e) {
+      loadPatients = false;
       log(e.toString());
       emit(AdminPatientError());
     }
@@ -189,8 +219,83 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
       getBranches(),
       getExaminationTypes(),
       getPaymentMethods(),
-      getPatients(),
       getDoctors(),
     ]);
+  }
+
+  Timer? _debounceTimer;
+
+  Timer? _searchDebounceTimer;
+  CancelableOperation<void>? _currentOperation;
+
+  void searchPatients() async {
+    // Cancel previous timer
+    _searchDebounceTimer?.cancel();
+    // Cancel previous operation if exists
+    await _currentOperation?.cancel();
+
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      // Cancel previous operation
+      _currentOperation?.cancel();
+
+      // Create new cancelable operation
+      _currentOperation = CancelableOperation.fromFuture(
+        getPatients(),
+        onCancel: () {
+          // Cleanup if needed when cancelled
+          print('Search operation cancelled');
+        },
+      );
+
+      // Execute the operation
+      _currentOperation?.value.then((_) {
+        print('Search completed');
+      }).catchError((error) {
+        print('Search error: $error');
+      });
+    });
+  }
+
+  makeAppointment({required BuildContext context, required MakeAppointmentModel model}) async {
+    emit(MakeAppointmentLoading());
+    try {
+      var result = await makeAppointmentRepo.makeAppointment(model: model);
+      if (result != null && result.error == null) {
+        Get.snackbar(
+          "Success",
+          "Appointment created successfully",
+          backgroundColor: Colorz.primaryColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.check, color: Colorz.white),
+        );
+        Navigator.pop(context);
+        Navigator.pop(context);
+        emit(MakeAppointmentSuccess());
+      } else if (result != null && result.error != null) {
+        Get.snackbar(
+          result.error!,
+          "Failed to create appointment",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(MakeAppointmentError());
+      } else {
+        Get.snackbar(
+          "Error",
+          "Failed to create appointment",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(MakeAppointmentError());
+      }
+    } catch (e) {
+      emit(MakeAppointmentError());
+    }
   }
 }
