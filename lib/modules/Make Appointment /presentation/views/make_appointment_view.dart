@@ -7,12 +7,14 @@ import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widget
 
 import '../../../../core/utils/app_style.dart';
 import '../../../../core/utils/colors.dart';
+import '../../../Appointment/data/models/appointment_model.dart';
 import '../../data/repos/make_appointment_repo_impl.dart';
 import '../manager/Make Appointment cubit/make_appointment_cubit.dart';
 import '../manager/Make Appointment cubit/make_appointment_state.dart';
 
 class MakeAppointmentView extends StatelessWidget {
-  const MakeAppointmentView({super.key});
+  const MakeAppointmentView({super.key, this.appointment});
+  final Appointment? appointment;
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +42,7 @@ class MakeAppointmentView extends StatelessWidget {
                     ],
                   ),
                   body: MakeAppointmentCubit.get(context).connection != false
-                      ? MakeAppointmentViewBody(
-                          branch: '',
-                        )
+                      ? MakeAppointmentViewBody(branch: '', appointment: appointment)
                       : NoInternet(
                           onPressed: () {
                             if (MakeAppointmentCubit.get(context).doctors == null) {

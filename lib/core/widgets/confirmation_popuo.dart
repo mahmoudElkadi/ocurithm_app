@@ -4,14 +4,14 @@ import 'package:ocurithm/core/widgets/width_spacer.dart';
 import '../utils/app_style.dart';
 import '../utils/colors.dart';
 
-void showConfirmationDialog({
+Future showConfirmationDialog({
   required BuildContext context,
   String? message,
   Widget? text,
   String? title,
   Function()? onConfirm,
   Function()? onCancel,
-}) {
+}) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {

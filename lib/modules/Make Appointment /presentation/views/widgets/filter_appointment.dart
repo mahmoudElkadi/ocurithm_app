@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:ocurithm/modules/Make%20Appointment%20/presentation/manager/Make%20Appointment%20cubit/make_appointment_cubit.dart';
 
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
@@ -10,10 +11,9 @@ import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/my_line.dart';
 import '../../../../../core/widgets/width_spacer.dart';
-import '../../manager/Appointment cubit/appointment_cubit.dart';
-import '../../manager/Appointment cubit/appointment_state.dart';
+import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
-filterAppointment(context, AppointmentCubit cubit) {
+filterAppointment(context, MakeAppointmentCubit cubit) {
   final AnimationController animationController = AnimationController(
     duration: const Duration(milliseconds: 500), // Set the desired duration here
     vsync: Navigator.of(context),
@@ -33,7 +33,7 @@ filterAppointment(context, AppointmentCubit cubit) {
 
 class filterAppointmentData extends StatefulWidget {
   const filterAppointmentData({super.key, required this.cubit});
-  final AppointmentCubit cubit;
+  final MakeAppointmentCubit cubit;
 
   @override
   State<filterAppointmentData> createState() => _filterAppointmentDataState();
@@ -60,7 +60,7 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
       onTap: () {
         WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
       },
-      child: BlocBuilder<AppointmentCubit, AppointmentState>(
+      child: BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
         bloc: widget.cubit,
         builder: (context, state) => SafeArea(
           child: Container(
@@ -199,7 +199,7 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                                 widget.cubit.selectedDoctor = null;
                               });
                               Navigator.pop(context);
-                              await widget.cubit.getAppointments();
+                              //  await widget.cubit.get();
                               _resetLoading = false;
                             },
                             child: _resetLoading
@@ -215,7 +215,7 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                                 setState(() {
                                   _filterLoading = true;
                                 });
-                                await widget.cubit.getAppointments();
+                                //  await widget.cubit.getAppointments();
                                 setState(() {
                                   _filterLoading = false;
                                 });

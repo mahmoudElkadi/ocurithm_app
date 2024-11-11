@@ -1,17 +1,24 @@
+import 'dart:developer';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/calendar_slider.dart';
+import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/make_appointment_view.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
+import '../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../data/models/appointment_model.dart';
 import '../../manager/Appointment cubit/appointment_cubit.dart';
@@ -56,77 +63,12 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //const HeightSpacer(size: 10),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 16),
-            //   child: Row(
-            //     children: [
-            //       Expanded(
-            //         child: DropdownItem(
-            //           radius: 30,
-            //           color: Colorz.white,
-            //           isShadow: true,
-            //           iconData: Icon(
-            //             Icons.arrow_drop_down_circle,
-            //             color: Colorz.grey,
-            //             size: 20,
-            //           ),
-            //           height: 4,
-            //           items: cubit.branches?.branches,
-            //           selectedValue: selectedBranch,
-            //           hintText: 'Select Branch',
-            //           hintStyle: appStyle(context, 18, Colorz.grey, FontWeight.w600),
-            //           textStyle: appStyle(context, 17, Colorz.black, FontWeight.w600),
-            //           itemAsString: (item) => item.name.toString(),
-            //           onItemSelected: (item) {
-            //             setState(() {
-            //               if (item != "Not Found") {
-            //                 // widget.cubit.chooseBranch = true;
-            //                 selectedBranch = item.name;
-            //                 // widget.cubit.branchId = item.id;
-            //                 log(selectedBranch.toString());
-            //               }
-            //             });
-            //           },
-            //           isLoading: cubit.branches == null,
-            //         ),
-            //       ),
-            //       const WidthSpacer(size: 10),
-            //       Expanded(
-            //         child: DropdownItem(
-            //           radius: 30,
-            //           color: Colorz.white,
-            //           isShadow: true,
-            //           iconData: Icon(Icons.arrow_drop_down_circle, size: 20, color: Colorz.grey),
-            //           height: 6,
-            //           items: cubit.doctors?.doctors,
-            //           selectedValue: selectedDoctor,
-            //           hintText: 'Select Doctor',
-            //           hintStyle: appStyle(context, 18, Colorz.grey, FontWeight.w600),
-            //           textStyle: appStyle(context, 17, Colorz.black, FontWeight.w600),
-            //           itemAsString: (item) => item.name.toString(),
-            //           onItemSelected: (item) {
-            //             setState(() {
-            //               if (item != "Not Found") {
-            //                 // widget.cubit.chooseBranch = true;
-            //                 selectedDoctor = item.name;
-            //                 log(selectedDoctor.toString());
-            //               }
-            //             });
-            //           },
-            //           isLoading: cubit.doctors == null,
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            const HeightSpacer(size: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: GestureDetector(
                     onTap: () => _showMonthYearPicker(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
@@ -144,27 +86,27 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
                       ),
                     ),
                   ),
-                  IconButton(
-                      onPressed: () {
-                        filterAppointment(context, cubit);
-                      },
-                      icon: Icon(
-                        Icons.filter_alt_rounded,
-                        color: Colorz.primaryColor,
-                      ))
-                ],
-              ),
+                ),
+                InkWell(
+                  onTap: () => filterAppointment(context, cubit),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle),
+                    child: Icon(
+                      Icons.filter_alt_rounded,
+                      color: Colorz.primaryColor,
+                    ),
+                  ),
+                )
+              ],
             ),
             const HeightSpacer(size: 2),
             selectedMonth != null
-                ? Padding(
-                    padding: const EdgeInsets.only(left: 20.0, right: 4),
-                    child: CalendarSliderWidget(
-                      month: selectedMonth!.month,
-                      selectedDate: AppointmentCubit.get(context).selectedDate,
-                      onDateSelected: onDateSelected,
-                      year: selectedMonth!.year,
-                    ),
+                ? CalendarSliderWidget(
+                    month: selectedMonth!.month,
+                    selectedDate: AppointmentCubit.get(context).selectedDate,
+                    onDateSelected: onDateSelected,
+                    year: selectedMonth!.year,
                   )
                 : const Center(child: Text('Please select a month')),
             const HeightSpacer(size: 10),
@@ -266,105 +208,107 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
   @override
   Widget build(BuildContext context) {
     // Only show if there are appointments
-    return Visibility(
-      visible: widget.appointments.isNotEmpty,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: GestureDetector(
-          onTap: toggleExpansion,
-          child: Stack(
-            children: [
-              // Main Container
-              Container(
-                width: MediaQuery.of(context).size.width,
-                padding: const EdgeInsets.only(top: 17),
-                child: Container(
+    return BlocBuilder<AppointmentCubit, AppointmentState>(
+      builder: (context, state) => Visibility(
+        visible: widget.appointments.isNotEmpty,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: GestureDetector(
+            onTap: toggleExpansion,
+            child: Stack(
+              children: [
+                // Main Container
+                Container(
                   width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    color: Colorz.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colorz.grey, width: 0.3),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
-                  child: AnimatedSize(
-                    duration: const Duration(milliseconds: 200),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: isExpanded ? _buildTimeSlots() : [],
+                  padding: const EdgeInsets.only(top: 17),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                      color: Colorz.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colorz.grey, width: 0.3),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: isExpanded ? _buildTimeSlots(AppointmentCubit.get(context)) : [],
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              // Time Slot Label
-              AnimatedPositioned(
-                left: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
-                right: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
-                top: isExpanded ? 0 : 29,
-                duration: const Duration(milliseconds: 200),
-                child: AnimatedContainer(
-                  padding: EdgeInsets.fromLTRB(isExpanded ? 10 : 0, 5, isExpanded ? 20 : 0, 5),
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      gradient: LinearGradient(
-                        begin: Alignment.centerRight,
-                        end: Alignment.centerLeft,
-                        colors: isExpanded ? getThemeColors(widget.title ?? "Afternoon") : [Colorz.white, Colorz.white],
-                      ),
-                      borderRadius: BorderRadius.circular(20)),
+                // Time Slot Label
+                AnimatedPositioned(
+                  left: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
+                  right: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
+                  top: isExpanded ? 0 : 29,
                   duration: const Duration(milliseconds: 200),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        widget.image ?? "assets/icons/afternoon.svg",
-                        width: 25,
-                        height: 25,
-                      ),
-                      const WidthSpacer(size: 5),
-                      Text(
-                        widget.title ?? "Afternoon",
-                        style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
-                      ),
-                    ],
+                  child: AnimatedContainer(
+                    padding: EdgeInsets.fromLTRB(isExpanded ? 10 : 0, 5, isExpanded ? 20 : 0, 5),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        gradient: LinearGradient(
+                          begin: Alignment.centerRight,
+                          end: Alignment.centerLeft,
+                          colors: isExpanded ? getThemeColors(widget.title ?? "Afternoon") : [Colorz.white, Colorz.white],
+                        ),
+                        borderRadius: BorderRadius.circular(20)),
+                    duration: const Duration(milliseconds: 200),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset(
+                          widget.image ?? "assets/icons/afternoon.svg",
+                          width: 25,
+                          height: 25,
+                        ),
+                        const WidthSpacer(size: 5),
+                        Text(
+                          widget.title ?? "Afternoon",
+                          style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              // Appointment Count Circle
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 200),
-                left: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
-                right: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
-                top: isExpanded ? 0 : 28,
-                child: AnimatedContainer(
+                // Appointment Count Circle
+                AnimatedPositioned(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: isExpanded ? Colors.transparent : Colors.black, width: 0.3),
-                      gradient: isExpanded
-                          ? LinearGradient(
-                              begin: Alignment.bottomRight,
-                              end: Alignment.topLeft,
-                              colors: getThemeColors(widget.title ?? "Afternoon"),
-                            )
-                          : null,
-                      shape: BoxShape.circle),
-                  child: Text(
-                    widget.appointments.length.toString(),
-                    style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
+                  left: Directionality.of(context) == ui.TextDirection.rtl ? 20 : null,
+                  right: Directionality.of(context) == ui.TextDirection.ltr ? 20 : null,
+                  top: isExpanded ? 0 : 28,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: isExpanded ? Colors.transparent : Colors.black, width: 0.3),
+                        gradient: isExpanded
+                            ? LinearGradient(
+                                begin: Alignment.bottomRight,
+                                end: Alignment.topLeft,
+                                colors: getThemeColors(widget.title ?? "Afternoon"),
+                              )
+                            : null,
+                        shape: BoxShape.circle),
+                    child: Text(
+                      widget.appointments.length.toString(),
+                      style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  List<Widget> _buildTimeSlots() {
+  List<Widget> _buildTimeSlots(AppointmentCubit cubit) {
     List<Widget> slots = [];
     final appointments = widget.appointments;
     int i = 0;
@@ -376,7 +320,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             margin: const EdgeInsets.symmetric(vertical: 4),
-            child: _buildExpandedItem(expandedIndex!, appointments[expandedIndex!]),
+            child: _buildExpandedItem(expandedIndex!, appointments[expandedIndex!], cubit),
           ),
         );
 
@@ -468,105 +412,228 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
     return slots;
   }
 
-  Widget _buildExpandedItem(int index, Appointment appointment) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colorz.grey, width: 0.3),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildExpandedItem(int index, Appointment appointment, AppointmentCubit cubit) {
+    return GestureDetector(
+      onTap: () {},
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colorz.grey, width: 0.3),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          SvgPicture.asset("assets/icons/doctor.svg", width: 18, height: 18),
+                          WidthSpacer(size: 8),
+                          Text(
+                            "${appointment.doctor?.name ?? 'Unknown'}",
+                            style: appStyle(context, 16, Colorz.black, FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.watch_later_outlined,
+                            size: 18,
+                          ),
+                          WidthSpacer(size: 8),
+                          Text(
+                            DateFormat("hh:mm a").format(appointment.datetime ?? DateTime.now()),
+                            style: appStyle(context, 18, Colorz.redColor, FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      setState(() {
+                        expandedIndex = null;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const Divider(),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  SvgPicture.asset("assets/icons/patient.svg", width: 18, height: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    appointment.patient?.name ?? 'No Name',
+                    style: appStyle(context, 16, Colorz.black, FontWeight.w500),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () async {
+                  if (appointment.patient?.phone != null) {
+                    String url = "tel:${appointment.patient!.phone}";
+                    if (!kIsWeb && await canLaunchUrl(Uri.parse(url))) {
+                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Could not call ${appointment.patient?.phone}'),
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: Row(
                   children: [
+                    const Icon(Icons.phone, size: 16),
+                    const SizedBox(width: 8),
                     Text(
-                      DateFormat("hh:mm a").format(appointment.datetime ?? DateTime.now()),
-                      style: appStyle(context, 18, Colorz.redColor, FontWeight.w500),
-                    ),
-                    Text(
-                      "(${appointment.patient?.name ?? 'Unknown'})",
+                      appointment.patient?.phone ?? 'No phone',
                       style: appStyle(context, 16, Colorz.black, FontWeight.w500),
                     ),
                   ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    setState(() {
-                      expandedIndex = null;
-                    });
-                  },
-                ),
-              ],
-            ),
-            const Divider(),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.phone, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  appointment.patient?.phone ?? 'No phone',
-                  style: appStyle(context, 14, Colorz.black, FontWeight.normal),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.medical_services, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  "Examination type: ${appointment.examinationType?.name ?? 'Unknown'}",
-                  style: appStyle(context, 14, Colorz.black, FontWeight.normal),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Implement reschedule logic
-                  },
-                  icon: const Icon(Icons.schedule),
-                  label: const Text("Reschedule"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colorz.primaryColor,
-                    foregroundColor: Colors.white,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    "assets/icons/status.svg",
+                    width: 18,
+                    height: 18,
                   ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Implement cancel logic
-                  },
-                  icon: const Icon(Icons.cancel),
-                  label: const Text("Cancel"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colorz.redColor,
-                    foregroundColor: Colors.white,
+                  const SizedBox(width: 8),
+                  Text(
+                    "Status: ${appointment.status ?? 'N/A'}",
+                    style: appStyle(context, 16, Colorz.black, FontWeight.w500),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.medical_services, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FittedBox(
+                      alignment: Alignment.centerLeft,
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        "${appointment.examinationType?.name ?? 'Unknown'}",
+                        style: appStyle(context, 16, Colorz.black, FontWeight.w500),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(8.r), bottomLeft: Radius.circular(8.r)),
+                      ),
+                      //   backgroundColor: Colors.green,
+                      side: const BorderSide(color: Colors.green, strokeAlign: BorderSide.strokeAlignOutside),
+                    ),
+                    onPressed: () async {},
+                    child: const Icon(
+                      Icons.done,
+                      color: Colors.green,
+                      size: 25,
+                    ),
+                  ),
+                  const WidthSpacer(size: 1),
+                  OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0.r),
+                        ),
+                        side: const BorderSide(color: Colors.blue, strokeAlign: BorderSide.strokeAlignOutside),
+                        //  backgroundColor: Colors.blue
+                      ),
+                      onPressed: () async {
+                        showConfirmationDialog(
+                          context: context,
+                          title: "Delay Appointment",
+                          message: "Do you want to Delay this Appointment?",
+                          onConfirm: () async {
+                            bool? isResult = false;
+
+                            isResult = await Get.off(() => MakeAppointmentView(
+                                  appointment: appointment,
+                                ));
+                            log("isResult: $isResult");
+                            if (isResult == true) {
+                              cubit.getAppointments();
+                            }
+                          },
+                          onCancel: () {
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                      child: SvgPicture.asset(
+                        "assets/icons/sand_watch.svg",
+                        colorFilter: const ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+                        width: 20,
+                        height: 20,
+                      )),
+                  const WidthSpacer(size: 1),
+                  OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0.r),
+                        ),
+                        //   backgroundColor: Colors.yellow.shade800,
+                        side: BorderSide(color: Colors.yellow.shade800, strokeAlign: BorderSide.strokeAlignOutside),
+                      ),
+                      onPressed: () async {},
+                      child: SvgPicture.asset(
+                        "assets/icons/circle_off.svg",
+                        colorFilter: ColorFilter.mode(Colors.yellow.shade800, BlendMode.srcIn),
+                        width: 20,
+                        height: 20,
+                      )),
+                  const WidthSpacer(size: 1),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(topRight: Radius.circular(8.r), bottomRight: Radius.circular(8.r)),
+                      ),
+                      // backgroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red, strokeAlign: BorderSide.strokeAlignOutside),
+                    ),
+                    onPressed: () async {},
+                    child: const Icon(Icons.close, color: Colors.red, size: 25),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -606,8 +673,8 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    "(${appointment.patient?.name ?? 'Unknown'})",
-                    style: appStyle(context, 16, Colorz.black, FontWeight.w500),
+                    "Dr. ${appointment.doctor?.name ?? 'Unknown'}",
+                    style: appStyle(context, 16, Colorz.black, FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -659,12 +726,15 @@ class _AppointmentListViewState extends State<AppointmentListView> {
     return Column(
       children: [
         isLoading
-            ? _buildShimmer(Container(
-                width: MediaQuery.sizeOf(context).width * 0.95,
-                height: 40,
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  color: Colors.white,
+            ? _buildShimmer(Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  width: MediaQuery.sizeOf(context).width,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                    color: Colors.white,
+                  ),
                 ),
               ))
             : const ExpandableTimeSlots(
@@ -674,12 +744,15 @@ class _AppointmentListViewState extends State<AppointmentListView> {
               ),
         const HeightSpacer(size: 10),
         isLoading
-            ? _buildShimmer(Container(
-                width: MediaQuery.sizeOf(context).width * 0.95,
-                height: 40,
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  color: Colors.white,
+            ? _buildShimmer(Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  width: MediaQuery.sizeOf(context).width,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                    color: Colors.white,
+                  ),
                 ),
               ))
             : const ExpandableTimeSlots(
@@ -689,12 +762,15 @@ class _AppointmentListViewState extends State<AppointmentListView> {
               ),
         const HeightSpacer(size: 10),
         isLoading
-            ? _buildShimmer(Container(
-                width: MediaQuery.sizeOf(context).width * 0.95,
-                height: 40,
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  color: Colors.white,
+            ? _buildShimmer(Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  width: MediaQuery.sizeOf(context).width,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                    color: Colors.white,
+                  ),
                 ),
               ))
             : const ExpandableTimeSlots(

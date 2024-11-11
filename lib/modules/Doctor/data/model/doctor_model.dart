@@ -1,3 +1,5 @@
+import '../../../Branch/data/model/branches_model.dart';
+
 class DoctorModel {
   DoctorModel({
     this.doctors,
@@ -89,31 +91,5 @@ class Doctor {
         "id": id,
         "branch": branch?.toJson(),
         "branchId": branchId,
-      };
-}
-
-class Branch {
-  Branch({
-    this.code,
-    this.name,
-    this.id,
-  });
-
-  String? code;
-  String? name;
-  String? id;
-
-  factory Branch.fromJson(Map<String, dynamic> json) {
-    return Branch(
-      code: json["code"],
-      name: json["name"],
-      id: json["id"],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        "code": code,
-        "name": name,
-        "id": id,
       };
 }

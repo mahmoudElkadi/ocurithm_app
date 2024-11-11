@@ -10,9 +10,11 @@ class MakeAppointmentModel {
     this.createBy,
     this.note,
     this.clinic,
+    this.id,
   });
 
   String? patient;
+  String? id;
   String? branch;
   String? doctor;
   String? examinationType;
@@ -35,6 +37,7 @@ class MakeAppointmentModel {
       status: json["status"],
       createBy: json["createBy"],
       note: json["note"],
+      id: json["id"],
     );
   }
 
@@ -49,5 +52,6 @@ class MakeAppointmentModel {
         "createBy": createBy,
         "note": note,
         "clinic": clinic,
+        "id": id,
       };
 }

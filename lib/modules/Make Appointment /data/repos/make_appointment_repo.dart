@@ -23,4 +23,6 @@ abstract class MakeAppointmentRepo {
   });
 
   Future<Appointment> makeAppointment({required MakeAppointmentModel model});
+  Future<Appointment> editAppointment({required MakeAppointmentModel model, required String id});
+  Future<AppointmentModel> getAllAppointment({DateTime? date, String? branch, String? doctor});
 }

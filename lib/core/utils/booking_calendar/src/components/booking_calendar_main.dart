@@ -14,6 +14,7 @@ import 'package:table_calendar/table_calendar.dart' as tc show StartingDayOfWeek
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../modules/Appointment/data/models/appointment_model.dart';
 import '../../../colors.dart';
 import '../core/booking_controller.dart';
 import '../model/booking_service.dart';
@@ -62,6 +63,7 @@ class BookingCalendarMain extends StatefulWidget {
     required this.branch,
     required this.viewOnly,
     required this.patient,
+    this.appointment,
   }) : super(key: key);
 
   final Stream<dynamic>? Function({required DateTime start, required DateTime end, required String branch}) getBookingStream;
@@ -72,6 +74,8 @@ class BookingCalendarMain extends StatefulWidget {
   final List<Map<String, dynamic>> Function({required dynamic streamResult}) convertStreamResultToDateTimeRanges;
 
   ///Customizable
+  final Appointment? appointment;
+
   final Widget? bookingExplanation;
   final int? bookingGridCrossAxisCount;
   final double? bookingGridChildAspectRatio;
@@ -344,7 +348,8 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                       ? CommonButton(
                           text: widget.bookingButtonText ?? S.of(context).makeAppointment,
                           onTap: () async {
-                            await showAppointmentBottomSheet(context, date: controller.allBookingSlots.elementAt(controller.selectedSlot))
+                            await showAppointmentBottomSheet(context,
+                                    date: controller.allBookingSlots.elementAt(controller.selectedSlot), appointment: widget.appointment)
                                 .then((value) => widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch));
                           },
                           isDisabled: controller.selectedSlot == -1,

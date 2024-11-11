@@ -17,13 +17,14 @@ import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/my_line.dart';
 import '../../../../../core/widgets/text_field.dart';
+import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Doctor/data/model/doctor_model.dart';
 import '../../../../Examination Type/data/model/examination_type_model.dart';
 import '../../../../Payment Methods/data/model/payment_method_model.dart';
 import '../../../data/models/make_appointment_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
-showAppointmentBottomSheet(context, {DateTime? date}) {
+showAppointmentBottomSheet(context, {DateTime? date, Appointment? appointment}) {
   log(date.toString());
   TextEditingController qualificationController = TextEditingController();
   final AnimationController animationController = AnimationController(
@@ -39,13 +40,15 @@ showAppointmentBottomSheet(context, {DateTime? date}) {
       builder: (context) {
         return AppointmentForm(
           date: date,
+          appointment: appointment,
         );
       });
 }
 
 class AppointmentForm extends StatefulWidget {
-  const AppointmentForm({super.key, this.date});
+  const AppointmentForm({super.key, this.date, this.appointment});
   final DateTime? date;
+  final Appointment? appointment;
 
   @override
   State<AppointmentForm> createState() => _AppointmentFormState();
@@ -68,10 +71,14 @@ class _AppointmentFormState extends State<AppointmentForm> {
   @override
   void initState() {
     super.initState();
-    selectedDoctor = Doctor(
-      name: 'Dr. John Doe',
-      image: 'https://picsum.photos/200',
-    );
+    if (widget.appointment != null) {
+      selectedDoctor = widget.appointment?.doctor;
+      selectedPatient = widget.appointment?.patient;
+      selectedBranch = widget.appointment?.branch;
+      selectedPaymentMethod = widget.appointment?.paymentMethod;
+      selectedExaminationType = widget.appointment?.examinationType;
+      noteController.text = widget.appointment?.note ?? "";
+    }
   }
 
   @override
@@ -309,19 +316,39 @@ class _AppointmentFormState extends State<AppointmentForm> {
                                 selectedBranch != null &&
                                 selectedExaminationType != null &&
                                 selectedPaymentMethod != null) {
-                              customLoading(context, "");
-                              await MakeAppointmentCubit.get(context).makeAppointment(
+                              if (widget.appointment != null) {
+                                customLoading(context, "");
+
+                                await MakeAppointmentCubit.get(context).editAppointment(
                                   context: context,
                                   model: MakeAppointmentModel(
-                                      patient: selectedPatient!.id,
-                                      branch: selectedBranch!.id,
-                                      examinationType: selectedExaminationType!.id,
-                                      paymentMethod: selectedPaymentMethod!.id,
-                                      note: noteController.text,
-                                      datetime: widget.date,
-                                      doctor: selectedDoctor!.id,
-                                      status: "Scheduled",
-                                      clinic: "672b6748c642f2ffd02807ad"));
+                                    patient: selectedPatient!.id,
+                                    branch: selectedBranch!.id,
+                                    examinationType: selectedExaminationType!.id,
+                                    paymentMethod: selectedPaymentMethod!.id,
+                                    note: noteController.text,
+                                    datetime: widget.date,
+                                    doctor: selectedDoctor!.id,
+                                    status: "Scheduled",
+                                    clinic: "672b6748c642f2ffd02807ad",
+                                    id: widget.appointment!.id.toString(),
+                                  ),
+                                );
+                              } else {
+                                customLoading(context, "");
+                                await MakeAppointmentCubit.get(context).makeAppointment(
+                                    context: context,
+                                    model: MakeAppointmentModel(
+                                        patient: selectedPatient!.id,
+                                        branch: selectedBranch!.id,
+                                        examinationType: selectedExaminationType!.id,
+                                        paymentMethod: selectedPaymentMethod!.id,
+                                        note: noteController.text,
+                                        datetime: widget.date,
+                                        doctor: selectedDoctor!.id,
+                                        status: "Scheduled",
+                                        clinic: "672b6748c642f2ffd02807ad"));
+                              }
                             }
                           },
                         )

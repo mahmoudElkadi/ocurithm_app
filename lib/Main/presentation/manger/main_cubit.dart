@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' as getx;
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/branch_view.dart';
+import 'package:ocurithm/modules/Clinics/presentation/views/clinic_view.dart';
 import 'package:ocurithm/modules/Examination%20Type/presentation/views/examination_type_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
 
@@ -70,15 +71,16 @@ class MainCubit extends Cubit<MainState> {
   int notificationIndex = -1;
 
   Future<List<DrawerItem>> getStatusList({context, required List capabilities}) async {
-    capabilities = ["doctor", "receptionist", "branch", "appointment", "patient", "examination", "paymentMethod"];
+    capabilities = ["doctor", "receptionist", "branch", "appointment", "patient", "examinationType", "paymentMethod", "clinic"];
     Map<String, List<dynamic>> statusMappings = {
-      "patient": ["Patients", const AdminPatientView(), "assets/icons/dashboard.svg"],
-      "doctor": ["Doctors", const AdminDoctorView(), "assets/icons/dashboard.svg"],
+      "clinic": ["Clinics", const ClinicView(), "assets/icons/clinic.svg"],
+      "branch": ["Branches", const AdminBranchView(), "assets/icons/branch.svg"],
+      "doctor": ["Doctors", const AdminDoctorView(), "assets/icons/doctor.svg"],
       "receptionist": ["Receptionists", const ReceptionistView(), "assets/icons/receptionist.svg"],
-      "branch": ["Branches", const AdminBranchView(), "assets/icons/dashboard.svg"],
-      "appointment": ["Appointments", const AppointmentView(), "assets/icons/dashboard.svg"],
-      "examination": ["Examination Types", const ExaminationTypeView(), "assets/icons/dashboard.svg"],
-      "paymentMethod": ["payment Method", const PaymentMethodView(), "assets/icons/dashboard.svg"],
+      "patient": ["Patients", const AdminPatientView(), "assets/icons/patient.svg"],
+      "appointment": ["Appointments", const AppointmentView(), "assets/icons/appointment.svg"],
+      "examinationType": ["Examination Types", const ExaminationTypeView(), "assets/icons/exam_type.svg"],
+      "paymentMethod": ["payment Method", const PaymentMethodView(), "assets/icons/payment.svg"],
     };
 
     drawerItems = [];

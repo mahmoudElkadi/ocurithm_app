@@ -184,4 +184,61 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
       throw Exception("Failed to fetch Patients");
     }
   }
+
+  @override
+  Future<Appointment> editAppointment({required MakeAppointmentModel model, required String id}) async {
+    final url = "${Config.baseUrl}${Config.appointments}/$id";
+    final String? token = CacheHelper.getData(key: "token");
+    log(model.toJson().toString());
+    final result = await ApiService.request<Appointment>(
+      url: url,
+      method: 'PUT',
+      data: model.toJson(),
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) 'Cookie': 'ocurithmToken=$token',
+      },
+      showError: true,
+      fromJson: (json) => Appointment.fromJson(json),
+    );
+
+    if (result != null) {
+      return result;
+    } else {
+      throw Exception("Failed to fetch Patients");
+    }
+  }
+
+  @override
+  Future<AppointmentModel> getAllAppointment({DateTime? date, String? branch, String? doctor}) async {
+    final url = "${Config.baseUrl}${Config.appointments}";
+    final String? token = CacheHelper.getData(key: "token");
+    log("token: $token");
+
+    Map<String, dynamic> quary = {
+      if (date != null) "startDate": DateTime(date.year, date.month, date.day, 0, 0, 0).toString(),
+      if (date != null) "endDate": DateTime(date.year, date.month, date.day, 23, 59, 59).toString(),
+      if (doctor != null) "doctor": doctor,
+      if (branch != null) "branch": branch
+    };
+    log(quary.toString());
+
+    final result = await ApiService.request<AppointmentModel>(
+      url: url,
+      method: 'GET',
+      queryParameters: quary,
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) 'Cookie': 'ocurithmToken=$token',
+      },
+      showError: true,
+      fromJson: (json) => AppointmentModel.fromJson(json),
+    );
+
+    if (result != null) {
+      return result;
+    } else {
+      throw Exception("Failed fetch branches");
+    }
+  }
 }

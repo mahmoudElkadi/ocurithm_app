@@ -9,6 +9,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
 
 import '../../../../../core/utils/colors.dart';
+import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Branch/data/model/branches_model.dart';
 import '../../../../Doctor/data/model/doctor_model.dart';
 import '../../../../Examination Type/data/model/examination_type_model.dart';
@@ -256,6 +257,32 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     });
   }
 
+  Branch? selectedBranch;
+  Doctor? selectedDoctor;
+
+  AppointmentModel? appointments;
+  getAppointments(  DateTime? selectedDate ) async {
+    appointments = null;
+    emit(GetBranchLoading());
+    connection = await InternetConnection().hasInternetAccess;
+    emit(GetBranchLoading());
+    try {
+      if (connection == true) {
+        appointments = await makeAppointmentRepo.getAllAppointment(date: selectedDate, branch: selectedBranch?.id, doctor: selectedDoctor?.id);
+        if (appointments?.error == null && appointments!.appointments.isNotEmpty) {
+          // Group appointments by time slot
+          emit(GetBranchSuccess());
+        } else {
+          emit(GetBranchError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      loading = false;
+      emit(GetBranchError());
+    }
+  }
+
   makeAppointment({required BuildContext context, required MakeAppointmentModel model}) async {
     emit(MakeAppointmentLoading());
     try {
@@ -270,6 +297,50 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         );
         Navigator.pop(context);
         Navigator.pop(context);
+        emit(MakeAppointmentSuccess());
+      } else if (result != null && result.error != null) {
+        Get.snackbar(
+          result.error!,
+          "Failed to create appointment",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(MakeAppointmentError());
+      } else {
+        Get.snackbar(
+          "Error",
+          "Failed to create appointment",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(MakeAppointmentError());
+      }
+    } catch (e) {
+      emit(MakeAppointmentError());
+    }
+  }
+
+  editAppointment({required BuildContext context, required MakeAppointmentModel model}) async {
+    emit(MakeAppointmentLoading());
+    try {
+      var result = await makeAppointmentRepo.editAppointment(model: model, id: model.id.toString());
+      if (result != null && result.error == null) {
+        Get.snackbar(
+          "Success",
+          "Appointment Updated successfully",
+          backgroundColor: Colorz.primaryColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.check, color: Colorz.white),
+        );
+        Navigator.pop(context);
+        Navigator.pop(context);
+        Navigator.pop(context, true);
         emit(MakeAppointmentSuccess());
       } else if (result != null && result.error != null) {
         Get.snackbar(

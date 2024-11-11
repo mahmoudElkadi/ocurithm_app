@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../core/Network/shared.dart';
@@ -10,12 +11,16 @@ import '../../../../../core/utils/booking_calendar/booking_calendar.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/utils/config.dart';
 import '../../../../../core/widgets/height_spacer.dart';
+import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Patient/data/model/patients_model.dart';
+import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
+import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
 class MakeAppointmentViewBody extends StatefulWidget {
-  const MakeAppointmentViewBody({super.key, this.patient, required this.branch});
+  const MakeAppointmentViewBody({super.key, this.patient, required this.branch, this.appointment});
   final Patient? patient;
   final String branch;
+  final Appointment? appointment;
 
   @override
   State<MakeAppointmentViewBody> createState() => _MakeAppointmentViewBodyState();
@@ -203,43 +208,46 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        HeightSpacer(size: 10.h),
-        Expanded(
-          child: BookingCalendar(
-            bookingService: bookingService,
-            convertStreamResultToDateTimeRanges: convertStreamResultToDateTimeRanges,
-            getBookingStream: getBookingStream,
-            uploadBooking: uploadBooking,
-            hideBreakTime: false,
-            loadingWidget: const Text('Fetching data...'),
-            uploadingWidget: const CircularProgressIndicator(),
-            locale: 'en',
-            startingDayOfWeek: StartingDayOfWeek.saturday,
-            wholeDayIsBookedWidget: const Text('Sorry, for this day everything is booked'),
-            branch: "67274ec7847fb059e5bae6dc",
-            viewOnly: _viewOnly,
-            patient: Patient(
-              id: "67274ec7847fb059e5bae6dc",
-              name: "Dr. John Doe",
-              phone: "1234567890",
+    return BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
+      builder: (context, state) => Column(
+        children: [
+          HeightSpacer(size: 10.h),
+          Expanded(
+            child: BookingCalendar(
+              bookingService: bookingService,
+              convertStreamResultToDateTimeRanges: convertStreamResultToDateTimeRanges,
+              getBookingStream: getBookingStream,
+              uploadBooking: uploadBooking,
+              hideBreakTime: false,
+              appointment: widget.appointment,
+              loadingWidget: const Text('Fetching data...'),
+              uploadingWidget: const CircularProgressIndicator(),
+              locale: 'en',
+              startingDayOfWeek: StartingDayOfWeek.saturday,
+              wholeDayIsBookedWidget: const Text('Sorry, for this day everything is booked'),
+              branch: "67274ec7847fb059e5bae6dc",
+              viewOnly: _viewOnly,
+              patient: Patient(
+                id: "67274ec7847fb059e5bae6dc",
+                name: "Dr. John Doe",
+                phone: "1234567890",
+              ),
+              availableSlotTextStyle: const TextStyle(
+                fontSize: 13,
+              ),
+              bookedSlotTextStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+              selectedSlotTextStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+              availableSlotColor: Colorz.blue,
             ),
-            availableSlotTextStyle: const TextStyle(
-              fontSize: 13,
-            ),
-            bookedSlotTextStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
-            selectedSlotTextStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
-            availableSlotColor: Colorz.blue,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

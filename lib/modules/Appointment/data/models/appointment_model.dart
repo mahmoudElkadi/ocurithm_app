@@ -1,3 +1,10 @@
+import 'package:ocurithm/modules/Examination%20Type/data/model/examination_type_model.dart';
+import 'package:ocurithm/modules/Payment%20Methods/data/model/payment_method_model.dart';
+
+import '../../../Branch/data/model/branches_model.dart';
+import '../../../Doctor/data/model/doctor_model.dart';
+import '../../../Patient/data/model/patients_model.dart';
+
 class AppointmentModel {
   AppointmentModel({
     required this.appointments,
@@ -48,9 +55,9 @@ class Appointment {
   Patient? patient;
   Branch? branch;
   Doctor? doctor;
-  Doctor? examinationType;
+  ExaminationType? examinationType;
   DateTime? datetime;
-  dynamic paymentMethod;
+  PaymentMethod? paymentMethod;
   String? status;
   String? note;
   num? price;
@@ -65,9 +72,9 @@ class Appointment {
       patient: json["patient"] == null ? null : Patient.fromJson(json["patient"]),
       branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
       doctor: json["doctor"] == null ? null : Doctor.fromJson(json["doctor"]),
-      examinationType: json["examinationType"] == null ? null : Doctor.fromJson(json["examinationType"]),
+      examinationType: json["examinationType"] == null ? null : ExaminationType.fromJson(json["examinationType"]),
       datetime: DateTime.tryParse(json["datetime"] ?? ""),
-      paymentMethod: json["paymentMethod"],
+      paymentMethod: json["paymentMethod"] == null ? null : PaymentMethod.fromJson(json["paymentMethod"]),
       status: json["status"],
       note: json["note"],
       price: json["price"],
@@ -92,80 +99,6 @@ class Appointment {
         "createBy": createBy,
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
-        "id": id,
-      };
-}
-
-class Branch {
-  Branch({
-    this.code,
-    this.name,
-    this.id,
-  });
-
-  String? code;
-  String? name;
-  String? id;
-
-  factory Branch.fromJson(Map<String, dynamic> json) {
-    return Branch(
-      code: json["code"],
-      name: json["name"],
-      id: json["id"],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        "code": code,
-        "name": name,
-        "id": id,
-      };
-}
-
-class Doctor {
-  Doctor({
-    this.name,
-    this.id,
-  });
-
-  String? name;
-  String? id;
-
-  factory Doctor.fromJson(Map<String, dynamic> json) {
-    return Doctor(
-      name: json["name"],
-      id: json["id"],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        "name": name,
-        "id": id,
-      };
-}
-
-class Patient {
-  Patient({
-    this.name,
-    this.phone,
-    this.id,
-  });
-
-  String? name;
-  String? phone;
-  String? id;
-
-  factory Patient.fromJson(Map<String, dynamic> json) {
-    return Patient(
-      name: json["name"],
-      phone: json["phone"],
-      id: json["id"],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        "name": name,
-        "phone": phone,
         "id": id,
       };
 }

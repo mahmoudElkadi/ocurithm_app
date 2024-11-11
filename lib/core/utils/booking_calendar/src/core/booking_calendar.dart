@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../components/booking_calendar_main.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
+import 'package:provider/provider.dart';
 
-
+import '../../../../../modules/Appointment/data/models/appointment_model.dart';
+import '../components/booking_calendar_main.dart';
 import '../model/booking_service.dart';
 import '../model/enums.dart';
 import 'booking_controller.dart';
@@ -38,15 +38,16 @@ class BookingCalendar extends StatelessWidget {
       this.pauseSlotColor,
       this.pauseSlotText,
       this.pauseSlots,
-        required this.branch,
-        required this.viewOnly,
-        required this.patient,
+      required this.branch,
+      required this.viewOnly,
+      required this.patient,
       this.hideBreakTime,
       this.locale,
       this.startingDayOfWeek = StartingDayOfWeek.monday,
       this.disabledDays,
       this.disabledDates,
-      this.lastDay})
+      this.lastDay,
+      this.appointment})
       : super(key: key);
 
   ///for the Calendar picker we use: [TableCalendar]
@@ -61,8 +62,7 @@ class BookingCalendar extends StatelessWidget {
   ///so we can track realtime changes in our Booking Calendar
   ///this is a callback function, and the calendar will call this function whenever the user changes the selected date
   ///and will pass the start and end parameters with the currently selected date (00:00 and 24:00)
-  final Stream<dynamic>? Function(
-      {required DateTime start, required DateTime end,required String branch}) getBookingStream;
+  final Stream<dynamic>? Function({required DateTime start, required DateTime end, required String branch}) getBookingStream;
 
   ///The booking calendar accepts any type of [Stream]s, so using ducktyping, the stream generic type is [dynamic]
   ///This callback method will convert the stream result to [List<DateTimeRange>], because this package
@@ -71,19 +71,20 @@ class BookingCalendar extends StatelessWidget {
   ///will "serialize" it to a new type, because we only want to make calculation by the start and endDate
   // final List<DateTimeRange> Function({required dynamic streamResult})
   //     convertStreamResultToDateTimeRanges;
-  final List<Map<String,dynamic>> Function({required dynamic streamResult})
-      convertStreamResultToDateTimeRanges;
+  final List<Map<String, dynamic>> Function({required dynamic streamResult}) convertStreamResultToDateTimeRanges;
 
   ///when the user taps the booking button we will call this callback function
   /// and the updated [BookingService] will be passed to the parameters and you can use this
   /// in your HTTP function to upload the data to the database ([BookingService] implements JSON serializable)
 
-  final Future<dynamic> Function({required BookingService newBooking,required Patient patient,required String branch,required String examinationType})
-      uploadBooking;
+  final Future<dynamic> Function(
+      {required BookingService newBooking, required Patient patient, required String branch, required String examinationType}) uploadBooking;
 
   ///this will be display above the Booking Slots, which can be used to give the user
   ///extra informations of the booking calendar (like Colors: default)
   final Widget? bookingExplanation;
+
+  final Appointment? appointment;
 
   ///For the Booking Calendar Grid System, how many columns should be in the [GridView]
   final int? bookingGridCrossAxisCount;
@@ -159,46 +160,44 @@ class BookingCalendar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => BookingController(
-          bookingService: bookingService, pauseSlots: pauseSlots,branch:branch,patient: patient,viewOnly: viewOnly),
+      create: (_) => BookingController(bookingService: bookingService, pauseSlots: pauseSlots, branch: branch, patient: patient, viewOnly: viewOnly),
       child: BookingCalendarMain(
-        key: key,
-        getBookingStream: getBookingStream,
-        uploadBooking: uploadBooking,
-        bookingButtonColor: bookingButtonColor,
-        bookingButtonText: bookingButtonText,
-        bookingExplanation: bookingExplanation,
-        bookingGridChildAspectRatio: bookingGridChildAspectRatio,
-        bookingGridCrossAxisCount: bookingGridCrossAxisCount,
-        formatDateTime: formatDateTime,
-        convertStreamResultToDateTimeRanges:
-            convertStreamResultToDateTimeRanges,
-        bookedSlotTextStyle: bookedSlotTextStyle,
-        availableSlotTextStyle: availableSlotTextStyle,
-        selectedSlotTextStyle: selectedSlotTextStyle,
-        availableSlotColor: availableSlotColor,
-        availableSlotText: availableSlotText,
-        bookedSlotColor: bookedSlotColor,
-        bookedSlotText: bookedSlotText,
-        selectedSlotColor: selectedSlotColor,
-        selectedSlotText: selectedSlotText,
-        gridScrollPhysics: gridScrollPhysics,
-        loadingWidget: loadingWidget,
-        errorWidget: errorWidget,
-        uploadingWidget: uploadingWidget,
-        wholeDayIsBookedWidget: wholeDayIsBookedWidget,
-        pauseSlotColor: pauseSlotColor,
-        pauseSlotText: pauseSlotText,
-        hideBreakTime: hideBreakTime,
-        locale: locale,
-        startingDayOfWeek: startingDayOfWeek,
-        disabledDays: disabledDays,
-        lastDay: lastDay,
-        disabledDates: disabledDates,
-        branch:branch,
-        viewOnly: viewOnly,
-        patient: patient,
-      ),
+          key: key,
+          getBookingStream: getBookingStream,
+          uploadBooking: uploadBooking,
+          bookingButtonColor: bookingButtonColor,
+          bookingButtonText: bookingButtonText,
+          bookingExplanation: bookingExplanation,
+          bookingGridChildAspectRatio: bookingGridChildAspectRatio,
+          bookingGridCrossAxisCount: bookingGridCrossAxisCount,
+          formatDateTime: formatDateTime,
+          convertStreamResultToDateTimeRanges: convertStreamResultToDateTimeRanges,
+          bookedSlotTextStyle: bookedSlotTextStyle,
+          availableSlotTextStyle: availableSlotTextStyle,
+          selectedSlotTextStyle: selectedSlotTextStyle,
+          availableSlotColor: availableSlotColor,
+          availableSlotText: availableSlotText,
+          bookedSlotColor: bookedSlotColor,
+          bookedSlotText: bookedSlotText,
+          selectedSlotColor: selectedSlotColor,
+          selectedSlotText: selectedSlotText,
+          gridScrollPhysics: gridScrollPhysics,
+          loadingWidget: loadingWidget,
+          errorWidget: errorWidget,
+          uploadingWidget: uploadingWidget,
+          wholeDayIsBookedWidget: wholeDayIsBookedWidget,
+          pauseSlotColor: pauseSlotColor,
+          pauseSlotText: pauseSlotText,
+          hideBreakTime: hideBreakTime,
+          locale: locale,
+          startingDayOfWeek: startingDayOfWeek,
+          disabledDays: disabledDays,
+          lastDay: lastDay,
+          disabledDates: disabledDates,
+          branch: branch,
+          viewOnly: viewOnly,
+          patient: patient,
+          appointment: appointment),
     );
   }
 }
