@@ -1,16 +1,22 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
+import '../../../../../Services/time_parser.dart';
+import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../data/model/add_branch_model.dart';
 import '../../manager/branch_cubit.dart';
 import '../../manager/branch_state.dart';
+import 'add_branch.dart';
 
 class EditBranchDialog extends StatefulWidget {
   final AdminBranchCubit cubit;
@@ -34,6 +40,9 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
+  List selectedDays = [];
+  String openingTime = "";
+  String closingTime = "";
 
   @override
   void initState() {
@@ -48,6 +57,11 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
       _nameController.text = widget.cubit.branch?.name ?? '';
       _addressController.text = widget.cubit.branch?.address ?? '';
       _phoneController.text = widget.cubit.branch?.phone ?? '';
+
+      selectedDays = widget.cubit.branch?.workDays ?? [];
+      //   selectedClinic = widget.cubit.branch?.clinic;
+      openingTime = widget.cubit.branch?.openTime ?? '';
+      closingTime = widget.cubit.branch?.closeTime ?? '';
     }
     setState(() {});
   }
@@ -80,6 +94,10 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
             code: _codeController.text.trim(),
             name: _nameController.text.trim(),
             address: _addressController.text.trim(),
+            workDays: selectedDays,
+            openTime: openingTime,
+            closeTime: closingTime,
+            clinic: selectedClinic?.id,
             phone: _phoneController.text.trim());
 
         await widget.cubit.updateBranch(id: widget.id, addBranchModel: model, context: context);
@@ -95,6 +113,7 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
     );
   }
 
+  Clinic? selectedClinic;
   bool readOnly = true;
 
   @override
@@ -159,7 +178,43 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                   child: Column(
                     children: [
                       // Code TextField
+                      isLoading
+                          ? _buildShimmer(Container(
+                              width: MediaQuery.sizeOf(context).width,
+                              height: 60,
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(8)),
+                                color: Colors.white,
+                              ),
+                            ))
+                          : DropdownItem(
+                              radius: 8,
+                              border: Colorz.grey,
+                              color: Colorz.white,
+                              isShadow: false,
+                              height: 14,
+                              iconData: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: Colorz.grey,
+                              ),
 
+                              items: widget.cubit.clinics?.clinics,
+                              // isValid: widget.cubit.chooseBranch,
+                              // validateText: S.of(context).mustBranch,
+                              selectedValue: selectedClinic?.name,
+                              hintText: 'Select Clinic',
+                              itemAsString: (item) => item.name.toString(),
+                              onItemSelected: (item) {
+                                setState(() {
+                                  if (item != "Not Found") {
+                                    selectedClinic = item;
+                                    log(selectedClinic.toString());
+                                  }
+                                });
+                              },
+                              isLoading: widget.cubit.clinics == null,
+                            ),
+                      const SizedBox(height: 16),
                       isLoading
                           ? _buildShimmer(Container(
                               width: MediaQuery.sizeOf(context).width,
@@ -299,6 +354,46 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                                 }
                                 return null;
                               },
+                            ),
+                      const SizedBox(height: 16),
+
+                      isLoading
+                          ? _buildShimmer(Container(
+                              width: MediaQuery.sizeOf(context).width,
+                              height: 60,
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(8)),
+                                color: Colors.white,
+                              ),
+                            ))
+                          : WorkDaysSelector(
+                              onDaysSelected: (List days) {
+                                setState(() {
+                                  selectedDays = days;
+                                });
+                                print('Selected days: $selectedDays');
+                              },
+                              initialSelectedDays: widget.cubit.branch!.workDays, // Optional
+                            ),
+                      const SizedBox(height: 16),
+
+                      isLoading
+                          ? _buildShimmer(Container(
+                              width: MediaQuery.sizeOf(context).width,
+                              height: 60,
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(8)),
+                                color: Colors.white,
+                              ),
+                            ))
+                          : BusinessHoursSelector(
+                              onTimeRangeSelected: (openTime, closeTime) {
+                                print('Business hours: ${openTime} - ${closeTime}');
+                                openingTime = openTime.toString();
+                                closingTime = closeTime.toString();
+                              },
+                              initialOpenTime: TimeParser.parseTimeString(widget.cubit.branch!.openTime.toString()),
+                              initialCloseTime: TimeParser.parseTimeString(widget.cubit.branch!.closeTime.toString()),
                             ),
                       const SizedBox(height: 24),
 

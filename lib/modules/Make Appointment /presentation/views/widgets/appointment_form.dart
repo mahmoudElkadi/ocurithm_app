@@ -18,19 +18,22 @@ import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/my_line.dart';
 import '../../../../../core/widgets/text_field.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
+import '../../../../Branch/data/model/branches_model.dart';
 import '../../../../Doctor/data/model/doctor_model.dart';
 import '../../../../Examination Type/data/model/examination_type_model.dart';
 import '../../../../Payment Methods/data/model/payment_method_model.dart';
 import '../../../data/models/make_appointment_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
-showAppointmentBottomSheet(context, {DateTime? date, Appointment? appointment}) {
+showAppointmentBottomSheet(context, {DateTime? date, Appointment? appointment, Doctor? doctor, Branch? branch}) {
   log(date.toString());
   TextEditingController qualificationController = TextEditingController();
   final AnimationController animationController = AnimationController(
     duration: const Duration(milliseconds: 1000), // Set the desired duration here
     vsync: Navigator.of(context),
   );
+  log("doctorssssss" + doctor.toString());
+
   return showModalBottomSheet(
       isScrollControlled: true,
       transitionAnimationController: animationController,
@@ -41,14 +44,18 @@ showAppointmentBottomSheet(context, {DateTime? date, Appointment? appointment}) 
         return AppointmentForm(
           date: date,
           appointment: appointment,
+          doctor: doctor,
+          branch: branch,
         );
       });
 }
 
 class AppointmentForm extends StatefulWidget {
-  const AppointmentForm({super.key, this.date, this.appointment});
+  const AppointmentForm({super.key, this.date, this.appointment, this.doctor, this.branch});
   final DateTime? date;
   final Appointment? appointment;
+  final Doctor? doctor;
+  final Branch? branch;
 
   @override
   State<AppointmentForm> createState() => _AppointmentFormState();
@@ -71,6 +78,7 @@ class _AppointmentFormState extends State<AppointmentForm> {
   @override
   void initState() {
     super.initState();
+
     if (widget.appointment != null) {
       selectedDoctor = widget.appointment?.doctor;
       selectedPatient = widget.appointment?.patient;
@@ -78,6 +86,11 @@ class _AppointmentFormState extends State<AppointmentForm> {
       selectedPaymentMethod = widget.appointment?.paymentMethod;
       selectedExaminationType = widget.appointment?.examinationType;
       noteController.text = widget.appointment?.note ?? "";
+    }
+
+    if (widget.appointment == null && (widget.doctor != null || widget.branch != null)) {
+      selectedDoctor = widget.doctor;
+      selectedBranch = widget.branch;
     }
   }
 
@@ -109,7 +122,9 @@ class _AppointmentFormState extends State<AppointmentForm> {
                           alignment: Alignment.centerLeft,
                           child: TextButton(
                             onPressed: () {
-                              Get.back(result: true);
+                              log("dismissed");
+                              log(widget.doctor!.toJson().toString());
+                              log(widget.branch!.toJson().toString());
                             },
                             child: Text(
                               "Dismiss",
@@ -357,6 +372,244 @@ class _AppointmentFormState extends State<AppointmentForm> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class FormDataAppointment extends StatefulWidget {
+  const FormDataAppointment({super.key});
+
+  @override
+  State<FormDataAppointment> createState() => _FormDataAppointmentState();
+}
+
+class _FormDataAppointmentState extends State<FormDataAppointment> {
+  Doctor? selectedDoctor;
+  Patient? selectedPatient;
+  branch.Branch? selectedBranch;
+  PaymentMethod? selectedPaymentMethod;
+  ExaminationType? selectedExaminationType;
+  TextEditingController noteController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        width: MediaQuery.sizeOf(context).width,
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          color: Colorz.white,
+        ),
+        child: Column(
+          children: [
+            const HeightSpacer(size: 15),
+            Expanded(
+              child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w),
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    color: Colorz.white,
+                  ),
+                  child: Column(children: [
+                    Column(
+                      children: [
+                        DropdownItem(
+                          radius: 30,
+                          color: Colorz.white,
+                          isShadow: true,
+                          iconData: Icon(
+                            Icons.arrow_drop_down_circle,
+                            color: Colorz.primaryColor,
+                          ),
+                          items: MakeAppointmentCubit.get(context).doctors?.doctors,
+                          // isValid: widget.cubit.chooseBranch,
+                          // validateText: S.of(context).mustBranch,
+                          selectedValue: selectedDoctor?.name,
+                          hintText: 'Select Doctor',
+                          itemAsString: (item) => item.name.toString(),
+                          onItemSelected: (item) {
+                            setState(() {
+                              if (item != "Not Found") {
+                                // widget.cubit.chooseBranch = true;
+                                selectedDoctor = item;
+                                //  widget.cubit.branchId = item.id;
+                                log(selectedDoctor.toString());
+                              }
+                            });
+                          },
+                          isLoading: MakeAppointmentCubit.get(context).doctors == null,
+                        ),
+                        const HeightSpacer(size: 15),
+                        DropdownItem(
+                          radius: 30,
+                          color: Colorz.white,
+                          isShadow: true,
+                          iconData: Icon(
+                            Icons.arrow_drop_down_circle,
+                            color: Colorz.primaryColor,
+                          ),
+                          items: MakeAppointmentCubit.get(context).patients?.patients,
+                          // isValid: widget.cubit.chooseBranch,
+                          // validateText: S.of(context).mustBranch,
+                          selectedValue: selectedPatient?.name,
+                          hintText: 'Select Patient',
+                          onChanged: (item) {
+                            MakeAppointmentCubit.get(context).searchPatients();
+                          },
+                          searchController: MakeAppointmentCubit.get(context).patientController,
+                          itemAsString: (item) => item.name.toString(),
+                          onItemSelected: (item) {
+                            setState(() {
+                              if (item != "Not Found") {
+                                // widget.cubit.chooseBranch = true;
+                                selectedPatient = item;
+                                log(selectedPatient!.id.toString());
+                              }
+                            });
+                          },
+                          isLoading: MakeAppointmentCubit.get(context).loadPatients,
+                        ),
+                        const HeightSpacer(size: 15),
+                        DropdownItem(
+                          radius: 30,
+                          color: Colorz.white,
+                          isShadow: true,
+                          iconData: Icon(
+                            Icons.arrow_drop_down_circle,
+                            color: Colorz.primaryColor,
+                          ),
+                          items: MakeAppointmentCubit.get(context).branches?.branches,
+                          // isValid: widget.cubit.chooseBranch,
+                          // validateText: S.of(context).mustBranch,
+                          selectedValue: selectedBranch?.name,
+                          hintText: 'Select Branch',
+                          itemAsString: (item) => item.name.toString(),
+                          onItemSelected: (item) {
+                            setState(() {
+                              if (item != "Not Found") {
+                                //   widget.cubit.chooseBranch = true;
+                                selectedBranch = item;
+                                log(selectedBranch!.id.toString());
+                              }
+                            });
+                          },
+                          isLoading: MakeAppointmentCubit.get(context).branches == null,
+                        ),
+                        const HeightSpacer(size: 15),
+                        DropdownItem(
+                          radius: 30,
+                          color: Colorz.white,
+                          isShadow: true,
+                          iconData: Icon(
+                            Icons.arrow_drop_down_circle,
+                            color: Colorz.primaryColor,
+                          ),
+                          items: MakeAppointmentCubit.get(context).examinationTypes?.examinationTypes,
+                          // isValid: widget.cubit.chooseBranch,
+                          // validateText: S.of(context).mustBranch,
+                          selectedValue: selectedExaminationType?.name,
+                          hintText: 'Select Examination Type',
+                          itemAsString: (item) => item.name.toString(),
+                          onItemSelected: (item) {
+                            setState(() {
+                              if (item != "Not Found") {
+                                // widget.cubit.chooseBranch = true;
+                                selectedExaminationType = item;
+                                log(selectedExaminationType!.id.toString());
+                              }
+                            });
+                          },
+                          isLoading: MakeAppointmentCubit.get(context).examinationTypes == null,
+                        ),
+                        const HeightSpacer(size: 15),
+                        DropdownItem(
+                          radius: 30,
+                          color: Colorz.white,
+                          isShadow: true,
+                          iconData: Icon(
+                            Icons.arrow_drop_down_circle,
+                            color: Colorz.primaryColor,
+                          ),
+                          items: MakeAppointmentCubit.get(context).paymentMethods?.paymentMethods,
+                          // isValid: widget.cubit.chooseBranch,
+                          // validateText: S.of(context).mustBranch,
+                          selectedValue: selectedPaymentMethod?.title,
+                          hintText: 'Select Payment Method',
+                          itemAsString: (item) => item.title.toString(),
+                          onItemSelected: (item) {
+                            setState(() {
+                              if (item != "Not Found") {
+                                //widget.cubit.chooseBranch = true;
+                                selectedPaymentMethod = item;
+                                log(selectedPaymentMethod!.id.toString());
+                              }
+                            });
+                          },
+                          isLoading: MakeAppointmentCubit.get(context).paymentMethods == null,
+                        ),
+                        const HeightSpacer(size: 15),
+                        MultilineTextInput(
+                          hint: 'Enter Note Here',
+                          maxHeight: 200,
+                          onSubmitted: (text) {},
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          color: Colorz.white,
+                          controller: noteController,
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    CommonButton(
+                      text: 'Make Appointment',
+                      onTap: () async {
+                        if (selectedPatient != null && selectedBranch != null && selectedExaminationType != null && selectedPaymentMethod != null) {
+                          if (selectedExaminationType != null) {
+                            customLoading(context, "");
+
+                            await MakeAppointmentCubit.get(context).editAppointment(
+                              context: context,
+                              model: MakeAppointmentModel(
+                                patient: selectedPatient!.id,
+                                branch: selectedBranch!.id,
+                                examinationType: selectedExaminationType!.id,
+                                paymentMethod: selectedPaymentMethod!.id,
+                                note: noteController.text,
+                                doctor: selectedDoctor!.id,
+                                status: "Scheduled",
+                                clinic: "672b6748c642f2ffd02807ad",
+                              ),
+                            );
+                          } else {
+                            customLoading(context, "");
+                            await MakeAppointmentCubit.get(context).makeAppointment(
+                                context: context,
+                                model: MakeAppointmentModel(
+                                    patient: selectedPatient!.id,
+                                    branch: selectedBranch!.id,
+                                    examinationType: selectedExaminationType!.id,
+                                    paymentMethod: selectedPaymentMethod!.id,
+                                    note: noteController.text,
+                                    doctor: selectedDoctor!.id,
+                                    status: "Scheduled",
+                                    clinic: "672b6748c642f2ffd02807ad"));
+                          }
+                        }
+                      },
+                    ),
+                    HeightSpacer(size: 20),
+                  ])),
+            ),
+          ],
         ),
       ),
     );

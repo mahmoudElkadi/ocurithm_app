@@ -113,6 +113,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
           log("in");
           _overlayEntry?.markNeedsBuild();
         }
+        _overlayEntry?.markNeedsBuild();
       });
     }
   }

@@ -3,6 +3,8 @@ import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../modules/Appointment/data/models/appointment_model.dart';
+import '../../../../../modules/Branch/data/model/branches_model.dart';
+import '../../../../../modules/Doctor/data/model/doctor_model.dart';
 import '../components/booking_calendar_main.dart';
 import '../model/booking_service.dart';
 import '../model/enums.dart';
@@ -38,16 +40,18 @@ class BookingCalendar extends StatelessWidget {
       this.pauseSlotColor,
       this.pauseSlotText,
       this.pauseSlots,
-      required this.branch,
+      this.branch,
       required this.viewOnly,
-      required this.patient,
+      this.doctor,
       this.hideBreakTime,
       this.locale,
       this.startingDayOfWeek = StartingDayOfWeek.monday,
       this.disabledDays,
       this.disabledDates,
       this.lastDay,
-      this.appointment})
+      this.appointment,
+      required this.patient,
+      required this.holidayWeekdays})
       : super(key: key);
 
   ///for the Calendar picker we use: [TableCalendar]
@@ -112,7 +116,10 @@ class BookingCalendar extends StatelessWidget {
   final String? selectedSlotText;
   final String? availableSlotText;
   final String? pauseSlotText;
-  final String branch;
+  final Branch? branch;
+  final Doctor? doctor;
+  final List<String> holidayWeekdays;
+
   final bool viewOnly;
   final Patient patient;
   final TextStyle? bookedSlotTextStyle;
@@ -171,6 +178,7 @@ class BookingCalendar extends StatelessWidget {
           bookingGridChildAspectRatio: bookingGridChildAspectRatio,
           bookingGridCrossAxisCount: bookingGridCrossAxisCount,
           formatDateTime: formatDateTime,
+          holidayWeekdays: holidayWeekdays,
           convertStreamResultToDateTimeRanges: convertStreamResultToDateTimeRanges,
           bookedSlotTextStyle: bookedSlotTextStyle,
           availableSlotTextStyle: availableSlotTextStyle,
@@ -197,6 +205,7 @@ class BookingCalendar extends StatelessWidget {
           branch: branch,
           viewOnly: viewOnly,
           patient: patient,
+          doctor: doctor,
           appointment: appointment),
     );
   }

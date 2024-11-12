@@ -10,11 +10,12 @@ import 'package:ocurithm/generated/l10n.dart';
 import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/appointment_form.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:provider/provider.dart';
-import 'package:table_calendar/table_calendar.dart' as tc show StartingDayOfWeek;
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../modules/Appointment/data/models/appointment_model.dart';
+import '../../../../../modules/Branch/data/model/branches_model.dart';
+import '../../../../../modules/Doctor/data/model/doctor_model.dart';
 import '../../../colors.dart';
 import '../core/booking_controller.dart';
 import '../model/booking_service.dart';
@@ -25,6 +26,42 @@ import 'booking_explanation.dart';
 import 'booking_slot.dart';
 import 'common_button.dart';
 import 'common_card.dart';
+
+enum WeekDay { monday, tuesday, wednesday, thursday, friday, saturday, sunday }
+
+// Extension to convert string to WeekDay
+extension WeekDayExtension on String {
+  WeekDay toWeekDay() {
+    return WeekDay.values.firstWhere(
+      (e) => e.toString().split('.').last.toLowerCase() == this.toLowerCase(),
+      orElse: () => WeekDay.monday,
+    );
+  }
+}
+
+// Extension to convert WeekDay to int (1-7)
+extension WeekDayToInt on WeekDay {
+  int toDayNumber() {
+    switch (this) {
+      case WeekDay.monday:
+        return DateTime.monday;
+      case WeekDay.tuesday:
+        return DateTime.tuesday;
+      case WeekDay.wednesday:
+        return DateTime.wednesday;
+      case WeekDay.thursday:
+        return DateTime.thursday;
+      case WeekDay.friday:
+        return DateTime.friday;
+      case WeekDay.saturday:
+        return DateTime.saturday;
+      case WeekDay.sunday:
+        return DateTime.sunday;
+      default:
+        return DateTime.monday;
+    }
+  }
+}
 
 class BookingCalendarMain extends StatefulWidget {
   const BookingCalendarMain({
@@ -60,10 +97,12 @@ class BookingCalendarMain extends StatefulWidget {
     this.disabledDays,
     this.disabledDates,
     this.lastDay,
-    required this.branch,
+    this.branch,
+    this.doctor,
     required this.viewOnly,
     required this.patient,
     this.appointment,
+    this.holidayWeekdays = const [],
   }) : super(key: key);
 
   final Stream<dynamic>? Function({required DateTime start, required DateTime end, required String branch}) getBookingStream;
@@ -86,6 +125,7 @@ class BookingCalendarMain extends StatefulWidget {
   final Color? selectedSlotColor;
   final Color? availableSlotColor;
   final Color? pauseSlotColor;
+  final List<String> holidayWeekdays;
 
 //Added optional TextStyle to available, booked and selected cards.
   final String? bookedSlotText;
@@ -108,7 +148,8 @@ class BookingCalendarMain extends StatefulWidget {
   final bc.StartingDayOfWeek? startingDayOfWeek;
   final List<int>? disabledDays;
   final List<DateTime>? disabledDates;
-  final String branch;
+  final Branch? branch;
+  final Doctor? doctor;
   final bool viewOnly;
   final Patient patient;
 
@@ -120,21 +161,25 @@ class BookingCalendarMain extends StatefulWidget {
 
 class _BookingCalendarMainState extends State<BookingCalendarMain> {
   late BookingController controller;
-  late String branch;
+  late String? branch;
   final now = DateTime.now();
-
+  late List<int> _holidayWeekdayNumbers;
   @override
   void initState() {
     super.initState();
     controller = context.read<BookingController>();
     final firstDay = calculateFirstDay();
-
+    _initializeHolidayWeekdays();
     startOfDay = firstDay.startOfDayService(controller.serviceOpening!);
     endOfDay = firstDay.endOfDayService(controller.serviceClosing!);
-    branch = controller.branch;
-    _focusedDay = firstDay;
-    _selectedDay = firstDay;
+    branch = controller.branch?.id ?? "";
+    _selectedDay = _getInitialDate();
+    _focusedDay = _selectedDay;
     controller.selectFirstDayByHoliday(startOfDay, endOfDay);
+  }
+
+  void _initializeHolidayWeekdays() {
+    _holidayWeekdayNumbers = widget.holidayWeekdays.map((day) => day.toWeekDay().toDayNumber()).toList();
   }
 
   CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
@@ -147,7 +192,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
   void selectNewDateRange() {
     startOfDay = _selectedDay.startOfDayService(controller.serviceOpening!);
     endOfDay = _selectedDay.add(const Duration(days: 1)).endOfDayService(controller.serviceClosing!);
-    widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch);
+    widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch ?? "");
     controller.base = startOfDay;
     controller.resetSelectedSlot();
   }
@@ -170,6 +215,26 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
     return -1;
   }
 
+  DateTime _getInitialDate() {
+    DateTime now = DateTime.now();
+    // Keep incrementing the date until we find a non-holiday
+    while (_isWeeklyOff(now)) {
+      now = now.add(const Duration(days: 1));
+    }
+    return now;
+  }
+
+  bool _isWeeklyOff(DateTime date) {
+    return _holidayWeekdayNumbers.contains(date.weekday);
+  }
+
+  bool _isDateSelectable(DateTime date) {
+    if (date.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
+      return false;
+    }
+    return !_isWeeklyOff(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     controller = context.watch<BookingController>();
@@ -184,55 +249,22 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                   CommonCard(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                     child: TableCalendar(
-                      startingDayOfWeek: widget.startingDayOfWeek?.toTC() ?? tc.StartingDayOfWeek.monday,
-                      holidayPredicate: (day) {
-                        if (widget.disabledDates == null) return false;
-
-                        bool isHoliday = false;
-                        for (var holiday in widget.disabledDates!) {
-                          if (isSameDay(day, holiday)) {
-                            isHoliday = true;
-                          }
-                        }
-                        return isHoliday;
-                      },
-                      enabledDayPredicate: (day) {
-                        if (widget.disabledDays == null && widget.disabledDates == null) return true;
-
-                        bool isEnabled = true;
-                        if (widget.disabledDates != null) {
-                          for (var holiday in widget.disabledDates!) {
-                            if (isSameDay(day, holiday)) {
-                              isEnabled = false;
-                            }
-                          }
-                          if (!isEnabled) return false;
-                        }
-                        if (widget.disabledDays != null) {
-                          isEnabled = !widget.disabledDays!.contains(day.weekday);
-                        }
-
-                        return isEnabled;
-                      },
-                      locale: widget.locale,
-                      firstDay: calculateFirstDay(),
-                      lastDay: widget.lastDay ?? DateTime.now().add(const Duration(days: 1000)),
+                      startingDayOfWeek: StartingDayOfWeek.monday,
+                      firstDay: DateTime.now(),
+                      lastDay: DateTime.now().add(const Duration(days: 365)),
                       focusedDay: _focusedDay,
                       calendarFormat: _calendarFormat,
-                      calendarStyle: const CalendarStyle(isTodayHighlighted: true),
-                      selectedDayPredicate: (day) {
-                        return isSameDay(_selectedDay, day);
-                      },
-                      onDaySelected: (selectedDay, focusedDay) {
-                        log('selectedDay: $selectedDay');
-                        if (!isSameDay(_selectedDay, selectedDay)) {
-                          setState(() {
-                            _selectedDay = selectedDay;
-                            _focusedDay = focusedDay;
-                          });
-                          selectNewDateRange();
-                        }
-                      },
+                      selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                      enabledDayPredicate: _isDateSelectable,
+                      calendarStyle: CalendarStyle(
+                        disabledTextStyle: const TextStyle(
+                          color: Colors.red,
+                        ),
+                        selectedDecoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                       onFormatChanged: (format) {
                         if (_calendarFormat != format) {
                           setState(() {
@@ -240,9 +272,18 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                           });
                         }
                       },
-                      onPageChanged: (focusedDay) {
-                        log('focusedDay: $focusedDay');
-                        _focusedDay = focusedDay;
+                      headerStyle: const HeaderStyle(
+                        formatButtonVisible: false,
+                        titleCentered: true,
+                      ),
+                      onDaySelected: (selectedDay, focusedDay) {
+                        if (!isSameDay(_selectedDay, selectedDay)) {
+                          setState(() {
+                            _selectedDay = selectedDay;
+                            _focusedDay = focusedDay;
+                          });
+                          selectNewDateRange();
+                        }
                       },
                     ),
                   ),
@@ -349,8 +390,11 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                           text: widget.bookingButtonText ?? S.of(context).makeAppointment,
                           onTap: () async {
                             await showAppointmentBottomSheet(context,
-                                    date: controller.allBookingSlots.elementAt(controller.selectedSlot), appointment: widget.appointment)
-                                .then((value) => widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch));
+                                    date: controller.allBookingSlots.elementAt(controller.selectedSlot),
+                                    appointment: widget.appointment,
+                                    branch: widget.branch,
+                                    doctor: widget.doctor)
+                                .then((value) => widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch ?? ""));
                           },
                           isDisabled: controller.selectedSlot == -1,
                           buttonActiveColor: widget.bookingButtonColor,

@@ -7,6 +7,10 @@ class AddBranchModel {
     this.createdAt,
     this.updatedAt,
     this.id,
+    this.openTime,
+    this.closeTime,
+    this.clinic,
+    this.workDays,
     this.error,
   });
 
@@ -17,6 +21,10 @@ class AddBranchModel {
   DateTime? createdAt;
   DateTime? updatedAt;
   String? id;
+  String? clinic;
+  String? openTime;
+  String? closeTime;
+  List? workDays;
   String? error;
 
   factory AddBranchModel.fromJson(Map<String, dynamic> json) {
@@ -28,7 +36,11 @@ class AddBranchModel {
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
+      openTime: json["openTime"],
+      closeTime: json["closeTime"],
+      workDays: json["workDays"] == null ? [] : List<dynamic>.from(json["workDays"]!.map((x) => x)),
       error: json["error"],
+      clinic: json["clinic"],
     );
   }
 
@@ -37,6 +49,10 @@ class AddBranchModel {
         "name": name,
         "address": address,
         "phone": phone,
+        "openTime": openTime,
+        "closeTime": closeTime,
+        "clinic": clinic,
+        "workDays": workDays?.map((x) => x).toList(),
       };
 }
 

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/Services/services_api.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 
 import '../../data/model/add_branch_model.dart';
 import '../../data/model/branches_model.dart';
@@ -172,6 +174,38 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
       } else {
         branches = await branchRepo.getAllBranches(page: page, search: searchController.text);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
+          emit(AdminBranchSuccess());
+        } else {
+          emit(AdminBranchError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(AdminBranchError());
+    }
+  }
+
+  ClinicsModel? clinics;
+  getClinics() async {
+    clinics = null;
+    emit(AdminBranchLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(AdminBranchLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(AdminBranchError());
+      } else {
+        clinics = await ServicesApi().getAllClinics(page: page, search: searchController.text);
+        log(clinics.toString());
+        if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
           emit(AdminBranchSuccess());
         } else {
           emit(AdminBranchError());

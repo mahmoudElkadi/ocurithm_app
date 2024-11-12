@@ -5,6 +5,9 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ocurithm/core/Network/shared.dart';
+
+import '../../modules/Login/presentation/view/login_view.dart';
 
 class ApiService {
   static final Dio _dio = Dio();
@@ -36,7 +39,12 @@ class ApiService {
 
       log(response.data.toString());
       log(response.realUri.toString());
-
+      if (response.data['message'] == "Invalid token") {
+        await CacheHelper.removeData(key: "token");
+        await CacheHelper.removeData(key: "id");
+        await CacheHelper.removeData(key: "domain");
+        Get.offAll(() => const LoginView());
+      }
       if (!showError) {
         if (response.data != null && response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
           if (fromJson != null) {

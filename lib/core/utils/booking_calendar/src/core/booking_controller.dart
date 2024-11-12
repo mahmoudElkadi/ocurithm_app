@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 
+import '../../../../../modules/Branch/data/model/branches_model.dart';
 import '../model/booking_service.dart';
 import '../util/booking_util.dart';
 
 class BookingController extends ChangeNotifier {
   BookingService bookingService;
-  String branch;
+  Branch? branch;
   bool viewOnly;
   Patient patient;
 
