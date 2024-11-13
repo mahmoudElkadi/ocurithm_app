@@ -43,6 +43,7 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
   final Widget? prefixIcon;
   final double? radius;
   final bool? isValid;
+  final bool? readOnly;
   final FlutterDropdownSearchController? controller;
   final void Function(String)? onChanged;
 
@@ -76,6 +77,7 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
     this.validateText,
     this.height,
     this.searchController,
+    this.readOnly = false,
   });
 
   @override
@@ -508,7 +510,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: _toggleDropdown,
+            onTap: widget.readOnly == true ? null : _toggleDropdown,
             child: Container(
               decoration: BoxDecoration(
                 color: widget.color ?? Colors.white,
@@ -621,7 +623,8 @@ class DropdownItem<T> extends StatelessWidget {
       this.validateText,
       this.height,
       this.textStyle,
-      this.onChanged});
+      this.onChanged,
+      this.readOnly});
   // Add this new property
 
   final TextEditingController? searchController;
@@ -644,6 +647,7 @@ class DropdownItem<T> extends StatelessWidget {
   final String Function(T) itemAsString; // Function to convert item to string
   final void Function(T) onItemSelected; // Callback for item selection
   final bool isLoading; // Indicates whether the data is being loaded
+  final bool? readOnly;
   final double? radius;
   final double? height;
   final void Function(String)? onChanged;
@@ -675,6 +679,7 @@ class DropdownItem<T> extends StatelessWidget {
           onChanged: onChanged,
           color: color,
           isValid: isValid,
+          readOnly: readOnly,
           radius: radius,
           selectedValue: selectedValue,
           isShadow: isShadow,
@@ -682,6 +687,7 @@ class DropdownItem<T> extends StatelessWidget {
           height: height,
           hintStyle: hintStyle,
           style: textStyle,
+          validateText: validateText,
           //textController: searchController,
           hintText: hintText,
           textFieldBorder: OutlineInputBorder(

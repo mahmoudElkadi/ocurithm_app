@@ -9,18 +9,12 @@ import '../models/make_appointment_model.dart';
 abstract class MakeAppointmentRepo {
   Future<DoctorModel> getAllDoctors({
     String? branch,
-    bool? isActive,
   });
   Future<BranchesModel> getAllBranches();
 
   Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? search});
   Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? search});
-  Future<PatientModel> getAllPatients({
-    int? page,
-    String? search,
-    String? branch,
-    bool? isActive,
-  });
+  Future<PatientModel> getAllPatients();
 
   Future<Appointment> makeAppointment({required MakeAppointmentModel model});
   Future<Appointment> editAppointment({required MakeAppointmentModel model, required String id});

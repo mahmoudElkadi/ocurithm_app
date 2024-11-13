@@ -17,16 +17,14 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   @override
   Future<DoctorModel> getAllDoctors({
     String? branch,
-    bool? isActive,
   }) async {
     final url = "${Config.baseUrl}${Config.doctors}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> query = {
-      "page": 1,
-      'limit': 10,
+      "pagination": false,
       if (branch != null) "branch": branch,
-      if (isActive != null) "isActive": isActive,
+      "isActive": true,
     };
 
     final result = await ApiService.request<DoctorModel>(
@@ -53,10 +51,12 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
     final url = "${Config.baseUrl}${Config.branches}";
     final String? token = CacheHelper.getData(key: "token");
     log("token: $token");
+    Map<String, dynamic> query = {"pagination": false, "isActive": true, "haveDoctors": true};
 
     final result = await ApiService.request<BranchesModel>(
       url: url,
       method: 'GET',
+      queryParameters: query,
       headers: {
         "Content-Type": "application/json",
         if (token != null) 'Cookie': 'ocurithmToken=$token',
@@ -77,7 +77,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
     final url = "${Config.baseUrl}${Config.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
     log("token: $token");
-    Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
+    Map<String, dynamic> query = {"pagination": false};
 
     final result = await ApiService.request<PaymentMethodsModel>(
       url: url,
@@ -103,7 +103,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
     final url = "${Config.baseUrl}${Config.examinationTypes}";
     final String? token = CacheHelper.getData(key: "token");
     log("token: $token");
-    Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
+    Map<String, dynamic> query = {"pagination": false};
 
     final result = await ApiService.request<ExaminationTypesModel>(
       url: url,
@@ -125,21 +125,13 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   }
 
   @override
-  Future<PatientModel> getAllPatients({
-    int? page,
-    String? search,
-    String? branch,
-    bool? isActive,
-  }) async {
+  Future<PatientModel> getAllPatients() async {
     final url = "${Config.baseUrl}${Config.patients}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> query = {
-      "page": page ?? 1,
-      'limit': 10,
-      if (search != null) "search": search,
-      if (branch != null) "branch": branch,
-      if (isActive != null) "isActive": isActive,
+      "pagination": true,
+      "isActive": true,
     };
 
     final result = await ApiService.request<PatientModel>(

@@ -13,10 +13,11 @@ import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../Services/time_parser.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../../core/widgets/choose_hours_range.dart';
+import '../../../../../core/widgets/work_day_selector.dart';
 import '../../../data/model/add_branch_model.dart';
 import '../../manager/branch_cubit.dart';
 import '../../manager/branch_state.dart';
-import 'add_branch.dart';
 
 class EditBranchDialog extends StatefulWidget {
   final AdminBranchCubit cubit;
@@ -373,7 +374,8 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                                 });
                                 print('Selected days: $selectedDays');
                               },
-                              initialSelectedDays: widget.cubit.branch!.workDays, // Optional
+                              initialSelectedDays: widget.cubit.branch!.workDays,
+                              readOnly: readOnly, // Optional
                             ),
                       const SizedBox(height: 16),
 
@@ -388,12 +390,15 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                             ))
                           : BusinessHoursSelector(
                               onTimeRangeSelected: (openTime, closeTime) {
-                                print('Business hours: ${openTime} - ${closeTime}');
-                                openingTime = openTime.toString();
-                                closingTime = closeTime.toString();
+                                log('Business hours: ${openTime.format(context)} - ${closeTime.format(context)}');
+                                openingTime = '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
+                                closingTime = '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
                               },
+                              use24HourFormat: true,
                               initialOpenTime: TimeParser.parseTimeString(widget.cubit.branch!.openTime.toString()),
                               initialCloseTime: TimeParser.parseTimeString(widget.cubit.branch!.closeTime.toString()),
+                              readOnly: readOnly,
+                              // This will show times in 24-hour format
                             ),
                       const SizedBox(height: 24),
 

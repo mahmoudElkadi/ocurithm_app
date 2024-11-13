@@ -24,47 +24,64 @@ class BranchesModel {
         "branches": branches.map((x) => x?.toJson()).toList(),
         "total": total,
         "totalPages": totalPages,
+        "error": error,
       };
 }
 
 class Branch {
   Branch({
+    this.clinic,
     this.code,
     this.name,
     this.address,
     this.phone,
+    this.openTime,
+    this.closeTime,
+    this.workDays,
     this.createdAt,
     this.updatedAt,
     this.id,
+    this.error,
   });
 
+  String? clinic;
   String? code;
   String? name;
   String? address;
   String? phone;
+  String? openTime;
+  String? closeTime;
+  List<String>? workDays;
   DateTime? createdAt;
   DateTime? updatedAt;
   String? id;
+  String? error;
 
   factory Branch.fromJson(Map<String, dynamic> json) {
     return Branch(
+      clinic: json["clinic"],
       code: json["code"],
       name: json["name"],
       address: json["address"],
       phone: json["phone"],
+      openTime: json["openTime"],
+      closeTime: json["closeTime"],
+      workDays: json["workDays"] == null ? [] : List<String>.from(json["workDays"]!.map((x) => x)),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
+      error: json["error"],
     );
   }
 
   Map<String, dynamic> toJson() => {
+        "clinic": clinic,
         "code": code,
         "name": name,
         "address": address,
         "phone": phone,
-        "createdAt": createdAt?.toIso8601String(),
-        "updatedAt": updatedAt?.toIso8601String(),
-        "id": id,
+        "openTime": openTime,
+        "closeTime": closeTime,
+        "workDays": workDays?.map((x) => x).toList(),
       };
 }

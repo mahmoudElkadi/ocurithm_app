@@ -36,6 +36,7 @@ class ExaminationType {
     this.createdAt,
     this.updatedAt,
     this.id,
+    this.duration,
     this.error,
   });
 
@@ -45,6 +46,7 @@ class ExaminationType {
   DateTime? createdAt;
   DateTime? updatedAt;
   String? id;
+  num? duration;
   String? error;
 
   factory ExaminationType.fromJson(Map<String, dynamic> json) {
@@ -55,6 +57,7 @@ class ExaminationType {
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
+      duration: json["duration"],
       error: json["error"],
     );
   }
@@ -62,5 +65,6 @@ class ExaminationType {
   Map<String, dynamic> toJson() => {
         "name": name,
         "price": price,
+        "duration": duration,
       };
 }

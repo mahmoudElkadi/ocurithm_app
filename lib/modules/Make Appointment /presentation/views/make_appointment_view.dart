@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/appointment_form.dart';
 import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/make_appointment_view_body.dart';
+import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/preview_content_appointment.dart';
 
 import '../../../../core/utils/app_style.dart';
 import '../../../../core/utils/colors.dart';
@@ -11,6 +12,163 @@ import '../../../Appointment/data/models/appointment_model.dart';
 import '../../data/repos/make_appointment_repo_impl.dart';
 import '../manager/Make Appointment cubit/make_appointment_cubit.dart';
 import '../manager/Make Appointment cubit/make_appointment_state.dart';
+
+class HorizontalStepper extends StatelessWidget {
+  final int currentStep;
+  final List<String> steps;
+  final Function(int) onStepTapped;
+
+  const HorizontalStepper({
+    Key? key,
+    required this.currentStep,
+    required this.steps,
+    required this.onStepTapped,
+  }) : super(key: key);
+
+  // Helper method to determine divider color
+  Color getDividerColor(BuildContext context, int dividerIndex, int currentStep) {
+    // Calculate which steps this divider is between (dividerIndex is always odd)
+    final leftStepIndex = (dividerIndex - 1) ~/ 2; // Step before divider
+    final rightStepIndex = (dividerIndex + 1) ~/ 2; // Step after divider
+
+    // If left step is completed (meaning current step is beyond it)
+    if (leftStepIndex < currentStep) {
+      return Colorz.primaryColor;
+    }
+    return Colors.grey.shade100;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      child: Row(
+        children: List.generate(steps.length * 2 - 1, (index) {
+          if (index.isOdd) {
+            // Connection line
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20, left: 10, right: 10),
+                child: Stack(
+                  children: [
+                    // Background line
+                    Container(
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(1.5),
+                      ),
+                    ),
+                    // Progress line with animation
+                    AnimatedContainer(
+                      duration: Duration(milliseconds: 400),
+                      height: 3,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(1.5),
+                        color: getDividerColor(context, index, currentStep),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else {
+            // Step circles with text
+            final stepIndex = index ~/ 2;
+            final isCompleted = stepIndex < currentStep;
+            final isCurrent = stepIndex == currentStep;
+
+            return GestureDetector(
+              onTap: () => onStepTapped(stepIndex),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Stack(
+                    children: [
+                      // Optional glow effect for current step
+                      if (isCurrent)
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colorz.primaryColor.withOpacity(0.1),
+                          ),
+                        ),
+                      Container(
+                        width: 35,
+                        height: 35,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isCompleted || isCurrent ? Colorz.primaryColor : Colors.white,
+                          border: Border.all(
+                            color: isCompleted || isCurrent ? Colorz.primaryColor : Colors.grey.shade300,
+                            width: 2,
+                          ),
+                          boxShadow: isCurrent
+                              ? [
+                                  BoxShadow(
+                                    color: Colorz.primaryColor.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    spreadRadius: 2,
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: Center(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (Widget child, Animation<double> animation) {
+                              return ScaleTransition(scale: animation, child: child);
+                            },
+                            child: isCompleted
+                                ? Icon(
+                                    Icons.check_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                    key: ValueKey('check-$stepIndex'),
+                                  )
+                                : Text(
+                                    '${stepIndex + 1}',
+                                    style: TextStyle(
+                                      color: isCurrent ? Colors.white : Colors.grey.shade600,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                                    key: ValueKey('number-$stepIndex'),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  // Step text
+                  AnimatedDefaultTextStyle(
+                    duration: Duration(milliseconds: 200),
+                    style: TextStyle(
+                      color: isCurrent
+                          ? Colorz.primaryColor
+                          : isCompleted
+                              ? Colors.grey.shade700
+                              : Colors.grey.shade500,
+                      fontSize: 12,
+                      fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                    child: Text(
+                      steps[stepIndex],
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        }),
+      ),
+    );
+  }
+}
 
 class MakeAppointmentView extends StatefulWidget {
   const MakeAppointmentView({super.key, this.appointment});
@@ -21,7 +179,6 @@ class MakeAppointmentView extends StatefulWidget {
 }
 
 class _MakeAppointmentViewState extends State<MakeAppointmentView> with SingleTickerProviderStateMixin {
-  bool appointment = false;
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -45,135 +202,95 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView> with SingleTi
     super.dispose();
   }
 
-  void _toggleView() {
-    setState(() {
-      appointment = !appointment;
-      if (appointment) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
-    });
+  Widget _buildStepContent(int step, BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: Offset(1.0, 0.0),
+            end: Offset.zero,
+          ).animate(animation),
+          child: FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
+        );
+      },
+      child: _getStepWidget(step, context),
+    );
+  }
+
+  Widget _getStepWidget(int step, BuildContext context) {
+    switch (step) {
+      case 0:
+        return FormDataAppointment(
+          key: ValueKey('branch'),
+        );
+      case 1:
+        return AppointmentPreviewContent(
+          key: ValueKey('doctor'),
+        );
+      case 2:
+        return MakeAppointmentViewBody(
+          branch: "",
+          key: ValueKey('patient'),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MakeAppointmentCubit(MakeAppointmentRepoImpl())
-        ..getDoctors()
-        ..getBranches(),
+      create: (context) => MakeAppointmentCubit(MakeAppointmentRepoImpl())..getAllData(),
       child: BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colorz.white,
-            elevation: 0,
-            title: Text("Appointments", style: appStyle(context, 20, Colorz.black, FontWeight.w600)),
-            centerTitle: true,
-            leading: IconButton(
-              onPressed: () => Get.back(),
-              icon: Icon(Icons.arrow_back, color: Colorz.black),
-            ),
-            actions: [
-              IconButton(
-                onPressed: _toggleView,
-                icon: AnimatedIcon(
-                  icon: AnimatedIcons.view_list,
-                  progress: _animation,
-                  color: Colorz.black,
-                ),
-              ),
-            ],
-          ),
-          body: MakeAppointmentCubit.get(context).connection != false
-              ? Stack(
-                  children: [
-                    // Form View
-                    AnimatedOpacity(
-                      opacity: appointment ? 0.0 : 1.0,
-                      duration: const Duration(milliseconds: 300),
-                      child: IgnorePointer(
-                        ignoring: appointment,
-                        child: AnimatedSlide(
-                          offset: Offset(appointment ? -1.0 : 0.0, 0.0),
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          child: FormDataAppointment(),
-                        ),
-                      ),
-                    ),
+        builder: (context, state) {
+          final cubit = MakeAppointmentCubit.get(context);
 
-                    // Calendar View
-                    AnimatedOpacity(
-                      opacity: appointment ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 300),
-                      child: IgnorePointer(
-                        ignoring: !appointment,
-                        child: AnimatedSlide(
-                          offset: Offset(appointment ? 0.0 : 1.0, 0.0),
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          child: MakeAppointmentViewBody(
-                            branch: '',
-                            appointment: widget.appointment,
-                          ),
-                        ),
+          return Scaffold(
+            backgroundColor: Colorz.white,
+            appBar: AppBar(
+              backgroundColor: Colorz.white,
+              elevation: 0,
+              title: Text("Appointments", style: appStyle(context, 20, Colorz.black, FontWeight.w600)),
+              centerTitle: true,
+              leading: IconButton(
+                onPressed: () {
+                  if (cubit.currentStep > 0) {
+                    cubit.previousStep();
+                  } else {
+                    Get.back();
+                  }
+                },
+                icon: Icon(Icons.arrow_back, color: Colorz.black),
+              ),
+            ),
+            body: cubit.connection != false
+                ? Column(
+                    children: [
+                      HorizontalStepper(
+                        currentStep: cubit.currentStep,
+                        steps: cubit.steps,
+                        onStepTapped: (index) => (),
                       ),
-                    ),
-                  ],
-                )
-              : NoInternet(
-                  onPressed: () {
-                    final cubit = MakeAppointmentCubit.get(context);
-                    if (cubit.doctors == null) {
-                      cubit.getDoctors();
-                      cubit.getBranches();
-                    }
-                  },
-                ),
-        ),
+                      Expanded(
+                        child: _buildStepContent(cubit.currentStep, context),
+                      ),
+                    ],
+                  )
+                : NoInternet(
+                    onPressed: () {
+                      if (cubit.doctors == null) {
+                        cubit.getDoctors();
+                        cubit.getBranches();
+                      }
+                    },
+                  ),
+          );
+        },
       ),
     );
-  }
-}
-
-// Optional: Custom page route transition
-class SlidePageRoute extends PageRouteBuilder {
-  final Widget child;
-  final AxisDirection direction;
-
-  SlidePageRoute({
-    required this.child,
-    this.direction = AxisDirection.right,
-  }) : super(
-          transitionDuration: const Duration(milliseconds: 300),
-          reverseTransitionDuration: const Duration(milliseconds: 300),
-          pageBuilder: (context, animation, secondaryAnimation) => child,
-        );
-
-  @override
-  Widget buildTransitions(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: _getBeginOffset(),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeInOut,
-      )),
-      child: child,
-    );
-  }
-
-  Offset _getBeginOffset() {
-    switch (direction) {
-      case AxisDirection.up:
-        return const Offset(0, 1);
-      case AxisDirection.down:
-        return const Offset(0, -1);
-      case AxisDirection.right:
-        return const Offset(-1, 0);
-      case AxisDirection.left:
-        return const Offset(1, 0);
-    }
   }
 }

@@ -31,6 +31,7 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
   // Controllers for text fields
   final _priceController = TextEditingController();
   final _nameController = TextEditingController();
+  final _durationController = TextEditingController();
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
     if (widget.cubit.examinationType != null) {
       _priceController.text = '${widget.cubit.examinationType?.price ?? ''}';
       _nameController.text = widget.cubit.examinationType?.name ?? '';
+      _durationController.text = '${widget.cubit.examinationType?.duration ?? ''}';
     }
     setState(() {});
   }
@@ -51,6 +53,7 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
   void dispose() {
     _priceController.dispose();
     _nameController.dispose();
+    _durationController.dispose();
 
     super.dispose();
   }
@@ -73,6 +76,7 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
         ExaminationType model = ExaminationType(
           name: _nameController.text.trim(),
           price: num.parse(_priceController.text),
+          duration: num.parse(_durationController.text),
         );
 
         await widget.cubit.updateExaminationType(id: widget.id, examinationType: model, context: context);
@@ -208,7 +212,43 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                                   borderSide: const BorderSide(color: Colors.grey),
                                 ),
                                 prefixIcon: Icon(
-                                  Icons.code,
+                                  Icons.monetization_on,
+                                  color: Colorz.grey,
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a code';
+                                }
+                                return null;
+                              },
+                            ),
+                      const SizedBox(height: 16),
+                      isLoading
+                          ? _buildShimmer(Container(
+                              width: MediaQuery.sizeOf(context).width,
+                              height: 60,
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(8)),
+                                color: Colors.white,
+                              ),
+                            ))
+                          : TextFormField(
+                              controller: _durationController,
+                              cursorColor: Colors.black,
+                              readOnly: readOnly,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: 'Enter Duration',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(color: Colors.grey),
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.timer,
                                   color: Colorz.grey,
                                 ),
                               ),

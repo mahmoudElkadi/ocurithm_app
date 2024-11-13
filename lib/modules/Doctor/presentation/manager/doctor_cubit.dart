@@ -34,7 +34,10 @@ class DoctorCubit extends Cubit<DoctorState> {
   }
 
   bool isConfirm = false;
-  var selectedBranch;
+  List<String> availableDays = [];
+  String availableFrom = "";
+  String availableTo = "";
+  Branch? selectedBranch;
   chooseBranchId(selected) {
     log(selected.branchId.toString());
     selectedBranch = selected;
@@ -126,6 +129,8 @@ class DoctorCubit extends Cubit<DoctorState> {
   bool picDate = true;
   bool chooseBranch = true;
   bool isValidate = false;
+  bool chooseTime = true;
+  bool chooseDays = true;
 
   validateFirstPage() {
     if (date == null) {
@@ -140,10 +145,24 @@ class DoctorCubit extends Cubit<DoctorState> {
       chooseBranch = true;
     }
 
+    if (availableFrom == "" && availableTo == "") {
+      chooseTime = false;
+    } else {
+      chooseTime = true;
+    }
+
+    if (availableDays.isEmpty) {
+      chooseDays = false;
+    } else {
+      chooseDays = true;
+    }
+
     log(picDate.toString());
     log(chooseBranch.toString());
+    log("ss" + chooseDays.toString());
+    log("ss" + availableDays.toString());
 
-    if (picDate && chooseBranch) {
+    if (picDate && chooseBranch && chooseTime && chooseDays) {
       log(isValidate.toString());
       isValidate = true;
     } else {
@@ -166,7 +185,10 @@ class DoctorCubit extends Cubit<DoctorState> {
             password: passwordController.text,
             phone: phoneNumberController.text,
             birthDate: date,
-            branchId: branchId,
+            branch: selectedBranch,
+            availableFrom: availableFrom,
+            availableTo: availableTo,
+            availableDays: availableDays,
             qualifications: qualificationController.text,
             capabilities: capabilitiesList),
       );
@@ -181,7 +203,15 @@ class DoctorCubit extends Cubit<DoctorState> {
         Navigator.pop(context);
         Navigator.pop(context);
 
-        doctors?.doctors?.add(Doctor(id: result.id, name: result.name, phone: result.phone, image: result.image));
+        doctors?.doctors?.add(Doctor(
+            id: result.id,
+            name: result.name,
+            phone: result.phone,
+            image: result.image,
+            branch: result.branch,
+            availableDays: result.availableDays,
+            availableFrom: result.availableFrom,
+            availableTo: result.availableTo));
 
         clearData();
         emit(AddDoctorSuccess());
@@ -323,7 +353,10 @@ class DoctorCubit extends Cubit<DoctorState> {
             password: passwordController.text,
             phone: phoneNumberController.text,
             birthDate: date,
-            branchId: branchId,
+            branch: selectedBranch,
+            availableFrom: availableFrom,
+            availableTo: availableTo,
+            availableDays: availableDays,
             capabilities: capabilitiesList,
             qualifications: qualificationController.text),
         id: id,
@@ -344,17 +377,23 @@ class DoctorCubit extends Cubit<DoctorState> {
         doctor?.image = result.image;
         doctor?.name = result.name;
         doctor?.phone = result.phone;
+        doctor?.availableDays = result.availableDays;
+        doctor?.availableFrom = result.availableFrom;
+        doctor?.availableTo = result.availableTo;
         emit(AdminBranchSuccess());
 
         final index = doctors?.doctors?.indexWhere((Doctor) => Doctor.id == id);
         if (index != -1) {
-          doctors?.doctors?[index!].name = result.name;
-          doctors?.doctors?[index!].image = result.image;
-          doctors?.doctors?[index!].password = result.password;
-          doctors?.doctors?[index!].phone = result.phone;
-          doctors?.doctors?[index!].birthDate = result.birthDate;
-          doctors?.doctors?[index!].branch = result.branch;
-          doctors?.doctors?[index!].capabilities = result.capabilities;
+          doctors?.doctors[index!].name = result.name;
+          doctors?.doctors[index!].image = result.image;
+          doctors?.doctors[index!].password = result.password;
+          doctors?.doctors[index!].phone = result.phone;
+          doctors?.doctors[index!].birthDate = result.birthDate;
+          doctors?.doctors[index!].branch = result.branch;
+          doctors?.doctors[index!].capabilities = result.capabilities;
+          doctors?.doctors[index!].availableDays = result.availableDays;
+          doctors?.doctors[index!].availableFrom = result.availableFrom;
+          doctors?.doctors[index!].availableTo = result.availableTo;
         }
 
         emit(AdminBranchSuccess());
@@ -390,6 +429,11 @@ class DoctorCubit extends Cubit<DoctorState> {
     selectedBranch = null;
     picDate = true;
     chooseBranch = true;
+    chooseTime = true;
+    chooseDays = true;
+    availableDays = [];
+    availableFrom = "";
+    availableTo = "";
     isValidate = false;
   }
 }

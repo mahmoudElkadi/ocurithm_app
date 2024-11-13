@@ -5,14 +5,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:ocurithm/Services/time_parser.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/core/widgets/animated_visible_widget.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/text_field.dart';
 import 'package:password_generator/password_generator.dart';
 
 import '../../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../../generated/l10n.dart';
+import '../../../../../../../../core/widgets/choose_hours_range.dart';
+import '../../../../../../../../core/widgets/work_day_selector.dart';
 import '../../../../../../../Receptionist/presentation/views/Add Receptionist/presentation/view/widgets/add_receptionist_view_body.dart';
 import '../../../../../../../Receptionist/presentation/views/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
 import '../../../../../manager/doctor_cubit.dart';
@@ -244,20 +248,67 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                       items: widget.cubit.branches?.branches,
                       isValid: widget.cubit.chooseBranch,
                       validateText: S.of(context).mustBranch,
-                      selectedValue: widget.cubit.selectedBranch,
+                      selectedValue: widget.cubit.selectedBranch?.name,
                       hintText: 'Select Branch',
                       itemAsString: (item) => item.name.toString(),
                       onItemSelected: (item) {
                         setState(() {
                           if (item != "Not Found") {
                             widget.cubit.chooseBranch = true;
-                            widget.cubit.selectedBranch = item.name;
-                            widget.cubit.branchId = item.id;
+                            widget.cubit.selectedBranch = item;
                             log(widget.cubit.selectedBranch.toString());
+                            log(widget.cubit.chooseDays.toString());
                           }
                         });
                       },
                       isLoading: widget.cubit.loading,
+                    ),
+                    AnimatedVisibleWidget(
+                      isVisible: widget.cubit.selectedBranch != null,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          WorkDaysSelector(
+                            radius: 30,
+                            isShadow: true,
+                            border: Colors.transparent,
+                            onDaysSelected: (List<String> days) {
+                              setState(() {
+                                widget.cubit.availableDays = days;
+                              });
+                              print('Selected days: ${widget.cubit.availableDays}');
+                            },
+                            isValid: widget.cubit.chooseDays,
+                            initialSelectedDays: [],
+                            enabledDays: widget.cubit.selectedBranch?.workDays,
+                            icon: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: Colorz.blue,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          BusinessHoursSelector(
+                            onTimeRangeSelected: (openTime, closeTime) {
+                              print('Business hours: ${openTime.format(context)} - ${closeTime.format(context)}');
+                              widget.cubit.availableFrom =
+                                  '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
+                              widget.cubit.availableTo =
+                                  '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
+                              print('Business hours: ${widget.cubit.availableFrom} - ${widget.cubit.availableTo}');
+                            },
+                            icon: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: Colorz.blue,
+                            ),
+                            radius: 30,
+                            isValid: widget.cubit.chooseTime,
+                            isShadow: true,
+                            border: Colors.transparent,
+                            startEnabledTime: TimeParser.stringToTimeOfDay(widget.cubit.selectedBranch?.openTime),
+                            endEnabledTime: TimeParser.stringToTimeOfDay(widget.cubit.selectedBranch?.closeTime),
+                          ),
+                        ],
+                      ),
                     ),
                     const HeightSpacer(size: 20),
                     CapabilitiesSection(
@@ -536,7 +587,7 @@ void alertDialog(BuildContext context) {
             dropdownTextStyle: const TextStyle(fontSize: 14),
             hintStyle: const TextStyle(color: Colors.grey),
           ),
-          HeightSpacer(size: 100),
+          const HeightSpacer(size: 100),
           TextButton(
             child: Text(S.of(context).delete),
             onPressed: () {

@@ -15,6 +15,10 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../../generated/l10n.dart';
+import '../../../../../../../../Services/time_parser.dart';
+import '../../../../../../../../core/widgets/animated_visible_widget.dart';
+import '../../../../../../../../core/widgets/choose_hours_range.dart';
+import '../../../../../../../../core/widgets/work_day_selector.dart';
 import '../../../../../../../Receptionist/presentation/views/Add Receptionist/presentation/view/widgets/add_receptionist_view_body.dart';
 import '../../../../../../../Receptionist/presentation/views/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
 import '../../../../../manager/doctor_cubit.dart';
@@ -59,8 +63,10 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
       widget.cubit.phoneNumberController.text = widget.cubit.doctor?.phone ?? "";
       widget.cubit.passwordController.text = widget.cubit.doctor?.password ?? "";
       widget.cubit.date = widget.cubit.doctor?.birthDate;
-      widget.cubit.selectedBranch = widget.cubit.doctor?.branch?.name;
+      widget.cubit.selectedBranch = widget.cubit.doctor?.branch;
       widget.cubit.qualificationController.text = widget.cubit.doctor?.qualifications ?? "";
+      log("data ${widget.cubit.selectedBranch?.workDays}");
+      log("dataDD ${widget.cubit.doctor?.branch?.workDays}");
     }
     await widget.cubit.getBranches();
   }
@@ -239,21 +245,69 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                                 items: widget.cubit.branches?.branches,
                                 isValid: widget.cubit.chooseBranch,
                                 validateText: S.of(context).mustBranch,
-                                selectedValue: widget.cubit.selectedBranch,
+                                selectedValue: widget.cubit.selectedBranch?.name,
                                 hintText: 'Select Branch',
                                 itemAsString: (item) => item.name.toString(),
                                 onItemSelected: (item) {
                                   setState(() {
                                     if (item != "Not Found") {
                                       widget.cubit.chooseBranch = true;
-                                      widget.cubit.selectedBranch = item.name;
-                                      widget.cubit.branchId = item.id;
+                                      widget.cubit.selectedBranch = item;
                                       log(widget.cubit.selectedBranch.toString());
                                     }
                                   });
                                 },
                                 isLoading: false,
                               ),
+                    AnimatedVisibleWidget(
+                      isVisible: widget.cubit.selectedBranch != null,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          WorkDaysSelector(
+                            radius: 30,
+                            isShadow: true,
+                            border: Colors.transparent,
+                            isValid: widget.cubit.chooseDays,
+                            onDaysSelected: (List<String> days) {
+                              setState(() {
+                                widget.cubit.availableDays = days;
+                              });
+                              print('Selected days: ${widget.cubit.availableDays}');
+                            },
+                            initialSelectedDays: widget.cubit.doctor?.availableDays,
+                            enabledDays: widget.cubit.selectedBranch?.workDays,
+                            icon: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: Colorz.blue,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          BusinessHoursSelector(
+                            onTimeRangeSelected: (openTime, closeTime) {
+                              print('Business hours: ${openTime.format(context)} - ${closeTime.format(context)}');
+                              widget.cubit.availableFrom =
+                                  '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
+                              widget.cubit.availableTo =
+                                  '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
+                              log('Business hours: ${widget.cubit.availableFrom} - ${widget.cubit.availableTo}');
+                            },
+                            icon: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: Colorz.blue,
+                            ),
+                            radius: 30,
+                            isShadow: true,
+                            isValid: widget.cubit.chooseTime,
+                            border: Colors.transparent,
+                            startEnabledTime: TimeParser.stringToTimeOfDay(widget.cubit.selectedBranch?.openTime),
+                            endEnabledTime: TimeParser.stringToTimeOfDay(widget.cubit.selectedBranch?.closeTime),
+                            initialCloseTime: TimeParser.parseTimeString(widget.cubit.doctor?.availableTo.toString() ?? "00:00"),
+                            initialOpenTime: TimeParser.parseTimeString(widget.cubit.doctor?.availableFrom.toString() ?? "00:00"),
+                          ),
+                        ],
+                      ),
+                    ),
                     const HeightSpacer(size: 20),
                     isLoading
                         ? _buildShimmer(Container(
@@ -313,7 +367,6 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             color: Colorz.white,
                             controller: widget.cubit.qualificationController,
                           ),
-
                     const HeightSpacer(size: 20),
                     Divider(
                       thickness: 0.4,
@@ -438,7 +491,6 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                         ),
                       ),
                     const HeightSpacer(size: 20),
-
                   ],
                 ),
               ),

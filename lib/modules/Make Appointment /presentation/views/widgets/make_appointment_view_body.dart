@@ -36,22 +36,67 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
   bool _viewOnly = false;
 
-  @override
+  List<String> getHolidayDays({List<String>? workingDays}) {
+    // Define all days of the week
+    final List<String> allDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+    // Convert working days to lowercase for case-insensitive comparison
+    final List<String>? workingDaysLower = workingDays?.map((day) => day.toLowerCase()).toList();
+
+    // Get days that are not in working days list
+    final List<String> holidays = allDays.where((day) => !workingDaysLower!.contains(day)).toList();
+
+    return holidays;
+  }
+
   void initState() {
     super.initState();
+    final cubit = BlocProvider.of<MakeAppointmentCubit>(context);
+    final now = DateTime.now();
+
+    // Parse working hours safely
+    TimeOfDay getTimeOfDay(String? time, TimeOfDay defaultTime) {
+      if (time == null) return defaultTime;
+      try {
+        final parts = time.split(":");
+        return TimeOfDay(
+          hour: int.parse(parts[0]),
+          minute: int.parse(parts[1]),
+        );
+      } catch (e) {
+        return defaultTime;
+      }
+    }
+
+    // Get doctor's available hours
+    final availableFrom = getTimeOfDay(cubit.selectedDoctor?.availableFrom, const TimeOfDay(hour: 8, minute: 0));
+    final availableTo = getTimeOfDay(cubit.selectedDoctor?.availableTo, const TimeOfDay(hour: 18, minute: 0));
+
+    // Set up examination duration
+    final duration = int.tryParse(cubit.selectedExaminationType?.duration?.toString() ?? "10") ?? 10;
+
+    // Create booking service with correct start and end times
     bookingService = BookingService(
       serviceName: 'Appointment Reservation',
-      serviceDuration: 10,
-      bookingEnd: DateTime(now.year, now.month, now.day, 18, 0),
-      bookingStart: DateTime(now.year, now.month, now.day, 8, 0),
+      serviceDuration: duration,
+      bookingStart: DateTime(
+        now.year,
+        now.month,
+        now.day,
+        availableFrom.hour,
+        availableFrom.minute,
+      ),
+      bookingEnd: DateTime(
+        now.year,
+        now.month,
+        now.day,
+        availableTo.hour,
+        availableTo.minute,
+      ),
     );
 
+    // Initialize stream controller
     _controller = StreamController<dynamic>.broadcast();
-
-    fetchInitialData(
-      branch: widget.branch,
-      date: DateTime.now(),
-    );
   }
 
   List<dynamic> appointments = [];
@@ -279,7 +324,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
-              holidayWeekdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+              holidayWeekdays: getHolidayDays(workingDays: cubit.selectedDoctor?.availableDays),
               availableSlotColor: Colorz.blue,
               patient: Patient(),
             ),

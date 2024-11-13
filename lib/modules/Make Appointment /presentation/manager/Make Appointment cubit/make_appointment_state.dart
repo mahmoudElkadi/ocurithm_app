@@ -10,7 +10,13 @@ class AdminDoctorError extends MakeAppointmentState {}
 
 class AdminDoctorSuccess extends MakeAppointmentState {}
 
+class StepChanged extends MakeAppointmentState {}
+
 class GetBranchLoading extends MakeAppointmentState {}
+
+class ChangeIndex extends MakeAppointmentState {}
+
+class ValidateState extends MakeAppointmentState {}
 
 class GetBranchError extends MakeAppointmentState {}
 

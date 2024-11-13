@@ -7,7 +7,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/generated/l10n.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/appointment_form.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -168,14 +167,29 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
   void initState() {
     super.initState();
     controller = context.read<BookingController>();
-    final firstDay = calculateFirstDay();
     _initializeHolidayWeekdays();
-    startOfDay = firstDay.startOfDayService(controller.serviceOpening!);
-    endOfDay = firstDay.endOfDayService(controller.serviceClosing!);
+
+    // Get the current date and find nearest non-holiday date if needed
+    DateTime initialDate = DateTime.now();
+    if (_isWeeklyOff(initialDate)) {
+      initialDate = findNearestNonHolidayDate(initialDate);
+    }
+
+    _selectedDay = initialDate;
+    _focusedDay = initialDate;
+
+    startOfDay = initialDate.startOfDayService(controller.serviceOpening!);
+    endOfDay = initialDate.endOfDayService(controller.serviceClosing!);
     branch = controller.branch?.id ?? "";
-    _selectedDay = _getInitialDate();
-    _focusedDay = _selectedDay;
+
     controller.selectFirstDayByHoliday(startOfDay, endOfDay);
+
+    // Call selectNewDateRange if the date was adjusted
+    if (initialDate != DateTime.now()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        selectNewDateRange();
+      });
+    }
   }
 
   void _initializeHolidayWeekdays() {
@@ -195,6 +209,18 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
     widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch ?? "");
     controller.base = startOfDay;
     controller.resetSelectedSlot();
+  }
+
+  DateTime findNearestNonHolidayDate(DateTime date) {
+    DateTime checkDate = date;
+    // Check up to 30 days forward to prevent infinite loop
+    for (int i = 0; i < 30; i++) {
+      if (!_isWeeklyOff(checkDate)) {
+        return checkDate;
+      }
+      checkDate = checkDate.add(const Duration(days: 1));
+    }
+    return date; // Fallback to original date if no non-holiday found
   }
 
   DateTime calculateFirstDay() {
@@ -225,7 +251,8 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
   }
 
   bool _isWeeklyOff(DateTime date) {
-    return _holidayWeekdayNumbers.contains(date.weekday);
+    // Check if the date's weekday is in the holiday list
+    return _holidayWeekdayNumbers.contains(date.weekday) || (widget.disabledDates?.any((d) => isSameDay(d, date)) ?? false);
   }
 
   bool _isDateSelectable(DateTime date) {
@@ -278,10 +305,19 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                       ),
                       onDaySelected: (selectedDay, focusedDay) {
                         if (!isSameDay(_selectedDay, selectedDay)) {
-                          setState(() {
-                            _selectedDay = selectedDay;
-                            _focusedDay = focusedDay;
-                          });
+                          if (_isWeeklyOff(selectedDay)) {
+                            // If selected day is a holiday, find and select the nearest non-holiday date
+                            final nearestNonHolidayDate = findNearestNonHolidayDate(selectedDay);
+                            setState(() {
+                              _selectedDay = nearestNonHolidayDate;
+                              _focusedDay = nearestNonHolidayDate;
+                            });
+                          } else {
+                            setState(() {
+                              _selectedDay = selectedDay;
+                              _focusedDay = focusedDay;
+                            });
+                          }
                           selectNewDateRange();
                         }
                       },
@@ -389,12 +425,12 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                       ? CommonButton(
                           text: widget.bookingButtonText ?? S.of(context).makeAppointment,
                           onTap: () async {
-                            await showAppointmentBottomSheet(context,
-                                    date: controller.allBookingSlots.elementAt(controller.selectedSlot),
-                                    appointment: widget.appointment,
-                                    branch: widget.branch,
-                                    doctor: widget.doctor)
-                                .then((value) => widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch ?? ""));
+                            // await showAppointmentBottomSheet(context,
+                            //         date: controller.allBookingSlots.elementAt(controller.selectedSlot),
+                            //         appointment: widget.appointment,
+                            //         branch: widget.branch,
+                            //         doctor: widget.doctor)
+                            //     .then((value) => widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch ?? ""));
                           },
                           isDisabled: controller.selectedSlot == -1,
                           buttonActiveColor: widget.bookingButtonColor,

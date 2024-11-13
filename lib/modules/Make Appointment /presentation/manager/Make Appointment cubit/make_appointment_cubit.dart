@@ -45,8 +45,9 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
 
   bool? connection;
   MakeAppointmentRepo makeAppointmentRepo;
+
   DoctorModel? doctors;
-  Future<void> getDoctors() async {
+  Future<void> getDoctors({String? branch}) async {
     doctors = null;
     emit(AdminDoctorLoading());
 
@@ -63,7 +64,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         );
         emit(AdminDoctorError());
       } else {
-        doctors = await makeAppointmentRepo.getAllDoctors();
+        doctors = await makeAppointmentRepo.getAllDoctors(branch: branch);
         if (doctors!.doctors!.isNotEmpty) {
           emit(AdminDoctorSuccess());
         } else {
@@ -137,7 +138,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         loadPatients = false;
         emit(AdminPatientError());
       } else {
-        patients = await makeAppointmentRepo.getAllPatients(page: page, search: patientController.text);
+        patients = await makeAppointmentRepo.getAllPatients();
         if (patients!.patients.isNotEmpty) {
           loadPatients = false;
           emit(AdminPatientSuccess());
@@ -215,12 +216,28 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     }
   }
 
+  int currentStep = 0;
+  final List<String> steps = ['Details', 'Time', 'Preview'];
+
+  void changeStep(int newStep) {
+    if (newStep >= 0 && newStep < steps.length) {
+      currentStep = newStep;
+      emit(StepChanged());
+    }
+  }
+
+  void previousStep() {
+    if (currentStep > 0) {
+      currentStep--;
+      emit(StepChanged());
+    }
+  }
+
   getAllData() async {
     await Future.wait([
       getBranches(),
       getExaminationTypes(),
       getPaymentMethods(),
-      getDoctors(),
     ]);
   }
 
@@ -257,11 +274,8 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     });
   }
 
-  Branch? selectedBranch;
-  Doctor? selectedDoctor;
-
   AppointmentModel? appointments;
-  getAppointments(  DateTime? selectedDate ) async {
+  getAppointments(DateTime? selectedDate) async {
     appointments = null;
     emit(GetBranchLoading());
     connection = await InternetConnection().hasInternetAccess;
@@ -369,4 +383,35 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
       emit(MakeAppointmentError());
     }
   }
+
+  Doctor? selectedDoctor;
+  Patient? selectedPatient;
+  Branch? selectedBranch;
+  PaymentMethod? selectedPaymentMethod;
+  ExaminationType? selectedExaminationType;
+  final Map<String, bool> validationState = {
+    'doctor': true,
+    'patient': true,
+    'branch': true,
+    'examinationType': true,
+    'paymentMethod': true,
+  };
+  bool get areAllFieldsFilled =>
+      selectedDoctor != null && selectedPatient != null && selectedBranch != null && selectedExaminationType != null && selectedPaymentMethod != null;
+  bool get isFormValid => validationState.values.every((isValid) => isValid) && areAllFieldsFilled;
+  void validateField(String field, bool isValid) {
+    validationState[field] = isValid;
+    emit(ValidateState());
+  }
+
+  Map<String, dynamic> appointmentData = {
+    "doctor": {
+      "name": "Elkady",
+    },
+    "patient": {"name": "Ahmed"},
+    "branch": {"name": "Cairo"},
+    "examinationType": {"name": "X-ray", "price": 100, "duration": 10},
+    "paymentMethod": {"name": "Cash"},
+    "date": {"date": "2022-12-12"}
+  };
 }

@@ -27,6 +27,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
   // Controllers for text fields
   final _priceController = TextEditingController();
   final _nameController = TextEditingController();
+  final _durationController = TextEditingController();
 
   @override
   void dispose() {
@@ -54,6 +55,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
         ExaminationType model = ExaminationType(
           name: _nameController.text.trim(),
           price: num.parse(_priceController.text),
+          duration: num.parse(_durationController.text),
         );
 
         await widget.cubit.addExaminationType(examinationType: model, context: context);
@@ -153,6 +155,32 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                         ),
                         prefixIcon: Icon(
                           Icons.monetization_on,
+                          color: Colorz.grey,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a price';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _durationController,
+                      cursorColor: Colors.black,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Enter Duration',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.grey),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.timer,
                           color: Colorz.grey,
                         ),
                       ),
