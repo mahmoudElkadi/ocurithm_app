@@ -109,6 +109,9 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
   void didUpdateWidget(FlutterDropdownSearch<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Update items when they change
+    setState(() {
+      _selectedValue = widget.selectedValue;
+    });
     if (widget.items != oldWidget.items) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_isDropdownOpen) {

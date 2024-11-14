@@ -459,6 +459,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
       onItemSelected: (item) {
         setState(() {
           cubit.selectedBranch = item;
+          cubit.selectedDoctor?.name = "";
           cubit.selectedDoctor = null;
         });
         cubit.getDoctors(branch: cubit.selectedBranch!.id!);
