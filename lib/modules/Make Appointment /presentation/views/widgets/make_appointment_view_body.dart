@@ -272,7 +272,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
         dateTimeRanges.add({
           "Time": DateTimeRange(
             start: DateTime.parse(item["datetime"]),
-            end: DateTime.parse(item["datetime"]).add(const Duration(minutes: 10)),
+            end: DateTime.parse(item["datetime"]).add(Duration(minutes: item['examinationType']['duration'])),
           ),
           "phoneNumber": item["patient"]["phone"],
           "name": item["patient"]["name"],
@@ -307,6 +307,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
               appointment: widget.appointment,
               loadingWidget: const Text('Fetching data...'),
               uploadingWidget: const CircularProgressIndicator(),
+              cubit: cubit,
               locale: 'en',
               startingDayOfWeek: StartingDayOfWeek.saturday,
               wholeDayIsBookedWidget: const Text('Sorry, for this day everything is booked'),

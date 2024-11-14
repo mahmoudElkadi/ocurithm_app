@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ocurithm/modules/Make%20Appointment%20/presentation/manager/Make%20Appointment%20cubit/make_appointment_cubit.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:provider/provider.dart';
 
@@ -51,7 +52,8 @@ class BookingCalendar extends StatelessWidget {
       this.lastDay,
       this.appointment,
       required this.patient,
-      required this.holidayWeekdays})
+      required this.holidayWeekdays,
+      this.cubit})
       : super(key: key);
 
   ///for the Calendar picker we use: [TableCalendar]
@@ -138,6 +140,8 @@ class BookingCalendar extends StatelessWidget {
   ///Display your custom  widget while uploading data to your database
   final Widget? uploadingWidget;
 
+  final MakeAppointmentCubit? cubit;
+
   ///Display your custom  widget if every slot is booked and you want to show something special
   ///not only the red slots
   final Widget? wholeDayIsBookedWidget;
@@ -200,6 +204,7 @@ class BookingCalendar extends StatelessWidget {
           locale: locale,
           startingDayOfWeek: startingDayOfWeek,
           disabledDays: disabledDays,
+          cubit: cubit,
           lastDay: lastDay,
           disabledDates: disabledDates,
           branch: branch,

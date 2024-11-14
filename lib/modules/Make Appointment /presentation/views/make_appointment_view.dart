@@ -225,17 +225,18 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView> with SingleTi
     switch (step) {
       case 0:
         return FormDataAppointment(
-          key: ValueKey('branch'),
+          key: ValueKey('details'),
         );
       case 1:
-        return AppointmentPreviewContent(
-          key: ValueKey('doctor'),
-        );
-      case 2:
         return MakeAppointmentViewBody(
           branch: "",
-          key: ValueKey('patient'),
+          key: ValueKey('time'),
         );
+      case 2:
+        return AppointmentPreviewContent(
+          key: ValueKey('preview'),
+        );
+
       default:
         return const SizedBox.shrink();
     }

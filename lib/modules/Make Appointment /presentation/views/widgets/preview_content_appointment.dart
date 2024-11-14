@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:intl/intl.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 
 import '../../../../../core/utils/colors.dart';
 import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
@@ -16,14 +19,6 @@ class AppointmentPreviewContent extends StatefulWidget {
 }
 
 class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
-  final TextEditingController _noteController = TextEditingController();
-
-  @override
-  void dispose() {
-    _noteController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final cubit = MakeAppointmentCubit.get(context);
@@ -37,7 +32,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
                 children: [
                   _buildPreviewCard(context, cubit),
                   SizedBox(height: 20.h),
-                  _buildNoteField(),
+                  _buildNoteField(cubit),
                 ],
               ),
             ),
@@ -142,50 +137,50 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           _buildDetailItem(
             icon: Icons.person,
             title: 'Doctor',
-            value: cubit.appointmentData['doctor']['name'],
+            value: cubit.selectedDoctor?.name ?? "N/A",
             iconColor: Colors.blue,
           ),
           _buildDivider(),
           _buildDetailItem(
             icon: Icons.person_outline,
             title: 'Patient',
-            value: cubit.appointmentData['patient']['name'],
+            value: cubit.selectedPatient?.name ?? "N/A",
             iconColor: Colors.green,
           ),
           _buildDivider(),
           _buildDetailItem(
             icon: Icons.location_on,
             title: 'Branch',
-            value: cubit.appointmentData['branch']['name'],
+            value: cubit.selectedBranch?.name ?? "N/A",
             iconColor: Colors.red,
           ),
           _buildDivider(),
           _buildDetailItem(
             icon: Icons.medical_services,
             title: 'Examination',
-            value: '${cubit.appointmentData['examinationType']['name']} '
-                '(${cubit.appointmentData['examinationType']['duration']} min)',
+            value: '${cubit.selectedExaminationType?.name ?? "N/A"} '
+                '(${cubit.selectedExaminationType?.duration ?? "N/A"} min)',
             iconColor: Colors.purple,
           ),
           _buildDivider(),
           _buildDetailItem(
             icon: Icons.payment,
             title: 'Payment Method',
-            value: cubit.appointmentData['paymentMethod']['name'],
+            value: cubit.selectedPaymentMethod?.title ?? "N/A",
             iconColor: Colors.orange,
           ),
           _buildDivider(),
           _buildDetailItem(
             icon: Icons.attach_money,
             title: 'Price',
-            value: '\$${cubit.appointmentData['examinationType']['price']}',
+            value: '\$${cubit.selectedExaminationType?.price ?? "N/A"}',
             iconColor: Colors.green,
           ),
           _buildDivider(),
           _buildDetailItem(
             icon: Icons.date_range,
             title: 'Date',
-            value: cubit.appointmentData['date']['date'],
+            value: cubit.selectedTime != null ? DateFormat('yyyy-MM-dd HH:mm a').format(cubit.selectedTime!) : "N/A",
             iconColor: Colors.blue,
           ),
         ],
@@ -255,7 +250,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
     );
   }
 
-  Widget _buildNoteField() {
+  Widget _buildNoteField(MakeAppointmentCubit cubit) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -283,7 +278,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           ),
           SizedBox(height: 8.h),
           TextField(
-            controller: _noteController,
+            controller: cubit.noteController,
             maxLines: 3,
             style: TextStyle(fontSize: 15.sp),
             decoration: InputDecoration(
@@ -325,7 +320,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Expanded(
             child: OutlinedButton(
               onPressed: () {
-                cubit.changeStep(0);
+                cubit.changeStep(1);
               },
               style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -349,8 +344,22 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           SizedBox(width: 16.w),
           Expanded(
             child: ElevatedButton(
-              onPressed: () {
-                cubit.changeStep(2);
+              onPressed: () async {
+                customLoading(context, "");
+                bool connection = await InternetConnection().hasInternetAccess;
+                if (!connection) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        "No internet connection",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } else {
+                  cubit.makeAppointment(context: context);
+                }
               },
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16.h),

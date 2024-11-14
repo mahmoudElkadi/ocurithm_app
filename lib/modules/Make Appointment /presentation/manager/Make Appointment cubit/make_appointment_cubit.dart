@@ -297,10 +297,20 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     }
   }
 
-  makeAppointment({required BuildContext context, required MakeAppointmentModel model}) async {
+  makeAppointment({required BuildContext context}) async {
     emit(MakeAppointmentLoading());
     try {
-      var result = await makeAppointmentRepo.makeAppointment(model: model);
+      var result = await makeAppointmentRepo.makeAppointment(
+          model: MakeAppointmentModel(
+              doctor: selectedDoctor?.id,
+              branch: selectedBranch?.id,
+              datetime: selectedTime,
+              paymentMethod: selectedPaymentMethod?.id,
+              examinationType: selectedExaminationType?.id,
+              patient: selectedPatient?.id,
+              status: "Scheduled",
+              clinic: "672b6748c642f2ffd02807ad",
+              note: noteController.text));
       if (result != null && result.error == null) {
         Get.snackbar(
           "Success",
@@ -309,6 +319,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
           colorText: Colorz.white,
           icon: Icon(Icons.check, color: Colorz.white),
         );
+        currentStep = 0;
         Navigator.pop(context);
         Navigator.pop(context);
         emit(MakeAppointmentSuccess());
@@ -384,9 +395,17 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     }
   }
 
+  TextEditingController noteController = TextEditingController();
+  @override
+  Future<void> close() {
+    noteController.dispose();
+    return super.close();
+  }
+
   Doctor? selectedDoctor;
   Patient? selectedPatient;
   Branch? selectedBranch;
+  DateTime? selectedTime;
   PaymentMethod? selectedPaymentMethod;
   ExaminationType? selectedExaminationType;
   final Map<String, bool> validationState = {
