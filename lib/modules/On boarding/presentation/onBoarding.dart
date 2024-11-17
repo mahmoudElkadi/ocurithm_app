@@ -86,7 +86,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                 effect: ExpandingDotsEffect(
                     dotColor: Colors.grey.shade300,
                     dotHeight: 5,
-                    activeDotColor: Colors.blue,
+                    activeDotColor: Colorz.primaryColor,
                     expansionFactor: 2,
                     dotWidth: 23,
                     spacing: 5,
@@ -121,7 +121,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                     child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colorz.blue,
+                          color: Colorz.primaryColor,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
@@ -144,7 +144,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                       onTap: () {
                         submit();
                       },
-                      child: Ink(child: Text("Sign In", style: appStyle(context, 18, Colors.blue, FontWeight.w600))))
+                      child: Ink(child: Text("Sign In", style: appStyle(context, 18, Colorz.primaryColor, FontWeight.w600))))
                 ],
               ),
             )

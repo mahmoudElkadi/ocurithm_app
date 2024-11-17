@@ -274,6 +274,19 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     });
   }
 
+  String? appointmentId;
+  setData(Appointment appointment) async {
+    selectedTime = appointment.datetime;
+    selectedExaminationType = appointment.examinationType;
+    selectedPaymentMethod = appointment.paymentMethod;
+    selectedBranch = appointment.branch;
+    selectedDoctor = appointment.doctor;
+    selectedPatient = appointment.patient;
+    appointmentId = appointment.id;
+    log("dsdsdsdsds" + appointment.toJson().toString());
+    emit(DataChanged());
+  }
+
   AppointmentModel? appointments;
   getAppointments(DateTime? selectedDate) async {
     appointments = null;
@@ -363,7 +376,6 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
           colorText: Colorz.white,
           icon: Icon(Icons.check, color: Colorz.white),
         );
-        Navigator.pop(context);
         Navigator.pop(context);
         Navigator.pop(context, true);
         emit(MakeAppointmentSuccess());

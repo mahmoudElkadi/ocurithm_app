@@ -64,3 +64,67 @@ class TimeParser {
     return '$hour:$minute';
   }
 }
+
+class EgyptianDateTime {
+  // Egypt uses a constant GMT+2 offset
+  static const egyptHourOffset = 2;
+  static const egyptTimezoneName = 'EET'; // Eastern European Time
+
+  /// Converts any DateTime to Egypt's timezone (GMT+2)
+  static DateTime convertToEgyptTime(DateTime dateTime) {
+    // First convert to UTC to ensure we're working from a consistent base
+    final utcDateTime = dateTime.toUtc();
+    // Add 2 hours for Egypt's timezone
+    return utcDateTime.add(const Duration(hours: egyptHourOffset));
+  }
+
+  /// Converts from Egypt time to UTC
+  static DateTime convertToUTC(DateTime egyptDateTime) {
+    // Subtract 2 hours to get to UTC
+    return egyptDateTime.subtract(const Duration(hours: egyptHourOffset));
+  }
+
+  /// Formats a DateTime to string in Egypt's timezone
+  static String formatToEgyptString(DateTime dateTime) {
+    final egyptTime = convertToEgyptTime(dateTime);
+    return egyptTime.toIso8601String();
+  }
+
+  /// Parses a string to DateTime in Egypt's timezone
+  static DateTime parseFromEgyptString(String dateTimeString) {
+    final dateTime = DateTime.parse(dateTimeString);
+    return convertToEgyptTime(dateTime);
+  }
+
+  /// Gets the UTC offset for Egypt (always +02:00)
+  static String getUTCOffset() {
+    return '+${egyptHourOffset.toString().padLeft(2, '0')}:00';
+  }
+
+  /// Validates if a DateTime is in Egypt's timezone
+  static bool isEgyptianTime(DateTime dateTime) {
+    final offset = dateTime.timeZoneOffset.inHours;
+    return offset == egyptHourOffset;
+  }
+
+  /// Format a DateTime for display in Egyptian time
+  static String formatForDisplay(DateTime dateTime) {
+    final egyptTime = convertToEgyptTime(dateTime);
+    return '${egyptTime.toString()} EET';
+  }
+}
+
+// Extension methods for easier DateTime manipulation
+extension EgyptianDateTimeExtension on DateTime {
+  DateTime toEgyptTime() {
+    return EgyptianDateTime.convertToEgyptTime(this);
+  }
+
+  String toEgyptString() {
+    return EgyptianDateTime.formatToEgyptString(this);
+  }
+
+  bool isEgyptianTime() {
+    return EgyptianDateTime.isEgyptianTime(this);
+  }
+}

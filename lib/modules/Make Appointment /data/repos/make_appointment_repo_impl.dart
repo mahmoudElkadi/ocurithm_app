@@ -179,9 +179,10 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
 
   @override
   Future<Appointment> editAppointment({required MakeAppointmentModel model, required String id}) async {
-    final url = "${Config.baseUrl}${Config.appointments}/$id";
+    final url = "${Config.baseUrl}${Config.appointments}/${model.id}";
     final String? token = CacheHelper.getData(key: "token");
     log(model.toJson().toString());
+    log(url);
     final result = await ApiService.request<Appointment>(
       url: url,
       method: 'PUT',

@@ -4,6 +4,9 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
 import 'package:ocurithm/modules/Make%20Appointment%20/presentation/manager/Make%20Appointment%20cubit/make_appointment_cubit.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:provider/provider.dart';
@@ -98,6 +101,7 @@ class BookingCalendarMain extends StatefulWidget {
     this.appointment,
     this.holidayWeekdays = const [],
     this.cubit,
+    this.isUpdate = false,
   }) : super(key: key);
 
   final Stream<dynamic>? Function({required DateTime start, required DateTime end, required String branch}) getBookingStream;
@@ -127,6 +131,7 @@ class BookingCalendarMain extends StatefulWidget {
   final String? selectedSlotText;
   final String? availableSlotText;
   final String? pauseSlotText;
+  final bool? isUpdate;
 
   final TextStyle? bookedSlotTextStyle;
   final TextStyle? availableSlotTextStyle;
@@ -406,46 +411,77 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      if (widget.cubit != null) {
-                        widget.cubit?.changeStep(0);
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 16.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
+                if (widget.isUpdate == false)
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        if (widget.cubit != null) {
+                          widget.cubit?.changeStep(0);
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        side: BorderSide(
+                          color: Colorz.primaryColor,
+                        ),
                       ),
-                      side: BorderSide(
-                        color: Colorz.primaryColor,
-                      ),
-                    ),
-                    child: Text(
-                      'Previous',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: Colorz.primaryColor,
-                        fontWeight: FontWeight.w600,
+                      child: Text(
+                        'Previous',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: Colorz.primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 SizedBox(width: 16.w),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      if (controller.selectedSlot >= 0) {
-                        final newBooking = controller.generateNewBookingForUploading();
-                        await widget.uploadBooking(
-                          newBooking: newBooking,
-                          patient: widget.patient,
-                          branch: branch ?? "",
-                          examinationType: "", // Add your examination type here
-                        );
-                        if (widget.cubit != null) {
-                          widget.cubit?.changeStep(2);
+                      if (widget.isUpdate == true) {
+                        if (controller.selectedSlot >= 0) {
+                          customLoading(context, "");
+                          bool connection = await InternetConnection().hasInternetAccess;
+
+                          if (!connection) {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("No Internet Connection", style: TextStyle(color: Colors.white)),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          } else {
+                            widget.cubit?.editAppointment(
+                                context: context,
+                                model: MakeAppointmentModel(
+                                    id: widget.cubit?.appointmentId,
+                                    datetime: controller.allBookingSlots[controller.selectedSlot],
+                                    patient: widget.cubit?.selectedPatient?.id,
+                                    examinationType: widget.cubit?.selectedExaminationType?.id,
+                                    doctor: widget.cubit?.selectedDoctor?.id,
+                                    branch: widget.cubit?.selectedBranch?.id,
+                                    paymentMethod: widget.cubit?.selectedPaymentMethod?.id,
+                                    status: 'Scheduled',
+                                    note: ""));
+                          }
+                        }
+                      } else {
+                        if (controller.selectedSlot >= 0) {
+                          final newBooking = controller.generateNewBookingForUploading();
+                          await widget.uploadBooking(
+                            newBooking: newBooking,
+                            patient: widget.patient,
+                            branch: branch ?? "",
+                            examinationType: "", // Add your examination type here
+                          );
+                          if (widget.cubit != null) {
+                            widget.cubit?.changeStep(2);
+                          }
                         }
                       }
                     },
@@ -458,7 +494,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                       ),
                     ),
                     child: Text(
-                      'Next',
+                      widget.isUpdate == true ? 'Update' : 'Next',
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w600,

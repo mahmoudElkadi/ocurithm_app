@@ -49,13 +49,13 @@ class LoginViewBody extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Column(children: [
-                  Text(S.of(context).hello, style: GoogleFonts.trocchi(color: Colorz.blue, fontSize: 40.spMin)),
+                  Text(S.of(context).hello, style: GoogleFonts.trocchi(color: Colorz.primaryColor, fontSize: 40.spMin)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SvgPicture.asset("assets/icons/login_icon.svg"),
-                      Text(S.of(context).pleaseSignInToYourAccount, style: appStyle(context, 16, Colorz.blue, FontWeight.w400)),
+                      Text(S.of(context).pleaseSignInToYourAccount, style: appStyle(context, 16, Colorz.primaryColor, FontWeight.w400)),
                       SvgPicture.asset(
                         "assets/icons/login_icon.svg",
                         colorFilter: ColorFilter.mode(Colors.transparent, BlendMode.srcIn),
@@ -78,7 +78,7 @@ class QuadrilateralPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.blue
+      ..color = Colorz.primaryColor
       ..style = PaintingStyle.fill;
 
     final path = Path()

@@ -135,12 +135,13 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             required: true,
                             hintText: S.of(context).fullName,
                             fillColor: Colorz.white,
-                            borderColor: Colorz.activeIcon,
+                            borderColor: Colorz.primaryColor,
                             readOnly: widget.cubit.readOnly,
                             radius: 30,
                             suffixIcon: Container(
                               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
                               child: SvgPicture.asset(
+                                color: Colorz.primaryColor,
                                 "assets/icons/profile.svg",
                               ),
                             ),
@@ -169,7 +170,7 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             ),
                           ))
                         : TextField2(
-                            // borderMain: widget.cubit.textField == true ? Colorz.blue : null,
+                            // borderMain: widget.cubit.textField == true ? Colorz.primaryColor : null,
                             controller: widget.cubit.phoneNumberController,
                             type: TextInputType.phone,
                             required: true,
@@ -194,11 +195,12 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                               return null;
                             },
                             fillColor: Colorz.white,
-                            borderColor: Colorz.activeIcon,
+                            borderColor: Colorz.primaryColor,
                             radius: 30,
                             suffixIcon: Container(
                               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
                               child: SvgPicture.asset(
+                                color: Colorz.primaryColor,
                                 "assets/icons/phone_number.svg",
                               ),
                             ),
@@ -240,7 +242,7 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                                 isShadow: true,
                                 iconData: Icon(
                                   Icons.arrow_drop_down_circle,
-                                  color: Colorz.blue,
+                                  color: Colorz.primaryColor,
                                 ),
                                 items: widget.cubit.branches?.branches,
                                 isValid: widget.cubit.chooseBranch,
@@ -279,7 +281,7 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             enabledDays: widget.cubit.selectedBranch?.workDays,
                             icon: Icon(
                               Icons.arrow_drop_down_circle,
-                              color: Colorz.blue,
+                              color: Colorz.primaryColor,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -294,7 +296,7 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             },
                             icon: Icon(
                               Icons.arrow_drop_down_circle,
-                              color: Colorz.blue,
+                              color: Colorz.primaryColor,
                             ),
                             radius: 30,
                             isShadow: true,
@@ -392,13 +394,13 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                                     return Theme(
                                       data: Theme.of(context).copyWith(
                                         colorScheme: ColorScheme.light(
-                                          primary: Colorz.activeIcon,
+                                          primary: Colorz.primaryColor,
                                           onPrimary: Colorz.background,
                                           onSurface: Colors.black,
                                         ),
                                         textButtonTheme: TextButtonThemeData(
                                           style: TextButton.styleFrom(
-                                            foregroundColor: Colorz.activeIcon,
+                                            foregroundColor: Colorz.primaryColor,
                                           ),
                                         ),
                                       ),

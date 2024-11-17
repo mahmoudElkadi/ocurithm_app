@@ -53,7 +53,8 @@ class BookingCalendar extends StatelessWidget {
       this.appointment,
       required this.patient,
       required this.holidayWeekdays,
-      this.cubit})
+      this.cubit,
+      this.isUpdate = false})
       : super(key: key);
 
   ///for the Calendar picker we use: [TableCalendar]
@@ -123,6 +124,7 @@ class BookingCalendar extends StatelessWidget {
   final List<String> holidayWeekdays;
 
   final bool viewOnly;
+  final bool? isUpdate;
   final Patient patient;
   final TextStyle? bookedSlotTextStyle;
   final TextStyle? availableSlotTextStyle;
@@ -209,6 +211,7 @@ class BookingCalendar extends StatelessWidget {
           disabledDates: disabledDates,
           branch: branch,
           viewOnly: viewOnly,
+          isUpdate: isUpdate,
           patient: patient,
           doctor: doctor,
           appointment: appointment),

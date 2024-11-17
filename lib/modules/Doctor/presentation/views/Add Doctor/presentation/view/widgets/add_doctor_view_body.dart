@@ -71,11 +71,6 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(
-                        onPressed: () {
-                          alertDialog(context);
-                        },
-                        icon: Icon(Icons.delete)),
                     Center(
                       child: ProfileImagePicker(
                         initialImageUrl: widget.cubit.imageUrl,
@@ -92,12 +87,13 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                       required: true,
                       hintText: S.of(context).fullName,
                       fillColor: Colorz.white,
-                      borderColor: Colorz.activeIcon,
+                      borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
                         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
                         child: SvgPicture.asset(
                           "assets/icons/profile.svg",
+                          color: Colorz.primaryColor,
                         ),
                       ),
                       isShadow: _isNameShadow,
@@ -116,7 +112,7 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                     ),
                     const HeightSpacer(size: 20),
                     TextField2(
-                      // borderMain: widget.cubit.textField == true ? Colorz.blue : null,
+                      // borderMain: widget.cubit.textField == true ? Colorz.primaryColor : null,
                       controller: widget.cubit.phoneNumberController,
                       type: TextInputType.phone,
                       required: true,
@@ -139,12 +135,13 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                         return null;
                       },
                       fillColor: Colorz.white,
-                      borderColor: Colorz.activeIcon,
+                      borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
                         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
                         child: SvgPicture.asset(
                           "assets/icons/phone_number.svg",
+                          color: Colorz.primaryColor,
                         ),
                       ),
                       isShadow: _isPhoneShadow,
@@ -156,12 +153,12 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                         Expanded(
                           flex: 4,
                           child: TextField2(
-                            // borderMain: widget.cubit.textField == true ? Colorz.blue : null,
+                            // borderMain: widget.cubit.textField == true ? Colorz.primaryColor : null,
                             controller: widget.cubit.passwordController,
                             required: true,
                             hintText: S.of(context).password,
                             fillColor: Colorz.white,
-                            borderColor: Colorz.activeIcon,
+                            borderColor: Colorz.primaryColor,
                             radius: 30,
                             isPassword: widget.cubit.obscureText,
                             suffixIcon: widget.cubit.obscureText == false
@@ -170,14 +167,14 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                                       widget.cubit.obscureText = !widget.cubit.obscureText;
                                     },
                                     icon: Icon(Icons.visibility),
-                                    color: Colorz.blue,
+                                    color: Colorz.primaryColor,
                                   )
                                 : IconButton(
                                     onPressed: () {
                                       widget.cubit.obscureText = !widget.cubit.obscureText;
                                     },
                                     icon: Icon(Icons.visibility_off),
-                                    color: Colorz.blue,
+                                    color: Colorz.primaryColor,
                                   ),
                             isShadow: _isPassShadow,
                             validator: (value) {
@@ -229,7 +226,10 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                                     log('Ok.');
                                   }
                                 },
-                                icon: SvgPicture.asset("assets/icons/password.svg"),
+                                icon: SvgPicture.asset(
+                                  "assets/icons/password.svg",
+                                  color: Colorz.primaryColor,
+                                ),
                               ),
                             ),
                           ),
@@ -243,7 +243,7 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                       isShadow: true,
                       iconData: Icon(
                         Icons.arrow_drop_down_circle,
-                        color: Colorz.blue,
+                        color: Colorz.primaryColor,
                       ),
                       items: widget.cubit.branches?.branches,
                       isValid: widget.cubit.chooseBranch,
@@ -283,7 +283,7 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                             enabledDays: widget.cubit.selectedBranch?.workDays,
                             icon: Icon(
                               Icons.arrow_drop_down_circle,
-                              color: Colorz.blue,
+                              color: Colorz.primaryColor,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -298,7 +298,7 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                             },
                             icon: Icon(
                               Icons.arrow_drop_down_circle,
-                              color: Colorz.blue,
+                              color: Colorz.primaryColor,
                             ),
                             radius: 30,
                             isValid: widget.cubit.chooseTime,
@@ -364,13 +364,13 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                             return Theme(
                               data: Theme.of(context).copyWith(
                                 colorScheme: ColorScheme.light(
-                                  primary: Colorz.activeIcon,
+                                  primary: Colorz.primaryColor,
                                   onPrimary: Colorz.background,
                                   onSurface: Colors.black,
                                 ),
                                 textButtonTheme: TextButtonThemeData(
                                   style: TextButton.styleFrom(
-                                    foregroundColor: Colorz.activeIcon,
+                                    foregroundColor: Colorz.primaryColor,
                                   ),
                                 ),
                               ),
@@ -489,7 +489,7 @@ void alertDialog(BuildContext context) {
           //   isShadow: true,
           //   iconData: Icon(
           //     Icons.arrow_drop_down_circle,
-          //     color: Colorz.blue,
+          //     color: Colorz.primaryColor,
           //   ),
           //   items: ["mahmoud", "ahmed"],
           //   selectedValue: "widget.cubit.selectedBranch",

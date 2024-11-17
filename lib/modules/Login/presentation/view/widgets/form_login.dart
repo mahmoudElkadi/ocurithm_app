@@ -65,9 +65,9 @@ class _LoginFormState extends State<LoginForm> {
                           controller: email,
                           radius: 20,
                           type: TextInputType.emailAddress,
-                          suffixIcon: Icon(Icons.person_outline_outlined, color: Colorz.blue),
+                          suffixIcon: Icon(Icons.person_outline_outlined, color: Colorz.primaryColor),
                           fillColor: Colors.white,
-                          borderColor: Colorz.blue,
+                          borderColor: Colorz.primaryColor,
                           hintText: S.of(context).username,
                           required: true,
                         )),
@@ -85,7 +85,7 @@ class _LoginFormState extends State<LoginForm> {
                       child: TextField2(
                         controller: password,
                         radius: 20,
-                        borderColor: Colorz.blue,
+                        borderColor: Colorz.primaryColor,
                         required: true,
                         type: TextInputType.visiblePassword,
                         isPassword: LoginCubit.get(context).obscureText,
@@ -99,8 +99,8 @@ class _LoginFormState extends State<LoginForm> {
                             LoginCubit.get(context).obscureText = !LoginCubit.get(context).obscureText;
                           },
                           child: LoginCubit.get(context).obscureText == false
-                              ? Icon(Icons.visibility, color: Colorz.blue)
-                              : Icon(Icons.visibility_off, color: Colorz.blue),
+                              ? Icon(Icons.visibility, color: Colorz.primaryColor)
+                              : Icon(Icons.visibility_off, color: Colorz.primaryColor),
                         ),
                         fillColor: Colors.white,
                         hintText: S.of(context).password,

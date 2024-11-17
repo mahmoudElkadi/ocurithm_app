@@ -12,16 +12,13 @@ import '../../../../../core/utils/booking_calendar/booking_calendar.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/utils/config.dart';
 import '../../../../../core/widgets/height_spacer.dart';
-import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Patient/data/model/patients_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
 import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
 class MakeAppointmentViewBody extends StatefulWidget {
-  const MakeAppointmentViewBody({super.key, this.patient, required this.branch, this.appointment});
-  final Patient? patient;
-  final String branch;
-  final Appointment? appointment;
+  const MakeAppointmentViewBody({super.key, this.isUpdate = false});
+  final bool isUpdate;
 
   @override
   State<MakeAppointmentViewBody> createState() => _MakeAppointmentViewBodyState();
@@ -101,9 +98,8 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
   List<dynamic> appointments = [];
   bool isFirst = true;
-  Future<void> fetchInitialData({required DateTime date, required String branch}) async {
+  Future<void> fetchInitialData({required DateTime date}) async {
     if (_disposed) return;
-    log("fetchInitialData $date $branch");
 
     log("data ${date.toString()}");
 
@@ -113,17 +109,17 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     ));
     DateTime dateTime = DateTime.parse(date.toString());
 
-    Map<String, dynamic> quary = {
+    Map<String, dynamic> query = {
       "startDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 0, 0, 0),
-      "endDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 23, 59, 59)
+      "endDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 23, 59, 59),
+      'doctor': BlocProvider.of<MakeAppointmentCubit>(context).selectedDoctor?.id,
+      'branch': BlocProvider.of<MakeAppointmentCubit>(context).selectedBranch?.id
     };
-    log("quary ${quary.toString()}");
 
     try {
       var response = await dio.get(
         "${Config.baseUrl}appointments",
-        // data: data,
-        queryParameters: quary,
+        queryParameters: query,
         options: Options(
           headers: {"Accept": "application/json", "Content-Type": "application/json", "Cookie": "ocurithmToken=${CacheHelper.getData(key: 'token')}"},
           validateStatus: (status) {
@@ -131,10 +127,9 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
           },
         ),
       );
-      log(response.realUri.toString());
       if (isFirst) {
         isFirst = false;
-        fetchInitialData(date: date, branch: widget.branch);
+        fetchInitialData(date: date);
       }
       if (_disposed) return;
       log(response.data.toString());
@@ -173,7 +168,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     // Start polling
     // _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
     //   log("tabibooking polling");
-    fetchInitialData(branch: widget.branch, date: start);
+    fetchInitialData(date: start);
     // });
 
     return _controller.stream;
@@ -206,7 +201,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     if (result == true) {
       log("result.toString()" + result.toString());
       await fetchInitialData(
-        branch: widget.branch,
         date: DateTime.now(),
       );
     }
@@ -224,7 +218,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
     try {
       Map<String, dynamic> data = {
-        "branch_id": widget.branch,
         "examination_type": examinationType,
         "start": newBooking.bookingStart.toIso8601String(),
         "end": newBooking.bookingEnd.toIso8601String(),
@@ -304,7 +297,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
               getBookingStream: getBookingStream,
               uploadBooking: uploadBooking,
               hideBreakTime: false,
-              appointment: widget.appointment,
               loadingWidget: const Text('Fetching data...'),
               uploadingWidget: const CircularProgressIndicator(),
               cubit: cubit,
@@ -321,12 +313,13 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
+              isUpdate: widget.isUpdate,
               selectedSlotTextStyle: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
               holidayWeekdays: getHolidayDays(workingDays: cubit.selectedDoctor?.availableDays),
-              availableSlotColor: Colorz.blue,
+              availableSlotColor: Colorz.primaryColor,
               patient: Patient(),
             ),
           ),

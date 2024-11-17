@@ -12,7 +12,6 @@ import 'package:intl/intl.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/calendar_slider.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/make_appointment_view.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -20,6 +19,7 @@ import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../core/widgets/height_spacer.dart';
+import '../../../../Make Appointment /presentation/views/widgets/update_appointment.dart';
 import '../../../data/models/appointment_model.dart';
 import '../../manager/Appointment cubit/appointment_cubit.dart';
 import '../../manager/Appointment cubit/appointment_state.dart';
@@ -122,9 +122,9 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
     final selected = await showMonthPicker(
       context: context,
       initialDate: selectedMonth ?? DateTime.now(),
-      headerColor: Colorz.blue,
+      headerColor: Colorz.primaryColor,
       headerTextColor: Colors.black,
-      selectedMonthBackgroundColor: Colorz.blue.withOpacity(0.5),
+      selectedMonthBackgroundColor: Colorz.primaryColor.withOpacity(0.5),
       selectedMonthTextColor: Colors.white,
       unselectedMonthTextColor: Colors.black,
       currentMonthTextColor: Colors.green,
@@ -134,7 +134,7 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
       ),
       confirmWidget: Text(
         'Ok',
-        style: appStyle(context, 16, Colorz.blue, FontWeight.w500),
+        style: appStyle(context, 16, Colorz.primaryColor, FontWeight.w500),
       ),
       dismissible: true,
       firstDate: DateTime(DateTime.now().year - 50),
@@ -572,8 +572,8 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(0.r),
                         ),
-                        side: const BorderSide(color: Colors.blue, strokeAlign: BorderSide.strokeAlignOutside),
-                        //  backgroundColor: Colors.blue
+                        side: BorderSide(color: Colorz.secondaryColor, strokeAlign: BorderSide.strokeAlignOutside),
+                        //  backgroundColor: Colorz.primaryColor
                       ),
                       onPressed: () async {
                         showConfirmationDialog(
@@ -583,7 +583,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                           onConfirm: () async {
                             bool? isResult = false;
 
-                            isResult = await Get.off(() => MakeAppointmentView(
+                            isResult = await Get.off(() => UpdateAppointment(
                                   appointment: appointment,
                                 ));
                             log("isResult: $isResult");
@@ -598,7 +598,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                       },
                       child: SvgPicture.asset(
                         "assets/icons/sand_watch.svg",
-                        colorFilter: const ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+                        colorFilter: ColorFilter.mode(Colorz.secondaryColor, BlendMode.srcIn),
                         width: 20,
                         height: 20,
                       )),

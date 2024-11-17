@@ -8,7 +8,6 @@ import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widget
 
 import '../../../../core/utils/app_style.dart';
 import '../../../../core/utils/colors.dart';
-import '../../../Appointment/data/models/appointment_model.dart';
 import '../../data/repos/make_appointment_repo_impl.dart';
 import '../manager/Make Appointment cubit/make_appointment_cubit.dart';
 import '../manager/Make Appointment cubit/make_appointment_state.dart';
@@ -171,8 +170,7 @@ class HorizontalStepper extends StatelessWidget {
 }
 
 class MakeAppointmentView extends StatefulWidget {
-  const MakeAppointmentView({super.key, this.appointment});
-  final Appointment? appointment;
+  const MakeAppointmentView({super.key});
 
   @override
   State<MakeAppointmentView> createState() => _MakeAppointmentViewState();
@@ -229,7 +227,6 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView> with SingleTi
         );
       case 1:
         return MakeAppointmentViewBody(
-          branch: "",
           key: ValueKey('time'),
         );
       case 2:

@@ -138,7 +138,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
             icon: Icons.person,
             title: 'Doctor',
             value: cubit.selectedDoctor?.name ?? "N/A",
-            iconColor: Colors.blue,
+            iconColor: Colorz.primaryColor,
           ),
           _buildDivider(),
           _buildDetailItem(
@@ -181,7 +181,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
             icon: Icons.date_range,
             title: 'Date',
             value: cubit.selectedTime != null ? DateFormat('yyyy-MM-dd HH:mm a').format(cubit.selectedTime!) : "N/A",
-            iconColor: Colors.blue,
+            iconColor: Colorz.primaryColor,
           ),
         ],
       ),

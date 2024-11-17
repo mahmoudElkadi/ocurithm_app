@@ -16,6 +16,8 @@ class GetBranchLoading extends MakeAppointmentState {}
 
 class ChangeIndex extends MakeAppointmentState {}
 
+class DataChanged extends MakeAppointmentState {}
+
 class ValidateState extends MakeAppointmentState {}
 
 class GetBranchError extends MakeAppointmentState {}

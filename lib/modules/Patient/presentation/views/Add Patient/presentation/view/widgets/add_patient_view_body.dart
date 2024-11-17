@@ -74,7 +74,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       isShadow: true,
                       iconData: Icon(
                         Icons.arrow_drop_down_circle,
-                        color: Colorz.blue,
+                        color: Colorz.primaryColor,
                       ),
                       items: widget.cubit.branches?.branches,
                       isValid: widget.cubit.chooseBranch,
@@ -101,11 +101,12 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       type: TextInputType.name,
                       hintText: S.of(context).fullName,
                       fillColor: Colorz.white,
-                      borderColor: Colorz.activeIcon,
+                      borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
                         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
                         child: SvgPicture.asset(
+                          color: Colorz.primaryColor,
                           "assets/icons/profile.svg",
                         ),
                       ),
@@ -141,11 +142,12 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       type: TextInputType.emailAddress,
                       hintText: S.of(context).emailAddress,
                       fillColor: Colorz.white,
-                      borderColor: Colorz.activeIcon,
+                      borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
                         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                         child: SvgPicture.asset(
+                          color: Colorz.primaryColor,
                           "assets/icons/email.svg",
                         ),
                       ),
@@ -153,7 +155,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                     ),
                     const HeightSpacer(size: 20),
                     TextField2(
-                      // borderMain: widget.cubit.textField ==  true ? Colorz.blue : null,
+                      // borderMain: widget.cubit.textField ==  true ? Colorz.primaryColor : null,
                       controller: widget.cubit.phoneNumberController,
                       type: TextInputType.phone,
                       required: true,
@@ -176,11 +178,12 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         return null;
                       },
                       fillColor: Colorz.white,
-                      borderColor: Colorz.activeIcon,
+                      borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
                         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
                         child: SvgPicture.asset(
+                          color: Colorz.primaryColor,
                           "assets/icons/phone_number.svg",
                         ),
                       ),
@@ -193,12 +196,12 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         Expanded(
                           flex: 4,
                           child: TextField2(
-                            // borderMain: widget.cubit.textField == true ? Colorz.blue : null,
+                            // borderMain: widget.cubit.textField == true ? Colorz.primaryColor : null,
                             controller: widget.cubit.passwordController,
                             required: true,
                             hintText: S.of(context).password,
                             fillColor: Colorz.white,
-                            borderColor: Colorz.activeIcon,
+                            borderColor: Colorz.primaryColor,
                             radius: 30,
                             isPassword: widget.cubit.obscureText,
                             suffixIcon: widget.cubit.obscureText == false
@@ -207,14 +210,14 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                                       widget.cubit.obscureText = !widget.cubit.obscureText;
                                     },
                                     icon: Icon(Icons.visibility),
-                                    color: Colorz.blue,
+                                    color: Colorz.primaryColor,
                                   )
                                 : IconButton(
                                     onPressed: () {
                                       widget.cubit.obscureText = !widget.cubit.obscureText;
                                     },
                                     icon: Icon(Icons.visibility_off),
-                                    color: Colorz.blue,
+                                    color: Colorz.primaryColor,
                                   ),
                             isShadow: _isPassShadow,
                             validator: (value) {
@@ -266,7 +269,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                                     log('Ok.');
                                   }
                                 },
-                                icon: SvgPicture.asset("assets/icons/password.svg"),
+                                icon: SvgPicture.asset(color: Colorz.primaryColor, "assets/icons/password.svg"),
                               ),
                             ),
                           ),
@@ -279,11 +282,12 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         required: false,
                         hintText: S.of(context).address,
                         fillColor: Colorz.white,
-                        borderColor: Colorz.activeIcon,
+                        borderColor: Colorz.primaryColor,
                         radius: 30,
                         suffixIcon: Container(
                           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
                           child: SvgPicture.asset(
+                            color: Colorz.primaryColor,
                             "assets/icons/home.svg",
                           ),
                         ),
@@ -295,11 +299,12 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       required: true,
                       hintText: S.of(context).nationalId,
                       fillColor: Colorz.white,
-                      borderColor: Colorz.activeIcon,
+                      borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
                         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
                         child: SvgPicture.asset(
+                          color: Colorz.primaryColor,
                           "assets/icons/national_id.svg",
                         ),
                       ),
@@ -328,11 +333,12 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       required: false,
                       hintText: S.of(context).nationality,
                       fillColor: Colorz.white,
-                      borderColor: Colorz.activeIcon,
+                      borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
                         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                         child: SvgPicture.asset(
+                          color: Colorz.primaryColor,
                           "assets/icons/flag_icon.svg",
                         ),
                       ),
@@ -353,13 +359,13 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                             return Theme(
                               data: Theme.of(context).copyWith(
                                 colorScheme: ColorScheme.light(
-                                  primary: Colorz.activeIcon,
+                                  primary: Colorz.primaryColor,
                                   onPrimary: Colorz.background,
                                   onSurface: Colors.black,
                                 ),
                                 textButtonTheme: TextButtonThemeData(
                                   style: TextButton.styleFrom(
-                                    foregroundColor: Colorz.activeIcon,
+                                    foregroundColor: Colorz.primaryColor,
                                   ),
                                 ),
                               ),

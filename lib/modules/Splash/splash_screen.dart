@@ -156,7 +156,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           width: 30,
                           height: 30,
                           child: CircularProgressIndicator(
-                            color: Colorz.blue,
+                            color: Colorz.primaryColor,
                           ))),
                   HeightSpacer(size: 70),
                 ],
