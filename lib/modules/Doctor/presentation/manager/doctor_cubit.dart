@@ -8,7 +8,9 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../Services/services_api.dart';
 import '../../../Branch/data/model/branches_model.dart';
+import '../../../Clinics/data/model/clinics_model.dart';
 import '../../data/model/doctor_model.dart';
 import '../../data/repos/doctor_repo.dart';
 import 'doctor_state.dart';
@@ -128,6 +130,7 @@ class DoctorCubit extends Cubit<DoctorState> {
 
   bool picDate = true;
   bool chooseBranch = true;
+  bool chooseClinic = true;
   bool isValidate = false;
   bool chooseTime = true;
   bool chooseDays = true;
@@ -172,8 +175,41 @@ class DoctorCubit extends Cubit<DoctorState> {
     emit(ValidateForm());
   }
 
+  ClinicsModel? clinics;
+  getClinics() async {
+    clinics = null;
+    emit(AdminClinicLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(AdminClinicLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(AdminClinicError());
+      } else {
+        clinics = await ServicesApi().getAllClinics(page: page, search: searchController.text);
+        log(clinics.toString());
+        if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
+          emit(AdminClinicSuccess());
+        } else {
+          emit(AdminClinicError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(AdminClinicError());
+    }
+  }
+
   List<String> capabilitiesList = [];
   String? imageUrl;
+  Clinic? selectedClinic;
 
   addDoctor({context}) async {
     emit(AddDoctorLoading());
@@ -190,6 +226,7 @@ class DoctorCubit extends Cubit<DoctorState> {
             availableTo: availableTo,
             availableDays: availableDays,
             qualifications: qualificationController.text,
+            clinic: selectedClinic?.id,
             capabilities: capabilitiesList),
       );
       if (result.error == null && (result.name != null || result.id != null)) {

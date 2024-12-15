@@ -253,6 +253,32 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                         Icons.arrow_drop_down_circle,
                         color: Colorz.primaryColor,
                       ),
+                      items: widget.cubit.clinics?.clinics,
+                      isValid: widget.cubit.chooseClinic,
+                      validateText: S.of(context).mustBranch,
+                      selectedValue: widget.cubit.selectedClinic?.name,
+                      hintText: 'Select clinic',
+                      itemAsString: (item) => item.name.toString(),
+                      onItemSelected: (item) {
+                        setState(() {
+                          if (item != "Not Found") {
+                            widget.cubit.chooseBranch = true;
+                            widget.cubit.selectedClinic = item;
+                            log(widget.cubit.selectedClinic.toString());
+                          }
+                        });
+                      },
+                      isLoading: false,
+                    ),
+                    const HeightSpacer(size: 20),
+                    DropdownItem(
+                      radius: 30,
+                      color: Colorz.white,
+                      isShadow: true,
+                      iconData: Icon(
+                        Icons.arrow_drop_down_circle,
+                        color: Colorz.primaryColor,
+                      ),
                       items: widget.cubit.branches?.branches,
                       isValid: widget.cubit.chooseBranch,
                       validateText: S.of(context).mustBranch,

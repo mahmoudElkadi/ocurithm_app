@@ -35,6 +35,7 @@ class Receptionist {
     this.birthDate,
     this.branch,
     this.branchId,
+    this.clinic,
     this.isActive,
     this.capabilities,
     this.createdAt,
@@ -47,6 +48,7 @@ class Receptionist {
   String? image;
   String? password;
   String? phone;
+  String? clinic;
   DateTime? birthDate;
   Branch? branch;
   String? branchId;
@@ -86,6 +88,7 @@ class Receptionist {
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,
+        "clinic": clinic,
         "error": error,
       };
 }

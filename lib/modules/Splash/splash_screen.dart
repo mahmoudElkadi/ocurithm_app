@@ -15,6 +15,7 @@ import 'package:page_transition/page_transition.dart';
 
 import '../../Main/presentation/views/main_view.dart';
 import '../../core/Network/shared.dart';
+import '../../core/utils/config.dart';
 import '../../core/widgets/height_spacer.dart';
 import '../../core/widgets/no_internet.dart';
 import '../Login/presentation/view/login_view.dart';
@@ -91,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
         // Make API request to check auth status
         final response = await http.get(
-          Uri.parse('http://192.168.0.106:3000/api/me'),
+          Uri.parse('${Config.baseUrl}/me'),
           headers: headers,
         );
         log("message");

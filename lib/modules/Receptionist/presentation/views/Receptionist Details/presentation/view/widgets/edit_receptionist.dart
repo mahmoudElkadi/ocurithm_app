@@ -211,6 +211,61 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                         ? _buildShimmer(Container(
                             width: MediaQuery.sizeOf(context).width,
                             height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
+                            ),
+                          ))
+                        : widget.cubit.readOnly
+                            ? Container(
+                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                                width: Get.width,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: Colorz.white,
+                                  boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 2, blurRadius: 3, offset: const Offset(0, 0))],
+                                ),
+                                child: Text(
+                                  widget.cubit.receptionist?.branch?.name ?? "",
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: false,
+                                ))
+                            : DropdownItem(
+                                radius: 30,
+                                color: Colorz.white,
+                                isShadow: true,
+                                iconData: Icon(
+                                  Icons.arrow_drop_down_circle,
+                                  color: Colorz.primaryColor,
+                                ),
+                                items: widget.cubit.clinics?.clinics,
+                                isValid: widget.cubit.chooseClinic,
+                                validateText: S.of(context).mustBranch,
+                                selectedValue: widget.cubit.selectedClinic?.name,
+                                hintText: 'Select clinic',
+                                itemAsString: (item) => item.name.toString(),
+                                onItemSelected: (item) {
+                                  setState(() {
+                                    if (item != "Not Found") {
+                                      widget.cubit.chooseBranch = true;
+                                      widget.cubit.selectedClinic = item;
+                                      log(widget.cubit.selectedClinic.toString());
+                                    }
+                                  });
+                                },
+                                isLoading: false,
+                              ),
+                    const HeightSpacer(size: 20),
+                    isLoading
+                        ? _buildShimmer(Container(
+                            width: MediaQuery.sizeOf(context).width,
+                            height: 40,
                             decoration: const BoxDecoration(
                               borderRadius: BorderRadius.all(Radius.circular(20)),
                               color: Colors.white,
@@ -262,6 +317,7 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                                 },
                                 isLoading: false,
                               ),
+                    const HeightSpacer(size: 20),
                     const HeightSpacer(size: 20),
                     isLoading
                         ? _buildShimmer(Container(

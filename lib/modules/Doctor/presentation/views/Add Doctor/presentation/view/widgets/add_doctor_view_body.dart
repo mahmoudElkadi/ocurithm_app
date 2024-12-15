@@ -49,6 +49,7 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
   @override
   void initState() {
     super.initState();
+    widget.cubit.getClinics();
     widget.cubit.getBranches();
   }
 
@@ -235,6 +236,31 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                           ),
                         )
                       ],
+                    ),
+                    const HeightSpacer(size: 20),
+                    DropdownItem(
+                      radius: 30,
+                      color: Colorz.white,
+                      isShadow: true,
+                      iconData: Icon(
+                        Icons.arrow_drop_down_circle,
+                        color: Colorz.primaryColor,
+                      ),
+                      items: widget.cubit.clinics?.clinics,
+                      isValid: widget.cubit.chooseClinic,
+                      validateText: S.of(context).mustBranch,
+                      selectedValue: widget.cubit.selectedClinic?.name,
+                      hintText: 'Select Clinic',
+                      itemAsString: (item) => item.name.toString(),
+                      onItemSelected: (item) {
+                        setState(() {
+                          if (item != "Not Found") {
+                            widget.cubit.selectedClinic = item;
+                            log(widget.cubit.selectedClinic.toString());
+                          }
+                        });
+                      },
+                      isLoading: widget.cubit.loading,
                     ),
                     const HeightSpacer(size: 20),
                     DropdownItem(

@@ -8,7 +8,9 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../Services/services_api.dart';
 import '../../../../Branch/data/model/branches_model.dart';
+import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/models/receptionists_model.dart';
 import '../../../data/repos/receptionist_details_repo.dart';
 import 'receptionist_details_state.dart';
@@ -30,6 +32,39 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
     phoneNumberController.dispose();
     passwordController.dispose();
     return super.close();
+  }
+
+  ClinicsModel? clinics;
+  Clinic? selectedClinic;
+  getClinics() async {
+    clinics = null;
+    emit(AdminClinicLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(AdminClinicLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(AdminClinicError());
+      } else {
+        clinics = await ServicesApi().getAllClinics(page: page, search: searchController.text);
+        log(clinics.toString());
+        if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
+          emit(AdminClinicSuccess());
+        } else {
+          emit(AdminClinicError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(AdminClinicError());
+    }
   }
 
   bool isConfirm = false;
@@ -124,6 +159,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
 
   bool picDate = true;
   bool chooseBranch = true;
+  bool chooseClinic = true;
   bool isValidate = false;
 
   validateFirstPage() {
@@ -166,6 +202,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
             phone: phoneNumberController.text,
             birthDate: date,
             branchId: branchId,
+            clinic: selectedClinic?.id,
             capabilities: capabilitiesList),
       );
       if (result.error == null && (result.name != null || result.id != null)) {
@@ -326,6 +363,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
             phone: phoneNumberController.text,
             birthDate: date,
             branchId: branchId,
+            clinic: selectedClinic?.id,
             capabilities: capabilitiesList),
         id: id,
       );

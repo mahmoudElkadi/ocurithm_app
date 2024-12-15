@@ -13,3 +13,9 @@ class ExaminationTypeLoading extends ExaminationTypeState {}
 class ExaminationTypeSuccess extends ExaminationTypeState {}
 
 class ExaminationTypeError extends ExaminationTypeState {}
+
+class AdminClinicLoading extends ExaminationTypeState {}
+
+class AdminClinicError extends ExaminationTypeState {}
+
+class AdminClinicSuccess extends ExaminationTypeState {}

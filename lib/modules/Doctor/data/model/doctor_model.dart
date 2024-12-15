@@ -45,6 +45,7 @@ class Doctor {
     this.availableDays,
     this.availableFrom,
     this.availableTo,
+    this.clinic,
     this.id,
     this.error,
     this.password,
@@ -53,6 +54,7 @@ class Doctor {
   String? name;
   String? image;
   String? phone;
+  String? clinic;
   String? password;
   DateTime? birthDate;
   String? qualifications;
@@ -104,6 +106,7 @@ class Doctor {
         "availableTo": availableTo,
         "id": id,
         "password": password,
+        "clinic": clinic,
         "error": error,
       };
 }

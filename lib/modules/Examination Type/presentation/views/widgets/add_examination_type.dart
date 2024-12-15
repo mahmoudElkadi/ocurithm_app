@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -8,6 +10,7 @@ import 'package:ocurithm/modules/Examination%20Type/presentation/manager/examina
 import 'package:ocurithm/modules/Examination%20Type/presentation/manager/examination_type_state.dart';
 
 import '../../../../../../core/utils/colors.dart';
+import '../../../../../core/widgets/DropdownPackage.dart';
 
 class FormPopupDialog extends StatefulWidget {
   final ExaminationTypeCubit cubit;
@@ -35,6 +38,12 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
     _nameController.dispose();
 
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.cubit.getClinics();
   }
 
   void _submitForm() async {
@@ -65,6 +74,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
     }
   }
 
+  var selectedClinic;
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -118,6 +128,34 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                 key: _formKey,
                 child: Column(
                   children: [
+                    DropdownItem(
+                      radius: 8,
+                      border: Colorz.grey,
+                      color: Colorz.white,
+                      isShadow: false,
+                      height: 14,
+                      iconData: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Colorz.grey,
+                      ),
+
+                      items: widget.cubit.clinics?.clinics,
+                      // isValid: widget.cubit.chooseBranch,
+                      // validateText: S.of(context).mustBranch,
+                      selectedValue: selectedClinic,
+                      hintText: 'Select Clinic',
+                      itemAsString: (item) => item.name.toString(),
+                      onItemSelected: (item) {
+                        setState(() {
+                          if (item != "Not Found") {
+                            selectedClinic = item.id;
+                            log(selectedClinic.toString());
+                          }
+                        });
+                      },
+                      isLoading: widget.cubit.clinics == null,
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _nameController,
                       cursorColor: Colors.black,

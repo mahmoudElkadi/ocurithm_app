@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -7,6 +9,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
+import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../data/model/examination_type_model.dart';
 import '../../manager/examination_type_cubit.dart';
 import '../../manager/examination_type_state.dart';
@@ -93,6 +96,7 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
   }
 
   bool readOnly = true;
+  var selectedClinic;
 
   @override
   Widget build(BuildContext context) {
@@ -156,6 +160,66 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                   child: Column(
                     children: [
                       // Code TextField
+
+                      isLoading
+                          ? _buildShimmer(Container(
+                              width: MediaQuery.sizeOf(context).width,
+                              height: 60,
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(8)),
+                                color: Colors.white,
+                              ),
+                            ))
+                          : readOnly
+                              ? Container(
+                                  width: MediaQuery.sizeOf(context).width,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                      border: Border.all(color: Colors.grey)),
+                                  child: Row(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: Icon(Icons.home_work, color: Colors.grey),
+                                      ),
+                                      Text(
+                                        widget.cubit.examinationType?.name ?? '',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : DropdownItem(
+                                  radius: 8,
+                                  border: Colorz.grey,
+                                  color: Colorz.white,
+                                  isShadow: false,
+                                  height: 14,
+                                  iconData: Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: Colorz.grey,
+                                  ),
+
+                                  items: widget.cubit.clinics?.clinics,
+                                  // isValid: widget.cubit.chooseBranch,
+                                  // validateText: S.of(context).mustBranch,
+                                  selectedValue: selectedClinic,
+                                  hintText: 'Select Clinic',
+                                  itemAsString: (item) => item.name.toString(),
+                                  onItemSelected: (item) {
+                                    setState(() {
+                                      if (item != "Not Found") {
+                                        selectedClinic = item.id;
+                                        log(selectedClinic.toString());
+                                      }
+                                    });
+                                  },
+                                  isLoading: widget.cubit.clinics == null,
+                                ),
+                      const SizedBox(height: 16),
+
                       isLoading
                           ? _buildShimmer(Container(
                               width: MediaQuery.sizeOf(context).width,

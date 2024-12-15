@@ -23,3 +23,9 @@ class AdminBranchLoading extends ReceptionistState {}
 class AdminBranchError extends ReceptionistState {}
 
 class AdminBranchSuccess extends ReceptionistState {}
+
+class AdminClinicLoading extends ReceptionistState {}
+
+class AdminClinicError extends ReceptionistState {}
+
+class AdminClinicSuccess extends ReceptionistState {}

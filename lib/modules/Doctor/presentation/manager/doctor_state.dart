@@ -29,3 +29,9 @@ class AdminDoctorLoading extends DoctorState {}
 class AdminDoctorError extends DoctorState {}
 
 class AdminDoctorSuccess extends DoctorState {}
+
+class AdminClinicLoading extends DoctorState {}
+
+class AdminClinicError extends DoctorState {}
+
+class AdminClinicSuccess extends DoctorState {}
