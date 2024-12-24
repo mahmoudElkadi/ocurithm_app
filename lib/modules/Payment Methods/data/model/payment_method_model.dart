@@ -1,3 +1,5 @@
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
+
 class PaymentMethodsModel {
   PaymentMethodsModel({
     this.paymentMethods,
@@ -28,10 +30,11 @@ class PaymentMethodsModel {
 }
 
 class PaymentMethod {
-  PaymentMethod({this.title, this.description, this.isActive, this.createdAt, this.updatedAt, this.id, this.error});
+  PaymentMethod({this.title, this.description, this.isActive, this.createdAt, this.updatedAt, this.id, this.error, this.clinic});
 
   String? title;
   String? description;
+  Clinic? clinic;
   bool? isActive;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -41,6 +44,7 @@ class PaymentMethod {
   factory PaymentMethod.fromJson(Map<String, dynamic> json) {
     return PaymentMethod(
       title: json["title"],
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       description: json["description"],
       isActive: json["isActive"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
@@ -50,8 +54,5 @@ class PaymentMethod {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        "title": title,
-        "description": description,
-      };
+  Map<String, dynamic> toJson() => {"title": title, "description": description, "clinic": clinic?.id};
 }

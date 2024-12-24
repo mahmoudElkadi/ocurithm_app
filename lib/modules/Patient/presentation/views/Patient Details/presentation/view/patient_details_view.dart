@@ -36,7 +36,7 @@ class _PatientDetailsViewState extends State<PatientDetailsView> {
   Future<void> _handleSave(BuildContext context) async {
     if (!_mounted) return;
 
-    if (formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate() && widget.cubit.validateFirstPage() == true) {
       customLoading(context, "");
 
       try {
@@ -111,10 +111,12 @@ class _PatientDetailsViewState extends State<PatientDetailsView> {
               actions: [
                 widget.cubit.readOnly == true
                     ? IconButton(
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             widget.cubit.readOnly = !widget.cubit.readOnly;
                           });
+                          await widget.cubit.getClinics();
+                          await widget.cubit.getBranches();
                         },
                         icon: Icon(Icons.edit, color: Colorz.black),
                       )

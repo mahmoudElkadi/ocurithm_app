@@ -203,7 +203,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         );
         emit(ExaminationTypeError());
       } else {
-        examinationTypes = await makeAppointmentRepo.getAllExaminationTypes(page: page, search: searchController.text);
+        examinationTypes = await makeAppointmentRepo.getAllExaminationTypes();
         if (examinationTypes?.error == null && examinationTypes!.examinationTypes!.isNotEmpty) {
           emit(ExaminationTypeSuccess());
         } else {

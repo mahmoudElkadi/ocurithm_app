@@ -45,8 +45,8 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
   @override
   void initState() {
     super.initState();
-    _openTime = widget.initialOpenTime ?? const TimeOfDay(hour: 9, minute: 0);
-    _closeTime = widget.initialCloseTime ?? const TimeOfDay(hour: 17, minute: 0);
+    _openTime = widget.initialOpenTime ?? const TimeOfDay(hour: 8, minute: 0);
+    _closeTime = widget.initialCloseTime ?? const TimeOfDay(hour: 18, minute: 0);
   }
 
   bool _isTimeInRange(TimeOfDay time) {

@@ -59,7 +59,7 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
 
   @override
   initState() {
-    widget.cubit.getBranches();
+    widget.cubit.getClinics();
     super.initState();
   }
 
@@ -255,20 +255,20 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                       ),
                       items: widget.cubit.clinics?.clinics,
                       isValid: widget.cubit.chooseClinic,
-                      validateText: S.of(context).mustBranch,
+                      validateText: 'Clinic must not be Empty',
                       selectedValue: widget.cubit.selectedClinic?.name,
-                      hintText: 'Select clinic',
+                      hintText: 'Select Clinic',
                       itemAsString: (item) => item.name.toString(),
                       onItemSelected: (item) {
                         setState(() {
                           if (item != "Not Found") {
-                            widget.cubit.chooseBranch = true;
                             widget.cubit.selectedClinic = item;
-                            log(widget.cubit.selectedClinic.toString());
+                            widget.cubit.selectedBranch = null;
+                            widget.cubit.getBranches();
                           }
                         });
                       },
-                      isLoading: false,
+                      isLoading: widget.cubit.clinics == null,
                     ),
                     const HeightSpacer(size: 20),
                     DropdownItem(
@@ -282,14 +282,13 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                       items: widget.cubit.branches?.branches,
                       isValid: widget.cubit.chooseBranch,
                       validateText: S.of(context).mustBranch,
-                      selectedValue: widget.cubit.selectedBranch,
+                      selectedValue: widget.cubit.selectedBranch?.name,
                       hintText: 'Select Branch',
                       itemAsString: (item) => item.name.toString(),
                       onItemSelected: (item) {
                         setState(() {
                           if (item != "Not Found") {
-                            widget.cubit.selectedBranch = item.name;
-                            widget.cubit.branchId = item.id;
+                            widget.cubit.selectedBranch = item;
 
                             log(widget.cubit.selectedBranch.toString());
                           }

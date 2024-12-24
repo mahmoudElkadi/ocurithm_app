@@ -36,7 +36,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
 
   ClinicsModel? clinics;
   Clinic? selectedClinic;
-  getClinics() async {
+  Future<void> getClinics() async {
     clinics = null;
     emit(AdminClinicLoading());
 
@@ -53,7 +53,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         );
         emit(AdminClinicError());
       } else {
-        clinics = await ServicesApi().getAllClinics(page: page, search: searchController.text);
+        clinics = await ServicesApi().getAllClinics();
         log(clinics.toString());
         if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
           emit(AdminClinicSuccess());
@@ -68,12 +68,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
   }
 
   bool isConfirm = false;
-  var selectedBranch;
-  chooseBranchId(selected) {
-    log(selected.branchId.toString());
-    selectedBranch = selected;
-    emit(ChooseBranch());
-  }
+  Branch? selectedBranch;
 
   ReceptionistsModel? receptionists;
   int page = 1;
@@ -155,14 +150,13 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
   }
 
   DateTime? date;
-  String? branchId;
 
   bool picDate = true;
   bool chooseBranch = true;
   bool chooseClinic = true;
   bool isValidate = false;
 
-  validateFirstPage() {
+  bool validateFirstPage() {
     if (date == null) {
       picDate = false;
     } else {
@@ -175,17 +169,23 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
       chooseBranch = true;
     }
 
+    if (selectedClinic == null) {
+      chooseClinic = false;
+    } else {
+      chooseClinic = true;
+    }
+
     log(picDate.toString());
     log(chooseBranch.toString());
 
-    if (picDate && chooseBranch) {
+    if (picDate && chooseBranch && chooseClinic) {
       log(isValidate.toString());
       isValidate = true;
     } else {
       isValidate = false;
     }
 
-    emit(ValidateForm());
+    return isValidate;
   }
 
   List capabilitiesList = [];
@@ -201,8 +201,8 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
             password: passwordController.text,
             phone: phoneNumberController.text,
             birthDate: date,
-            branchId: branchId,
-            clinic: selectedClinic?.id,
+            branch: selectedBranch,
+            clinic: selectedClinic,
             capabilities: capabilitiesList),
       );
       if (result.error == null && (result.name != null || result.id != null)) {
@@ -247,7 +247,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
   bool? connection;
   BranchesModel? branches;
   bool loading = false;
-  getBranches() async {
+  Future<void> getBranches() async {
     branches = null;
     loading = true;
     emit(AdminBranchLoading());
@@ -266,7 +266,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         loading = false;
         emit(AdminBranchError());
       } else {
-        branches = await receptionistRepo.getAllBranches();
+        branches = await ServicesApi().getAllBranches(clinic: selectedClinic?.id);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
           loading = false;
           emit(AdminBranchSuccess());
@@ -362,8 +362,8 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
             password: passwordController.text,
             phone: phoneNumberController.text,
             birthDate: date,
-            branchId: branchId,
-            clinic: selectedClinic?.id,
+            branch: selectedBranch,
+            clinic: selectedClinic,
             capabilities: capabilitiesList),
         id: id,
       );
@@ -424,9 +424,9 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
     passwordController.clear();
     phoneNumberController.clear();
     date = null;
-    branchId = null;
     capabilitiesList = [];
     selectedBranch = null;
+    selectedClinic = null;
     picDate = true;
     chooseBranch = true;
     isValidate = false;

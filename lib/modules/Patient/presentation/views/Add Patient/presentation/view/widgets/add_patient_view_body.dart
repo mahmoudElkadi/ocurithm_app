@@ -46,7 +46,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
   @override
   void initState() {
     super.initState();
-    widget.cubit.getBranches();
+    widget.cubit.getClinics();
   }
 
   final List<Capability> capabilities = [
@@ -76,19 +76,43 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         Icons.arrow_drop_down_circle,
                         color: Colorz.primaryColor,
                       ),
+                      items: widget.cubit.clinics?.clinics,
+                      isValid: widget.cubit.chooseClinic,
+                      validateText: 'Clinic must not be Empty',
+                      selectedValue: widget.cubit.selectedClinic?.name,
+                      hintText: 'Select Clinic',
+                      itemAsString: (item) => item.name.toString(),
+                      onItemSelected: (item) {
+                        setState(() {
+                          if (item != "Not Found") {
+                            widget.cubit.selectedClinic = item;
+                            widget.cubit.selectedBranch = null;
+                            widget.cubit.getBranches();
+                          }
+                        });
+                      },
+                      isLoading: widget.cubit.clinics == null,
+                    ),
+                    const HeightSpacer(size: 20),
+                    DropdownItem(
+                      radius: 30,
+                      color: Colorz.white,
+                      isShadow: true,
+                      iconData: Icon(
+                        Icons.arrow_drop_down_circle,
+                        color: Colorz.primaryColor,
+                      ),
                       items: widget.cubit.branches?.branches,
                       isValid: widget.cubit.chooseBranch,
                       validateText: S.of(context).mustBranch,
-                      selectedValue: widget.cubit.selectedBranch,
+                      selectedValue: widget.cubit.selectedBranch?.name,
                       hintText: 'Select Branch',
                       itemAsString: (item) => item.name.toString(),
                       onItemSelected: (item) {
                         setState(() {
                           if (item != "Not Found") {
                             widget.cubit.chooseBranch = true;
-                            widget.cubit.selectedBranch = item.name;
-                            widget.cubit.branchId = item.id;
-                            log(widget.cubit.selectedBranch.toString());
+                            widget.cubit.selectedBranch = item;
                           }
                         });
                       },

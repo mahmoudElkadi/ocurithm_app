@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 
+import '../../../../Services/services_api.dart';
+import '../../../Clinics/data/model/clinics_model.dart';
 import '../../data/model/payment_method_model.dart';
 import '../../data/repos/payment_method_repo.dart';
 import 'payment_method_state.dart';
@@ -58,6 +60,38 @@ class PaymentMethodCubit extends Cubit<PaymentMethodState> {
       Navigator.pop(context);
 
       emit(PaymentMethodError());
+    }
+  }
+
+  ClinicsModel? clinics;
+  getClinics() async {
+    clinics = null;
+    emit(AdminClinicLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(AdminClinicLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(AdminClinicError());
+      } else {
+        clinics = await ServicesApi().getAllClinics();
+        log(clinics.toString());
+        if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
+          emit(AdminClinicSuccess());
+        } else {
+          emit(AdminClinicError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(AdminClinicError());
     }
   }
 

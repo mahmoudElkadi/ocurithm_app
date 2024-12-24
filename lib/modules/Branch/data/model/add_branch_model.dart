@@ -1,3 +1,5 @@
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
+
 class AddBranchModel {
   AddBranchModel({
     this.code,
@@ -21,7 +23,7 @@ class AddBranchModel {
   DateTime? createdAt;
   DateTime? updatedAt;
   String? id;
-  String? clinic;
+  Clinic? clinic;
   String? openTime;
   String? closeTime;
   List? workDays;
@@ -40,7 +42,7 @@ class AddBranchModel {
       closeTime: json["closeTime"],
       workDays: json["workDays"] == null ? [] : List<dynamic>.from(json["workDays"]!.map((x) => x)),
       error: json["error"],
-      clinic: json["clinic"],
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
     );
   }
 
@@ -51,7 +53,7 @@ class AddBranchModel {
         "phone": phone,
         "openTime": openTime,
         "closeTime": closeTime,
-        "clinic": clinic,
+        "clinic": clinic?.id,
         "workDays": workDays?.map((x) => x).toList(),
       };
 }

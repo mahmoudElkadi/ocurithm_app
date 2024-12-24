@@ -1,3 +1,5 @@
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
+
 class ExaminationTypesModel {
   ExaminationTypesModel({
     this.examinationTypes,
@@ -37,10 +39,12 @@ class ExaminationType {
     this.updatedAt,
     this.id,
     this.duration,
+    this.clinic,
     this.error,
   });
 
   String? name;
+  Clinic? clinic;
   num? price;
   bool? isActive;
   DateTime? createdAt;
@@ -58,12 +62,14 @@ class ExaminationType {
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
       duration: json["duration"],
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       error: json["error"],
     );
   }
 
   Map<String, dynamic> toJson() => {
         "name": name,
+        "clinic": clinic?.id,
         "price": price,
         "duration": duration,
       };

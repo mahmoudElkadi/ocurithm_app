@@ -58,12 +58,12 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
       _nameController.text = widget.cubit.branch?.name ?? '';
       _addressController.text = widget.cubit.branch?.address ?? '';
       _phoneController.text = widget.cubit.branch?.phone ?? '';
-
       selectedDays = widget.cubit.branch?.workDays ?? [];
-      //   selectedClinic = widget.cubit.branch?.clinic;
+      selectedClinic = widget.cubit.branch?.clinic;
       openingTime = widget.cubit.branch?.openTime ?? '';
       closingTime = widget.cubit.branch?.closeTime ?? '';
     }
+    await widget.cubit.getClinics();
     setState(() {});
   }
 
@@ -98,7 +98,7 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
             workDays: selectedDays,
             openTime: openingTime,
             closeTime: closingTime,
-            clinic: selectedClinic?.id,
+            clinic: selectedClinic,
             phone: _phoneController.text.trim());
 
         await widget.cubit.updateBranch(id: widget.id, addBranchModel: model, context: context);
@@ -198,6 +198,7 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                                 Icons.keyboard_arrow_down_rounded,
                                 color: Colorz.grey,
                               ),
+                              readOnly: readOnly,
 
                               items: widget.cubit.clinics?.clinics,
                               // isValid: widget.cubit.chooseBranch,

@@ -1,3 +1,5 @@
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
+
 class BranchesModel {
   BranchesModel({
     required this.branches,
@@ -44,7 +46,7 @@ class Branch {
     this.error,
   });
 
-  String? clinic;
+  Clinic? clinic;
   String? code;
   String? name;
   String? address;
@@ -59,7 +61,7 @@ class Branch {
 
   factory Branch.fromJson(Map<String, dynamic> json) {
     return Branch(
-      clinic: json["clinic"],
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       code: json["code"],
       name: json["name"],
       address: json["address"],

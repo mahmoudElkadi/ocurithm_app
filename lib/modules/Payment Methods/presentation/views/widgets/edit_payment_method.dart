@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -7,6 +9,8 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
+import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/model/payment_method_model.dart';
 import '../../manager/payment_method_cubit.dart';
 import '../../manager/payment_method_state.dart';
@@ -43,7 +47,9 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
     if (widget.cubit.paymentMethod != null) {
       _titleController.text = widget.cubit.paymentMethod?.title ?? '';
       _descriptionController.text = widget.cubit.paymentMethod?.description ?? '';
+      selectedClinic = widget.cubit.paymentMethod?.clinic;
     }
+    await widget.cubit.getClinics();
     setState(() {});
   }
 
@@ -56,7 +62,10 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+    setState(() {
+      _clinicValidation = selectedClinic != null;
+    });
+    if (_formKey.currentState!.validate() && _clinicValidation) {
       customLoading(context, "");
       bool connection = await InternetConnection().hasInternetAccess;
       if (!connection) {
@@ -72,6 +81,7 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
       } else {
         PaymentMethod model = PaymentMethod(
           title: _titleController.text.trim(),
+          clinic: selectedClinic,
           description: _descriptionController.text.trim(),
         );
 
@@ -90,6 +100,8 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
 
   bool readOnly = true;
 
+  Clinic? selectedClinic;
+  bool _clinicValidation = true;
   @override
   Widget build(BuildContext context) {
     bool isLoading = widget.cubit.paymentMethod == null;
@@ -147,104 +159,143 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
                 const SizedBox(height: 16),
 
                 // Form
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      // Code TextField
-                      isLoading
-                          ? _buildShimmer(Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(8)),
-                                color: Colors.white,
-                              ),
-                            ))
-                          : TextFormField(
-                              controller: _titleController,
-                              cursorColor: Colors.black,
-                              readOnly: readOnly,
-                              decoration: InputDecoration(
-                                hintText: 'Enter Title',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                prefixIcon: const Icon(Icons.credit_card, color: Colors.grey),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Colors.grey),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a name';
-                                }
-                                return null;
-                              },
-                            ),
-                      const SizedBox(height: 16),
-                      isLoading
-                          ? _buildShimmer(Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(8)),
-                                color: Colors.white,
-                              ),
-                            ))
-                          : TextFormField(
-                              controller: _descriptionController,
-                              cursorColor: Colors.black,
-                              readOnly: readOnly,
-                              decoration: InputDecoration(
-                                hintText: 'Enter Description',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Colors.grey),
-                                ),
-                                prefixIcon: Icon(
-                                  Icons.description,
-                                  color: Colorz.grey,
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a code';
-                                }
-                                return null;
-                              },
-                            ),
-
-                      const SizedBox(height: 24),
-
-                      // Submit Button
-                      if (readOnly != true)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                isLoading
+                    ? _buildShimmer(Container(
+                        width: MediaQuery.sizeOf(context).width,
+                        height: 60,
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          color: Colors.white,
+                        ),
+                      ))
+                    : Form(
+                        key: _formKey,
+                        child: Column(
                           children: [
-                            ElevatedButton(
-                              onPressed: _submitForm,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                                backgroundColor: Colorz.primaryColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                            // Code TextField
+                            DropdownItem(
+                              radius: 8,
+                              border: Colorz.grey,
+                              color: Colorz.white,
+                              isShadow: false,
+                              height: 14,
+                              iconData: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: Colorz.grey,
                               ),
-                              child: const Text(
-                                'Submit',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              ),
+                              items: widget.cubit.clinics?.clinics,
+                              readOnly: readOnly,
+                              isValid: _clinicValidation,
+                              validateText: 'Please enter a clinic',
+                              selectedValue: selectedClinic?.name,
+                              hintText: 'Select Clinic',
+                              prefixIcon: Icon(Icons.local_hospital_outlined, color: Colorz.grey),
+                              itemAsString: (item) => item.name.toString(),
+                              onItemSelected: (item) {
+                                setState(() {
+                                  if (item != "Not Found") {
+                                    selectedClinic = item;
+                                    log(selectedClinic.toString());
+                                  }
+                                });
+                              },
+                              isLoading: widget.cubit.clinics == null,
                             ),
+                            const SizedBox(height: 16),
+
+                            isLoading
+                                ? _buildShimmer(Container(
+                                    width: MediaQuery.sizeOf(context).width,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                    ),
+                                  ))
+                                : TextFormField(
+                                    controller: _titleController,
+                                    cursorColor: Colors.black,
+                                    readOnly: readOnly,
+                                    decoration: InputDecoration(
+                                      hintText: 'Enter Title',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      prefixIcon: const Icon(Icons.credit_card, color: Colors.grey),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(color: Colors.grey),
+                                      ),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter a name';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                            const SizedBox(height: 16),
+                            isLoading
+                                ? _buildShimmer(Container(
+                                    width: MediaQuery.sizeOf(context).width,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                    ),
+                                  ))
+                                : TextFormField(
+                                    controller: _descriptionController,
+                                    cursorColor: Colors.black,
+                                    readOnly: readOnly,
+                                    decoration: InputDecoration(
+                                      hintText: 'Enter Description',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(color: Colors.grey),
+                                      ),
+                                      prefixIcon: Icon(
+                                        Icons.description,
+                                        color: Colorz.grey,
+                                      ),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter a code';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+
+                            const SizedBox(height: 24),
+
+                            // Submit Button
+                            if (readOnly != true)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: _submitForm,
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                                      backgroundColor: Colorz.primaryColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Submit',
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
-                    ],
-                  ),
-                ),
+                      ),
               ],
             ),
           ),

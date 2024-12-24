@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
@@ -14,20 +15,6 @@ import '../../../../../core/widgets/work_day_selector.dart';
 import '../../../data/model/add_branch_model.dart';
 import '../../manager/branch_cubit.dart';
 import '../../manager/branch_state.dart';
-
-class FormData {
-  String code;
-  String name;
-  String address;
-  String phone;
-
-  FormData({
-    this.code = '',
-    this.name = '',
-    this.address = '',
-    this.phone = '',
-  });
-}
 
 class FormPopupDialog extends StatefulWidget {
   final Function(FormData) onSubmit;
@@ -45,7 +32,6 @@ class FormPopupDialog extends StatefulWidget {
 
 class _FormPopupDialogState extends State<FormPopupDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _data = FormData();
 
   // Controllers for text fields
   final _codeController = TextEditingController();
@@ -53,8 +39,8 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   List selectedDays = [];
-  String openingTime = "";
-  String closingTime = "";
+  String openingTime = "08:00";
+  String closingTime = "18:00";
 
   @override
   void initState() {
@@ -72,7 +58,11 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+    setState(() {
+      clinicValidation = selectedClinic != null;
+      weekDayValidation = selectedDays.isNotEmpty;
+    });
+    if (_formKey.currentState!.validate() && clinicValidation && weekDayValidation) {
       customLoading(context, "");
       bool connection = await InternetConnection().hasInternetAccess;
       if (!connection) {
@@ -103,7 +93,10 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
     }
   }
 
-  var selectedClinic;
+  Clinic? selectedClinic;
+  bool clinicValidation = true;
+  bool weekDayValidation = true;
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -169,17 +162,16 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           Icons.keyboard_arrow_down_rounded,
                           color: Colorz.grey,
                         ),
-
                         items: widget.cubit.clinics?.clinics,
-                        // isValid: widget.cubit.chooseBranch,
-                        // validateText: S.of(context).mustBranch,
-                        selectedValue: selectedClinic,
+                        isValid: clinicValidation,
+                        validateText: 'Please choose a clinic',
+                        selectedValue: selectedClinic?.name,
                         hintText: 'Select Clinic',
                         itemAsString: (item) => item.name.toString(),
                         onItemSelected: (item) {
                           setState(() {
                             if (item != "Not Found") {
-                              selectedClinic = item.id;
+                              selectedClinic = item;
                               log(selectedClinic.toString());
                             }
                           });
@@ -295,9 +287,9 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           setState(() {
                             selectedDays = days;
                           });
-                          print('Selected days: $selectedDays');
                         },
-                        initialSelectedDays: [], // Optiona l
+                        isValid: weekDayValidation,
+                        initialSelectedDays: [],
                       ),
                       const SizedBox(height: 16),
                       BusinessHoursSelector(
@@ -305,6 +297,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           log('Business hours: ${openTime.format(context)} - ${closeTime.format(context)}');
                           openingTime = '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
                           closingTime = '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
+                          log('Business hours: $openingTime - $closingTime');
                         },
                         use24HourFormat: true, // This will show times in 24-hour format
                       ),
@@ -343,20 +336,13 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
   }
 }
 
-// Example usage:
 void showFormPopup(BuildContext context, AdminBranchCubit cubit) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return FormPopupDialog(
         cubit: cubit,
-        onSubmit: (FormData data) {
-          // Handle the submitted data
-          print('Code: ${data.code}');
-          print('Name: ${data.name}');
-          print('Address: ${data.address}');
-          print('Phone: ${data.phone}');
-        },
+        onSubmit: (FormData data) {},
       );
     },
   );

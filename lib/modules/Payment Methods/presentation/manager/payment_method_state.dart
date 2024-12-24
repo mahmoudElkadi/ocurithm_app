@@ -13,3 +13,9 @@ class PaymentMethodLoading extends PaymentMethodState {}
 class PaymentMethodSuccess extends PaymentMethodState {}
 
 class PaymentMethodError extends PaymentMethodState {}
+
+class AdminClinicLoading extends PaymentMethodState {}
+
+class AdminClinicError extends PaymentMethodState {}
+
+class AdminClinicSuccess extends PaymentMethodState {}

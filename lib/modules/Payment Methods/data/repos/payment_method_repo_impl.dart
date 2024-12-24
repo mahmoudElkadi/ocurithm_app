@@ -12,6 +12,7 @@ class PaymentMethodRepoImpl implements PaymentMethodRepo {
   Future<PaymentMethod> createPaymentMethod({required PaymentMethod paymentMethod}) async {
     final url = "${Config.baseUrl}${Config.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
+    log("paymentMethod: ${paymentMethod.toJson()}");
 
     final result = await ApiService.request<PaymentMethod>(
       url: url,

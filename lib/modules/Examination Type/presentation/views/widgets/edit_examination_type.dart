@@ -10,6 +10,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/model/examination_type_model.dart';
 import '../../manager/examination_type_cubit.dart';
 import '../../manager/examination_type_state.dart';
@@ -48,7 +49,9 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
       _priceController.text = '${widget.cubit.examinationType?.price ?? ''}';
       _nameController.text = widget.cubit.examinationType?.name ?? '';
       _durationController.text = '${widget.cubit.examinationType?.duration ?? ''}';
+      selectedClinic = widget.cubit.examinationType?.clinic;
     }
+
     setState(() {});
   }
 
@@ -62,7 +65,10 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+    setState(() {
+      _clinicValidation = selectedClinic != null;
+    });
+    if (_formKey.currentState!.validate() && _clinicValidation) {
       customLoading(context, "");
       bool connection = await InternetConnection().hasInternetAccess;
       if (!connection) {
@@ -77,6 +83,7 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
         return;
       } else {
         ExaminationType model = ExaminationType(
+          clinic: selectedClinic,
           name: _nameController.text.trim(),
           price: num.parse(_priceController.text),
           duration: num.parse(_durationController.text),
@@ -96,8 +103,8 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
   }
 
   bool readOnly = true;
-  var selectedClinic;
-
+  Clinic? selectedClinic;
+  bool _clinicValidation = true;
   @override
   Widget build(BuildContext context) {
     bool isLoading = widget.cubit.examinationType == null;
@@ -170,54 +177,34 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                                 color: Colors.white,
                               ),
                             ))
-                          : readOnly
-                              ? Container(
-                                  width: MediaQuery.sizeOf(context).width,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                                      color: Colors.white,
-                                      border: Border.all(color: Colors.grey)),
-                                  child: Row(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                        child: Icon(Icons.home_work, color: Colors.grey),
-                                      ),
-                                      Text(
-                                        widget.cubit.examinationType?.name ?? '',
-                                        style: const TextStyle(fontSize: 16),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : DropdownItem(
-                                  radius: 8,
-                                  border: Colorz.grey,
-                                  color: Colorz.white,
-                                  isShadow: false,
-                                  height: 14,
-                                  iconData: Icon(
-                                    Icons.keyboard_arrow_down_rounded,
-                                    color: Colorz.grey,
-                                  ),
-
-                                  items: widget.cubit.clinics?.clinics,
-                                  // isValid: widget.cubit.chooseBranch,
-                                  // validateText: S.of(context).mustBranch,
-                                  selectedValue: selectedClinic,
-                                  hintText: 'Select Clinic',
-                                  itemAsString: (item) => item.name.toString(),
-                                  onItemSelected: (item) {
-                                    setState(() {
-                                      if (item != "Not Found") {
-                                        selectedClinic = item.id;
-                                        log(selectedClinic.toString());
-                                      }
-                                    });
-                                  },
-                                  isLoading: widget.cubit.clinics == null,
-                                ),
+                          : DropdownItem(
+                              radius: 8,
+                              border: Colorz.grey,
+                              color: Colorz.white,
+                              isShadow: false,
+                              height: 14,
+                              iconData: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: Colorz.grey,
+                              ),
+                              readOnly: readOnly,
+                              prefixIcon: Icon(Icons.local_hospital_outlined, color: Colorz.grey),
+                              items: widget.cubit.clinics?.clinics,
+                              isValid: _clinicValidation,
+                              validateText: 'Please enter a clinic',
+                              selectedValue: selectedClinic?.name,
+                              hintText: 'Select Clinic',
+                              itemAsString: (item) => item.name.toString(),
+                              onItemSelected: (item) {
+                                setState(() {
+                                  if (item != "Not Found") {
+                                    selectedClinic = item;
+                                    log(selectedClinic.toString());
+                                  }
+                                });
+                              },
+                              isLoading: widget.cubit.clinics == null,
+                            ),
                       const SizedBox(height: 16),
 
                       isLoading

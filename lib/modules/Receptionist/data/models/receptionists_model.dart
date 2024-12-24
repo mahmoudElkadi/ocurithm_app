@@ -1,4 +1,5 @@
 import '../../../Branch/data/model/branches_model.dart';
+import '../../../Clinics/data/model/clinics_model.dart';
 
 class ReceptionistsModel {
   ReceptionistsModel({
@@ -48,7 +49,7 @@ class Receptionist {
   String? image;
   String? password;
   String? phone;
-  String? clinic;
+  Clinic? clinic;
   DateTime? birthDate;
   Branch? branch;
   String? branchId;
@@ -65,6 +66,7 @@ class Receptionist {
       image: json["image"],
       password: json["password"],
       phone: json["phone"],
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       birthDate: DateTime.tryParse(json["birthDate"] ?? ""),
       branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
       isActive: json["isActive"],
@@ -82,13 +84,13 @@ class Receptionist {
         "password": password,
         "phone": phone,
         "birthDate": birthDate?.toIso8601String(),
-        "branch": branchId,
+        "branch": branch?.id,
         "isActive": isActive,
+        "clinic": clinic?.id,
         "capabilities": capabilities?.map((x) => x).toList(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,
-        "clinic": clinic,
         "error": error,
       };
 }

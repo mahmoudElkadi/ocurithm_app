@@ -554,9 +554,9 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                                       _selectedValue!,
                                       style: widget.style ??
                                           const TextStyle(
-                                            fontSize: 18,
+                                            fontSize: 16,
                                             color: Colors.black,
-                                            fontWeight: FontWeight.w500,
+                                            fontWeight: FontWeight.w400,
                                           ),
                                     ),
                                   )

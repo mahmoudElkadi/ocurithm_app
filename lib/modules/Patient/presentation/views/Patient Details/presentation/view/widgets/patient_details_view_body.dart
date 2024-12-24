@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
@@ -56,15 +55,14 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
       widget.cubit.nameController.text = widget.cubit.patient?.name ?? '';
       widget.cubit.phoneNumberController.text = widget.cubit.patient?.phone ?? "";
       widget.cubit.date = widget.cubit.patient?.birthDate;
-      widget.cubit.selectedBranch = widget.cubit.patient?.branch?.name;
-      widget.cubit.branchId = widget.cubit.patient?.branch?.id;
+      widget.cubit.selectedBranch = widget.cubit.patient?.branch;
       widget.cubit.selectedGender = widget.cubit.patient?.gender;
       widget.cubit.emailController.text = widget.cubit.patient?.email ?? "";
       widget.cubit.addressController.text = widget.cubit.patient?.address ?? "";
       widget.cubit.nationalityController.text = widget.cubit.patient?.nationality ?? "";
       widget.cubit.nationalIdController.text = widget.cubit.patient?.nationalId ?? "";
+      widget.cubit.selectedClinic = widget.cubit.patient?.clinic;
     }
-    await widget.cubit.getBranches();
   }
 
   final List<Capability> capabilities = [
@@ -105,52 +103,67 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                               color: Colors.white,
                             ),
                           ))
-                        : widget.cubit.readOnly
-                            ? Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                                width: Get.width,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(30),
-                                  color: Colorz.white,
-                                  boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 2, blurRadius: 3, offset: const Offset(0, 0))],
-                                ),
-                                child: Text(
-                                  widget.cubit.patient?.branch?.name ?? "",
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
-                                ))
-                            : DropdownItem(
-                                radius: 30,
-                                color: Colorz.white,
-                                isShadow: true,
-                                iconData: Icon(
-                                  Icons.arrow_drop_down_circle,
-                                  color: Colorz.primaryColor,
-                                ),
-                                items: widget.cubit.branches?.branches,
-                                isValid: widget.cubit.chooseBranch,
-                                validateText: S.of(context).mustBranch,
-                                selectedValue: widget.cubit.selectedBranch,
-                                hintText: 'Select Branch',
-                                itemAsString: (item) => item.name.toString(),
-                                onItemSelected: (item) {
-                                  setState(() {
-                                    if (item != "Not Found") {
-                                      widget.cubit.chooseBranch = true;
-                                      widget.cubit.selectedBranch = item.name;
-                                      widget.cubit.branchId = item.id;
-                                      log(widget.cubit.selectedBranch.toString());
-                                    }
-                                  });
-                                },
-                                isLoading: false,
-                              ),
+                        : DropdownItem(
+                            radius: 30,
+                            color: Colorz.white,
+                            isShadow: true,
+                            iconData: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: Colorz.primaryColor,
+                            ),
+                            items: widget.cubit.clinics?.clinics,
+                            isValid: widget.cubit.chooseClinic,
+                            readOnly: widget.cubit.readOnly,
+                            validateText: 'Clinic must not be Empty',
+                            selectedValue: widget.cubit.selectedClinic?.name,
+                            hintText: 'Select Clinic',
+                            itemAsString: (item) => item.name.toString(),
+                            onItemSelected: (item) {
+                              setState(() {
+                                if (item != "Not Found") {
+                                  widget.cubit.selectedClinic = item;
+                                  widget.cubit.selectedBranch = null;
+                                  widget.cubit.getBranches();
+                                }
+                              });
+                            },
+                            isLoading: widget.cubit.clinics == null,
+                          ),
+                    const HeightSpacer(size: 20),
+                    isLoading
+                        ? _buildShimmer(Container(
+                            width: MediaQuery.sizeOf(context).width,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
+                            ),
+                          ))
+                        : DropdownItem(
+                            radius: 30,
+                            color: Colorz.white,
+                            isShadow: true,
+                            iconData: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: Colorz.primaryColor,
+                            ),
+                            items: widget.cubit.branches?.branches,
+                            isValid: widget.cubit.chooseBranch,
+                            validateText: S.of(context).mustBranch,
+                            selectedValue: widget.cubit.selectedBranch?.name,
+                            hintText: 'Select Branch',
+                            itemAsString: (item) => item.name.toString(),
+                            readOnly: widget.cubit.readOnly,
+                            onItemSelected: (item) {
+                              setState(() {
+                                if (item != "Not Found") {
+                                  widget.cubit.chooseBranch = true;
+                                  widget.cubit.selectedBranch = item;
+                                }
+                              });
+                            },
+                            isLoading: widget.cubit.loading,
+                          ),
                     const HeightSpacer(size: 20),
                     isLoading
                         ? _buildShimmer(Container(

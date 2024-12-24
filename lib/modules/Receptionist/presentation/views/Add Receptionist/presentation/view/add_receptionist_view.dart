@@ -26,7 +26,7 @@ class _CreateReceptionistViewState extends State<CreateReceptionistView> {
 
   Future<void> _handleSave(BuildContext context) async {
     widget.cubit.validateFirstPage();
-    if (formKey.currentState!.validate() && !widget.cubit.isValidate) {
+    if (formKey.currentState!.validate() && widget.cubit.validateFirstPage() == true) {
       customLoading(context, "");
 
       try {

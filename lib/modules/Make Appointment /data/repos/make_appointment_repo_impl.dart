@@ -50,8 +50,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   Future<BranchesModel> getAllBranches() async {
     final url = "${Config.baseUrl}${Config.branches}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
-    Map<String, dynamic> query = {"pagination": false, "isActive": true, "haveDoctors": true};
+    Map<String, dynamic> query = {"isActive": true, "haveDoctors": true};
 
     final result = await ApiService.request<BranchesModel>(
       url: url,

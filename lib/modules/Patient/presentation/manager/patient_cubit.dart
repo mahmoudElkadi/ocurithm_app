@@ -8,7 +8,9 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../Services/services_api.dart';
 import '../../../Branch/data/model/branches_model.dart';
+import '../../../Clinics/data/model/clinics_model.dart';
 import '../../data/model/patients_model.dart';
 import '../../data/repos/patient_repo.dart';
 import 'patient_state.dart';
@@ -37,10 +39,9 @@ class PatientCubit extends Cubit<PatientState> {
   }
 
   bool isConfirm = false;
-  var selectedBranch;
+  Branch? selectedBranch;
   var selectedGender;
   chooseBranchId(selected) {
-    log(selected.branchId.toString());
     selectedBranch = selected;
     emit(ChooseBranch());
   }
@@ -125,14 +126,14 @@ class PatientCubit extends Cubit<PatientState> {
   }
 
   DateTime? date;
-  String? branchId;
 
   bool picDate = true;
   bool chooseBranch = true;
+  bool chooseClinic = true;
   bool gender = true;
   bool isValidate = false;
 
-  validateFirstPage() {
+  bool validateFirstPage() {
     if (date == null) {
       picDate = false;
     } else {
@@ -145,6 +146,12 @@ class PatientCubit extends Cubit<PatientState> {
       chooseBranch = true;
     }
 
+    if (selectedClinic == null) {
+      chooseClinic = false;
+    } else {
+      chooseClinic = true;
+    }
+
     if (selectedGender == null) {
       gender = false;
     } else {
@@ -155,13 +162,12 @@ class PatientCubit extends Cubit<PatientState> {
     log(chooseBranch.toString());
 
     if (picDate && chooseBranch && gender) {
-      log(isValidate.toString());
       isValidate = true;
     } else {
       isValidate = false;
     }
 
-    emit(ValidateForm());
+    return isValidate;
   }
 
   List<String> capabilitiesList = [];
@@ -177,8 +183,9 @@ class PatientCubit extends Cubit<PatientState> {
           phone: phoneNumberController.text,
           address: addressController.text,
           birthDate: date,
-          branchId: branchId,
+          branch: selectedBranch,
           gender: selectedGender,
+          clinic: selectedClinic,
           nationalId: nationalIdController.text,
           nationality: nationalityController.text,
           email: emailController.text,
@@ -227,6 +234,40 @@ class PatientCubit extends Cubit<PatientState> {
     }
   }
 
+  Clinic? selectedClinic;
+
+  ClinicsModel? clinics;
+  getClinics() async {
+    clinics = null;
+    emit(AdminClinicLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(AdminClinicLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(AdminClinicError());
+      } else {
+        clinics = await ServicesApi().getAllClinics();
+        log(clinics.toString());
+        if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
+          emit(AdminClinicSuccess());
+        } else {
+          emit(AdminClinicError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(AdminClinicError());
+    }
+  }
+
   bool? connection;
   BranchesModel? branches;
   bool loading = false;
@@ -249,7 +290,7 @@ class PatientCubit extends Cubit<PatientState> {
         loading = false;
         emit(AdminBranchError());
       } else {
-        branches = await patientRepo.getAllBranches();
+        branches = await ServicesApi().getAllBranches(clinic: selectedClinic?.id);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
           loading = false;
           emit(AdminBranchSuccess());
@@ -344,7 +385,8 @@ class PatientCubit extends Cubit<PatientState> {
           phone: phoneNumberController.text,
           address: addressController.text,
           birthDate: date,
-          branchId: branchId,
+          branch: selectedBranch,
+          clinic: selectedClinic,
           gender: selectedGender,
           nationalId: nationalIdController.text,
           nationality: nationalityController.text,
@@ -363,6 +405,7 @@ class PatientCubit extends Cubit<PatientState> {
         );
         Navigator.pop(context);
         Navigator.pop(context);
+        readOnly = true;
 
         final index = patients?.patients.indexWhere((patient) => patient.id == id);
         if (index != -1) {
@@ -375,8 +418,8 @@ class PatientCubit extends Cubit<PatientState> {
           patients?.patients[index!].email = result.email;
           patients?.patients[index!].address = result.address;
           patients?.patients[index!].gender = result.gender;
-          patients?.patients[index!].branchId = result.branchId;
           patients?.patients[index!].username = result.username;
+          patients?.patients[index!].branch = result.branch;
         }
 
         emit(AdminBranchSuccess());
@@ -410,8 +453,8 @@ class PatientCubit extends Cubit<PatientState> {
     emailController.clear();
     addressController.clear();
     selectedGender = null;
+    selectedClinic = null;
     date = null;
-    branchId = null;
     selectedBranch = null;
     picDate = true;
     chooseBranch = true;

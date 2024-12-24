@@ -172,7 +172,7 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
         );
         emit(AdminBranchError());
       } else {
-        branches = await branchRepo.getAllBranches(page: page, search: searchController.text);
+        branches = await branchRepo.getAllBranches(page: page, search: searchController.text, clinic: filterByClinic?.id);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
           emit(AdminBranchSuccess());
         } else {
@@ -184,6 +184,8 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
       emit(AdminBranchError());
     }
   }
+
+  Clinic? filterByClinic;
 
   ClinicsModel? clinics;
   getClinics() async {

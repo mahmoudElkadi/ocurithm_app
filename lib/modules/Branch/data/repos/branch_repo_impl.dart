@@ -34,11 +34,16 @@ class BranchRepoImpl implements BranchRepo {
   }
 
   @override
-  Future<BranchesModel> getAllBranches({int? page, String? search}) async {
+  Future<BranchesModel> getAllBranches({int? page, String? search, String? clinic}) async {
     final url = "${Config.baseUrl}${Config.branches}";
     final String? token = CacheHelper.getData(key: "token");
     log("token: $token");
-    Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
+    Map<String, dynamic> query = {
+      if (page != null) "page": page,
+      if (page != null) 'limit': 10,
+      if (search != null) "search": search,
+      if (clinic != null) "clinic": clinic
+    };
 
     final result = await ApiService.request<BranchesModel>(
       url: url,

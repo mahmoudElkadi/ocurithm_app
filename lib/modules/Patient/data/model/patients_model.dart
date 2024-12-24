@@ -1,4 +1,5 @@
 import '../../../Branch/data/model/branches_model.dart';
+import '../../../Clinics/data/model/clinics_model.dart';
 
 class PatientModel {
   PatientModel({
@@ -45,6 +46,7 @@ class Patient {
     this.capabilities,
     this.createdAt,
     this.updatedAt,
+    this.clinic,
     this.id,
     this.branchId,
   });
@@ -57,6 +59,7 @@ class Patient {
   String? nationalId;
   String? phone;
   String? email;
+  Clinic? clinic;
   String? address;
   String? username;
   String? password;
@@ -82,6 +85,7 @@ class Patient {
       address: json["address"],
       username: json["username"],
       password: json["password"],
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
       serialNumber: json["serialNumber"],
       isActive: json["isActive"],
@@ -103,13 +107,13 @@ class Patient {
         "address": address,
         "username": username,
         "password": password,
-        "branch": branch?.toJson(),
+        "branch": branch?.id,
         "serialNumber": serialNumber,
+        "clinic": clinic?.id,
         "isActive": isActive,
         "capabilities": capabilities?.map((x) => x).toList(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,
-        "branchId": branchId,
       };
 }

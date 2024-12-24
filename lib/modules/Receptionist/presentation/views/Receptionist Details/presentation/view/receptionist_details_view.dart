@@ -36,7 +36,7 @@ class _ReceptionistDetailsViewState extends State<ReceptionistDetailsView> {
   Future<void> _handleSave(BuildContext context) async {
     if (!_mounted) return;
 
-    if (formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate() && widget.cubit.validateFirstPage() == true) {
       customLoading(context, "");
 
       try {
@@ -65,11 +65,12 @@ class _ReceptionistDetailsViewState extends State<ReceptionistDetailsView> {
     }
   }
 
-  void _handleEdit() {
+  void _handleEdit() async {
     if (!_mounted) return;
     setState(() {
       widget.cubit.readOnly = !widget.cubit.readOnly;
     });
+    Future.wait([widget.cubit.getClinics(), widget.cubit.getBranches()]);
   }
 
   Future<bool> _handleWillPop() async {
@@ -96,12 +97,11 @@ class _ReceptionistDetailsViewState extends State<ReceptionistDetailsView> {
               backgroundColor: Colorz.white,
               leading: IconButton(
                 icon: Icon(Icons.close, color: Colorz.black),
-                onPressed: () {
+                onPressed: () async {
                   Navigator.of(context).pop();
                   widget.cubit.clearData();
 
                   widget.cubit.readOnly = true;
-                  log("readOnly: ${widget.cubit.readOnly}");
                   setState(() {});
                 },
               ),

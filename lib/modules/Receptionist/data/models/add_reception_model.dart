@@ -1,3 +1,5 @@
+import '../../../Branch/data/model/branches_model.dart';
+
 class AddReceptionistsModel {
   AddReceptionistsModel({
     required this.name,
@@ -17,7 +19,7 @@ class AddReceptionistsModel {
   final String? image;
   final String? phone;
   final DateTime? birthDate;
-  final String? branch;
+  final Branch? branch;
   final bool? isActive;
   final List<String> capabilities;
   final DateTime? createdAt;
@@ -31,7 +33,7 @@ class AddReceptionistsModel {
       image: json["image"],
       phone: json["phone"],
       birthDate: DateTime.tryParse(json["birthDate"] ?? ""),
-      branch: json["branch"],
+      branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
       isActive: json["isActive"],
       capabilities: json["capabilities"] == null ? [] : List<String>.from(json["capabilities"]!.map((x) => x)),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),

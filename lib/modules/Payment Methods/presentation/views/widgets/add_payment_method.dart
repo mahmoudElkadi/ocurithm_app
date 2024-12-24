@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -5,6 +7,8 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 
 import '../../../../../../core/utils/colors.dart';
+import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/model/payment_method_model.dart';
 import '../../manager/payment_method_cubit.dart';
 import '../../manager/payment_method_state.dart';
@@ -37,7 +41,10 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+    setState(() {
+      _clinicValidation = selectedClinic != null;
+    });
+    if (_formKey.currentState!.validate() && _clinicValidation) {
       customLoading(context, "");
       bool connection = await InternetConnection().hasInternetAccess;
       if (!connection) {
@@ -54,6 +61,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
         PaymentMethod model = PaymentMethod(
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim(),
+          clinic: selectedClinic,
         );
 
         await widget.cubit.addPaymentMethod(paymentMethod: model, context: context);
@@ -63,6 +71,8 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
     }
   }
 
+  Clinic? selectedClinic;
+  bool _clinicValidation = true;
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -116,6 +126,35 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                 key: _formKey,
                 child: Column(
                   children: [
+                    DropdownItem(
+                      radius: 8,
+                      border: Colorz.grey,
+                      color: Colorz.white,
+                      isShadow: false,
+                      height: 14,
+                      iconData: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Colorz.grey,
+                      ),
+                      items: widget.cubit.clinics?.clinics,
+                      isValid: _clinicValidation,
+                      validateText: 'Please enter a clinic',
+                      selectedValue: selectedClinic?.name,
+                      hintText: 'Select Clinic',
+                      prefixIcon: Icon(Icons.local_hospital_outlined, color: Colorz.grey),
+                      itemAsString: (item) => item.name.toString(),
+                      onItemSelected: (item) {
+                        setState(() {
+                          if (item != "Not Found") {
+                            selectedClinic = item;
+                            log(selectedClinic.toString());
+                          }
+                        });
+                      },
+                      isLoading: widget.cubit.clinics == null,
+                    ),
+                    const SizedBox(height: 16),
+
                     TextFormField(
                       controller: _titleController,
                       cursorColor: Colors.black,

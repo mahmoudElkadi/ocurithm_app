@@ -20,9 +20,10 @@ class PatientRepoImpl implements PatientRepo {
       // Sanitize and validate data before sending
       Map<String, dynamic> data = {
         "name": patient.name?.trim(),
+        "clinic": patient.clinic?.id,
         "phone": patient.phone?.trim(),
         "password": patient.password,
-        "branch": patient.branchId,
+        "branch": patient.branch?.id,
         "email": patient.email?.trim(),
         "address": patient.address?.trim(),
         "username": patient.username?.trim(),
@@ -142,8 +143,9 @@ class PatientRepoImpl implements PatientRepo {
     Map<String, dynamic> data = {
       "name": patient.name?.trim(),
       "phone": patient.phone?.trim(),
-      "branch": patient.branchId,
+      "branch": patient.branch?.id,
       "email": patient.email?.trim(),
+      "clinic": patient.clinic?.id,
       "address": patient.address?.trim(),
       "username": patient.username?.trim(),
       "gender": patient.gender,
@@ -152,6 +154,7 @@ class PatientRepoImpl implements PatientRepo {
       "serialNumber": patient.nationalId?.trim().toString(),
       if (patient.birthDate != null) "birthDate": patient.birthDate.toString(),
     };
+
     log(data.toString());
 
     final result = await ApiService.request<Patient>(

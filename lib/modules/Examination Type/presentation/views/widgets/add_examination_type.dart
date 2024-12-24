@@ -11,6 +11,7 @@ import 'package:ocurithm/modules/Examination%20Type/presentation/manager/examina
 
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../Clinics/data/model/clinics_model.dart';
 
 class FormPopupDialog extends StatefulWidget {
   final ExaminationTypeCubit cubit;
@@ -47,7 +48,10 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+    setState(() {
+      _clinicValidation = selectedClinic != null;
+    });
+    if (_formKey.currentState!.validate() && _clinicValidation) {
       customLoading(context, "");
       bool connection = await InternetConnection().hasInternetAccess;
       if (!connection) {
@@ -62,6 +66,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
         return;
       } else {
         ExaminationType model = ExaminationType(
+          clinic: selectedClinic,
           name: _nameController.text.trim(),
           price: num.parse(_priceController.text),
           duration: num.parse(_durationController.text),
@@ -74,7 +79,9 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
     }
   }
 
-  var selectedClinic;
+  Clinic? selectedClinic;
+  bool _clinicValidation = true;
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -86,175 +93,177 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
       insetPadding: const EdgeInsets.all(16),
       child: BlocBuilder<ExaminationTypeCubit, ExaminationTypeState>(
         bloc: widget.cubit,
-        builder: (context, state) => Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Add Examination Type',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
-                    splashRadius: 20,
-                  ),
-                ],
-              ),
-              const Divider(),
-              const SizedBox(height: 16),
-
-              // Form
-              Form(
-                key: _formKey,
-                child: Column(
+        builder: (context, state) => SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    DropdownItem(
-                      radius: 8,
-                      border: Colorz.grey,
-                      color: Colorz.white,
-                      isShadow: false,
-                      height: 14,
-                      iconData: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: Colorz.grey,
+                    const Text(
+                      'Add Examination Type',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-
-                      items: widget.cubit.clinics?.clinics,
-                      // isValid: widget.cubit.chooseBranch,
-                      // validateText: S.of(context).mustBranch,
-                      selectedValue: selectedClinic,
-                      hintText: 'Select Clinic',
-                      itemAsString: (item) => item.name.toString(),
-                      onItemSelected: (item) {
-                        setState(() {
-                          if (item != "Not Found") {
-                            selectedClinic = item.id;
-                            log(selectedClinic.toString());
-                          }
-                        });
-                      },
-                      isLoading: widget.cubit.clinics == null,
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _nameController,
-                      cursorColor: Colors.black,
-                      decoration: InputDecoration(
-                        hintText: 'Enter name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        prefixIcon: const Icon(Icons.e_mobiledata, color: Colors.grey),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.grey),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _priceController,
-                      cursorColor: Colors.black,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: 'Enter Price',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.grey),
-                        ),
-                        prefixIcon: Icon(
-                          Icons.monetization_on,
-                          color: Colorz.grey,
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a price';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _durationController,
-                      cursorColor: Colors.black,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: 'Enter Duration',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.grey),
-                        ),
-                        prefixIcon: Icon(
-                          Icons.timer,
-                          color: Colorz.grey,
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a price';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Submit Button
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                            backgroundColor: Colorz.primaryColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Submit',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                        ),
-                      ],
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                      splashRadius: 20,
                     ),
                   ],
                 ),
-              ),
-            ],
+                const Divider(),
+                const SizedBox(height: 16),
+
+                // Form
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      DropdownItem(
+                        radius: 8,
+                        border: Colorz.grey,
+                        color: Colorz.white,
+                        isShadow: false,
+                        height: 14,
+                        iconData: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: Colorz.grey,
+                        ),
+                        items: widget.cubit.clinics?.clinics,
+                        isValid: _clinicValidation,
+                        validateText: 'Please enter a clinic',
+                        selectedValue: selectedClinic?.name,
+                        hintText: 'Select Clinic',
+                        prefixIcon: Icon(Icons.local_hospital_outlined, color: Colorz.grey),
+                        itemAsString: (item) => item.name.toString(),
+                        onItemSelected: (item) {
+                          setState(() {
+                            if (item != "Not Found") {
+                              selectedClinic = item;
+                              log(selectedClinic.toString());
+                            }
+                          });
+                        },
+                        isLoading: widget.cubit.clinics == null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _nameController,
+                        cursorColor: Colors.black,
+                        decoration: InputDecoration(
+                          hintText: 'Enter name',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          prefixIcon: const Icon(Icons.e_mobiledata, color: Colors.grey),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.grey),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a name';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _priceController,
+                        cursorColor: Colors.black,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: 'Enter Price',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.grey),
+                          ),
+                          prefixIcon: Icon(
+                            Icons.monetization_on,
+                            color: Colorz.grey,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a price';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _durationController,
+                        cursorColor: Colors.black,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: 'Enter Duration',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.grey),
+                          ),
+                          prefixIcon: Icon(
+                            Icons.timer,
+                            color: Colorz.grey,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a price';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Submit Button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: _submitForm,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                              backgroundColor: Colorz.primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Submit',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
