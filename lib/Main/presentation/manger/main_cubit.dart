@@ -13,6 +13,7 @@ import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
 import '../../../modules/Appointment/presentation/views/appointment_view.dart';
 import '../../../modules/Doctor/presentation/views/Doctor Dashboard/presentation/views/doctor_view.dart';
+import '../../../modules/Examination/presentaion/views/examination_view.dart';
 import '../../../modules/Login/presentation/view/login_view.dart';
 import '../../../modules/Patient/presentation/views/Patient Dashboard/presentation/views/patient_view.dart';
 import '../../../modules/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
@@ -71,7 +72,7 @@ class MainCubit extends Cubit<MainState> {
   int notificationIndex = -1;
 
   Future<List<DrawerItem>> getStatusList({context, required List capabilities}) async {
-    capabilities = ["doctor", "receptionist", "branch", "appointment", "patient", "examinationType", "paymentMethod", "clinic"];
+    capabilities = ["doctor", "receptionist", "branch", "appointment", "patient", "examinationType", "paymentMethod", "clinic", "examination"];
     Map<String, List<dynamic>> statusMappings = {
       "clinic": ["Clinics", const ClinicView(), "assets/icons/clinic.svg"],
       "branch": ["Branches", const AdminBranchView(), "assets/icons/branch.svg"],
@@ -81,6 +82,7 @@ class MainCubit extends Cubit<MainState> {
       "appointment": ["Appointments", const AppointmentView(), "assets/icons/appointment.svg"],
       "examinationType": ["Examination Types", const ExaminationTypeView(), "assets/icons/exam_type.svg"],
       "paymentMethod": ["payment Method", const PaymentMethodView(), "assets/icons/payment.svg"],
+      "examination": ["Examination", const MultiStepFormPage(), "assets/icons/payment.svg"],
     };
 
     drawerItems = [];
