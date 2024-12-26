@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../../core/widgets/height_spacer.dart';
-import '../../../../../../../../../core/widgets/text_field.dart';
+import '../../../../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../../../../../core/widgets/search_fileld.dart';
 import '../../../../../manager/doctor_cubit.dart';
 import '../../../../../manager/doctor_state.dart';
 import 'doctor_card.dart';
@@ -29,64 +29,219 @@ class _DoctorViewBodyState extends State<DoctorViewBody> {
 
   Widget _buildSearchField(DoctorCubit cubit) {
     return Container(
-      color: Colorz.white,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 15.w,
-        ).copyWith(bottom: 10, top: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextField2(
-                controller: cubit.searchController,
-                hintText: "Search...",
-                hintStyle: TextStyle(color: Colorz.primaryColor, fontSize: 14.sp, fontWeight: FontWeight.w400),
-                height: 7,
-                fillColor: Colorz.primaryColor.withOpacity(0.05),
-                radius: 30,
-                isShadow: false,
-                borderColor: Colorz.primaryColor,
-                prefixIcon: Icon(Icons.search, size: 30, color: Colorz.primaryColor),
-                onTextFieldChanged: (value) {
-                  Future.delayed(Duration(milliseconds: 300), () {
-                    cubit.getDoctors();
-                  });
-                },
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    cubit.searchController.clear();
-                    cubit.getDoctors();
-                  },
-                  icon: Icon(Icons.clear, color: Colorz.primaryColor),
-                ),
-                required: false,
+      color: Colors.white,
+      child: Row(
+        children: [
+          Expanded(
+            child: SearchField(
+                onTextFieldChanged: () => cubit.getDoctors(),
+                searchController: cubit.searchController,
+                onClose: () {
+                  cubit.searchController.clear();
+                  cubit.getDoctors();
+                }),
+          ),
+          InkWell(
+            onTap: () {
+              showFilterBottomSheet(context, cubit);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.filter_alt_outlined,
+                color: Colorz.primaryColor,
               ),
             ),
-            // WidthSpacer(size: 5),
-            // GestureDetector(
-            //   onTap: () async {
-            //     FocusScope.of(context).unfocus();
-            //     bool isShow = false;
-            //     //  isShow = await showFilterBottomSheet(context, dashboardCubit: OrderDashboardCubit.get(context));
-            //     if (isShow) {
-            //       setState(() {});
-            //     }
-            //   },
-            //   child: Container(
-            //     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-            //     decoration: BoxDecoration(
-            //       borderRadius: BorderRadius.circular(15),
-            //       color: Colorz.primaryColor.withOpacity(0.03),
-            //     ),
-            //     child: SvgPicture.asset(
-            //       "assets/icons/filter.svg",
-            //       color: Colorz.primaryColor,
-            //       width: 25,
-            //       height: 25,
-            //     ),
-            //   ),
-            // ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Future<void> showFilterBottomSheet(BuildContext context, DoctorCubit cubit) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FilterBottomSheet(cubit: cubit),
+    );
+  }
+}
+
+class FilterBottomSheet extends StatefulWidget {
+  const FilterBottomSheet({super.key, required this.cubit});
+  final DoctorCubit cubit;
+
+  @override
+  State<FilterBottomSheet> createState() => _FilterBottomSheetState();
+}
+
+class _FilterBottomSheetState extends State<FilterBottomSheet> {
+  bool _isFilterLoading = false;
+  bool _isResetLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _loadClinics();
+  }
+
+  Future<void> _loadClinics() async {
+    if (widget.cubit.clinics == null) {
+      await widget.cubit.getClinics();
+    }
+  }
+
+  Future<void> _handleFilter() async {
+    if (_isFilterLoading || _isResetLoading) return;
+
+    setState(() => _isFilterLoading = true);
+    try {
+      await widget.cubit.getDoctors();
+      if (mounted) Navigator.pop(context, true);
+    } finally {
+      if (mounted) {
+        setState(() => _isFilterLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleReset() async {
+    if (_isFilterLoading || _isResetLoading) return;
+
+    setState(() => _isResetLoading = true);
+    try {
+      widget.cubit.filterByClinic = null;
+      widget.cubit.filterByBranch = null;
+      await widget.cubit.getDoctors();
+      if (mounted) Navigator.pop(context, true);
+    } finally {
+      if (mounted) {
+        setState(() => _isResetLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: BlocBuilder(
+        bloc: widget.cubit,
+        builder: (context, state) => Column(
+          spacing: 20,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DropdownItem(
+              radius: 8,
+              border: Colorz.grey,
+              color: Colorz.white,
+              isShadow: false,
+              height: 14,
+              iconData: Icon(Icons.keyboard_arrow_down_rounded, color: Colorz.grey),
+              items: widget.cubit.clinics?.clinics ?? [],
+              validateText: 'Please choose a clinic',
+              selectedValue: widget.cubit.filterByClinic?.name,
+              hintText: 'Select Clinic',
+              itemAsString: (item) => item.name.toString(),
+              onItemSelected: (item) {
+                if (item != "Not Found") {
+                  setState(() => widget.cubit.filterByClinic = item);
+                  widget.cubit.getBranches();
+                }
+              },
+              isLoading: widget.cubit.clinics == null,
+            ),
+            DropdownItem(
+              radius: 8,
+              border: Colorz.grey,
+              color: Colorz.white,
+              isShadow: false,
+              height: 14,
+              iconData: Icon(Icons.keyboard_arrow_down_rounded, color: Colorz.grey),
+              items: widget.cubit.branches?.branches ?? [],
+              validateText: 'Please choose a branch',
+              selectedValue: widget.cubit.filterByBranch?.name,
+              hintText: 'Select Branch',
+              itemAsString: (item) => item.name.toString(),
+              onItemSelected: (item) {
+                if (item != "Not Found") {
+                  setState(() => widget.cubit.filterByBranch = item);
+                }
+              },
+              isLoading: widget.cubit.loading,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colorz.primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: _isFilterLoading || _isResetLoading ? null : _handleFilter,
+                    child: _isFilterLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            "Apply Filter",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colorz.primaryColor,
+                      side: BorderSide(color: Colorz.redColor),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: _isFilterLoading || _isResetLoading ? null : _handleReset,
+                    child: _isResetLoading
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colorz.redColor),
+                            ),
+                          )
+                        : Text(
+                            "Reset",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colorz.redColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

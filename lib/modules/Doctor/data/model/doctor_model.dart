@@ -1,4 +1,5 @@
 import '../../../Branch/data/model/branches_model.dart';
+import '../../../Clinics/data/model/clinics_model.dart';
 
 class DoctorModel {
   DoctorModel({
@@ -42,9 +43,6 @@ class Doctor {
     this.capabilities,
     this.createdAt,
     this.updatedAt,
-    this.availableDays,
-    this.availableFrom,
-    this.availableTo,
     this.clinic,
     this.id,
     this.error,
@@ -54,18 +52,16 @@ class Doctor {
   String? name;
   String? image;
   String? phone;
-  String? clinic;
+  Clinic? clinic;
   String? password;
   DateTime? birthDate;
   String? qualifications;
-  Branch? branch;
+  List<Branch>? branch;
   bool? isActive;
   List<dynamic>? capabilities;
   DateTime? createdAt;
   DateTime? updatedAt;
-  List<String>? availableDays;
-  String? availableFrom;
-  String? availableTo;
+
   String? id;
   String? error;
 
@@ -77,14 +73,12 @@ class Doctor {
       phone: json["phone"],
       birthDate: DateTime.tryParse(json["birthDate"] ?? ""),
       qualifications: json["qualifications"],
-      branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
+      branch: json["branch"] == null ? [] : List<Branch>.from(json["branch"]!.map((x) => Branch.fromJson(x))),
       isActive: json["isActive"],
       capabilities: json["capabilities"] == null ? [] : List<dynamic>.from(json["capabilities"]!.map((x) => x)),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
-      availableDays: json["availableDays"] == null ? [] : List<String>.from(json["availableDays"]!.map((x) => x)),
-      availableFrom: json["availableFrom"],
-      availableTo: json["availableTo"],
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       id: json["id"],
       error: json["error"],
     );
@@ -96,17 +90,13 @@ class Doctor {
         "phone": phone,
         "birthDate": birthDate?.toIso8601String(),
         "qualifications": qualifications,
-        "branch": branch?.toJson(),
         "isActive": isActive,
         "capabilities": capabilities?.map((x) => x).toList(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
-        "availableDays": availableDays?.map((x) => x).toList(),
-        "availableFrom": availableFrom,
-        "availableTo": availableTo,
         "id": id,
         "password": password,
-        "clinic": clinic,
+        "clinic": clinic?.id,
         "error": error,
       };
 }

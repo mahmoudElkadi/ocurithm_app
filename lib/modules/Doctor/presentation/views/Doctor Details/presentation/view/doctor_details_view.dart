@@ -115,6 +115,11 @@ class _DoctorDetailsViewState extends State<DoctorDetailsView> {
                           setState(() {
                             widget.cubit.readOnly = !widget.cubit.readOnly;
                           });
+                          Future.wait(
+                            [
+                              widget.cubit.getClinics(),
+                            ],
+                          );
                         },
                         icon: Icon(Icons.edit, color: Colorz.black),
                       )

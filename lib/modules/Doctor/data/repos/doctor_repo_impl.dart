@@ -22,11 +22,7 @@ class DoctorRepoImpl implements DoctorRepo {
         "name": doctor.name?.trim(),
         "phone": doctor.phone?.trim(),
         "password": doctor.password,
-        "branch": doctor.branch?.id,
-        "availableDays": doctor.availableDays,
-        "clinic": "672b6748c642f2ffd02807ad",
-        if (doctor.availableFrom != null) "availableFrom": doctor.availableFrom.toString(),
-        if (doctor.availableTo != null) "availableTo": doctor.availableTo.toString(),
+        "clinic": doctor.clinic?.id,
         if (doctor.birthDate != null) "birthDate": doctor.birthDate.toString(),
         if (doctor.capabilities != null && doctor.capabilities!.isNotEmpty) "capabilities": doctor.capabilities,
         if (doctor.qualifications != null && doctor.qualifications!.isNotEmpty) "qualifications": doctor.qualifications,
@@ -79,6 +75,7 @@ class DoctorRepoImpl implements DoctorRepo {
     int? page,
     String? search,
     String? branch,
+    String? clinic,
     bool? isActive,
   }) async {
     final url = "${Config.baseUrl}${Config.doctors}";
@@ -87,8 +84,9 @@ class DoctorRepoImpl implements DoctorRepo {
     Map<String, dynamic> query = {
       "page": page ?? 1,
       'limit': 10,
-      if (search != null) "search": search,
+      if (search != null || search!.isNotEmpty) "search": search,
       if (branch != null) "branch": branch,
+      if (clinic != null) "clinic": clinic,
       if (isActive != null) "isActive": isActive,
     };
 
@@ -142,10 +140,7 @@ class DoctorRepoImpl implements DoctorRepo {
     Map<String, dynamic> data = {
       "name": doctor.name?.trim(),
       "phone": doctor.phone?.trim(),
-      "branch": doctor.branch?.id,
-      "availableDays": doctor.availableDays,
-      "availableFrom": doctor.availableFrom,
-      "availableTo": doctor.availableTo,
+      "clinic": doctor.clinic?.id,
       if (doctor.birthDate != null) "birthDate": doctor.birthDate.toString(),
       if (doctor.capabilities != null && doctor.capabilities!.isNotEmpty) "capabilities": doctor.capabilities,
       if (doctor.qualifications != null && doctor.qualifications!.isNotEmpty) "qualifications": doctor.qualifications,

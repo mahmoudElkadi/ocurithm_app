@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
@@ -15,10 +14,6 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../../generated/l10n.dart';
-import '../../../../../../../../Services/time_parser.dart';
-import '../../../../../../../../core/widgets/animated_visible_widget.dart';
-import '../../../../../../../../core/widgets/choose_hours_range.dart';
-import '../../../../../../../../core/widgets/work_day_selector.dart';
 import '../../../../../../../Receptionist/presentation/views/Add Receptionist/presentation/view/widgets/add_receptionist_view_body.dart';
 import '../../../../../../../Receptionist/presentation/views/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
 import '../../../../../manager/doctor_cubit.dart';
@@ -54,7 +49,6 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
   }
 
   fetchDoctorData() async {
-    log("messagecc");
     await widget.cubit.getDoctor(id: widget.id);
 
     if (widget.cubit.doctor != null) {
@@ -63,12 +57,9 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
       widget.cubit.phoneNumberController.text = widget.cubit.doctor?.phone ?? "";
       widget.cubit.passwordController.text = widget.cubit.doctor?.password ?? "";
       widget.cubit.date = widget.cubit.doctor?.birthDate;
-      widget.cubit.selectedBranch = widget.cubit.doctor?.branch;
+      widget.cubit.selectedClinic = widget.cubit.doctor?.clinic;
       widget.cubit.qualificationController.text = widget.cubit.doctor?.qualifications ?? "";
-      log("data ${widget.cubit.selectedBranch?.workDays}");
-      log("dataDD ${widget.cubit.doctor?.branch?.workDays}");
     }
-    await widget.cubit.getBranches();
   }
 
   final List<Capability> capabilities = [
@@ -206,7 +197,7 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             ),
                             isShadow: _isPhoneShadow,
                           ),
-                    const HeightSpacer(size: 20),
+                    HeightSpacer(size: 16),
                     isLoading
                         ? _buildShimmer(Container(
                             width: MediaQuery.sizeOf(context).width,
@@ -216,155 +207,30 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                               color: Colors.white,
                             ),
                           ))
-                        : widget.cubit.readOnly
-                            ? Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                                width: Get.width,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(30),
-                                  color: Colorz.white,
-                                  boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 2, blurRadius: 3, offset: const Offset(0, 0))],
-                                ),
-                                child: Text(
-                                  widget.cubit.doctor?.branch?.name ?? "",
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
-                                ))
-                            : DropdownItem(
-                                radius: 30,
-                                color: Colorz.white,
-                                isShadow: true,
-                                iconData: Icon(
-                                  Icons.arrow_drop_down_circle,
-                                  color: Colorz.primaryColor,
-                                ),
-                                items: widget.cubit.branches?.branches,
-                                isValid: widget.cubit.chooseBranch,
-                                validateText: S.of(context).mustBranch,
-                                selectedValue: widget.cubit.selectedBranch?.name,
-                                hintText: 'Select Branch',
-                                itemAsString: (item) => item.name.toString(),
-                                onItemSelected: (item) {
-                                  setState(() {
-                                    if (item != "Not Found") {
-                                      widget.cubit.chooseBranch = true;
-                                      widget.cubit.selectedBranch = item;
-                                      log(widget.cubit.selectedBranch.toString());
-                                    }
-                                  });
-                                },
-                                isLoading: false,
-                              ),
-                    const HeightSpacer(size: 20),
-                    isLoading
-                        ? _buildShimmer(Container(
-                            width: MediaQuery.sizeOf(context).width,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.white,
-                            ),
-                          ))
-                        : widget.cubit.readOnly
-                            ? Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                                width: Get.width,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(30),
-                                  color: Colorz.white,
-                                  boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 2, blurRadius: 3, offset: const Offset(0, 0))],
-                                ),
-                                child: Text(
-                                  widget.cubit.doctor?.branch?.name ?? "",
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
-                                ))
-                            : DropdownItem(
-                                radius: 30,
-                                color: Colorz.white,
-                                isShadow: true,
-                                iconData: Icon(
-                                  Icons.arrow_drop_down_circle,
-                                  color: Colorz.primaryColor,
-                                ),
-                                items: widget.cubit.clinics?.clinics,
-                                isValid: widget.cubit.chooseClinic,
-                                validateText: S.of(context).mustBranch,
-                                selectedValue: widget.cubit.selectedClinic?.name,
-                                hintText: 'Select clinic',
-                                itemAsString: (item) => item.name.toString(),
-                                onItemSelected: (item) {
-                                  setState(() {
-                                    if (item != "Not Found") {
-                                      widget.cubit.chooseBranch = true;
-                                      widget.cubit.selectedClinic = item;
-                                      log(widget.cubit.selectedClinic.toString());
-                                    }
-                                  });
-                                },
-                                isLoading: false,
-                              ),
-                    AnimatedVisibleWidget(
-                      isVisible: widget.cubit.selectedBranch != null,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 20),
-                          WorkDaysSelector(
+                        : DropdownItem(
                             radius: 30,
+                            color: Colorz.white,
                             isShadow: true,
-                            border: Colors.transparent,
-                            isValid: widget.cubit.chooseDays,
-                            onDaysSelected: (List<String> days) {
+                            iconData: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: Colorz.primaryColor,
+                            ),
+                            readOnly: widget.cubit.readOnly,
+                            items: widget.cubit.clinics?.clinics,
+                            selectedValue: widget.cubit.selectedClinic?.name,
+                            hintText: 'Select Clinic',
+                            isValid: widget.cubit.chooseClinic,
+                            validateText: 'Clinic must not be Empty',
+                            itemAsString: (item) => item.name.toString(),
+                            onItemSelected: (item) {
                               setState(() {
-                                widget.cubit.availableDays = days;
+                                if (item != "Not Found") {
+                                  widget.cubit.selectedClinic = item;
+                                }
                               });
-                              print('Selected days: ${widget.cubit.availableDays}');
                             },
-                            initialSelectedDays: widget.cubit.doctor?.availableDays,
-                            enabledDays: widget.cubit.selectedBranch?.workDays,
-                            icon: Icon(
-                              Icons.arrow_drop_down_circle,
-                              color: Colorz.primaryColor,
-                            ),
+                            isLoading: widget.cubit.clinics == null,
                           ),
-                          const SizedBox(height: 20),
-                          BusinessHoursSelector(
-                            onTimeRangeSelected: (openTime, closeTime) {
-                              print('Business hours: ${openTime.format(context)} - ${closeTime.format(context)}');
-                              widget.cubit.availableFrom =
-                                  '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
-                              widget.cubit.availableTo =
-                                  '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
-                              log('Business hours: ${widget.cubit.availableFrom} - ${widget.cubit.availableTo}');
-                            },
-                            icon: Icon(
-                              Icons.arrow_drop_down_circle,
-                              color: Colorz.primaryColor,
-                            ),
-                            radius: 30,
-                            isShadow: true,
-                            isValid: widget.cubit.chooseTime,
-                            border: Colors.transparent,
-                            startEnabledTime: TimeParser.stringToTimeOfDay(widget.cubit.selectedBranch?.openTime),
-                            endEnabledTime: TimeParser.stringToTimeOfDay(widget.cubit.selectedBranch?.closeTime),
-                            initialCloseTime: TimeParser.parseTimeString(widget.cubit.doctor?.availableTo.toString() ?? "00:00"),
-                            initialOpenTime: TimeParser.parseTimeString(widget.cubit.doctor?.availableFrom.toString() ?? "00:00"),
-                          ),
-                        ],
-                      ),
-                    ),
                     const HeightSpacer(size: 20),
                     isLoading
                         ? _buildShimmer(Container(

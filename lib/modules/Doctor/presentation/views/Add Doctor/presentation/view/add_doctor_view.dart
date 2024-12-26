@@ -28,7 +28,7 @@ class _CreateDoctorViewState extends State<CreateDoctorView> {
 
   Future<void> _handleSave(BuildContext context) async {
     widget.cubit.validateFirstPage();
-    log("vv" + widget.cubit.isValidate.toString());
+
     if (formKey.currentState!.validate() && widget.cubit.isValidate) {
       customLoading(context, "");
 

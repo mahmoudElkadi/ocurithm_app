@@ -13,7 +13,6 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   static ExaminationCubit get(context) => BlocProvider.of(context);
   final TextEditingController historyController = TextEditingController();
   final TextEditingController complaintController = TextEditingController();
-
   final int totalSteps = 4;
 
   int _currentStep = 0;
@@ -104,6 +103,13 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   dynamic leftFundusVessels;
   dynamic leftFundusPeriphery;
 
+  //circle data
+
+  int leftTopRightTapCount = 0;
+  int leftTopLeftTapCount = 0;
+  int leftBottomRightTapCount = 0;
+  int leftBottomLeftTapCount = 0;
+
   // Right Eye Fields
   // Autoref
   dynamic rightAurorefSpherical;
@@ -151,12 +157,17 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   dynamic rightLens;
   dynamic rightAnteriorVitreous;
 
+  // circle data
+  int rightTopRightTapCount = 0;
+  int rightTopLeftTapCount = 0;
+  int rightBottomRightTapCount = 0;
+  int rightBottomLeftTapCount = 0;
+
   // Fundus Examination
   dynamic rightFundusOpticDisc;
   dynamic rightFundusMacula;
   dynamic rightFundusVessels;
   dynamic rightFundusPeriphery;
-
   @override
   Future<void> close() {
     // Dispose all controllers
@@ -171,6 +182,15 @@ class ExaminationCubit extends Cubit<ExaminationState> {
     rightLacrimalController.dispose();
     rightConjunctivaController.dispose();
     rightScleraController.dispose();
+
+    leftTopLeftTapCount = 0;
+    leftTopRightTapCount = 0;
+    leftBottomLeftTapCount = 0;
+    leftBottomRightTapCount = 0;
+    rightTopLeftTapCount = 0;
+    rightTopRightTapCount = 0;
+    rightBottomLeftTapCount = 0;
+    rightBottomRightTapCount = 0;
 
     return super.close();
   }
@@ -417,5 +437,46 @@ class ExaminationCubit extends Cubit<ExaminationState> {
 
         emit(ChooseData());
     }
+  }
+
+  void leftTopLeftHandleTap() {
+    leftTopLeftTapCount = (leftTopLeftTapCount + 1) % 3;
+
+    emit(CircleDateChanged());
+  }
+
+  void leftTopRightHandleTap() {
+    leftTopRightTapCount = (leftTopRightTapCount + 1) % 3;
+    emit(CircleDateChanged());
+  }
+
+  void leftBottomLeftHandleTap() {
+    leftBottomLeftTapCount = (leftBottomLeftTapCount + 1) % 3;
+    emit(CircleDateChanged());
+  }
+
+  void leftBottomRightHandleTap() {
+    leftBottomRightTapCount = (leftBottomRightTapCount + 1) % 3;
+    emit(CircleDateChanged());
+  }
+
+  void rightTopLeftHandleTap() {
+    rightTopLeftTapCount = (rightTopLeftTapCount + 1) % 3;
+    emit(CircleDateChanged());
+  }
+
+  void rightTopRightHandleTap() {
+    rightTopRightTapCount = (rightTopRightTapCount + 1) % 3;
+    emit(CircleDateChanged());
+  }
+
+  void rightBottomLeftHandleTap() {
+    rightBottomLeftTapCount = (rightBottomLeftTapCount + 1) % 3;
+    emit(CircleDateChanged());
+  }
+
+  void rightBottomRightHandleTap() {
+    rightBottomRightTapCount = (rightBottomRightTapCount + 1) % 3;
+    emit(CircleDateChanged());
   }
 }

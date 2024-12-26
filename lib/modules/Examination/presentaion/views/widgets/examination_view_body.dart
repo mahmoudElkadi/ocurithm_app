@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/modules/Examination/presentaion/views/widgets/review_examination.dart';
 
 import '../../../../../Main/presentation/views/drawer.dart';
 import '../../../../../core/utils/app_style.dart';
@@ -12,6 +13,7 @@ import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/text_field.dart';
 import '../../manager/examination_cubit.dart';
 import '../../manager/examination_state.dart';
+import 'circle_view.dart';
 import 'header_view.dart';
 import 'navigation_view.dart';
 
@@ -82,6 +84,8 @@ class MultiStepFormView extends StatelessWidget {
         return const _StepTwoContent();
       case 2:
         return const StepThreeContent();
+      case 3:
+        return const ExaminationReviewScreen();
       default:
         return const SizedBox.shrink();
     }
@@ -279,50 +283,82 @@ class StepThreeContent extends StatefulWidget {
   State<StepThreeContent> createState() => _StepThreeContentState();
 }
 
-class _StepThreeContentState extends State<StepThreeContent> with SingleTickerProviderStateMixin {
+class _StepThreeContentState extends State<StepThreeContent> {
   int index = 0;
+  // Cache eye examination views
+  late final leftEyeView = RepaintBoundary(child: EyeExaminationView(isLeftEye: true));
+  late final rightEyeView = RepaintBoundary(child: EyeExaminationView(isLeftEye: false));
 
   @override
   Widget build(BuildContext context) {
-    // Calculate height only once and cache it
+    final size = MediaQuery.of(context).size;
 
     return SizedBox(
-      height: MediaQuery.of(context).size.height - 200,
-      child: SingleChildScrollView(
-        child: Column(
-          spacing: 16,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
+      height: size.height - 200,
+      child: ListView(
+        physics: const ClampingScrollPhysics(),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: CupertinoSlidingSegmentedControl(
+              child: CupertinoSlidingSegmentedControl<int>(
                 groupValue: index,
                 thumbColor: Colorz.primaryColor,
                 backgroundColor: Colorz.white,
                 padding: EdgeInsets.zero,
                 children: {
-                  0: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: Text("Left Eye", style: appStyle(context, 18, index == 0 ? Colors.white : Colorz.black, FontWeight.w500))),
+                  0: SegmentLabel(
+                    text: "Left Eye",
+                    index: 0,
+                    color: index == 0 ? Colorz.white : Colorz.black,
                   ),
-                  1: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: Text("Right Eye", style: appStyle(context, 18, index == 1 ? Colors.white : Colorz.black, FontWeight.w500))),
+                  1: SegmentLabel(
+                    text: "Right Eye",
+                    index: 1,
+                    color: index == 1 ? Colorz.white : Colorz.black,
                   ),
                 },
                 onValueChanged: (value) {
-                  setState(() {
-                    index = value ?? 0;
-                  });
+                  if (value != null && value != index) {
+                    setState(() => index = value);
+                  }
                 },
               ),
             ),
-            SingleChildScrollView(child: EyeExaminationView(isLeftEye: index == 0 ? true : false)),
-          ],
+          ),
+          // Use cached views
+          index == 0 ? leftEyeView : rightEyeView,
+        ],
+      ),
+    );
+  }
+}
+
+// Extract segment label to a separate widget for better performance
+class SegmentLabel extends StatelessWidget {
+  final String text;
+  final int index;
+  final Color color;
+
+  const SegmentLabel({
+    Key? key,
+    required this.text,
+    required this.index,
+    required this.color,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Text(
+        text,
+        style: appStyle(
+          context,
+          18,
+          color,
+          FontWeight.w500,
         ),
       ),
     );
@@ -331,60 +367,130 @@ class _StepThreeContentState extends State<StepThreeContent> with SingleTickerPr
 
 class EyeExaminationView extends StatelessWidget {
   final bool isLeftEye;
+
   const EyeExaminationView({Key? key, required this.isLeftEye}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
+    final cubit = BlocProvider.of<ExaminationCubit>(context);
+    final List<Color> _colorList = [
+      Colors.grey[400]!,
+      Colors.black,
+      Colors.white,
+    ];
+    // // Create a list of all content widgets
+    // final List<Widget> contentWidgets = [
+    //   _buildExpandableContainer('Autoref', AutorefContent(isLeftEye: isLeftEye)),
+    //   _buildExpandableContainer('Visual Acuity', VisualAcuityContent(isLeftEye: isLeftEye)),
+    //   _buildExpandableContainer('Refined Refraction', RefinedRefractionContent(isLeftEye: isLeftEye)),
+    //   _buildExpandableContainer('IOP', IOPContent(isLeftEye: isLeftEye)),
+    //   isLeftEye
+    //       ? QuadrantContainer(
+    //           // Left side configuration
+    //           containerSize: 300,
+    //           colorList: _colorList,
+    //           tapCounts: [
+    //             cubit.leftTopLeftTapCount,
+    //             cubit.leftTopRightTapCount,
+    //             cubit.leftBottomLeftTapCount,
+    //             cubit.leftBottomRightTapCount,
+    //           ],
+    //           tapHandlers: [
+    //             cubit.leftTopLeftHandleTap,
+    //             cubit.leftTopRightHandleTap,
+    //             cubit.leftBottomLeftHandleTap,
+    //             cubit.leftBottomRightHandleTap,
+    //           ],
+    //
+    //           side: 'left',
+    //         )
+    //       : QuadrantContainer(
+    //           // Left side configuration
+    //           containerSize: 300,
+    //           colorList: _colorList,
+    //           tapCounts: [
+    //             cubit.rightTopLeftTapCount,
+    //             cubit.rightTopRightTapCount,
+    //             cubit.rightBottomLeftTapCount,
+    //             cubit.rightBottomRightTapCount,
+    //           ],
+    //           tapHandlers: [
+    //             cubit.rightTopLeftHandleTap,
+    //             cubit.rightTopRightHandleTap,
+    //             cubit.rightBottomLeftHandleTap,
+    //             cubit.rightBottomRightHandleTap,
+    //           ],
+    //
+    //           side: 'right',
+    //         ),
+    //   _buildExpandableContainer('Pupils', PupilsContent(isLeftEye: isLeftEye)),
+    //   _buildExpandableContainer('External Examination', ExternalExaminationContent(isLeftEye: isLeftEye)),
+    //   _buildExpandableContainer('Slitlamp Examination', SlitLampExaminationContent(isLeftEye: isLeftEye)),
+    //   _buildExpandableContainer('Additional Examination', AdditionalExaminationContent(isLeftEye: isLeftEye)),
+    //   _buildExpandableContainer('Fundus Examination', FundusExaminationContent(isLeftEye: isLeftEye)),
+    // ];
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Column(
+        spacing: 20,
         children: [
-          ModifiedExpandableContainer(
-            title: 'Autoref',
-            content: AutorefContent(isLeftEye: isLeftEye),
-          ),
-          const SizedBox(height: 16),
-          ModifiedExpandableContainer(
-            title: 'Visual Acuity',
-            content: VisualAcuityContent(isLeftEye: isLeftEye),
-          ),
-          const SizedBox(height: 16),
-          ModifiedExpandableContainer(
-            title: 'Refined Refraction',
-            content: RefinedRefractionContent(isLeftEye: isLeftEye),
-          ),
-          const SizedBox(height: 16),
-          ModifiedExpandableContainer(
-            title: 'IOP',
-            content: IOPContent(isLeftEye: isLeftEye),
-          ),
-          const SizedBox(height: 16),
-          ModifiedExpandableContainer(
-            title: 'Pupils',
-            content: PupilsContent(isLeftEye: isLeftEye),
-          ),
-          const SizedBox(height: 16),
-          ModifiedExpandableContainer(
-            title: 'External Examination',
-            content: ExternalExaminationContent(isLeftEye: isLeftEye),
-          ),
-          const SizedBox(height: 16),
-          ModifiedExpandableContainer(
-            title: 'Slitlamp Examination',
-            content: SlitLampExaminationContent(isLeftEye: isLeftEye),
-          ),
-          const SizedBox(height: 16),
-          ModifiedExpandableContainer(
-            title: 'Additional Examination',
-            content: AdditionalExaminationContent(isLeftEye: isLeftEye),
-          ),
-          const SizedBox(height: 16),
-          ModifiedExpandableContainer(
-            title: 'Fundus Examination',
-            content: FundusExaminationContent(isLeftEye: isLeftEye),
-          ),
-          const SizedBox(height: 20),
+          _buildExpandableContainer('Autoref', AutorefContent(isLeftEye: isLeftEye)),
+          _buildExpandableContainer('Visual Acuity', VisualAcuityContent(isLeftEye: isLeftEye)),
+          _buildExpandableContainer('Refined Refraction', RefinedRefractionContent(isLeftEye: isLeftEye)),
+          _buildExpandableContainer('IOP', IOPContent(isLeftEye: isLeftEye)),
+          isLeftEye
+              ? QuadrantContainer(
+                  // Left side configuration
+                  containerSize: 300,
+                  colorList: _colorList,
+                  tapCounts: [
+                    cubit.leftTopLeftTapCount,
+                    cubit.leftTopRightTapCount,
+                    cubit.leftBottomLeftTapCount,
+                    cubit.leftBottomRightTapCount,
+                  ],
+                  tapHandlers: [
+                    cubit.leftTopLeftHandleTap,
+                    cubit.leftTopRightHandleTap,
+                    cubit.leftBottomLeftHandleTap,
+                    cubit.leftBottomRightHandleTap,
+                  ],
+
+                  side: 'left',
+                )
+              : QuadrantContainer(
+                  // Left side configuration
+                  containerSize: 300,
+                  colorList: _colorList,
+                  tapCounts: [
+                    cubit.rightTopLeftTapCount,
+                    cubit.rightTopRightTapCount,
+                    cubit.rightBottomLeftTapCount,
+                    cubit.rightBottomRightTapCount,
+                  ],
+                  tapHandlers: [
+                    cubit.rightTopLeftHandleTap,
+                    cubit.rightTopRightHandleTap,
+                    cubit.rightBottomLeftHandleTap,
+                    cubit.rightBottomRightHandleTap,
+                  ],
+
+                  side: 'right',
+                ),
+          _buildExpandableContainer('Pupils', PupilsContent(isLeftEye: isLeftEye)),
+          _buildExpandableContainer('External Examination', ExternalExaminationContent(isLeftEye: isLeftEye)),
+          _buildExpandableContainer('Slitlamp Examination', SlitLampExaminationContent(isLeftEye: isLeftEye)),
+          _buildExpandableContainer('Additional Examination', AdditionalExaminationContent(isLeftEye: isLeftEye)),
+          _buildExpandableContainer('Fundus Examination', FundusExaminationContent(isLeftEye: isLeftEye)),
         ],
       ),
+    );
+  }
+
+  Widget _buildExpandableContainer(String title, Widget content) {
+    return ModifiedExpandableContainer(
+      title: title,
+      content: content,
     );
   }
 }
@@ -459,53 +565,51 @@ class _ModifiedExpandableContainerState extends State<ModifiedExpandableContaine
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            spreadRadius: 2,
-            blurRadius: 4,
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          InkWell(
-            onTap: () => setState(() => isExpanded = !isExpanded),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+    return RepaintBoundary(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade200,
+              spreadRadius: 2,
+              blurRadius: 4,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            InkWell(
+              onTap: () => setState(() => isExpanded = !isExpanded),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  Icon(
-                    isExpanded ? Icons.expand_less : Icons.expand_more,
-                  ),
-                ],
+                    Icon(
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox(height: 0),
-            secondChild: Padding(
-              padding: const EdgeInsets.all(8),
-              child: widget.content,
-            ),
-            crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 300),
-          ),
-        ],
+            if (isExpanded)
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: widget.content,
+              ),
+          ],
+        ),
       ),
     );
   }

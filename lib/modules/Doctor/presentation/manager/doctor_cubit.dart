@@ -66,7 +66,7 @@ class DoctorCubit extends Cubit<DoctorState> {
         );
         emit(AdminDoctorError());
       } else {
-        doctors = await doctorRepo.getAllDoctors(page: page, search: searchController.text);
+        doctors = await doctorRepo.getAllDoctors(page: page, search: searchController.text, clinic: filterByClinic?.id, branch: filterByBranch?.id);
         if (doctors!.doctors!.isNotEmpty) {
           emit(AdminDoctorSuccess());
         } else {
@@ -129,11 +129,9 @@ class DoctorCubit extends Cubit<DoctorState> {
   String? branchId;
 
   bool picDate = true;
-  bool chooseBranch = true;
+
   bool chooseClinic = true;
   bool isValidate = false;
-  bool chooseTime = true;
-  bool chooseDays = true;
 
   validateFirstPage() {
     if (date == null) {
@@ -142,30 +140,13 @@ class DoctorCubit extends Cubit<DoctorState> {
       picDate = true;
     }
 
-    if (selectedBranch == null) {
-      chooseBranch = false;
+    if (selectedClinic == null) {
+      chooseClinic = false;
     } else {
-      chooseBranch = true;
+      chooseClinic = true;
     }
 
-    if (availableFrom == "" && availableTo == "") {
-      chooseTime = false;
-    } else {
-      chooseTime = true;
-    }
-
-    if (availableDays.isEmpty) {
-      chooseDays = false;
-    } else {
-      chooseDays = true;
-    }
-
-    log(picDate.toString());
-    log(chooseBranch.toString());
-    log("ss" + chooseDays.toString());
-    log("ss" + availableDays.toString());
-
-    if (picDate && chooseBranch && chooseTime && chooseDays) {
+    if (picDate && chooseClinic) {
       log(isValidate.toString());
       isValidate = true;
     } else {
@@ -176,7 +157,7 @@ class DoctorCubit extends Cubit<DoctorState> {
   }
 
   ClinicsModel? clinics;
-  getClinics() async {
+  Future getClinics() async {
     clinics = null;
     emit(AdminClinicLoading());
 
@@ -221,12 +202,8 @@ class DoctorCubit extends Cubit<DoctorState> {
             password: passwordController.text,
             phone: phoneNumberController.text,
             birthDate: date,
-            branch: selectedBranch,
-            availableFrom: availableFrom,
-            availableTo: availableTo,
-            availableDays: availableDays,
             qualifications: qualificationController.text,
-            clinic: selectedClinic?.id,
+            clinic: selectedClinic,
             capabilities: capabilitiesList),
       );
       if (result.error == null && (result.name != null || result.id != null)) {
@@ -241,14 +218,11 @@ class DoctorCubit extends Cubit<DoctorState> {
         Navigator.pop(context);
 
         doctors?.doctors?.add(Doctor(
-            id: result.id,
-            name: result.name,
-            phone: result.phone,
-            image: result.image,
-            branch: result.branch,
-            availableDays: result.availableDays,
-            availableFrom: result.availableFrom,
-            availableTo: result.availableTo));
+          id: result.id,
+          name: result.name,
+          phone: result.phone,
+          image: result.image,
+        ));
 
         clearData();
         emit(AddDoctorSuccess());
@@ -274,8 +248,12 @@ class DoctorCubit extends Cubit<DoctorState> {
 
   bool? connection;
   BranchesModel? branches;
+
+  Clinic? filterByClinic;
+  Branch? filterByBranch;
+
   bool loading = false;
-  getBranches() async {
+  Future getBranches() async {
     branches = null;
     loading = true;
     emit(AdminBranchLoading());
@@ -294,7 +272,7 @@ class DoctorCubit extends Cubit<DoctorState> {
         loading = false;
         emit(AdminBranchError());
       } else {
-        branches = await doctorRepo.getAllBranches();
+        branches = await ServicesApi().getAllBranches(clinic: selectedClinic?.id);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
           loading = false;
           emit(AdminBranchSuccess());
@@ -390,10 +368,7 @@ class DoctorCubit extends Cubit<DoctorState> {
             password: passwordController.text,
             phone: phoneNumberController.text,
             birthDate: date,
-            branch: selectedBranch,
-            availableFrom: availableFrom,
-            availableTo: availableTo,
-            availableDays: availableDays,
+            clinic: selectedClinic,
             capabilities: capabilitiesList,
             qualifications: qualificationController.text),
         id: id,
@@ -408,29 +383,24 @@ class DoctorCubit extends Cubit<DoctorState> {
         );
         Navigator.pop(context);
         readOnly = true;
-        doctor?.branch = result.branch;
+        doctor?.clinic = result.clinic;
         doctor?.capabilities = result.capabilities;
         doctor?.birthDate = result.birthDate;
         doctor?.image = result.image;
         doctor?.name = result.name;
         doctor?.phone = result.phone;
-        doctor?.availableDays = result.availableDays;
-        doctor?.availableFrom = result.availableFrom;
-        doctor?.availableTo = result.availableTo;
+
         emit(AdminBranchSuccess());
 
         final index = doctors?.doctors?.indexWhere((Doctor) => Doctor.id == id);
         if (index != -1) {
           doctors?.doctors[index!].name = result.name;
           doctors?.doctors[index!].image = result.image;
+          doctors?.doctors[index!].clinic = result.clinic;
           doctors?.doctors[index!].password = result.password;
           doctors?.doctors[index!].phone = result.phone;
           doctors?.doctors[index!].birthDate = result.birthDate;
-          doctors?.doctors[index!].branch = result.branch;
           doctors?.doctors[index!].capabilities = result.capabilities;
-          doctors?.doctors[index!].availableDays = result.availableDays;
-          doctors?.doctors[index!].availableFrom = result.availableFrom;
-          doctors?.doctors[index!].availableTo = result.availableTo;
         }
 
         emit(AdminBranchSuccess());
@@ -465,9 +435,8 @@ class DoctorCubit extends Cubit<DoctorState> {
     capabilitiesList = [];
     selectedBranch = null;
     picDate = true;
-    chooseBranch = true;
-    chooseTime = true;
-    chooseDays = true;
+    selectedClinic = null;
+    selectedBranch = null;
     availableDays = [];
     availableFrom = "";
     availableTo = "";
