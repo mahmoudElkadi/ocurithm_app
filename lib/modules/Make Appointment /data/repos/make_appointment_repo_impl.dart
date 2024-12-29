@@ -22,7 +22,6 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> query = {
-      "pagination": false,
       if (branch != null) "branch": branch,
       "isActive": true,
     };

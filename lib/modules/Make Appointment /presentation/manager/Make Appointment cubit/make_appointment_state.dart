@@ -49,3 +49,9 @@ class MakeAppointmentLoading extends MakeAppointmentState {}
 class MakeAppointmentSuccess extends MakeAppointmentState {}
 
 class MakeAppointmentError extends MakeAppointmentState {}
+
+class AdminClinicLoading extends MakeAppointmentState {}
+
+class AdminClinicError extends MakeAppointmentState {}
+
+class AdminClinicSuccess extends MakeAppointmentState {}

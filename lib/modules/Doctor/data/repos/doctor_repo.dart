@@ -20,4 +20,8 @@ abstract class DoctorRepo {
   Future<DataModel> deleteDoctor({required String id});
 
   Future<BranchesModel> getAllBranches();
+
+  Future<Doctor> addBranch(
+      {required String doctorId, required String branchId, required String availableFrom, required String availableTo, required List availableDays});
+  Future<Doctor> deleteBranch({required String doctorId, required String branchId});
 }

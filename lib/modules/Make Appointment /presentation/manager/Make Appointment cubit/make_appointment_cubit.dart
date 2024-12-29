@@ -8,9 +8,11 @@ import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
 
+import '../../../../../Services/services_api.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Branch/data/model/branches_model.dart';
+import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../../Doctor/data/model/doctor_model.dart';
 import '../../../../Examination Type/data/model/examination_type_model.dart';
 import '../../../../Patient/data/model/patients_model.dart';
@@ -41,6 +43,38 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
       curve: Curves.easeInOut,
     );
     if (!isClosed) emit(ChangeState());
+  }
+
+  ClinicsModel? clinics;
+  Future getClinics() async {
+    clinics = null;
+    emit(AdminClinicLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(AdminClinicLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(AdminClinicError());
+      } else {
+        clinics = await ServicesApi().getAllClinics();
+        log(clinics.toString());
+        if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
+          emit(AdminClinicSuccess());
+        } else {
+          emit(AdminClinicError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(AdminClinicError());
+    }
   }
 
   bool? connection;
@@ -98,7 +132,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         loading = false;
         emit(GetBranchError());
       } else {
-        branches = await makeAppointmentRepo.getAllBranches();
+        branches = await ServicesApi().getAllBranches(clinic: selectedClinic?.id, haveDoctors: true);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
           loading = false;
           emit(GetBranchSuccess());
@@ -235,7 +269,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
 
   getAllData() async {
     await Future.wait([
-      getBranches(),
+      getClinics(),
       getExaminationTypes(),
       getPaymentMethods(),
     ]);
@@ -283,7 +317,6 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     selectedDoctor = appointment.doctor;
     selectedPatient = appointment.patient;
     appointmentId = appointment.id;
-    log("dsdsdsdsds" + appointment.toJson().toString());
     emit(DataChanged());
   }
 
@@ -322,7 +355,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
               examinationType: selectedExaminationType?.id,
               patient: selectedPatient?.id,
               status: "Scheduled",
-              clinic: "672b6748c642f2ffd02807ad",
+              clinic: selectedClinic?.id,
               note: noteController.text));
       if (result != null && result.error == null) {
         Get.snackbar(
@@ -334,7 +367,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         );
         currentStep = 0;
         Navigator.pop(context);
-        Navigator.pop(context);
+        Navigator.pop(context, true);
         emit(MakeAppointmentSuccess());
       } else if (result != null && result.error != null) {
         Get.snackbar(
@@ -415,6 +448,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   }
 
   Doctor? selectedDoctor;
+  Clinic? selectedClinic;
   Patient? selectedPatient;
   Branch? selectedBranch;
   DateTime? selectedTime;
@@ -424,25 +458,20 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     'doctor': true,
     'patient': true,
     'branch': true,
+    'clinic': true,
     'examinationType': true,
     'paymentMethod': true,
   };
   bool get areAllFieldsFilled =>
-      selectedDoctor != null && selectedPatient != null && selectedBranch != null && selectedExaminationType != null && selectedPaymentMethod != null;
+      selectedDoctor != null &&
+      selectedPatient != null &&
+      selectedBranch != null &&
+      selectedExaminationType != null &&
+      selectedPaymentMethod != null &&
+      selectedDoctor != null;
   bool get isFormValid => validationState.values.every((isValid) => isValid) && areAllFieldsFilled;
   void validateField(String field, bool isValid) {
     validationState[field] = isValid;
     emit(ValidateState());
   }
-
-  Map<String, dynamic> appointmentData = {
-    "doctor": {
-      "name": "Elkady",
-    },
-    "patient": {"name": "Ahmed"},
-    "branch": {"name": "Cairo"},
-    "examinationType": {"name": "X-ray", "price": 100, "duration": 10},
-    "paymentMethod": {"name": "Cash"},
-    "date": {"date": "2022-12-12"}
-  };
 }

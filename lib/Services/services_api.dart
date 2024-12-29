@@ -27,14 +27,14 @@ class ServicesApi {
     }
   }
 
-  Future<BranchesModel> getAllBranches({String? clinic}) async {
+  Future<BranchesModel> getAllBranches({String? clinic, bool? haveDoctors}) async {
     final url = "${Config.baseUrl}${Config.branches}";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<BranchesModel>(
       url: url,
       method: 'GET',
-      queryParameters: {if (clinic != null) "clinic": clinic},
+      queryParameters: {if (clinic != null) "clinic": clinic, if (haveDoctors != null) "haveDoctors": true},
       headers: {
         "Content-Type": "application/json",
         if (token != null) 'Cookie': 'ocurithmToken=$token',

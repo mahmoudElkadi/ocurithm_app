@@ -2,10 +2,12 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/modules/Doctor/presentation/views/Doctor%20Details/presentation/view/widgets/add_branch.dart';
 import 'package:ocurithm/modules/Doctor/presentation/views/Doctor%20Details/presentation/view/widgets/doctor_details_view_body.dart';
 
 import '../../../../../../../../core/widgets/custom_freeze_loading.dart';
@@ -131,6 +133,17 @@ class _DoctorDetailsViewState extends State<DoctorDetailsView> {
                           "Done",
                           style: appStyle(context, 16, Colorz.primaryColor, FontWeight.w600),
                         )),
+                IconButton(
+                  onPressed: () {
+                    //  showAddBranchDialog(context: context, cubit: widget.cubit, id: widget.id);
+                    Get.dialog(AddBranch(
+                      cubit: widget.cubit,
+                      id: widget.id,
+                      clinic: widget.cubit.doctor!.clinic!.id.toString(),
+                    ));
+                  },
+                  icon: SvgPicture.asset("assets/icons/add_branch.svg", color: Colorz.black),
+                )
               ],
             ),
             body: SingleChildScrollView(

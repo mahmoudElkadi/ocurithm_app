@@ -71,6 +71,118 @@ class DoctorRepoImpl implements DoctorRepo {
   }
 
   @override
+  Future<Doctor> addBranch(
+      {required String doctorId,
+      required String branchId,
+      required String availableFrom,
+      required String availableTo,
+      required List availableDays}) async {
+    try {
+      final url = "${Config.baseUrl}${Config.doctors}/addBranch";
+      final String? token = CacheHelper.getData(key: "token");
+
+      // Sanitize and validate data before sending
+      Map<String, dynamic> data = {
+        "doctorId": doctorId,
+        "branchId": branchId,
+        "availableFrom": availableFrom,
+        "availableTo": availableTo,
+        "availableDays": availableDays
+      };
+
+      final result = await ApiService.request<Doctor>(
+        url: url,
+        data: data,
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+          if (token != null) 'Cookie': 'ocurithmToken=$token',
+        },
+        showError: true,
+        fromJson: (json) => Doctor.fromJson(json),
+      );
+
+      if (result != null) {
+        return result;
+      } else {
+        throw Exception("Failed to create doctor: No response from server");
+      }
+    } catch (e) {
+      log("Error creating doctor: $e");
+      if (e is DioException) {
+        switch (e.type) {
+          case DioExceptionType.connectionTimeout:
+          case DioExceptionType.sendTimeout:
+          case DioExceptionType.receiveTimeout:
+            throw Exception("Connection timeout. Please try again.");
+          case DioExceptionType.badResponse:
+            final responseData = e.response?.data;
+            final errorMessage = responseData is Map ? responseData['error'] ?? 'Unknown error' : 'Unknown error';
+            throw Exception("Server error: $errorMessage");
+          case DioExceptionType.cancel:
+            throw Exception("Request cancelled");
+          default:
+            throw Exception("Network error: ${e.message}");
+        }
+      }
+      throw Exception("Failed to create doctor: ${e.toString()}");
+    }
+  }
+
+  @override
+  Future<Doctor> deleteBranch({required String doctorId, required String branchId}) async {
+    try {
+      final url = "${Config.baseUrl}${Config.doctors}/deleteBranch";
+      final String? token = CacheHelper.getData(key: "token");
+
+      // Sanitize and validate data before sending
+      Map<String, dynamic> data = {
+        "doctorId": doctorId,
+        "branchId": branchId,
+      };
+
+      log("Creating doctor with data: ${data.toString()}");
+
+      final result = await ApiService.request<Doctor>(
+        url: url,
+        data: data,
+        method: 'DELETE',
+        headers: {
+          "Content-Type": "application/json",
+          if (token != null) 'Cookie': 'ocurithmToken=$token',
+        },
+        showError: true,
+        fromJson: (json) => Doctor.fromJson(json),
+      );
+
+      if (result != null) {
+        return result;
+      } else {
+        throw Exception("Failed to delete branch: No response from server");
+      }
+    } catch (e) {
+      log("Error creating doctor: $e");
+      if (e is DioException) {
+        switch (e.type) {
+          case DioExceptionType.connectionTimeout:
+          case DioExceptionType.sendTimeout:
+          case DioExceptionType.receiveTimeout:
+            throw Exception("Connection timeout. Please try again.");
+          case DioExceptionType.badResponse:
+            final responseData = e.response?.data;
+            final errorMessage = responseData is Map ? responseData['error'] ?? 'Unknown error' : 'Unknown error';
+            throw Exception("Server error: $errorMessage");
+          case DioExceptionType.cancel:
+            throw Exception("Request cancelled");
+          default:
+            throw Exception("Network error: ${e.message}");
+        }
+      }
+      throw Exception("Failed to create doctor: ${e.toString()}");
+    }
+  }
+
+  @override
   Future<DoctorModel> getAllDoctors({
     int? page,
     String? search,

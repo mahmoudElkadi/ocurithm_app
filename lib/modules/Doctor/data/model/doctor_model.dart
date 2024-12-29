@@ -38,7 +38,7 @@ class Doctor {
     this.phone,
     this.birthDate,
     this.qualifications,
-    this.branch,
+    this.branches,
     this.isActive,
     this.capabilities,
     this.createdAt,
@@ -56,7 +56,7 @@ class Doctor {
   String? password;
   DateTime? birthDate;
   String? qualifications;
-  List<Branch>? branch;
+  final List<BranchElement>? branches;
   bool? isActive;
   List<dynamic>? capabilities;
   DateTime? createdAt;
@@ -73,7 +73,7 @@ class Doctor {
       phone: json["phone"],
       birthDate: DateTime.tryParse(json["birthDate"] ?? ""),
       qualifications: json["qualifications"],
-      branch: json["branch"] == null ? [] : List<Branch>.from(json["branch"]!.map((x) => Branch.fromJson(x))),
+      branches: json["branches"] == null ? [] : List<BranchElement>.from(json["branches"]!.map((x) => BranchElement.fromJson(x))),
       isActive: json["isActive"],
       capabilities: json["capabilities"] == null ? [] : List<dynamic>.from(json["capabilities"]!.map((x) => x)),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
@@ -98,5 +98,43 @@ class Doctor {
         "password": password,
         "clinic": clinic?.id,
         "error": error,
+      };
+}
+
+class BranchElement {
+  BranchElement({
+    required this.branch,
+    required this.availableFrom,
+    required this.availableTo,
+    required this.availableDays,
+    required this.id,
+    required this.branchId,
+  });
+
+  final Branch? branch;
+  final String? availableFrom;
+  final String? availableTo;
+  final List<String> availableDays;
+  final String? id;
+  final String? branchId;
+
+  factory BranchElement.fromJson(Map<String, dynamic> json) {
+    return BranchElement(
+      branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
+      availableFrom: json["availableFrom"],
+      availableTo: json["availableTo"],
+      availableDays: json["availableDays"] == null ? [] : List<String>.from(json["availableDays"]!.map((x) => x)),
+      id: json["_id"],
+      branchId: json["id"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        "branch": branch?.toJson(),
+        "availableFrom": availableFrom,
+        "availableTo": availableTo,
+        "availableDays": availableDays.map((x) => x).toList(),
+        "_id": id,
+        "id": branchId,
       };
 }

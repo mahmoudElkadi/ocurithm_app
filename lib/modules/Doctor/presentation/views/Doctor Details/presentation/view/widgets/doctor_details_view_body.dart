@@ -18,6 +18,7 @@ import '../../../../../../../Receptionist/presentation/views/Add Receptionist/pr
 import '../../../../../../../Receptionist/presentation/views/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
 import '../../../../../manager/doctor_cubit.dart';
 import '../../../../../manager/doctor_state.dart';
+import 'branch_detials.dart';
 
 class EditDoctorViewBody extends StatefulWidget {
   const EditDoctorViewBody({super.key, required this.cubit, required this.formKey, required this.id});
@@ -414,6 +415,27 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                         ),
                       ),
                     const HeightSpacer(size: 20),
+                    Divider(
+                      thickness: 0.4,
+                      color: Colorz.grey,
+                    ),
+                    const HeightSpacer(size: 20),
+                    Text("Branches", style: TextStyle(color: Colorz.black, fontWeight: FontWeight.w600, fontSize: 18)),
+                    const HeightSpacer(size: 10),
+                    isLoading
+                        ? _buildShimmer(Container(
+                            width: MediaQuery.sizeOf(context).width,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
+                            ),
+                          ))
+                        : DoctorBranchesView(
+                            branches: widget.cubit.doctor!.branches!,
+                            cubit: widget.cubit,
+                            doctorId: widget.id,
+                          )
                   ],
                 ),
               ),

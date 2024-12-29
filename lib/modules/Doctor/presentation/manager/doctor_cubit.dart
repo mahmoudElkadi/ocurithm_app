@@ -246,6 +246,82 @@ class DoctorCubit extends Cubit<DoctorState> {
     }
   }
 
+  addBranch({context, required String doctorId, required String branchId}) async {
+    emit(AddBranchLoading());
+    try {
+      var result = await doctorRepo.addBranch(
+          doctorId: doctorId, branchId: branchId, availableFrom: availableFrom, availableTo: availableTo, availableDays: availableDays);
+      if (result.error == null && (result.name != null || result.id != null)) {
+        Get.snackbar(
+          "Success",
+          "Branch Added Successfully",
+          backgroundColor: Colorz.primaryColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.check, color: Colorz.white),
+        );
+        Navigator.pop(context);
+        Navigator.pop(context);
+
+        doctor = result;
+        emit(AddBranchSuccess());
+      } else {
+        Get.snackbar(
+          "Error",
+          result.error!,
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(AddBranchError());
+      }
+    } catch (e) {
+      log(e.toString());
+      Navigator.pop(context);
+
+      emit(AddBranchError());
+    }
+  }
+
+  deleteBranch({context, required String doctorId, required String branchId}) async {
+    emit(DeleteBranchLoading());
+    // try {
+    var result = await doctorRepo.deleteBranch(doctorId: doctorId, branchId: branchId);
+    log(result.toJson().toString());
+    if (result.error == null && (result.name != null || result.id != null)) {
+      Get.snackbar(
+        "Success",
+        "Branch Deleted Successfully",
+        backgroundColor: Colorz.primaryColor,
+        colorText: Colorz.white,
+        icon: Icon(Icons.check, color: Colorz.white),
+      );
+      Navigator.pop(context);
+      Navigator.pop(context);
+
+      doctor = result;
+      emit(DeleteBranchSuccess());
+    } else {
+      Get.snackbar(
+        "Error",
+        result.error ?? "Something went wrong",
+        backgroundColor: Colorz.errorColor,
+        colorText: Colorz.white,
+        icon: Icon(Icons.error, color: Colorz.white),
+      );
+      Navigator.pop(context);
+
+      emit(DeleteBranchError());
+    }
+    // } catch (e) {
+    //   log(e.toString());
+    //   Navigator.pop(context);
+    //
+    //   emit(DeleteBranchError());
+    // }
+  }
+
   bool? connection;
   BranchesModel? branches;
 
@@ -253,7 +329,7 @@ class DoctorCubit extends Cubit<DoctorState> {
   Branch? filterByBranch;
 
   bool loading = false;
-  Future getBranches() async {
+  Future getBranches({String? clinic}) async {
     branches = null;
     loading = true;
     emit(AdminBranchLoading());
@@ -272,7 +348,7 @@ class DoctorCubit extends Cubit<DoctorState> {
         loading = false;
         emit(AdminBranchError());
       } else {
-        branches = await ServicesApi().getAllBranches(clinic: selectedClinic?.id);
+        branches = await ServicesApi().getAllBranches(clinic: clinic ?? selectedClinic?.id);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
           loading = false;
           emit(AdminBranchSuccess());
@@ -421,6 +497,36 @@ class DoctorCubit extends Cubit<DoctorState> {
       Navigator.pop(context);
 
       emit(AdminBranchError());
+    }
+  }
+
+  bool chooseTime = true;
+  bool chooseDays = true;
+  bool chooseBranch = true;
+
+  bool validateAddBranch() {
+    if (selectedBranch == null) {
+      chooseBranch = false;
+    } else {
+      chooseBranch = true;
+    }
+    if (availableFrom == "" && availableTo == "") {
+      chooseTime = false;
+    } else {
+      chooseTime = true;
+    }
+    if (availableDays.isEmpty) {
+      chooseDays = false;
+    } else {
+      chooseDays = true;
+    }
+    if (chooseBranch && chooseTime && chooseDays) {
+      log("true");
+      return true;
+    } else {
+      log("false");
+
+      return false;
     }
   }
 

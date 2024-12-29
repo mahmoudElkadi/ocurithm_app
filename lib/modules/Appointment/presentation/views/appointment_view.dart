@@ -35,8 +35,11 @@ class AppointmentView extends StatelessWidget {
                       ),
                 actions: [
                   IconButton(
-                    onPressed: () {
-                      Get.to(() => MakeAppointmentView());
+                    onPressed: () async {
+                      bool isChanged = await Get.to(() => MakeAppointmentView());
+                      if (isChanged) {
+                        AppointmentCubit.get(context).getAppointments();
+                      }
                     },
                     icon: Icon(Icons.add, color: Colorz.primaryColor),
                   )

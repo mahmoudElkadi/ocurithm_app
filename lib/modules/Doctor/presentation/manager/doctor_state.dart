@@ -35,3 +35,15 @@ class AdminClinicLoading extends DoctorState {}
 class AdminClinicError extends DoctorState {}
 
 class AdminClinicSuccess extends DoctorState {}
+
+class AddBranchLoading extends DoctorState {}
+
+class AddBranchSuccess extends DoctorState {}
+
+class AddBranchError extends DoctorState {}
+
+class DeleteBranchLoading extends DoctorState {}
+
+class DeleteBranchSuccess extends DoctorState {}
+
+class DeleteBranchError extends DoctorState {}

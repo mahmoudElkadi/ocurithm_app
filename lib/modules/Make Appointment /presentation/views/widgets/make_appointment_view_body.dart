@@ -66,8 +66,12 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     }
 
     // Get doctor's available hours
-    final availableFrom = getTimeOfDay("08:00", const TimeOfDay(hour: 8, minute: 0));
-    final availableTo = getTimeOfDay("18:00", const TimeOfDay(hour: 18, minute: 0));
+    final availableFrom = getTimeOfDay(
+        cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableFrom ?? "8:00",
+        const TimeOfDay(hour: 8, minute: 0));
+    final availableTo = getTimeOfDay(
+        cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableTo ?? "18:00",
+        const TimeOfDay(hour: 18, minute: 0));
 
     // Set up examination duration
     final duration = int.tryParse(cubit.selectedExaminationType?.duration?.toString() ?? "10") ?? 10;
@@ -318,7 +322,8 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
-              holidayWeekdays: getHolidayDays(workingDays: ["Saturday", "Sunday"]),
+              holidayWeekdays: getHolidayDays(
+                  workingDays: cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableDays),
               availableSlotColor: Colorz.primaryColor,
               patient: Patient(),
             ),
