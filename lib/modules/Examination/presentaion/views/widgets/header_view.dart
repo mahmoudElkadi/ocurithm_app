@@ -77,11 +77,10 @@ class StepHeader extends StatelessWidget {
             children: [
               Builder(builder: (context) {
                 return IconButton(
-                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  onPressed: () => Navigator.pop(context),
                   icon: Icon(
-                    Icons.menu,
-                    color: Colorz.primaryColor,
-                    size: 28,
+                    Icons.arrow_back_ios,
+                    color: Colorz.black,
                   ),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),

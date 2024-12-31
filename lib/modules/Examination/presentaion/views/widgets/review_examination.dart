@@ -427,7 +427,31 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
     );
   }
 
+  String? calculateAge(DateTime? birthDate) {
+    if (birthDate == null) {
+      print("Error: Birth date is null.");
+      return "N/A";
+    }
+
+    try {
+      DateTime currentDate = DateTime.now();
+      int age = currentDate.year - birthDate.year;
+
+      // Adjust if the birthday has not occurred yet this year
+      if (currentDate.month < birthDate.month || (currentDate.month == birthDate.month && currentDate.day < birthDate.day)) {
+        age--;
+      }
+
+      return '$age Years';
+    } catch (e) {
+      print("Error calculating age: $e");
+      return "N/A";
+    }
+  }
+
   Widget _buildPatientInfoCard() {
+    final cubit = context.read<ExaminationCubit>();
+
     return Card(
       elevation: 4,
       shadowColor: Colorz.primaryColor.withOpacity(0.2),
@@ -450,7 +474,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Patient Name',
+                        cubit.appointmentData?.patient?.name ?? 'Unknown',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -458,7 +482,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                         ),
                       ),
                       Text(
-                        'ID: #12345',
+                        cubit.appointmentData?.patient?.nationalId ?? 'Unknown',
                         style: TextStyle(
                           color: Colorz.primaryColor,
                         ),
@@ -475,17 +499,17 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 _buildInfoItem(
                   icon: Icons.calendar_today,
                   label: 'Age',
-                  value: '45 years',
+                  value: '${calculateAge(cubit.appointmentData?.patient?.birthDate)}',
                 ),
                 _buildInfoItem(
                   icon: Icons.person,
                   label: 'Gender',
-                  value: 'Male',
+                  value: cubit.appointmentData?.patient?.gender ?? 'N/A',
                 ),
                 _buildInfoItem(
                   icon: Icons.phone,
                   label: 'Contact',
-                  value: '+123456789',
+                  value: cubit.appointmentData?.patient?.phone ?? 'N/A',
                 ),
               ],
             ),

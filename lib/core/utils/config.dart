@@ -9,4 +9,5 @@ class Config {
   static String get paymentMethods => "paymentMethods";
   static String get appointments => "appointments";
   static String get clinics => "clinics";
+  static String get examination => "examinations";
 }

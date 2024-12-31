@@ -3,11 +3,6 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/manager/Make%20Appointment%20cubit/make_appointment_cubit.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -15,7 +10,6 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../../../modules/Appointment/data/models/appointment_model.dart';
 import '../../../../../modules/Branch/data/model/branches_model.dart';
 import '../../../../../modules/Doctor/data/model/doctor_model.dart';
-import '../../../colors.dart';
 import '../core/booking_controller.dart';
 import '../model/booking_service.dart';
 import '../model/enums.dart' as bc;
@@ -61,7 +55,7 @@ extension WeekDayToInt on WeekDay {
 }
 
 class BookingCalendarMain extends StatefulWidget {
-  const BookingCalendarMain({
+  BookingCalendarMain({
     Key? key,
     required this.getBookingStream,
     required this.convertStreamResultToDateTimeRanges,
@@ -96,12 +90,14 @@ class BookingCalendarMain extends StatefulWidget {
     this.lastDay,
     this.branch,
     this.doctor,
+    this.actionButton,
     required this.viewOnly,
     required this.patient,
     this.appointment,
+    this.onDateSelected,
     this.holidayWeekdays = const [],
-    this.cubit,
     this.isUpdate = false,
+    this.selectedDate,
   }) : super(key: key);
 
   final Stream<dynamic>? Function({required DateTime start, required DateTime end, required String branch}) getBookingStream;
@@ -114,6 +110,7 @@ class BookingCalendarMain extends StatefulWidget {
   ///Customizable
   final Appointment? appointment;
 
+  final Function(DateTime)? onDateSelected;
   final Widget? bookingExplanation;
   final int? bookingGridCrossAxisCount;
   final double? bookingGridChildAspectRatio;
@@ -125,7 +122,8 @@ class BookingCalendarMain extends StatefulWidget {
   final Color? availableSlotColor;
   final Color? pauseSlotColor;
   final List<String> holidayWeekdays;
-  final MakeAppointmentCubit? cubit;
+  final DateTime? selectedDate;
+  final Widget? actionButton;
 //Added optional TextStyle to available, booked and selected cards.
   final String? bookedSlotText;
   final String? selectedSlotText;
@@ -369,7 +367,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
               ),
           const SizedBox(height: 8),
           StreamBuilder<dynamic>(
-            stream: widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch!),
+            stream: widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch ?? ""),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return widget.errorWidget ?? Center(child: Text(snapshot.error.toString()));
@@ -409,101 +407,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
           ),
           if (!widget.viewOnly) ...[
             const SizedBox(height: 10),
-            Row(
-              children: [
-                if (widget.isUpdate == false)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        if (widget.cubit != null) {
-                          widget.cubit?.changeStep(0);
-                        }
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        side: BorderSide(
-                          color: Colorz.primaryColor,
-                        ),
-                      ),
-                      child: Text(
-                        'Previous',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          color: Colorz.primaryColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                SizedBox(width: 16.w),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (widget.isUpdate == true) {
-                        if (controller.selectedSlot >= 0) {
-                          customLoading(context, "");
-                          bool connection = await InternetConnection().hasInternetAccess;
-
-                          if (!connection) {
-                            Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("No Internet Connection", style: TextStyle(color: Colors.white)),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          } else {
-                            widget.cubit?.editAppointment(
-                                context: context,
-                                model: MakeAppointmentModel(
-                                    id: widget.cubit?.appointmentId,
-                                    datetime: controller.allBookingSlots[controller.selectedSlot],
-                                    patient: widget.cubit?.selectedPatient?.id,
-                                    examinationType: widget.cubit?.selectedExaminationType?.id,
-                                    doctor: widget.cubit?.selectedDoctor?.id,
-                                    branch: widget.cubit?.selectedBranch?.id,
-                                    paymentMethod: widget.cubit?.selectedPaymentMethod?.id,
-                                    status: 'Scheduled',
-                                    note: ""));
-                          }
-                        }
-                      } else {
-                        if (controller.selectedSlot >= 0) {
-                          final newBooking = controller.generateNewBookingForUploading();
-                          await widget.uploadBooking(
-                            newBooking: newBooking,
-                            patient: widget.patient,
-                            branch: branch ?? "",
-                            examinationType: "", // Add your examination type here
-                          );
-                          if (widget.cubit != null) {
-                            widget.cubit?.changeStep(2);
-                          }
-                        }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 16.h),
-                      backgroundColor: Colorz.primaryColor,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                    ),
-                    child: Text(
-                      widget.isUpdate == true ? 'Update' : 'Next',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            widget.actionButton ?? SizedBox.shrink(),
             const SizedBox(height: 10),
           ],
         ],
@@ -558,11 +462,9 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       // Allow selecting and changing selection for available slots
       log("message");
       controller.selectSlot(index);
-      widget.cubit?.selectedTime = controller.allBookingSlots[controller.selectedSlot];
-      log(controller.allBookingSlots[controller.selectedSlot].toString());
-      log(controller.allBookingSlots[controller.selectedSlot].toString());
-      log(controller.allBookingSlots[controller.selectedSlot].toString());
-      log(controller.allBookingSlots[controller.selectedSlot].toLocal().toString());
+      if (widget.onDateSelected != null) {
+        widget.onDateSelected!(controller.allBookingSlots[controller.selectedSlot]);
+      }
       setState(() {});
     }
   }

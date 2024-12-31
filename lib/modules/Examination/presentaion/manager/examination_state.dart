@@ -9,3 +9,9 @@ class ReadJson extends ExaminationState {}
 class ChooseData extends ExaminationState {}
 
 class CircleDateChanged extends ExaminationState {}
+
+class MakeExaminationLoading extends ExaminationState {}
+
+class MakeExaminationSuccess extends ExaminationState {}
+
+class MakeExaminationError extends ExaminationState {}

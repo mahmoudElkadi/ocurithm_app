@@ -96,26 +96,74 @@ class AppointmentCubit extends Cubit<AppointmentState> {
   model.AppointmentModel? appointments;
   getAppointments() async {
     appointments = null;
-    emit(GetBranchLoading());
+    emit(GetAppointmentLoading());
     connection = await InternetConnection().hasInternetAccess;
-    emit(GetBranchLoading());
+    emit(GetAppointmentLoading());
     try {
       if (connection == true) {
         appointments = await appointmentRepo.getAllAppointment(date: selectedDate, branch: selectedBranch?.id, doctor: selectedDoctor?.id);
         if (appointments?.error == null && appointments!.appointments.isNotEmpty) {
           // Group appointments by time slot
           groupedAppointments = AppointmentHelper.groupAppointmentsByTimeSlot(appointments!.appointments);
-          emit(GetBranchSuccess());
+          emit(GetAppointmentSuccess());
         } else {
-          emit(GetBranchError());
+          emit(GetAppointmentError());
         }
       }
     } catch (e) {
       log(e.toString());
       loading = false;
-      emit(GetBranchError());
+      emit(GetAppointmentError());
     }
   }
+
+  editAppointment({required BuildContext context, required String id, required String action, DateTime? date, String? doctor}) async {
+    emit(EditAppointmentLoading());
+    try {
+      var result = await appointmentRepo.editAppointment(id: id, action: action, date: date, doctor: doctor);
+      if (result != null && result.error == null) {
+        Get.snackbar(
+          "Success",
+          "Appointment Updated successfully",
+          backgroundColor: Colorz.primaryColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.check, color: Colorz.white),
+        );
+        int? index = appointments?.appointments.indexWhere((e) => e.id == id);
+        if (index != null && index != -1) {
+          appointments?.appointments[index].status = result.status;
+        }
+        Navigator.pop(context);
+        Navigator.pop(context, true);
+        emit(EditAppointmentSuccess());
+      } else if (result != null && result.error != null) {
+        Get.snackbar(
+          result.error!,
+          "Failed to $action appointment",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(EditAppointmentError());
+      } else {
+        Get.snackbar(
+          "Error",
+          "Failed to $action appointment",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+        emit(EditAppointmentError());
+      }
+    } catch (e) {
+      emit(EditAppointmentError());
+    }
+  }
+
+  DateTime? selectedTime;
 
   List<model.Appointment> get morningAppointments => groupedAppointments?['morning'] ?? [];
 

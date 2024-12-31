@@ -4,12 +4,17 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 
+import '../../../../core/utils/colors.dart';
+import '../../../Appointment/data/models/appointment_model.dart';
+import '../../data/repos/examination_repo.dart';
 import 'examination_state.dart';
 
 class ExaminationCubit extends Cubit<ExaminationState> {
-  ExaminationCubit() : super(ExaminationInitial()) {}
+  ExaminationCubit(this.examinationRepo) : super(ExaminationInitial()) {}
 
+  ExaminationRepo examinationRepo;
   static ExaminationCubit get(context) => BlocProvider.of(context);
   final TextEditingController historyController = TextEditingController();
   final TextEditingController complaintController = TextEditingController();
@@ -19,10 +24,22 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   int get currentStep => _currentStep;
 
   void nextStep() {
+    log(currentStep.toString());
     if (_currentStep < totalSteps - 1) {
       _currentStep++;
       emit(ExaminationStepChanged());
     }
+    // else if (currentStep == 2){
+    //   makeAppointment(context: context)
+    // }
+  }
+
+  Appointment? appointmentData;
+
+  void setAppointment(Appointment appointment) {
+    appointmentData = appointment;
+    log(appointment.toJson().toString());
+    emit(ExaminationStepChanged());
   }
 
   void previousStep() {
@@ -102,6 +119,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   dynamic leftFundusMacula;
   dynamic leftFundusVessels;
   dynamic leftFundusPeriphery;
+  dynamic leftExophthalmometry;
 
   //circle data
 
@@ -142,6 +160,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   dynamic rightEyelidLagophthalmos;
   dynamic rightPalpableLymphNodes;
   dynamic rightPapableTemporalArtery;
+  dynamic rightExophthalmometry;
 
   // Slitlamp Examination Controllers
   TextEditingController rightLidsController = TextEditingController();
@@ -249,6 +268,10 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         break;
       case 'pupilsLightReflexTest':
         leftPupilsLightReflexTest = value;
+        emit(ChooseData());
+        break;
+      case 'Exophthalmometry':
+        leftExophthalmometry = value;
         emit(ChooseData());
         break;
       case 'pupilsNearReflexTest':
@@ -432,6 +455,10 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         rightFundusVessels = value;
         emit(ChooseData());
         break;
+      case 'exophthalmometry':
+        rightExophthalmometry = value;
+        emit(ChooseData());
+        break;
       case 'fundusPeriphery':
         rightFundusPeriphery = value;
 
@@ -478,5 +505,145 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   void rightBottomRightHandleTap() {
     rightBottomRightTapCount = (rightBottomRightTapCount + 1) % 3;
     emit(CircleDateChanged());
+  }
+
+  Map<String, dynamic> examinationData() {
+    data = {
+      "examinationMainData": {
+        "clinic": appointmentData?.clinic?.id,
+        "patient": appointmentData?.patient?.id,
+        "appointment": appointmentData?.id,
+        "type": appointmentData?.examinationType?.id
+      },
+      "examinationHistory": historyController.text,
+      "examinationComplain": complaintController.text,
+      "leftEyeMeasurement": {
+        "autorefSpherical": leftAurorefSpherical,
+        "autorefCylindrical": leftAurorefCylindrical,
+        "autorefAxis": leftAurorefAxis,
+        "ucva": leftUCVA,
+        "bcva": leftBCVA,
+        "refinedRefractionSpherical": leftRefinedRefractionSpherical,
+        "refinedRefractionCylindrical": leftRefinedRefractionCylindrical,
+        "refinedRefractionAxis": leftRefinedRefractionAxis,
+        "iop": leftIOP,
+        "meansOfMeasurement": leftMeansOfMeasurement,
+        "acquireAnotherIOPMeasurement": leftAcquireAnotherIOPMeasurement,
+        "pupilsShape": leftPupilsShape,
+        "pupilsLightReflexTest": leftPupilsLightReflexTest,
+        "pupilsNearReflexTest": leftPupilsNearReflexTest,
+        "pupilsSwingingFlashLightTest": leftPupilsSwingingFlashLightTest,
+        "pupilsOtherDisorders": leftPupilsOtherDisorders,
+        "eyelidPtosis": leftEyelidPtosis,
+        "eyelidLagophthalmos": leftEyelidLagophthalmos,
+        "palpableLymphNodes": leftPalpableLymphNodes,
+        "palpableTemporalArtery": leftPapableTemporalArtery,
+        "exophthalmometry": leftExophthalmometry,
+        "cornea": rightCornea,
+        "anteriorChamber": leftAnteriorChambre,
+        "iris": leftIris,
+        "lens": leftLens,
+        "anteriorVitreous": leftAnteriorVitreous,
+        "fundusOpticDisc": leftFundusOpticDisc,
+        "fundusMacula": leftFundusMacula,
+        "fundusVessels": leftFundusVessels,
+        "fundusPeriphery": leftFundusPeriphery,
+        "lids": leftLidsController.text,
+        "lashes": leftLashesController.text,
+        "sclera": leftScleraController.text,
+        "conjunctiva": leftConjunctivaController.text,
+        "lacrimalSystem": leftLacrimalController.text,
+        "topLeft": leftTopLeftTapCount,
+        "topRight": leftTopRightTapCount,
+        "bottomLeft": leftBottomLeftTapCount,
+        "bottomRight": leftBottomRightTapCount,
+      },
+      "rightEyeMeasurement": {
+        "autorefSpherical": rightAurorefSpherical,
+        "autorefCylindrical": rightAurorefCylindrical,
+        "autorefAxis": rightAurorefAxis,
+        "ucva": rightUCVA,
+        "bcva": rightBCVA,
+        "refinedRefractionSpherical": rightRefinedRefractionSpherical,
+        "refinedRefractionCylindrical": rightRefinedRefractionCylindrical,
+        "refinedRefractionAxis": rightRefinedRefractionAxis,
+        "iop": rightIOP,
+        "meansOfMeasurement": rightMeansOfMeasurement,
+        "acquireAnotherIOPMeasurement": rightAcquireAnotherIOPMeasurement,
+        "pupilsShape": rightPupilsShape,
+        "pupilsLightReflexTest": rightPupilsLightReflexTest,
+        "pupilsNearReflexTest": rightPupilsNearReflexTest,
+        "pupilsSwingingFlashLightTest": rightPupilsSwingingFlashLightTest,
+        "pupilsOtherDisorders": rightPupilsOtherDisorders,
+        "eyelidPtosis": rightEyelidPtosis,
+        "eyelidLagophthalmos": rightEyelidLagophthalmos,
+        "palpableLymphNodes": rightPalpableLymphNodes,
+        "palpableTemporalArtery": rightPapableTemporalArtery,
+        "exophthalmometry": rightExophthalmometry,
+        "cornea": rightCornea,
+        "anteriorChamber": rightAnteriorChambre,
+        "iris": rightIris,
+        "lens": rightLens,
+        "anteriorVitreous": rightAnteriorVitreous,
+        "fundusOpticDisc": rightFundusOpticDisc,
+        "fundusMacula": rightFundusMacula,
+        "fundusVessels": rightFundusVessels,
+        "fundusPeriphery": rightFundusPeriphery,
+        "lids": rightLidsController.text,
+        "lashes": rightLashesController.text,
+        "sclera": rightScleraController.text,
+        "conjunctiva": rightConjunctivaController.text,
+        "lacrimalSystem": rightLacrimalController.text,
+        "topLeft": rightTopLeftTapCount,
+        "topRight": rightTopRightTapCount,
+        "bottomLeft": rightBottomLeftTapCount,
+        "bottomRight": rightBottomRightTapCount,
+      },
+    };
+    return data;
+  }
+
+  makeExamination({required BuildContext context}) async {
+    emit(MakeExaminationLoading());
+    try {
+      var result = await examinationRepo.makeExamination(data: examinationData());
+      if (result != null && result.error == null) {
+        Get.snackbar(
+          "Success",
+          "Examination created successfully",
+          backgroundColor: Colorz.primaryColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.check, color: Colorz.white),
+        );
+
+        Navigator.pop(context);
+        Navigator.pop(context, true);
+        emit(MakeExaminationSuccess());
+      } else if (result != null && result.error != null) {
+        Get.snackbar(
+          result.error!,
+          "Failed to create Examination",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(MakeExaminationError());
+      } else {
+        Get.snackbar(
+          "Error",
+          "Failed to create Examination",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(MakeExaminationError());
+      }
+    } catch (e) {
+      emit(MakeExaminationError());
+    }
   }
 }

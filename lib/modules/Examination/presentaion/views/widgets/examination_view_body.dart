@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/modules/Examination/presentaion/views/widgets/review_examination.dart';
 
 import '../../../../../Main/presentation/views/drawer.dart';
@@ -64,6 +66,21 @@ class MultiStepFormView extends StatelessWidget {
                         isLastStep: cubit.currentStep == cubit.totalSteps - 1,
                         canGoBack: cubit.currentStep > 0,
                         canContinue: cubit.currentStep < cubit.totalSteps - 1,
+                        onConfirm: () async {
+                          if (cubit.appointmentData != null) {
+                            customLoading(context, "");
+                            bool connection = await InternetConnection().hasInternetAccess;
+                            if (connection) {
+                              cubit.makeExamination(context: context);
+                            } else {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                                backgroundColor: Colorz.redColor,
+                              ));
+                            }
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -1225,7 +1242,7 @@ class ExternalExaminationContent extends StatelessWidget {
                     .toList() ??
                 [],
             hintText: "",
-            textRow: "Palpable Temporal Artery :",
+            textRow: "Palpable Lymph Nodes :",
             selectedValue: isLeftEye ? cubit.leftPalpableLymphNodes : cubit.rightPalpableLymphNodes,
             onChanged: (selected) {
               if (isLeftEye) {
@@ -1237,17 +1254,34 @@ class ExternalExaminationContent extends StatelessWidget {
           ),
           const HeightSpacer(size: 15),
           DropValidateRow(
-            items:
-                cubit.data['Exophthalmometry']?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item))).toList() ??
-                    [],
+            items: cubit.data['PapableTemporalArtery']
+                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item)))
+                    .toList() ??
+                [],
             hintText: "",
-            textRow: "Exophthamometry:",
+            textRow: "PapableTemporalArtery:",
             selectedValue: isLeftEye ? cubit.leftPapableTemporalArtery : cubit.rightPapableTemporalArtery,
             onChanged: (selected) {
               if (isLeftEye) {
                 cubit.updateLeftEyeField('papableTemporalArtery', selected);
               } else {
                 cubit.updateRightEyeField('papableTemporalArtery', selected);
+              }
+            },
+          ),
+          const HeightSpacer(size: 15),
+          DropValidateRow(
+            items:
+                cubit.data['Exophthalmometry']?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item))).toList() ??
+                    [],
+            hintText: "",
+            textRow: "Exophthalmometry:",
+            selectedValue: isLeftEye ? cubit.leftExophthalmometry : cubit.rightExophthalmometry,
+            onChanged: (selected) {
+              if (isLeftEye) {
+                cubit.updateLeftEyeField('exophthalmometry', selected);
+              } else {
+                cubit.updateRightEyeField('exophthalmometry', selected);
               }
             },
           ),

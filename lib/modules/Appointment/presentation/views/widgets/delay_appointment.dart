@@ -5,7 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/select_doctor_branch.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/booking_calendar/booking_calendar.dart';
@@ -13,18 +14,20 @@ import '../../../../../core/utils/colors.dart';
 import '../../../../../core/utils/config.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../Patient/data/model/patients_model.dart';
-import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
-import '../../manager/Make Appointment cubit/make_appointment_state.dart';
+import '../../../data/models/appointment_model.dart';
+import '../../manager/Appointment cubit/appointment_cubit.dart';
+import '../../manager/Appointment cubit/appointment_state.dart';
 
-class MakeAppointmentViewBody extends StatefulWidget {
-  const MakeAppointmentViewBody({super.key, this.isUpdate = false});
+class DelayAppointment extends StatefulWidget {
+  const DelayAppointment({super.key, this.isUpdate = false, required this.appointment, required this.cubit});
   final bool isUpdate;
-
+  final Appointment appointment;
+  final AppointmentCubit cubit;
   @override
-  State<MakeAppointmentViewBody> createState() => _MakeAppointmentViewBodyState();
+  State<DelayAppointment> createState() => _DelayAppointmentState();
 }
 
-class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
+class _DelayAppointmentState extends State<DelayAppointment> {
   final now = DateTime.now();
   late BookingService bookingService;
   late StreamController<dynamic> _controller;
@@ -59,7 +62,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
   void initState() {
     super.initState();
-    final cubit = BlocProvider.of<MakeAppointmentCubit>(context);
+    // final cubit = BlocProvider.of<AppointmentCubit>(context);
     final now = DateTime.now();
 
     // Parse working hours safely
@@ -76,18 +79,16 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       }
     }
 
-    log("list ${cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableDays}");
-
-    // Get doctor's available hours
+    //  Get doctor's available hours
     final availableFrom = getTimeOfDay(
-        cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableFrom ?? "8:00",
+        widget.appointment.doctor?.branches?.firstWhere((branch) => branch.branch?.id == widget.appointment.branch?.id).availableFrom ?? "8:00",
         const TimeOfDay(hour: 8, minute: 0));
     final availableTo = getTimeOfDay(
-        cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableTo ?? "18:00",
+        widget.appointment.doctor?.branches?.firstWhere((branch) => branch.branch?.id == widget.appointment.branch?.id).availableTo ?? "18:00",
         const TimeOfDay(hour: 18, minute: 0));
 
     // Set up examination duration
-    final duration = int.tryParse(cubit.selectedExaminationType?.duration?.toString() ?? "10") ?? 10;
+    final duration = int.tryParse(widget.appointment.examinationType?.duration?.toString() ?? "10") ?? 10;
 
     // Create booking service with correct start and end times
     bookingService = BookingService(
@@ -129,8 +130,8 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     Map<String, dynamic> query = {
       "startDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 0, 0, 0),
       "endDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 23, 59, 59),
-      'doctor': BlocProvider.of<MakeAppointmentCubit>(context).selectedDoctor?.id,
-      'branch': BlocProvider.of<MakeAppointmentCubit>(context).selectedBranch?.id
+      //  'doctor': BlocProvider.of<AppointmentCubit>(context).selectedDoctor?.id,
+      //   'branch': BlocProvider.of<AppointmentCubit>(context).selectedBranch?.id
     };
 
     try {
@@ -189,40 +190,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     // });
 
     return _controller.stream;
-  }
-
-  Future<bool?> _selectDoctorAndBranch() async {
-    if (!mounted) return false;
-
-    // Get the cubit before showing dialog
-    final appointmentCubit = context.read<MakeAppointmentCubit>();
-
-    final result = await showDialog<bool>(
-      // Add return type and await the result
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return BlocProvider.value(
-          value: appointmentCubit,
-          child: WillPopScope(
-            onWillPop: () async => false,
-            child: SelectDoctorBranch(
-              cubit: appointmentCubit,
-            ),
-          ),
-        );
-      },
-    );
-
-    // Check if a selection was made and fetch data
-    if (result == true) {
-      log("result.toString()" + result.toString());
-      await fetchInitialData(
-        date: DateTime.now(),
-      );
-    }
-
-    return result; // Return the result for use in selectData()
   }
 
   Future<dynamic> uploadBooking({
@@ -302,105 +269,135 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<MakeAppointmentCubit>();
-    return BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
-      builder: (context, state) => Column(
-        children: [
-          HeightSpacer(size: 10.h),
-          Expanded(
-            child: BookingCalendar(
-              bookingService: bookingService,
-              convertStreamResultToDateTimeRanges: convertStreamResultToDateTimeRanges,
-              getBookingStream: getBookingStream,
-              uploadBooking: uploadBooking,
-              hideBreakTime: false,
-              loadingWidget: const Text('Fetching data...'),
-              uploadingWidget: const CircularProgressIndicator(),
-              selectedDate: cubit.selectedTime,
-              locale: 'en',
-              startingDayOfWeek: StartingDayOfWeek.saturday,
-              wholeDayIsBookedWidget: const Text('Sorry, for this day everything is booked'),
-              branch: cubit.selectedBranch,
-              doctor: cubit.selectedDoctor,
-              viewOnly: _viewOnly,
-              availableSlotTextStyle: const TextStyle(
-                fontSize: 13,
-              ),
-              bookedSlotTextStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-              isUpdate: widget.isUpdate,
-              selectedSlotTextStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-              holidayWeekdays: getHolidayDays(
-                  workingDays: cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableDays),
-              availableSlotColor: Colorz.primaryColor,
-              onDateSelected: (DateTime date) {
-                setState(() {
-                  cubit.selectedTime = date;
-                });
-              },
-              patient: Patient(),
-              actionButton: Row(
-                children: [
-                  if (widget.isUpdate == false)
+    return BlocBuilder<AppointmentCubit, AppointmentState>(
+      bloc: widget.cubit,
+      builder: (context, state) => Scaffold(
+        appBar: AppBar(
+          title: Text('Delay Appointment', style: TextStyle(color: Colorz.primaryColor)),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Column(
+          children: [
+            HeightSpacer(size: 10.h),
+            Expanded(
+              child: BookingCalendar(
+                bookingService: bookingService,
+                convertStreamResultToDateTimeRanges: convertStreamResultToDateTimeRanges,
+                getBookingStream: getBookingStream,
+                uploadBooking: uploadBooking,
+                hideBreakTime: false,
+                loadingWidget: const Text('Fetching data...'),
+                uploadingWidget: const CircularProgressIndicator(),
+                locale: 'en',
+                startingDayOfWeek: StartingDayOfWeek.saturday,
+                wholeDayIsBookedWidget: const Text('Sorry, for this day everything is booked'),
+                branch: widget.cubit.selectedBranch,
+                doctor: widget.cubit.selectedDoctor,
+                viewOnly: _viewOnly,
+                availableSlotTextStyle: const TextStyle(
+                  fontSize: 13,
+                ),
+                bookedSlotTextStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+                isUpdate: widget.isUpdate,
+                selectedSlotTextStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+                holidayWeekdays: getHolidayDays(
+                    workingDays: widget.appointment.doctor?.branches
+                        ?.firstWhere((branch) => branch.branch?.id == widget.appointment.branch?.id)
+                        .availableDays),
+                availableSlotColor: Colorz.primaryColor,
+                patient: Patient(),
+                onDateSelected: (DateTime date) {
+                  setState(() {
+                    widget.cubit.selectedTime = date;
+                  });
+                },
+                actionButton: Row(
+                  children: [
+                    if (widget.isUpdate == false)
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 16.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            side: BorderSide(
+                              color: Colorz.primaryColor,
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: Colorz.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    SizedBox(width: 16.w),
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          cubit.changeStep(0);
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (widget.cubit.selectedTime != null) {
+                            customLoading(context, "");
+                            bool value = await InternetConnection().hasInternetAccess;
+                            if (!value) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                                backgroundColor: Colors.red,
+                              ));
+                              return;
+                            }
+                            widget.cubit.editAppointment(
+                                context: context,
+                                id: widget.appointment.id.toString(),
+                                action: 'delay',
+                                date: widget.cubit.selectedTime!,
+                                doctor: widget.appointment.doctor?.id.toString());
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content: Text('Please select a time', style: TextStyle(color: Colors.white)),
+                              backgroundColor: Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                            ));
+                          }
                         },
-                        style: OutlinedButton.styleFrom(
+                        style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 16.h),
+                          backgroundColor: Colorz.primaryColor,
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.r),
                           ),
-                          side: BorderSide(
-                            color: Colorz.primaryColor,
-                          ),
                         ),
                         child: Text(
-                          'Previous',
+                          'Update',
                           style: TextStyle(
                             fontSize: 16.sp,
-                            color: Colorz.primaryColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                  SizedBox(width: 16.w),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (cubit.selectedTime != null) {
-                          cubit.changeStep(2);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        backgroundColor: Colorz.primaryColor,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                      ),
-                      child: Text(
-                        widget.isUpdate == true ? 'Update' : 'Next',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

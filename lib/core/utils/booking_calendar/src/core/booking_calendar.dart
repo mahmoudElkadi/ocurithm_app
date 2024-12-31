@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/manager/Make%20Appointment%20cubit/make_appointment_cubit.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:provider/provider.dart';
 
@@ -53,8 +52,10 @@ class BookingCalendar extends StatelessWidget {
       this.appointment,
       required this.patient,
       required this.holidayWeekdays,
-      this.cubit,
-      this.isUpdate = false})
+      this.isUpdate = false,
+      this.selectedDate,
+      this.actionButton,
+      this.onDateSelected})
       : super(key: key);
 
   ///for the Calendar picker we use: [TableCalendar]
@@ -64,6 +65,7 @@ class BookingCalendar extends StatelessWidget {
   ///and this service will get additional two parameters:
   ///the [BookingService.bookingStart] and [BookingService.bookingEnd] date of the booking
   final BookingService bookingService;
+  final Function(DateTime)? onDateSelected;
 
   ///this function returns a [Stream] which will be passed to the [StreamBuilder],
   ///so we can track realtime changes in our Booking Calendar
@@ -122,7 +124,7 @@ class BookingCalendar extends StatelessWidget {
   final Branch? branch;
   final Doctor? doctor;
   final List<String> holidayWeekdays;
-
+  final DateTime? selectedDate;
   final bool viewOnly;
   final bool? isUpdate;
   final Patient patient;
@@ -142,8 +144,6 @@ class BookingCalendar extends StatelessWidget {
   ///Display your custom  widget while uploading data to your database
   final Widget? uploadingWidget;
 
-  final MakeAppointmentCubit? cubit;
-
   ///Display your custom  widget if every slot is booked and you want to show something special
   ///not only the red slots
   final Widget? wholeDayIsBookedWidget;
@@ -156,6 +156,8 @@ class BookingCalendar extends StatelessWidget {
 
   ///for localizing the calendar, String code to locale property. (intl format) See: [https://pub.dev/packages/table_calendar#locale]
   final String? locale;
+
+  final Widget? actionButton;
 
   ///What is the default starting day of the week in the tablecalendar. See [https://pub.dev/documentation/table_calendar/latest/table_calendar/StartingDayOfWeek.html]
   final StartingDayOfWeek? startingDayOfWeek;
@@ -180,6 +182,7 @@ class BookingCalendar extends StatelessWidget {
           uploadBooking: uploadBooking,
           bookingButtonColor: bookingButtonColor,
           bookingButtonText: bookingButtonText,
+          actionButton: actionButton,
           bookingExplanation: bookingExplanation,
           bookingGridChildAspectRatio: bookingGridChildAspectRatio,
           bookingGridCrossAxisCount: bookingGridCrossAxisCount,
@@ -194,6 +197,7 @@ class BookingCalendar extends StatelessWidget {
           bookedSlotColor: bookedSlotColor,
           bookedSlotText: bookedSlotText,
           selectedSlotColor: selectedSlotColor,
+          onDateSelected: onDateSelected,
           selectedSlotText: selectedSlotText,
           gridScrollPhysics: gridScrollPhysics,
           loadingWidget: loadingWidget,
@@ -206,7 +210,7 @@ class BookingCalendar extends StatelessWidget {
           locale: locale,
           startingDayOfWeek: startingDayOfWeek,
           disabledDays: disabledDays,
-          cubit: cubit,
+          selectedDate: selectedDate,
           lastDay: lastDay,
           disabledDates: disabledDates,
           branch: branch,

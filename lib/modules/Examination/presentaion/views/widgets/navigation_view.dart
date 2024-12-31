@@ -5,6 +5,7 @@ import '../../../../../core/utils/colors.dart';
 class StepNavigation extends StatelessWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
+  final VoidCallback? onConfirm;
   final bool canGoBack;
   final bool canContinue;
   final bool isLastStep;
@@ -13,6 +14,7 @@ class StepNavigation extends StatelessWidget {
     Key? key,
     this.onPrevious,
     this.onNext,
+    this.onConfirm,
     required this.canGoBack,
     required this.canContinue,
     required this.isLastStep,
@@ -73,7 +75,7 @@ class StepNavigation extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        gradient: isEnabled
+        gradient: isEnabled || isLastStep
             ? LinearGradient(
                 colors: [
                   Colorz.primaryColor,
@@ -83,18 +85,21 @@ class StepNavigation extends StatelessWidget {
                 ],
               )
             : null,
-        color: isEnabled ? null : Colors.grey[200],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: isEnabled ? onNext : null,
+          onTap: isEnabled
+              ? onNext
+              : isLastStep
+                  ? onConfirm
+                  : null,
           borderRadius: BorderRadius.circular(8),
           child: Center(
             child: Text(
               isLastStep ? 'Complete' : 'Continue',
               style: TextStyle(
-                color: isEnabled ? Colors.white : Colors.grey[500],
+                color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,

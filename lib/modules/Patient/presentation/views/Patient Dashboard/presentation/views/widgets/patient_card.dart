@@ -47,7 +47,9 @@ class _PatientCardState extends State<PatientCard> {
     return BlocBuilder<PatientCubit, PatientState>(
       builder: (context, state) => GestureDetector(
         onTap: () {
-          Get.to(() => PatientDetailsView(cubit: PatientCubit.get(context), id: widget.patient!.id!));
+          if (widget.patient?.id != null) {
+            Get.to(() => PatientDetailsView(cubit: PatientCubit.get(context), id: widget.patient!.id!));
+          }
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
