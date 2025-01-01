@@ -43,12 +43,14 @@ class StepHeader extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
   final VoidCallback onMenuPressed;
+  final VoidCallback onPop;
 
   const StepHeader({
     Key? key,
     required this.currentStep,
     required this.totalSteps,
     required this.onMenuPressed,
+    required this.onPop,
   }) : super(key: key);
 
   @override
@@ -77,7 +79,7 @@ class StepHeader extends StatelessWidget {
             children: [
               Builder(builder: (context) {
                 return IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: onPop,
                   icon: Icon(
                     Icons.arrow_back_ios,
                     color: Colorz.black,
@@ -178,16 +180,23 @@ class ModernStepHeader extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
   final VoidCallback onMenuPressed;
+  final VoidCallback onPop;
 
   const ModernStepHeader({
     Key? key,
     required this.currentStep,
     required this.totalSteps,
     required this.onMenuPressed,
+    required this.onPop,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return StepHeader(currentStep: currentStep, totalSteps: totalSteps, onMenuPressed: onMenuPressed);
+    return StepHeader(
+      currentStep: currentStep,
+      totalSteps: totalSteps,
+      onMenuPressed: onMenuPressed,
+      onPop: onPop,
+    );
   }
 }

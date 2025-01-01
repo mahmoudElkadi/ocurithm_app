@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ocurithm/modules/Examination/presentaion/manager/examination_cubit.dart';
-
-import '../../manager/examination_state.dart';
 
 enum QuadrantPosition {
   topLeft,
@@ -15,7 +11,7 @@ class QuadrantWidget extends StatefulWidget {
   final double size;
   final QuadrantPosition position;
   final VoidCallback onTap;
-  final int tapCount;
+  final num tapCount;
   final List<Color> colorList;
   final String text;
   final TextStyle? textStyle;
@@ -57,26 +53,24 @@ class _QuadrantWidgetState extends State<QuadrantWidget> {
   @override
   Widget build(BuildContext context) {
     // Get current color based on tap count
-    final currentColor = widget.colorList[widget.tapCount];
+    final currentColor = widget.colorList[int.parse(widget.tapCount.toString())];
 
-    return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => GestureDetector(
-        onTap: () {
-          widget.onTap();
-          setState(() {});
-        },
-        child: Container(
-          height: widget.size,
-          width: widget.size,
-          decoration: BoxDecoration(
-            color: currentColor,
-            borderRadius: _getRadius(),
-          ),
-          child: Center(
-            child: Text(
-              widget.tapCount == widget.showTextAtCount ? widget.text : "",
-              style: widget.textStyle,
-            ),
+    return GestureDetector(
+      onTap: () {
+        widget.onTap();
+        setState(() {});
+      },
+      child: Container(
+        height: widget.size,
+        width: widget.size,
+        decoration: BoxDecoration(
+          color: currentColor,
+          borderRadius: _getRadius(),
+        ),
+        child: Center(
+          child: Text(
+            widget.tapCount == widget.showTextAtCount ? widget.text : "",
+            style: widget.textStyle,
           ),
         ),
       ),
@@ -86,7 +80,7 @@ class _QuadrantWidgetState extends State<QuadrantWidget> {
 
 class QuadrantContainer extends StatelessWidget {
   final double containerSize;
-  final List<int> tapCounts;
+  final List<num> tapCounts;
   final List<VoidCallback>? tapHandlers;
   final List<Color> colorList;
   final String side;

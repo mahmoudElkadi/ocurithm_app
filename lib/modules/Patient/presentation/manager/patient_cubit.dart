@@ -11,6 +11,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../Services/services_api.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Clinics/data/model/clinics_model.dart';
+import '../../data/model/one_exam.dart';
+import '../../data/model/patient_examination.dart';
 import '../../data/model/patients_model.dart';
 import '../../data/repos/patient_repo.dart';
 import 'patient_state.dart';
@@ -347,7 +349,7 @@ class PatientCubit extends Cubit<PatientState> {
   }
 
   Patient? patient;
-  getPatient({required String id}) async {
+  Future getPatient({required String id}) async {
     patient = null;
     emit(AdminBranchLoading());
     connection = await InternetConnection().hasInternetAccess;
@@ -373,6 +375,66 @@ class PatientCubit extends Cubit<PatientState> {
     } catch (e) {
       log(e.toString());
       emit(AdminBranchError());
+    }
+  }
+
+  PatientExaminationModel? patientExamination;
+  Future getPatientExamination({required String id}) async {
+    patientExamination = null;
+    emit(GetPatientExaminationsLoading());
+    connection = await InternetConnection().hasInternetAccess;
+    emit(AdminBranchLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(GetPatientExaminationsError());
+      } else {
+        patientExamination = await patientRepo.getPatientExaminations(id: id);
+        if (patientExamination?.error == null) {
+          emit(GetPatientExaminationsSuccess());
+        } else {
+          emit(GetPatientExaminationsError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(AdminBranchError());
+    }
+  }
+
+  ExaminationModel? oneExamination;
+  Future getOneExamination({required String id}) async {
+    oneExamination = null;
+    emit(GetOneExaminationsLoading());
+    connection = await InternetConnection().hasInternetAccess;
+    emit(GetOneExaminationsLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(GetOneExaminationsError());
+      } else {
+        oneExamination = await patientRepo.getOneExamination(id: id);
+        if (oneExamination?.error == null) {
+          emit(GetOneExaminationsSuccess());
+        } else {
+          emit(GetOneExaminationsError());
+        }
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(GetOneExaminationsError());
     }
   }
 
@@ -460,5 +522,9 @@ class PatientCubit extends Cubit<PatientState> {
     chooseBranch = true;
     isValidate = false;
     gender = true;
+  }
+
+  Future getData({required String id}) async {
+    Future.wait([getPatient(id: id), getPatientExamination(id: id)]);
   }
 }

@@ -29,3 +29,15 @@ class AdminClinicLoading extends PatientState {}
 class AdminClinicError extends PatientState {}
 
 class AdminClinicSuccess extends PatientState {}
+
+class GetPatientExaminationsLoading extends PatientState {}
+
+class GetPatientExaminationsError extends PatientState {}
+
+class GetPatientExaminationsSuccess extends PatientState {}
+
+class GetOneExaminationsLoading extends PatientState {}
+
+class GetOneExaminationsError extends PatientState {}
+
+class GetOneExaminationsSuccess extends PatientState {}

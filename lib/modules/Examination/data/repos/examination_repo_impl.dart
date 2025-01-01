@@ -5,14 +5,15 @@ import 'package:ocurithm/modules/Examination/data/repos/examination_repo.dart';
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/config.dart';
+import '../../../Branch/data/model/data.dart';
 
 class ExaminationRepoImpl implements ExaminationRepo {
   @override
-  Future makeExamination({required Map<String, dynamic> data}) async {
+  Future<DataModel> makeExamination({required Map<String, dynamic> data}) async {
     final url = "${Config.baseUrl}${Config.examination}";
     final String? token = CacheHelper.getData(key: "token");
     log(data.toString());
-    final result = await ApiService.request(
+    final result = await ApiService.request<DataModel>(
       url: url,
       method: 'POST',
       data: data,
@@ -21,6 +22,7 @@ class ExaminationRepoImpl implements ExaminationRepo {
         if (token != null) 'Cookie': 'ocurithmToken=$token',
       },
       showError: true,
+      fromJson: (json) => DataModel.fromJson(json),
     );
 
     if (result != null) {

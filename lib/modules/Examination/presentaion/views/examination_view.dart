@@ -12,11 +12,14 @@ class MultiStepFormPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => ExaminationCubit(ExaminationRepoImpl())
-        ..readJson()
-        ..setAppointment(appointment),
-      child: const MultiStepFormView(),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: BlocProvider(
+        create: (_) => ExaminationCubit(ExaminationRepoImpl())
+          ..readJson()
+          ..setAppointment(appointment),
+        child: const MultiStepFormView(),
+      ),
     );
   }
 }

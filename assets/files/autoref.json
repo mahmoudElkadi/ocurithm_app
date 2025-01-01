@@ -32,14 +32,7 @@
     "60","60.5","61","61.5","62","62.5","63","63.5","64","64.5","65","65.5","66","66.5","67","67.5","68","68.5","69","69.5",
     "70"
   ],
-  "MeansOfMeasurement": [
-    "-",
-    "palpation",
-    "Schiotz tonometer",
-    "Goldmann applanation tonomter",
-    "Airpuff",
-    "rebound tonometry"
-  ],
+  "MeansOfMeasurement": ["-","palpation","Schiotz tonometer","Goldmann applanation tonomter","Airpuff","rebound tonometry"],
   "AcquireAnotherIOPMeasurement": [
     "-","0","0.5","1","1.5","2","2.5","3","3.5","4","4.5","5","5.5","6","6.5","7","7.5","8","8.5","9","9.5",
     "10","10.5","11","11.5","12","12.5","13","13.5","14","14.5","15","15.5","16","16.5","17","17.5","18","18.5","19","19.5",
@@ -50,35 +43,14 @@
     "60","60.5","61","61.5","62","62.5","63","63.5","64","64.5","65","65.5","66","66.5","67","67.5","68","68.5","69","69.5",
     "70"
   ],
-  "PupilsShape": [
-    "-",
-    "rouneded",
-    "irregular"
-  ],
-  "PupilsLightReflexTest": [
-    "Normal response",
-    "abnormal response"
-  ],
-  "PupilsNearReflexTest": [
-    "Normal response",
-    "absoulte afferent ",
-    "relative afferent "
-  ],
+  "PupilsShape": ["-", "rounded", "irregular"],
+  "PupilsLightReflexTest": ["Normal response", "abnormal response"],
+  "PupilsNearReflexTest": ["Normal response", "absolute afferent", "relative afferent"],
   "PupilsSwingingFlashLightTest": [
     "Normal",
     "RAPD"
   ],
-  "PupilsOtherDisorders": [
-    "non",
-    "mydriasis",
-    "miosis",
-    "anisocoria",
-    "oculsympathetic palsy (Horners' syndrome)",
-    "Adie's tonic pupil",
-    "Hemianopic pupil(Wernick's pupil)",
-    "Hutchinson's pupil",
-    "Tectal(dorsal midbrain)"
-  ],
+  "PupilsOtherDisorders": ["none", "mydriasis", "miosis", "anisocoria", "oculosympathetic palsy (Horner's syndrome)", "Adie's tonic pupil", "Hemianopic pupil (Wernicke's pupil)", "Hutchinson's pupil", "Tectal (dorsal midbrain)"],
   "EyelidPtosis": [
     "yes","no"
   ],
@@ -91,74 +63,14 @@
   "PapableTemporalArtery": [
     "yes","no"
   ],
-  "Exophthalmometry": [
-    "Normal",
-    "exophthalmos",
-    "enophthlamos"
-  ],
-  "Cornea": [
-    "Clear",
-    "epithelial disruption",
-    "stromal opacities",
-    "endothelial lesions"
-  ],
-  "AnteriorChambre": [
-    "normal",
-    "deep",
-    "clear",
-    "flare",
-    "hypopyon",
-    "hyphema"
-  ],
-  "Iris": [
-    "Normal",
-    "Transillumination defect",
-    "iris nodules",
-    "plateau",
-    "Bombe"
-  ],
-  "Lens": [
-    "Clear",
-    "Pseudophakic",
-    "Aphakic",
-    "Nuclear cataract",
-    "cortical cataract",
-    "Posterior subcap",
-    "posterior polar",
-    "PCO"
-  ],
-  "AnteriorVitreous": [
-    "inflammation",
-    "hemorrhage",
-    "pigmented cells"
-  ],
-  "FundusOpticDisc": [
-    "normal",
-    "cupping",
-    "atrophy",
-    "pallor",
-    "hemorrhage",
-    "papilledema"
-  ],
-  "FundusMacula": [
-    "normal foveal relfex",
-    "altered foveal reflex",
-    "drusen",
-    "exudates",
-    "hemorrhage",
-    "edema"
-  ],
-  "FundusVessels": [
-    "normal contour",
-    "abnormal contour",
-    "normal size",
-    "abnormal size",
-    "intraretinal hemorrhage"
-  ],
-  "FundusPeriphery": [
-    "tears",
-    "hols",
-    "lesions",
-    "pigmentary changes"
-  ]
+  "Exophthalmometry": ["Normal", "exophthalmos", "enophthalmos"],
+  "Cornea": ["Clear", "epithelial disruption", "stromal opacities", "endothelial lesions"],
+  "AnteriorChambre": ["normal", "deep", "clear", "flare", "hypopyon", "hyphema"],
+  "Iris": ["Normal", "Transillumination defect", "iris nodules", "plateau", "Bombe"],
+  "Lens": ["Clear", "Pseudophakic", "Aphakic", "Nuclear cataract", "cortical cataract", "Posterior subcap", "posterior polar", "PCO"],
+  "AnteriorVitreous": ["inflammation", "hemorrhage", "pigmented cells"],
+  "FundusOpticDisc": ["normal", "cupping", "atrophy", "pallor", "hemorrhage", "papilledema"],
+  "FundusMacula": ["normal foveal reflex", "altered foveal reflex", "drusen", "exudates", "hemorrhage", "edema"],
+  "FundusVessels": ["normal contour", "abnormal contour", "normal size", "abnormal size", "intraretinal hemorrhage"],
+  "FundusPeriphery": ["tears", "holes", "lesions", "pigmentary changes"]
 }

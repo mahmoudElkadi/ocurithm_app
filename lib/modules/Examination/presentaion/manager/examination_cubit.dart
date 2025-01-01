@@ -46,6 +46,8 @@ class ExaminationCubit extends Cubit<ExaminationState> {
     if (_currentStep > 0) {
       _currentStep--;
       emit(ExaminationStepChanged());
+    } else {
+      Get.back();
     }
   }
 
@@ -270,7 +272,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         leftPupilsLightReflexTest = value;
         emit(ChooseData());
         break;
-      case 'Exophthalmometry':
+      case 'exophthalmometry':
         leftExophthalmometry = value;
         emit(ChooseData());
         break;
@@ -518,6 +520,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
       "examinationHistory": historyController.text,
       "examinationComplain": complaintController.text,
       "leftEyeMeasurement": {
+        "eye": "Left",
         "autorefSpherical": leftAurorefSpherical,
         "autorefCylindrical": leftAurorefCylindrical,
         "autorefAxis": leftAurorefAxis,
@@ -559,6 +562,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         "bottomRight": leftBottomRightTapCount,
       },
       "rightEyeMeasurement": {
+        "eye": "Right",
         "autorefSpherical": rightAurorefSpherical,
         "autorefCylindrical": rightAurorefCylindrical,
         "autorefAxis": rightAurorefAxis,
@@ -607,10 +611,10 @@ class ExaminationCubit extends Cubit<ExaminationState> {
     emit(MakeExaminationLoading());
     try {
       var result = await examinationRepo.makeExamination(data: examinationData());
-      if (result != null && result.error == null) {
+      if (result.message != null && result.error == null) {
         Get.snackbar(
           "Success",
-          "Examination created successfully",
+          result.message!,
           backgroundColor: Colorz.primaryColor,
           colorText: Colorz.white,
           icon: Icon(Icons.check, color: Colorz.white),
@@ -643,6 +647,14 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         emit(MakeExaminationError());
       }
     } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Failed to create Examination",
+        backgroundColor: Colorz.errorColor,
+        colorText: Colorz.white,
+        icon: Icon(Icons.error, color: Colorz.white),
+      );
+      Navigator.pop(context);
       emit(MakeExaminationError());
     }
   }

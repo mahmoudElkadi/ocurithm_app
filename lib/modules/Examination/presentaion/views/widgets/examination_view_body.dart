@@ -8,7 +8,6 @@ import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/modules/Examination/presentaion/views/widgets/review_examination.dart';
 
-import '../../../../../Main/presentation/views/drawer.dart';
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
@@ -30,12 +29,12 @@ class MultiStepFormView extends StatelessWidget {
 
         return Scaffold(
           resizeToAvoidBottomInset: true,
-          drawer: const CustomDrawer(),
           body: Column(
             children: [
               ModernStepHeader(
                 currentStep: cubit.currentStep,
                 totalSteps: cubit.totalSteps,
+                onPop: () => cubit.previousStep(),
                 onMenuPressed: () {
                   try {
                     Scaffold.of(context).openDrawer();
@@ -45,46 +44,8 @@ class MultiStepFormView extends StatelessWidget {
                 },
               ),
               Expanded(
-                child: Stack(
-                  children: [
-                    SingleChildScrollView(
-                      padding: const EdgeInsets.only(
-                        top: 16,
-                        left: 16,
-                        right: 16,
-                        bottom: 80,
-                      ),
-                      child: _buildStepContent(cubit.currentStep),
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: StepNavigation(
-                        onPrevious: () => cubit.previousStep(),
-                        onNext: () => cubit.nextStep(),
-                        isLastStep: cubit.currentStep == cubit.totalSteps - 1,
-                        canGoBack: cubit.currentStep > 0,
-                        canContinue: cubit.currentStep < cubit.totalSteps - 1,
-                        onConfirm: () async {
-                          if (cubit.appointmentData != null) {
-                            customLoading(context, "");
-                            bool connection = await InternetConnection().hasInternetAccess;
-                            if (connection) {
-                              cubit.makeExamination(context: context);
-                            } else {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
-                                backgroundColor: Colorz.redColor,
-                              ));
-                            }
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                // Wrapped with Expanded
+                child: _buildStepContent(cubit.currentStep),
               ),
             ],
           ),
@@ -109,7 +70,6 @@ class MultiStepFormView extends StatelessWidget {
   }
 }
 
-// Step content widgets
 class _HistoryDetails extends StatelessWidget {
   const _HistoryDetails();
 
@@ -119,11 +79,132 @@ class _HistoryDetails extends StatelessWidget {
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) {
-        return Column(
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16).copyWith(bottom: 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // Added this
+            children: [
+              Text(
+                'Patient History',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Please provide detailed medical history',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.grey[200]!,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey[100]!,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  controller: cubit.historyController,
+                  maxLines: 6,
+                  decoration: InputDecoration(
+                    hintText: 'Type patient history here...',
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 15,
+                    ),
+                    contentPadding: const EdgeInsets.all(20),
+                    border: InputBorder.none,
+                    filled: true,
+                    fillColor: Colors.transparent,
+                  ),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Include any relevant medical conditions, medications, or allergies',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Spacer(),
+              StepNavigation(
+                onPrevious: () => cubit.previousStep(),
+                onNext: () => cubit.nextStep(),
+                isLastStep: cubit.currentStep == cubit.totalSteps - 1,
+                canGoBack: cubit.currentStep > 0,
+                canContinue: cubit.currentStep < cubit.totalSteps - 1,
+                onConfirm: () async {
+                  if (cubit.appointmentData != null) {
+                    customLoading(context, "");
+                    bool connection = await InternetConnection().hasInternetAccess;
+                    if (connection) {
+                      cubit.makeExamination(context: context);
+                    } else {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                        backgroundColor: Colorz.redColor,
+                      ));
+                    }
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _StepTwoContent extends StatelessWidget {
+  const _StepTwoContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Padding(
+        padding: const EdgeInsets.all(16).copyWith(bottom: 0),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Patient History',
+              'Current Complaints',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -132,7 +213,7 @@ class _HistoryDetails extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Please provide detailed medical history',
+              'Describe the current symptoms and concerns',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -155,10 +236,10 @@ class _HistoryDetails extends StatelessWidget {
                 ],
               ),
               child: TextFormField(
-                controller: cubit.historyController,
-                maxLines: 10,
+                maxLines: 6,
+                controller: cubit.complaintController,
                 decoration: InputDecoration(
-                  hintText: 'Type patient history here...',
+                  hintText: 'Describe the main complaint...',
                   hintStyle: TextStyle(
                     color: Colors.grey[400],
                     fontSize: 15,
@@ -174,7 +255,7 @@ class _HistoryDetails extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -186,7 +267,7 @@ class _HistoryDetails extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Include any relevant medical conditions, medications, or allergies',
+                    'Include main symptoms, when they started, and any treatments tried',
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey[600],
@@ -195,99 +276,31 @@ class _HistoryDetails extends StatelessWidget {
                 ),
               ],
             ),
+            Spacer(),
+            StepNavigation(
+              onPrevious: () => cubit.previousStep(),
+              onNext: () => cubit.nextStep(),
+              isLastStep: cubit.currentStep == cubit.totalSteps - 1,
+              canGoBack: cubit.currentStep > 0,
+              canContinue: cubit.currentStep < cubit.totalSteps - 1,
+              onConfirm: () async {
+                if (cubit.appointmentData != null) {
+                  customLoading(context, "");
+                  bool connection = await InternetConnection().hasInternetAccess;
+                  if (connection) {
+                    cubit.makeExamination(context: context);
+                  } else {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                      backgroundColor: Colorz.redColor,
+                    ));
+                  }
+                }
+              },
+            ),
           ],
-        );
-      },
-    );
-  }
-}
-
-class _StepTwoContent extends StatelessWidget {
-  const _StepTwoContent();
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<ExaminationCubit>();
-
-    return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Current Complaints',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Describe the current symptoms and concerns',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Main Complaint Box
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.grey[200]!,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey[100]!,
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TextFormField(
-              maxLines: 10,
-              controller: cubit.complaintController,
-              decoration: InputDecoration(
-                hintText: 'Describe the main complaint...',
-                hintStyle: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 15,
-                ),
-                contentPadding: const EdgeInsets.all(20),
-                border: InputBorder.none,
-                filled: true,
-                fillColor: Colors.transparent,
-              ),
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.info_outline,
-                size: 16,
-                color: Colors.grey[600],
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Include main symptoms, when they started, and any treatments tried',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -308,46 +321,41 @@ class _StepThreeContentState extends State<StepThreeContent> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
-    return SizedBox(
-      height: size.height - 200,
-      child: ListView(
-        physics: const ClampingScrollPhysics(),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: CupertinoSlidingSegmentedControl<int>(
-                groupValue: index,
-                thumbColor: Colorz.primaryColor,
-                backgroundColor: Colorz.white,
-                padding: EdgeInsets.zero,
-                children: {
-                  0: SegmentLabel(
-                    text: "Left Eye",
-                    index: 0,
-                    color: index == 0 ? Colorz.white : Colorz.black,
-                  ),
-                  1: SegmentLabel(
-                    text: "Right Eye",
-                    index: 1,
-                    color: index == 1 ? Colorz.white : Colorz.black,
-                  ),
-                },
-                onValueChanged: (value) {
-                  if (value != null && value != index) {
-                    setState(() => index = value);
-                  }
-                },
-              ),
+    return ListView(
+      physics: const ClampingScrollPhysics(),
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: CupertinoSlidingSegmentedControl<int>(
+              groupValue: index,
+              thumbColor: Colorz.primaryColor,
+              backgroundColor: Colorz.white,
+              padding: EdgeInsets.zero,
+              children: {
+                0: SegmentLabel(
+                  text: "Left Eye",
+                  index: 0,
+                  color: index == 0 ? Colorz.white : Colorz.black,
+                ),
+                1: SegmentLabel(
+                  text: "Right Eye",
+                  index: 1,
+                  color: index == 1 ? Colorz.white : Colorz.black,
+                ),
+              },
+              onValueChanged: (value) {
+                if (value != null && value != index) {
+                  setState(() => index = value);
+                }
+              },
             ),
           ),
-          // Use cached views
-          index == 0 ? leftEyeView : rightEyeView,
-        ],
-      ),
+        ),
+        // Use cached views
+        index == 0 ? leftEyeView : rightEyeView,
+      ],
     );
   }
 }
@@ -448,58 +456,83 @@ class EyeExaminationView extends StatelessWidget {
     // ];
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        spacing: 20,
-        children: [
-          _buildExpandableContainer('Autoref', AutorefContent(isLeftEye: isLeftEye)),
-          _buildExpandableContainer('Visual Acuity', VisualAcuityContent(isLeftEye: isLeftEye)),
-          _buildExpandableContainer('Refined Refraction', RefinedRefractionContent(isLeftEye: isLeftEye)),
-          _buildExpandableContainer('IOP', IOPContent(isLeftEye: isLeftEye)),
-          isLeftEye
-              ? QuadrantContainer(
-                  // Left side configuration
-                  containerSize: 300,
-                  colorList: _colorList,
-                  tapCounts: [
-                    cubit.leftTopLeftTapCount,
-                    cubit.leftTopRightTapCount,
-                    cubit.leftBottomLeftTapCount,
-                    cubit.leftBottomRightTapCount,
-                  ],
-                  tapHandlers: [
-                    cubit.leftTopLeftHandleTap,
-                    cubit.leftTopRightHandleTap,
-                    cubit.leftBottomLeftHandleTap,
-                    cubit.leftBottomRightHandleTap,
-                  ],
+      builder: (context, state) => Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16),
+        child: Column(
+          spacing: 20,
+          children: [
+            _buildExpandableContainer('Autoref', AutorefContent(isLeftEye: isLeftEye)),
+            _buildExpandableContainer('Visual Acuity', VisualAcuityContent(isLeftEye: isLeftEye)),
+            _buildExpandableContainer('Refined Refraction', RefinedRefractionContent(isLeftEye: isLeftEye)),
+            _buildExpandableContainer('IOP', IOPContent(isLeftEye: isLeftEye)),
+            isLeftEye
+                ? QuadrantContainer(
+                    // Left side configuration
+                    containerSize: 300,
+                    colorList: _colorList,
+                    tapCounts: [
+                      cubit.leftTopLeftTapCount,
+                      cubit.leftTopRightTapCount,
+                      cubit.leftBottomLeftTapCount,
+                      cubit.leftBottomRightTapCount,
+                    ],
+                    tapHandlers: [
+                      cubit.leftTopLeftHandleTap,
+                      cubit.leftTopRightHandleTap,
+                      cubit.leftBottomLeftHandleTap,
+                      cubit.leftBottomRightHandleTap,
+                    ],
 
-                  side: 'left',
-                )
-              : QuadrantContainer(
-                  // Left side configuration
-                  containerSize: 300,
-                  colorList: _colorList,
-                  tapCounts: [
-                    cubit.rightTopLeftTapCount,
-                    cubit.rightTopRightTapCount,
-                    cubit.rightBottomLeftTapCount,
-                    cubit.rightBottomRightTapCount,
-                  ],
-                  tapHandlers: [
-                    cubit.rightTopLeftHandleTap,
-                    cubit.rightTopRightHandleTap,
-                    cubit.rightBottomLeftHandleTap,
-                    cubit.rightBottomRightHandleTap,
-                  ],
+                    side: 'left',
+                  )
+                : QuadrantContainer(
+                    // Left side configuration
+                    containerSize: 300,
+                    colorList: _colorList,
+                    tapCounts: [
+                      cubit.rightTopLeftTapCount,
+                      cubit.rightTopRightTapCount,
+                      cubit.rightBottomLeftTapCount,
+                      cubit.rightBottomRightTapCount,
+                    ],
+                    tapHandlers: [
+                      cubit.rightTopLeftHandleTap,
+                      cubit.rightTopRightHandleTap,
+                      cubit.rightBottomLeftHandleTap,
+                      cubit.rightBottomRightHandleTap,
+                    ],
 
-                  side: 'right',
-                ),
-          _buildExpandableContainer('Pupils', PupilsContent(isLeftEye: isLeftEye)),
-          _buildExpandableContainer('External Examination', ExternalExaminationContent(isLeftEye: isLeftEye)),
-          _buildExpandableContainer('Slitlamp Examination', SlitLampExaminationContent(isLeftEye: isLeftEye)),
-          _buildExpandableContainer('Additional Examination', AdditionalExaminationContent(isLeftEye: isLeftEye)),
-          _buildExpandableContainer('Fundus Examination', FundusExaminationContent(isLeftEye: isLeftEye)),
-        ],
+                    side: 'right',
+                  ),
+            _buildExpandableContainer('Pupils', PupilsContent(isLeftEye: isLeftEye)),
+            _buildExpandableContainer('External Examination', ExternalExaminationContent(isLeftEye: isLeftEye)),
+            _buildExpandableContainer('Slitlamp Examination', SlitLampExaminationContent(isLeftEye: isLeftEye)),
+            _buildExpandableContainer('Additional Examination', AdditionalExaminationContent(isLeftEye: isLeftEye)),
+            _buildExpandableContainer('Fundus Examination', FundusExaminationContent(isLeftEye: isLeftEye)),
+            StepNavigation(
+              onPrevious: () => cubit.previousStep(),
+              onNext: () => cubit.nextStep(),
+              isLastStep: cubit.currentStep == cubit.totalSteps - 1,
+              canGoBack: cubit.currentStep > 0,
+              canContinue: cubit.currentStep < cubit.totalSteps - 1,
+              onConfirm: () async {
+                if (cubit.appointmentData != null) {
+                  customLoading(context, "");
+                  bool connection = await InternetConnection().hasInternetAccess;
+                  if (connection) {
+                    cubit.makeExamination(context: context);
+                  } else {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                      backgroundColor: Colorz.redColor,
+                    ));
+                  }
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -553,6 +586,23 @@ class AutorefContent extends StatelessWidget {
                 cubit.updateLeftEyeField('aurorefCylindrical', selected);
               } else {
                 cubit.updateRightEyeField('aurorefCylindrical', selected);
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          DropValidateRow(
+            items: cubit.data['AurorefAxis']
+                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
+                    .toList() ??
+                [],
+            textRow: "Axis :",
+            hintText: '',
+            selectedValue: isLeftEye ? cubit.leftAurorefAxis : cubit.rightAurorefAxis,
+            onChanged: (selected) {
+              if (isLeftEye) {
+                cubit.updateLeftEyeField('aurorefAxis', selected);
+              } else {
+                cubit.updateRightEyeField('aurorefAxis', selected);
               }
             },
           ),

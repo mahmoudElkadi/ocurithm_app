@@ -17,6 +17,7 @@ import '../../../../../../../../../generated/l10n.dart';
 import '../../../../../../../Receptionist/presentation/views/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
 import '../../../../../manager/patient_cubit.dart';
 import '../../../../../manager/patient_state.dart';
+import 'examinations_view.dart';
 
 class EditPatientViewBody extends StatefulWidget {
   const EditPatientViewBody({super.key, required this.cubit, required this.formKey, required this.id});
@@ -49,7 +50,7 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
   }
 
   fetchPatientData() async {
-    await widget.cubit.getPatient(id: widget.id);
+    await widget.cubit.getData(id: widget.id);
 
     if (widget.cubit.patient != null) {
       widget.cubit.nameController.text = widget.cubit.patient?.name ?? '';
@@ -595,6 +596,23 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                                     ],
                                   ),
                                 ),
+                              Divider(
+                                thickness: 0.4,
+                                color: Colorz.grey,
+                              ),
+                              widget.cubit.patientExamination == null
+                                  ? _buildShimmer(Container(
+                                      width: MediaQuery.sizeOf(context).width,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        color: Colors.white,
+                                      ),
+                                    ))
+                                  : ExaminationListView(
+                                      examinations: widget.cubit.patientExamination?.examinations?.examinations ?? [],
+                                      cubit: widget.cubit,
+                                    )
                             ],
                           )
                   ],

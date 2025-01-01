@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
+import 'package:ocurithm/modules/Patient/data/model/patient_examination.dart';
 
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
@@ -214,6 +216,55 @@ class PatientRepoImpl implements PatientRepo {
       },
       showError: true,
       fromJson: (json) => BranchesModel.fromJson(json),
+    );
+
+    if (result != null) {
+      return result;
+    } else {
+      throw Exception("Failed fetch branches");
+    }
+  }
+
+  @override
+  Future<PatientExaminationModel> getPatientExaminations({required String id}) async {
+    final url = "${Config.baseUrl}${Config.examination}";
+    final String? token = CacheHelper.getData(key: "token");
+    log("token: $token");
+
+    final result = await ApiService.request<PatientExaminationModel>(
+      url: url,
+      method: 'GET',
+      queryParameters: {"patient": id},
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) 'Cookie': 'ocurithmToken=$token',
+      },
+      showError: true,
+      fromJson: (json) => PatientExaminationModel.fromJson(json),
+    );
+
+    if (result != null) {
+      return result;
+    } else {
+      throw Exception("Failed fetch branches");
+    }
+  }
+
+  @override
+  Future<ExaminationModel> getOneExamination({required String id}) async {
+    final url = "${Config.baseUrl}${Config.examination}/$id";
+    final String? token = CacheHelper.getData(key: "token");
+    log("token: $token");
+
+    final result = await ApiService.request<ExaminationModel>(
+      url: url,
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) 'Cookie': 'ocurithmToken=$token',
+      },
+      showError: true,
+      fromJson: (json) => ExaminationModel.fromJson(json),
     );
 
     if (result != null) {

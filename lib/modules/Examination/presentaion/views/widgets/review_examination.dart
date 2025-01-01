@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 
 import '../../../../../core/utils/colors.dart';
+import '../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../manager/examination_cubit.dart';
 import '../../manager/examination_state.dart';
 import 'circle_view.dart';
+import 'navigation_view.dart';
 
 class ExaminationReviewScreen extends StatefulWidget {
   const ExaminationReviewScreen({Key? key}) : super(key: key);
@@ -39,82 +42,111 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        spacing: 16,
-        children: [
-          // Patient Info and History Section
-          Column(
+    final cubit = context.read<ExaminationCubit>();
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (BuildContext context, state) => SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0).copyWith(bottom: 0),
+          child: Column(
+            spacing: 16,
             children: [
-              _buildPatientInfoCard(),
-              _buildHistorySection(),
+              // Patient Info and History Section
+              Column(
+                children: [
+                  _buildPatientInfoCard(),
+                  _buildHistorySection(),
+                ],
+              ),
+
+              // Tab Buttons
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildCustomTabButton(
+                        text: 'Left Eye',
+                        isSelected: _selectedTab == 0,
+                        onTap: () {
+                          _pageController.animateToPage(
+                            0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildCustomTabButton(
+                        text: 'Right Eye',
+                        isSelected: _selectedTab == 1,
+                        onTap: () {
+                          _pageController.animateToPage(
+                            1,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // PageView with Examination Content
+              // PageView with Examination Content
+              SizedBox(
+                // Set a reasonable initial height
+                height: MediaQuery.of(context).size.height * 0.4,
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _selectedTab = index;
+                    });
+                  },
+                  children: [
+                    // Left Eye Content
+                    SingleChildScrollView(
+                      child: _buildEyeExaminationContent(isLeft: true),
+                    ),
+                    // Right Eye Content
+                    SingleChildScrollView(
+                      child: _buildEyeExaminationContent(isLeft: false),
+                    ),
+                  ],
+                ),
+              ),
+
+              StepNavigation(
+                onPrevious: () => cubit.previousStep(),
+                onNext: () => cubit.nextStep(),
+                isLastStep: cubit.currentStep == cubit.totalSteps - 1,
+                canGoBack: cubit.currentStep > 0,
+                canContinue: cubit.currentStep < cubit.totalSteps - 1,
+                onConfirm: () async {
+                  if (cubit.appointmentData != null) {
+                    customLoading(context, "");
+                    bool connection = await InternetConnection().hasInternetAccess;
+                    if (connection) {
+                      cubit.makeExamination(context: context);
+                    } else {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                        backgroundColor: Colorz.redColor,
+                      ));
+                    }
+                  }
+                },
+              ),
             ],
           ),
-
-          // Tab Buttons
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildCustomTabButton(
-                    text: 'Left Eye',
-                    isSelected: _selectedTab == 0,
-                    onTap: () {
-                      _pageController.animateToPage(
-                        0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: _buildCustomTabButton(
-                    text: 'Right Eye',
-                    isSelected: _selectedTab == 1,
-                    onTap: () {
-                      _pageController.animateToPage(
-                        1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // PageView with Examination Content
-          // PageView with Examination Content
-          SizedBox(
-            // Set a reasonable initial height
-            height: MediaQuery.of(context).size.height * 0.4,
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _selectedTab = index;
-                });
-              },
-              children: [
-                // Left Eye Content
-                SingleChildScrollView(
-                  child: _buildEyeExaminationContent(isLeft: true),
-                ),
-                // Right Eye Content
-                SingleChildScrollView(
-                  child: _buildEyeExaminationContent(isLeft: false),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
