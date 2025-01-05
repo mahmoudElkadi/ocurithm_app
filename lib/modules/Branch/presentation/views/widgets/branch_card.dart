@@ -14,6 +14,7 @@ import '../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../core/widgets/pagination.dart';
 import '../../../../../../core/widgets/width_spacer.dart';
+import '../../../../../core/Network/shared.dart';
 import '../../../data/model/branches_model.dart';
 import '../../manager/branch_cubit.dart';
 import '../../manager/branch_state.dart';
@@ -153,34 +154,35 @@ class _BranchCardState extends State<BranchCard> {
                   ],
                 ),
               ),
-              IconButton(
-                  onPressed: () async {
-                    showConfirmationDialog(
-                      context: context,
-                      title: "Delete Branch",
-                      message: "Do you want to Delete this Branch?",
-                      onConfirm: () async {
-                        customLoading(context, "");
-                        bool connection = await InternetConnection().hasInternetAccess;
-                        if (!connection) {
+              if (CacheHelper.getStringList(key: "capabilities").contains("manageBranches"))
+                IconButton(
+                    onPressed: () async {
+                      showConfirmationDialog(
+                        context: context,
+                        title: "Delete Branch",
+                        message: "Do you want to Delete this Branch?",
+                        onConfirm: () async {
+                          customLoading(context, "");
+                          bool connection = await InternetConnection().hasInternetAccess;
+                          if (!connection) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content: Text(
+                                "No Internet Connection",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              backgroundColor: Colors.red,
+                            ));
+                          } else {
+                            await cubit.deleteBranch(id: widget.branch!.id.toString(), context: context);
+                          }
+                        },
+                        onCancel: () {
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text(
-                              "No Internet Connection",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: Colors.red,
-                          ));
-                        } else {
-                          await cubit.deleteBranch(id: widget.branch!.id.toString(), context: context);
-                        }
-                      },
-                      onCancel: () {
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                  icon: Icon(Icons.delete_forever, color: Colorz.redColor, size: 30.w))
+                        },
+                      );
+                    },
+                    icon: Icon(Icons.delete_forever, color: Colorz.redColor, size: 30.w))
             ]),
           ),
         ),

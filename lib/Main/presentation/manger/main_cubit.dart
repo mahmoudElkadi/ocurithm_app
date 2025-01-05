@@ -70,17 +70,17 @@ class MainCubit extends Cubit<MainState> {
 
   int notificationIndex = -1;
 
-  Future<List<DrawerItem>> getStatusList({context, required List capabilities}) async {
-    capabilities = ["doctor", "receptionist", "branch", "appointment", "patient", "examinationType", "paymentMethod", "clinic", "examination"];
+  Future<List<DrawerItem>> getStatusList({context}) async {
+    List capabilities = CacheHelper.getStringList(key: "capabilities") ?? [];
     Map<String, List<dynamic>> statusMappings = {
-      "clinic": ["Clinics", const ClinicView(), "assets/icons/clinic.svg"],
-      "branch": ["Branches", const AdminBranchView(), "assets/icons/branch.svg"],
-      "doctor": ["Doctors", const AdminDoctorView(), "assets/icons/doctor.svg"],
-      "receptionist": ["Receptionists", const ReceptionistView(), "assets/icons/receptionist.svg"],
-      "patient": ["Patients", const AdminPatientView(), "assets/icons/patient.svg"],
-      "appointment": ["Appointments", const AppointmentView(), "assets/icons/appointment.svg"],
-      "examinationType": ["Examination Types", const ExaminationTypeView(), "assets/icons/exam_type.svg"],
-      "paymentMethod": ["payment Method", const PaymentMethodView(), "assets/icons/payment.svg"],
+      "manageClinics": ["Clinics", const ClinicView(), "assets/icons/clinic.svg"],
+      "showBranches": ["Branches", const AdminBranchView(), "assets/icons/branch.svg"],
+      "showDoctors": ["Doctors", const AdminDoctorView(), "assets/icons/doctor.svg"],
+      "manageReciptionists": ["Receptionists", const ReceptionistView(), "assets/icons/receptionist.svg"],
+      "showPatients": ["Patients", const AdminPatientView(), "assets/icons/patient.svg"],
+      "showAppointments": ["Appointments", const AppointmentView(), "assets/icons/appointment.svg"],
+      "manageExaminationTypes": ["Examination Types", const ExaminationTypeView(), "assets/icons/exam_type.svg"],
+      "managePaymentMethods": ["payment Method", const PaymentMethodView(), "assets/icons/payment.svg"],
     };
 
     drawerItems = [];

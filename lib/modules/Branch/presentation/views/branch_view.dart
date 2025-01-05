@@ -4,6 +4,7 @@ import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/widgets/add_branch.dart';
@@ -25,15 +26,16 @@ class AdminBranchView extends StatelessWidget {
         builder: (context, state) => CustomScaffold(
           title: "Branches",
           actions: [
-            IconButton(
-              onPressed: () {
-                showFormPopup(context, AdminBranchCubit.get(context));
-              },
-              icon: SvgPicture.asset(
-                "assets/icons/add_branch.svg",
-                color: Colorz.primaryColor,
+            if (CacheHelper.getStringList(key: "capabilities").contains("manageBranches"))
+              IconButton(
+                onPressed: () {
+                  showFormPopup(context, AdminBranchCubit.get(context));
+                },
+                icon: SvgPicture.asset(
+                  "assets/icons/add_branch.svg",
+                  color: Colorz.primaryColor,
+                ),
               ),
-            ),
           ],
           body: CustomMaterialIndicator(
               onRefresh: () async {

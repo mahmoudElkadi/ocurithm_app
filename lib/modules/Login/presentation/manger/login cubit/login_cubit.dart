@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -43,9 +41,10 @@ class LoginCubit extends Cubit<LoginState> {
         if (response.user != null) {
           await CacheHelper.saveUser("user", response.user!);
           await CacheHelper.saveString(key: "token", value: response.token);
-          log("login user: ${CacheHelper.getUser("user")?.name}");
         }
-        Get.to(() => MainView(capabilities: CacheHelper.getUser("user")?.capabilities ?? []));
+        List<String>? capabilities = CacheHelper.getUser("user")!.capabilities.map((obj) => obj.name).cast<String>().toList();
+        await CacheHelper.saveStringList(key: "capabilities", value: capabilities);
+        Get.to(() => const MainView());
         isLoading = false;
         emit(LoginUserSuccess());
       } else if (response.message != null) {

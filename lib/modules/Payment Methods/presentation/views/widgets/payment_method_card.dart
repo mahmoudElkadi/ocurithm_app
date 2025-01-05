@@ -220,12 +220,12 @@ class _PaymentMethodListViewState extends State<PaymentMethodListView> {
             Icon(Icons.inbox_outlined, size: 70, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              'No Examination Type found',
+              'No Payment Methods found',
               style: TextStyle(fontSize: 22, color: Colors.grey[600], fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
-              'Examination Type will appear here',
+              'Payment Methods will appear here',
               style: TextStyle(fontSize: 18, color: Colors.grey[400], fontWeight: FontWeight.w600),
             ),
           ],

@@ -65,6 +65,18 @@ class CacheHelper {
     return sharedPreferences.get(key);
   }
 
+  static Future<bool> saveStringList({required String key, required List<String> value}) async {
+    return await sharedPreferences.setStringList(key, value);
+  }
+
+  /// Get list of strings from SharedPreferences
+  static List<String> getStringList({
+    required String key,
+    List<String> defaultValue = const [],
+  }) {
+    return sharedPreferences.getStringList(key) ?? defaultValue;
+  }
+
   static Future<bool?> removeData({required String key}) async {
     return await sharedPreferences.remove(key);
   }

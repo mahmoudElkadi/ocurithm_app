@@ -580,11 +580,12 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                         ],
                       ),
                     ),
-                    widget.icon ??
-                        Icon(
-                          Icons.arrow_drop_down_circle,
-                          color: Colors.green.shade800,
-                        ),
+                    if (widget.readOnly != true)
+                      widget.icon ??
+                          Icon(
+                            Icons.arrow_drop_down_circle,
+                            color: Colors.green.shade800,
+                          ),
                   ],
                 ),
               ),

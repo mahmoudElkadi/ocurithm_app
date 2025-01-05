@@ -106,12 +106,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         if (response.statusCode == 201 && responseData['message'] != 'No user logged in') {
           // User is authenticated, navigate to Main View
 
-          Get.offAll(
-              () => MainView(
-                    capabilities: responseData['user']['capabilities'],
-                  ),
-              transition: Transition.fadeIn,
-              duration: const Duration(seconds: 1));
+          Get.offAll(() => MainView(), transition: Transition.fadeIn, duration: const Duration(seconds: 1));
         } else {
           // User is not authenticated, navigate to Login View
           CacheHelper.removeData(key: "token");

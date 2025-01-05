@@ -12,6 +12,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../Services/time_parser.dart';
+import '../../../../../core/Network/shared.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/choose_hours_range.dart';
 import '../../../../../core/widgets/work_day_selector.dart';
@@ -159,15 +160,16 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                       ),
                     ),
                     if (readOnly == true)
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            readOnly = !readOnly;
-                          });
-                        },
-                        icon: const Icon(Icons.edit),
-                        splashRadius: 20,
-                      )
+                      if (CacheHelper.getStringList(key: "capabilities").contains("manageBranches"))
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              readOnly = !readOnly;
+                            });
+                          },
+                          icon: const Icon(Icons.edit),
+                          splashRadius: 20,
+                        )
                   ],
                 ),
                 const Divider(),

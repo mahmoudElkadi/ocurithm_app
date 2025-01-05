@@ -7,8 +7,7 @@ import '../manger/main_state.dart';
 import 'main_screen.dart';
 
 class MainView extends StatefulWidget {
-  const MainView({super.key, this.capabilities = const []});
-  final List capabilities;
+  const MainView({super.key});
 
   @override
   State<MainView> createState() => _MainViewState();
@@ -21,7 +20,7 @@ class _MainViewState extends State<MainView> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (BuildContext context) => MainCubit()
-        ..getStatusList(context: context, capabilities: widget.capabilities)
+        ..getStatusList(context: context)
         ..enableBack()
         ..check(),
       child: BlocBuilder<MainCubit, MainState>(
