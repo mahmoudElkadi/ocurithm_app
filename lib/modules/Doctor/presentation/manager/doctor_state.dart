@@ -47,3 +47,9 @@ class DeleteBranchLoading extends DoctorState {}
 class DeleteBranchSuccess extends DoctorState {}
 
 class DeleteBranchError extends DoctorState {}
+
+class GetCapabilityLoading extends DoctorState {}
+
+class GetCapabilitiesError extends DoctorState {}
+
+class GetCapabilitySuccess extends DoctorState {}

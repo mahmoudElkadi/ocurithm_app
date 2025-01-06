@@ -7,6 +7,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 
 import '../../../../../../core/utils/colors.dart';
+import '../../../../../core/Network/shared.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/model/payment_method_model.dart';
@@ -38,6 +39,18 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
     _descriptionController.dispose();
 
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+      if (widget.cubit.clinics == null) {
+        widget.cubit.getClinics();
+      }
+    } else {
+      selectedClinic = CacheHelper.getUser("user")?.clinic;
+    }
   }
 
   void _submitForm() async {
@@ -126,33 +139,34 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    DropdownItem(
-                      radius: 8,
-                      border: Colorz.grey,
-                      color: Colorz.white,
-                      isShadow: false,
-                      height: 14,
-                      iconData: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: Colorz.grey,
+                    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+                      DropdownItem(
+                        radius: 8,
+                        border: Colorz.grey,
+                        color: Colorz.white,
+                        isShadow: false,
+                        height: 14,
+                        iconData: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: Colorz.grey,
+                        ),
+                        items: widget.cubit.clinics?.clinics,
+                        isValid: _clinicValidation,
+                        validateText: 'Please enter a clinic',
+                        selectedValue: selectedClinic?.name,
+                        hintText: 'Select Clinic',
+                        prefixIcon: Icon(Icons.local_hospital_outlined, color: Colorz.grey),
+                        itemAsString: (item) => item.name.toString(),
+                        onItemSelected: (item) {
+                          setState(() {
+                            if (item != "Not Found") {
+                              selectedClinic = item;
+                              log(selectedClinic.toString());
+                            }
+                          });
+                        },
+                        isLoading: widget.cubit.clinics == null,
                       ),
-                      items: widget.cubit.clinics?.clinics,
-                      isValid: _clinicValidation,
-                      validateText: 'Please enter a clinic',
-                      selectedValue: selectedClinic?.name,
-                      hintText: 'Select Clinic',
-                      prefixIcon: Icon(Icons.local_hospital_outlined, color: Colorz.grey),
-                      itemAsString: (item) => item.name.toString(),
-                      onItemSelected: (item) {
-                        setState(() {
-                          if (item != "Not Found") {
-                            selectedClinic = item;
-                            log(selectedClinic.toString());
-                          }
-                        });
-                      },
-                      isLoading: widget.cubit.clinics == null,
-                    ),
                     const SizedBox(height: 16),
 
                     TextFormField(

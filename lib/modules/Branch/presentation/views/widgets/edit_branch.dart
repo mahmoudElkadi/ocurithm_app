@@ -64,7 +64,9 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
       openingTime = widget.cubit.branch?.openTime ?? '';
       closingTime = widget.cubit.branch?.closeTime ?? '';
     }
-    await widget.cubit.getClinics();
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+      await widget.cubit.getClinics();
+    }
     setState(() {});
   }
 
@@ -200,7 +202,7 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                                 Icons.keyboard_arrow_down_rounded,
                                 color: Colorz.grey,
                               ),
-                              readOnly: readOnly,
+                              readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities") ? readOnly : true,
 
                               items: widget.cubit.clinics?.clinics,
                               // isValid: widget.cubit.chooseBranch,

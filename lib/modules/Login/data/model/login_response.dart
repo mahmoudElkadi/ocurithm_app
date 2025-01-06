@@ -1,3 +1,6 @@
+import '../../../Branch/data/model/branches_model.dart';
+import '../../../Clinics/data/model/clinics_model.dart';
+
 class LoginModel {
   LoginModel({
     required this.message,
@@ -26,16 +29,26 @@ class LoginModel {
 
 class User {
   User({
+    required this.clinic,
     required this.name,
-    required this.username,
+    required this.phone,
+    required this.image,
+    required this.birthDate,
+    required this.branch,
+    required this.isActive,
     required this.capabilities,
     required this.createdAt,
     required this.updatedAt,
     required this.id,
   });
 
+  final Clinic? clinic;
   final String? name;
-  final String? username;
+  final String? phone;
+  final String? image;
+  final DateTime? birthDate;
+  final Branch? branch;
+  final bool? isActive;
   final List<Capability> capabilities;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -43,8 +56,13 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       name: json["name"],
-      username: json["username"],
+      phone: json["phone"],
+      image: json["image"],
+      birthDate: DateTime.tryParse(json["birthDate"] ?? ""),
+      branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
+      isActive: json["isActive"],
       capabilities: json["capabilities"] == null ? [] : List<Capability>.from(json["capabilities"]!.map((x) => Capability.fromJson(x))),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
@@ -53,8 +71,13 @@ class User {
   }
 
   Map<String, dynamic> toJson() => {
+        "clinic": clinic?.toJson(),
         "name": name,
-        "username": username,
+        "phone": phone,
+        "image": image,
+        "birthDate": birthDate?.toIso8601String(),
+        "branch": branch?.toJson(),
+        "isActive": isActive,
         "capabilities": capabilities.map((x) => x?.toJson()).toList(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),

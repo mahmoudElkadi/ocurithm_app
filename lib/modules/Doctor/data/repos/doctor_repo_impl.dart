@@ -24,7 +24,6 @@ class DoctorRepoImpl implements DoctorRepo {
         "password": doctor.password,
         "clinic": doctor.clinic?.id,
         if (doctor.birthDate != null) "birthDate": doctor.birthDate.toString(),
-        if (doctor.capabilities != null && doctor.capabilities!.isNotEmpty) "capabilities": doctor.capabilities,
         if (doctor.qualifications != null && doctor.qualifications!.isNotEmpty) "qualifications": doctor.qualifications,
         if (doctor.image != null && doctor.image!.isNotEmpty) "image": doctor.image,
       };
@@ -254,7 +253,7 @@ class DoctorRepoImpl implements DoctorRepo {
       "phone": doctor.phone?.trim(),
       "clinic": doctor.clinic?.id,
       if (doctor.birthDate != null) "birthDate": doctor.birthDate.toString(),
-      if (doctor.capabilities != null && doctor.capabilities!.isNotEmpty) "capabilities": doctor.capabilities,
+      if (doctor.capability != null && doctor.capability!.isNotEmpty) "capabilities": doctor.capability,
       if (doctor.qualifications != null && doctor.qualifications!.isNotEmpty) "qualifications": doctor.qualifications,
       if (doctor.image != null && doctor.image!.isNotEmpty) "image": doctor.image,
     };

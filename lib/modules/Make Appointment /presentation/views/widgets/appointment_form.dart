@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/modules/Make%20Appointment%20/presentation/manager/Make%20Appointment%20cubit/make_appointment_cubit.dart';
 
+import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
@@ -225,7 +226,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildClinicDropdown(cubit),
+                        if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) _buildClinicDropdown(cubit),
                         const HeightSpacer(size: 15),
                         _buildBranchDropdown(cubit),
                         const HeightSpacer(size: 15),

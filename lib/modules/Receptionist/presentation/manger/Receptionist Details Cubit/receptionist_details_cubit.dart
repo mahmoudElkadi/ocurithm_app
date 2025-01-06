@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../Services/services_api.dart';
 import '../../../../Branch/data/model/branches_model.dart';
 import '../../../../Clinics/data/model/clinics_model.dart';
+import '../../../../Doctor/data/model/capability_model.dart';
 import '../../../data/models/receptionists_model.dart';
 import '../../../data/repos/receptionist_details_repo.dart';
 import 'receptionist_details_state.dart';
@@ -103,6 +104,33 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
     }
   }
 
+  CapabilityModel? capabilities;
+  Future getCapabilities() async {
+    clinics = null;
+    emit(GetCapabilityLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(GetCapabilityLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(GetCapabilitiesError());
+      } else {
+        capabilities = await ServicesApi().getAllCapability();
+        emit(GetCapabilitySuccess());
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(GetCapabilitiesError());
+    }
+  }
+
   Future<void> sendWhatsAppMessage(String phone, String message) async {
     // Ensure the phone number is formatted correctly for Egypt
     final formattedPhone = "20" + phone.replaceFirst(RegExp(r'^0'), '');
@@ -188,7 +216,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
     return isValidate;
   }
 
-  List capabilitiesList = [];
+  List<String?>? capabilitiesList = [];
   String? imageUrl;
 
   addReceptionist({context}) async {
@@ -202,8 +230,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
             phone: phoneNumberController.text,
             birthDate: date,
             branch: selectedBranch,
-            clinic: selectedClinic,
-            capabilities: capabilitiesList),
+            clinic: selectedClinic),
       );
       if (result.error == null && (result.name != null || result.id != null)) {
         Get.snackbar(
@@ -364,7 +391,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
             birthDate: date,
             branch: selectedBranch,
             clinic: selectedClinic,
-            capabilities: capabilitiesList),
+            capability: capabilitiesList),
         id: id,
       );
       if (result.error == null && (result.name != null || result.id != null)) {

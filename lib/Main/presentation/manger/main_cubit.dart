@@ -145,10 +145,11 @@ class MainCubit extends Cubit<MainState> {
 
   Future<void> logOut() async {
     emit(LogOutUserLoading());
-    await CacheHelper.removeData(key: "token");
-    await CacheHelper.removeData(key: "id");
-    await CacheHelper.removeData(key: "domain");
+
     getx.Get.offAll(() => const LoginView());
+    await CacheHelper.removeData(key: "token");
+    await CacheHelper.removeData(key: "capabilities");
+    await CacheHelper.removeData(key: "user");
     emit(LogOutUserSuccess());
   }
 }

@@ -35,13 +35,6 @@ class MultiStepFormView extends StatelessWidget {
                 currentStep: cubit.currentStep,
                 totalSteps: cubit.totalSteps,
                 onPop: () => cubit.previousStep(),
-                onMenuPressed: () {
-                  try {
-                    Scaffold.of(context).openDrawer();
-                  } catch (e) {
-                    debugPrint(e.toString());
-                  }
-                },
               ),
               Expanded(
                 // Wrapped with Expanded

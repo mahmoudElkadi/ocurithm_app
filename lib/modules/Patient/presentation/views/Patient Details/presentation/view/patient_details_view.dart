@@ -10,6 +10,7 @@ import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Details/pr
 
 import '../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../../../core/widgets/no_internet.dart';
+import '../../../../../../../core/Network/shared.dart';
 import '../../../../manager/patient_cubit.dart';
 import '../../../../manager/patient_state.dart';
 
@@ -115,8 +116,14 @@ class _PatientDetailsViewState extends State<PatientDetailsView> {
                           setState(() {
                             widget.cubit.readOnly = !widget.cubit.readOnly;
                           });
-                          await widget.cubit.getClinics();
-                          await widget.cubit.getBranches();
+                          if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+                            if (widget.cubit.clinics == null) {
+                              await widget.cubit.getClinics();
+                            }
+                            await widget.cubit.getBranches();
+                          } else {
+                            widget.cubit.getBranches();
+                          }
                         },
                         icon: Icon(Icons.edit, color: Colorz.black),
                       )

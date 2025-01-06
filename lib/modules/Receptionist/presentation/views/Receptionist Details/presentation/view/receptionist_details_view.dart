@@ -10,6 +10,7 @@ import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/views/Receptionist%20Details/presentation/view/widgets/edit_receptionist.dart';
 
 import '../../../../../../../../core/widgets/custom_freeze_loading.dart';
+import '../../../../../../../core/Network/shared.dart';
 import '../../../../manger/Receptionist Details Cubit/receptionist_details_cubit.dart';
 import '../../../../manger/Receptionist Details Cubit/receptionist_details_state.dart';
 
@@ -70,7 +71,15 @@ class _ReceptionistDetailsViewState extends State<ReceptionistDetailsView> {
     setState(() {
       widget.cubit.readOnly = !widget.cubit.readOnly;
     });
-    Future.wait([widget.cubit.getClinics(), widget.cubit.getBranches()]);
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+      if (widget.cubit.clinics == null) {
+        Future.wait([widget.cubit.getClinics(), widget.cubit.getBranches()]);
+      } else {
+        widget.cubit.getBranches();
+      }
+    } else {
+      widget.cubit.getBranches();
+    }
   }
 
   Future<bool> _handleWillPop() async {

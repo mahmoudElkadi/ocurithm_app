@@ -42,14 +42,12 @@ class CustomHeaderClipper extends CustomClipper<Path> {
 class StepHeader extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
-  final VoidCallback onMenuPressed;
   final VoidCallback onPop;
 
   const StepHeader({
     Key? key,
     required this.currentStep,
     required this.totalSteps,
-    required this.onMenuPressed,
     required this.onPop,
   }) : super(key: key);
 
@@ -80,9 +78,12 @@ class StepHeader extends StatelessWidget {
               Builder(builder: (context) {
                 return IconButton(
                   onPressed: onPop,
-                  icon: Icon(
-                    Icons.arrow_back_ios,
-                    color: Colorz.black,
+                  icon: Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8),
+                    child: Icon(
+                      Icons.arrow_back_ios,
+                      color: Colorz.black,
+                    ),
                   ),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -179,14 +180,13 @@ class StepHeader extends StatelessWidget {
 class ModernStepHeader extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
-  final VoidCallback onMenuPressed;
+
   final VoidCallback onPop;
 
   const ModernStepHeader({
     Key? key,
     required this.currentStep,
     required this.totalSteps,
-    required this.onMenuPressed,
     required this.onPop,
   }) : super(key: key);
 
@@ -195,7 +195,6 @@ class ModernStepHeader extends StatelessWidget {
     return StepHeader(
       currentStep: currentStep,
       totalSteps: totalSteps,
-      onMenuPressed: onMenuPressed,
       onPop: onPop,
     );
   }

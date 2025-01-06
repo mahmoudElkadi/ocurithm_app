@@ -26,7 +26,6 @@ class ReceptionistRepoImpl implements ReceptionistRepo {
         "branch": receptionist.branch?.id,
         "clinic": receptionist.clinic?.id,
         if (receptionist.birthDate != null) "birthDate": receptionist.birthDate.toString(),
-        if (receptionist.capabilities != null && receptionist.capabilities!.isNotEmpty) "capabilities": receptionist.capabilities,
         if (receptionist.image != null && receptionist.image!.isNotEmpty) "image": receptionist.image,
       };
 
@@ -157,7 +156,7 @@ class ReceptionistRepoImpl implements ReceptionistRepo {
       "branch": receptionist.branch?.id,
       "clinic": receptionist.clinic?.id,
       if (receptionist.birthDate != null) "birthDate": receptionist.birthDate.toString(),
-      if (receptionist.capabilities != null && receptionist.capabilities!.isNotEmpty) "capabilities": receptionist.capabilities,
+      if (receptionist.capability != null && receptionist.capability!.isNotEmpty) "capabilities": receptionist.capability,
       if (receptionist.image != null && receptionist.image!.isNotEmpty) "image": receptionist.image,
     };
 

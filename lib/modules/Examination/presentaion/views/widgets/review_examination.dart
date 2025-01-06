@@ -58,68 +58,71 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 ],
               ),
 
-              // Tab Buttons
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildCustomTabButton(
-                        text: 'Left Eye',
-                        isSelected: _selectedTab == 0,
-                        onTap: () {
-                          _pageController.animateToPage(
-                            0,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        },
+              Column(
+                children: [
+                  // Tab bar
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setState(() => _selectedTab = 0),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey.shade300,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              'Left Eye',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey,
+                                fontWeight: _selectedTab == 0 ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: _buildCustomTabButton(
-                        text: 'Right Eye',
-                        isSelected: _selectedTab == 1,
-                        onTap: () {
-                          _pageController.animateToPage(
-                            1,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        },
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setState(() => _selectedTab = 1),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey.shade300,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              'Right Eye',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey,
+                                fontWeight: _selectedTab == 1 ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
 
-              // PageView with Examination Content
-              // PageView with Examination Content
-              SizedBox(
-                // Set a reasonable initial height
-                height: MediaQuery.of(context).size.height * 0.4,
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _selectedTab = index;
-                    });
-                  },
-                  children: [
-                    // Left Eye Content
-                    SingleChildScrollView(
-                      child: _buildEyeExaminationContent(isLeft: true),
+                  // Content
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: _selectedTab == 0 ? _buildEyeExaminationContent(isLeft: true) : _buildEyeExaminationContent(isLeft: false),
                     ),
-                    // Right Eye Content
-                    SingleChildScrollView(
-                      child: _buildEyeExaminationContent(isLeft: false),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
 
               StepNavigation(

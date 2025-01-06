@@ -9,6 +9,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
 
 import '../../../../../Services/services_api.dart';
+import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Branch/data/model/branches_model.dart';
@@ -268,11 +269,20 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   }
 
   getAllData() async {
-    await Future.wait([
-      getClinics(),
-      getExaminationTypes(),
-      getPaymentMethods(),
-    ]);
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+      await Future.wait([
+        getClinics(),
+        getExaminationTypes(),
+        getPaymentMethods(),
+      ]);
+    } else {
+      selectedClinic = CacheHelper.getUser("user")?.clinic;
+      await Future.wait([
+        getBranches(),
+        getExaminationTypes(),
+        getPaymentMethods(),
+      ]);
+    }
   }
 
   Timer? _debounceTimer;

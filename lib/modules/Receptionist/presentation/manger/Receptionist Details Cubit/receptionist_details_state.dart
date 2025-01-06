@@ -29,3 +29,9 @@ class AdminClinicLoading extends ReceptionistState {}
 class AdminClinicError extends ReceptionistState {}
 
 class AdminClinicSuccess extends ReceptionistState {}
+
+class GetCapabilityLoading extends ReceptionistState {}
+
+class GetCapabilitiesError extends ReceptionistState {}
+
+class GetCapabilitySuccess extends ReceptionistState {}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 
 import '../../../../../../../../core/utils/colors.dart';
@@ -116,45 +117,46 @@ class _BranchCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Material(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.white,
-                      child: InkWell(
-                        onTap: () {
-                          showConfirmationDialog(
-                            context: context,
-                            title: "Delete Branch",
-                            message: "Do you want to Delete ${branch?.name ?? "this Branch"}?",
-                            onConfirm: () async {
-                              customLoading(context, "");
-                              bool connection = await InternetConnection().hasInternetAccess;
-                              if (!connection) {
+                    if (CacheHelper.getStringList(key: "capabilities").contains("manageDoctors"))
+                      Material(
+                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        child: InkWell(
+                          onTap: () {
+                            showConfirmationDialog(
+                              context: context,
+                              title: "Delete Branch",
+                              message: "Do you want to Delete ${branch?.name ?? "this Branch"}?",
+                              onConfirm: () async {
+                                customLoading(context, "");
+                                bool connection = await InternetConnection().hasInternetAccess;
+                                if (!connection) {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                    content: Text(
+                                      "No Internet Connection",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ));
+                                } else {
+                                  await cubit.deleteBranch(context: context, doctorId: doctorId, branchId: branch!.id.toString());
+                                }
+                              },
+                              onCancel: () {
                                 Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                  content: Text(
-                                    "No Internet Connection",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ));
-                              } else {
-                                await cubit.deleteBranch(context: context, doctorId: doctorId, branchId: branch!.id.toString());
-                              }
-                            },
-                            onCancel: () {
-                              Navigator.pop(context);
-                            },
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          child: Icon(
-                            Icons.delete_forever,
-                            color: Colorz.redColor,
+                              },
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            child: Icon(
+                              Icons.delete_forever,
+                              color: Colorz.redColor,
+                            ),
                           ),
                         ),
-                      ),
-                    )
+                      )
                   ],
                 ),
                 const SizedBox(height: 16),

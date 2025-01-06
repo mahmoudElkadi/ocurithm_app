@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/modules/Doctor/data/model/capability_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../Services/services_api.dart';
@@ -188,7 +189,34 @@ class DoctorCubit extends Cubit<DoctorState> {
     }
   }
 
-  List<String> capabilitiesList = [];
+  CapabilityModel? capabilities;
+  Future getCapabilities() async {
+    clinics = null;
+    emit(GetCapabilityLoading());
+
+    connection = await InternetConnection().hasInternetAccess;
+    emit(GetCapabilityLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        emit(GetCapabilitiesError());
+      } else {
+        capabilities = await ServicesApi().getAllCapability();
+        emit(GetCapabilitySuccess());
+      }
+    } catch (e) {
+      log(e.toString());
+      emit(GetCapabilitiesError());
+    }
+  }
+
+  List<String?> capabilitiesList = [];
   String? imageUrl;
   Clinic? selectedClinic;
 
@@ -197,14 +225,14 @@ class DoctorCubit extends Cubit<DoctorState> {
     try {
       var result = await doctorRepo.createDoctor(
         doctor: Doctor(
-            name: nameController.text,
-            image: imageUrl,
-            password: passwordController.text,
-            phone: phoneNumberController.text,
-            birthDate: date,
-            qualifications: qualificationController.text,
-            clinic: selectedClinic,
-            capabilities: capabilitiesList),
+          name: nameController.text,
+          image: imageUrl,
+          password: passwordController.text,
+          phone: phoneNumberController.text,
+          birthDate: date,
+          qualifications: qualificationController.text,
+          clinic: selectedClinic,
+        ),
       );
       if (result.error == null && (result.name != null || result.id != null)) {
         Get.snackbar(
@@ -445,7 +473,7 @@ class DoctorCubit extends Cubit<DoctorState> {
             phone: phoneNumberController.text,
             birthDate: date,
             clinic: selectedClinic,
-            capabilities: capabilitiesList,
+            capability: capabilitiesList,
             qualifications: qualificationController.text),
         id: id,
       );

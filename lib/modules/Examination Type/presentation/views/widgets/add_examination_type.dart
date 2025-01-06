@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/modules/Examination%20Type/data/model/examination_type_model.dart';
 import 'package:ocurithm/modules/Examination%20Type/presentation/manager/examination_type_cubit.dart';
@@ -44,7 +45,13 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
   @override
   void initState() {
     super.initState();
-    widget.cubit.getClinics();
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+      if (widget.cubit.clinics == null) {
+        widget.cubit.getClinics();
+      }
+    } else {
+      selectedClinic = CacheHelper.getUser("user")?.clinic;
+    }
   }
 
   void _submitForm() async {
@@ -136,33 +143,34 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      DropdownItem(
-                        radius: 8,
-                        border: Colorz.grey,
-                        color: Colorz.white,
-                        isShadow: false,
-                        height: 14,
-                        iconData: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: Colorz.grey,
+                      if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+                        DropdownItem(
+                          radius: 8,
+                          border: Colorz.grey,
+                          color: Colorz.white,
+                          isShadow: false,
+                          height: 14,
+                          iconData: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: Colorz.grey,
+                          ),
+                          items: widget.cubit.clinics?.clinics,
+                          isValid: _clinicValidation,
+                          validateText: 'Please enter a clinic',
+                          selectedValue: selectedClinic?.name,
+                          hintText: 'Select Clinic',
+                          prefixIcon: Icon(Icons.local_hospital_outlined, color: Colorz.grey),
+                          itemAsString: (item) => item.name.toString(),
+                          onItemSelected: (item) {
+                            setState(() {
+                              if (item != "Not Found") {
+                                selectedClinic = item;
+                                log(selectedClinic.toString());
+                              }
+                            });
+                          },
+                          isLoading: widget.cubit.clinics == null,
                         ),
-                        items: widget.cubit.clinics?.clinics,
-                        isValid: _clinicValidation,
-                        validateText: 'Please enter a clinic',
-                        selectedValue: selectedClinic?.name,
-                        hintText: 'Select Clinic',
-                        prefixIcon: Icon(Icons.local_hospital_outlined, color: Colorz.grey),
-                        itemAsString: (item) => item.name.toString(),
-                        onItemSelected: (item) {
-                          setState(() {
-                            if (item != "Not Found") {
-                              selectedClinic = item;
-                              log(selectedClinic.toString());
-                            }
-                          });
-                        },
-                        isLoading: widget.cubit.clinics == null,
-                      ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _nameController,

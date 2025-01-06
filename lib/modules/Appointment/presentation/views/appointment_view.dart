@@ -6,6 +6,7 @@ import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/appointment_view_body.dart';
 import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/make_appointment_view.dart';
 
+import '../../../../core/Network/shared.dart';
 import '../../../../core/utils/colors.dart';
 import '../../data/repos/appointment_repo_impl.dart';
 import '../manager/Appointment cubit/appointment_cubit.dart';
@@ -34,15 +35,16 @@ class AppointmentView extends StatelessWidget {
                         },
                       ),
                 actions: [
-                  IconButton(
-                    onPressed: () async {
-                      bool isChanged = await Get.to(() => MakeAppointmentView());
-                      if (isChanged) {
-                        AppointmentCubit.get(context).getAppointments();
-                      }
-                    },
-                    icon: Icon(Icons.add, color: Colorz.primaryColor),
-                  )
+                  if (CacheHelper.getStringList(key: "capabilities").contains("addAppointments"))
+                    IconButton(
+                      onPressed: () async {
+                        bool isChanged = await Get.to(() => MakeAppointmentView());
+                        if (isChanged) {
+                          AppointmentCubit.get(context).getAppointments();
+                        }
+                      },
+                      icon: Icon(Icons.add, color: Colorz.primaryColor),
+                    )
                 ],
                 title: "Appointments")));
   }

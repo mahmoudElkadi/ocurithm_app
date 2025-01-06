@@ -1,3 +1,5 @@
+import 'package:ocurithm/modules/Login/data/model/login_response.dart';
+
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Clinics/data/model/clinics_model.dart';
 
@@ -39,6 +41,7 @@ class Receptionist {
     this.clinic,
     this.isActive,
     this.capabilities,
+    this.capability,
     this.createdAt,
     this.updatedAt,
     this.id,
@@ -54,7 +57,8 @@ class Receptionist {
   Branch? branch;
   String? branchId;
   bool? isActive;
-  List<dynamic>? capabilities;
+  List<Capability>? capabilities;
+  List<String?>? capability;
   DateTime? createdAt;
   DateTime? updatedAt;
   String? id;
@@ -70,7 +74,7 @@ class Receptionist {
       birthDate: DateTime.tryParse(json["birthDate"] ?? ""),
       branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
       isActive: json["isActive"],
-      capabilities: json["capabilities"] == null ? [] : List<dynamic>.from(json["capabilities"]!.map((x) => x)),
+      capabilities: json["capabilities"] == null ? [] : List<Capability>.from(json["capabilities"]!.map((x) => Capability.fromJson(x))),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],

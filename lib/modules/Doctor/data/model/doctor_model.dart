@@ -1,3 +1,5 @@
+import 'package:ocurithm/modules/Login/data/model/login_response.dart';
+
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Clinics/data/model/clinics_model.dart';
 
@@ -32,22 +34,22 @@ class DoctorModel {
 }
 
 class Doctor {
-  Doctor({
-    this.name,
-    this.image,
-    this.phone,
-    this.birthDate,
-    this.qualifications,
-    this.branches,
-    this.isActive,
-    this.capabilities,
-    this.createdAt,
-    this.updatedAt,
-    this.clinic,
-    this.id,
-    this.error,
-    this.password,
-  });
+  Doctor(
+      {this.name,
+      this.image,
+      this.phone,
+      this.birthDate,
+      this.qualifications,
+      this.branches,
+      this.isActive,
+      this.capabilities,
+      this.createdAt,
+      this.updatedAt,
+      this.clinic,
+      this.id,
+      this.error,
+      this.password,
+      this.capability});
 
   String? name;
   String? image;
@@ -58,7 +60,8 @@ class Doctor {
   String? qualifications;
   final List<BranchElement>? branches;
   bool? isActive;
-  List<dynamic>? capabilities;
+  List<Capability>? capabilities;
+  List<String?>? capability;
   DateTime? createdAt;
   DateTime? updatedAt;
 
@@ -75,7 +78,7 @@ class Doctor {
       qualifications: json["qualifications"],
       branches: json["branches"] == null ? [] : List<BranchElement>.from(json["branches"]!.map((x) => BranchElement.fromJson(x))),
       isActive: json["isActive"],
-      capabilities: json["capabilities"] == null ? [] : List<dynamic>.from(json["capabilities"]!.map((x) => x)),
+      capabilities: json["capabilities"] == null ? [] : List<Capability>.from(json["capabilities"]!.map((x) => Capability.fromJson(x))),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),

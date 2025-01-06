@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../../../../core/utils/colors.dart';
+import '../../../../../../../Login/data/model/login_response.dart';
 
 class CustomCheckbox extends StatelessWidget {
   final bool isSelected;
@@ -38,18 +39,11 @@ class CustomCheckbox extends StatelessWidget {
   }
 }
 
-class Capability {
-  final String name;
-
-  Capability({
-    required this.name,
-  });
-}
 
 class CapabilitiesSection extends StatefulWidget {
   final List<Capability> capabilities;
-  final List<String> initialSelectedCapabilities;
-  final Function(List<String>) onSelectionChanged;
+  final List<Capability> initialSelectedCapabilities;
+  final Function(List<Capability>) onSelectionChanged;
   final bool? readOnly;
 
   const CapabilitiesSection({
@@ -64,16 +58,19 @@ class CapabilitiesSection extends StatefulWidget {
   State<CapabilitiesSection> createState() => _CapabilitiesSectionState();
 }
 
-class _CapabilitiesSectionState extends State<CapabilitiesSection> with SingleTickerProviderStateMixin {
+class _CapabilitiesSectionState extends State<CapabilitiesSection>
+    with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
   late AnimationController _animationController;
   late Animation<double> _expandAnimation;
-  late List<String> _selectedCapabilities;
+  late Set<Capability> _selectedCapabilities;
 
   @override
   void initState() {
     super.initState();
-    _selectedCapabilities = List.from(widget.initialSelectedCapabilities);
+    // Initialize selected capabilities with a proper Set
+    _selectedCapabilities = _initializeSelectedCapabilities();
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -82,6 +79,38 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection> with SingleTi
       parent: _animationController,
       curve: Curves.easeInOut,
     );
+  }
+
+  Set<Capability> _initializeSelectedCapabilities() {
+    // Create a Set of selected capabilities by matching with available capabilities
+    final initialSet = <Capability>{};
+    for (final initial in widget.initialSelectedCapabilities) {
+      // Find matching capability from available capabilities
+      final matchingCapability = widget.capabilities.firstWhere(
+            (cap) => cap.name == initial.name && cap.id == initial.id,
+        orElse: () => initial,
+      );
+      initialSet.add(matchingCapability);
+    }
+    return initialSet;
+  }
+
+  @override
+  void didUpdateWidget(CapabilitiesSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_areListsEqual(widget.initialSelectedCapabilities, oldWidget.initialSelectedCapabilities)) {
+      setState(() {
+        _selectedCapabilities = _initializeSelectedCapabilities();
+      });
+    }
+  }
+
+  bool _areListsEqual(List<Capability> list1, List<Capability> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
   }
 
   @override
@@ -101,19 +130,24 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection> with SingleTi
     });
   }
 
-  void _toggleSelection(String name) {
+  void _toggleSelection(Capability capability) {
+    if (widget.readOnly == true) return;
+
     setState(() {
-      if (_selectedCapabilities.contains(name)) {
-        _selectedCapabilities.remove(name);
+      if (_isSelected(capability)) {
+        _selectedCapabilities.removeWhere((cap) =>
+        cap.name == capability.name && cap.id == capability.id);
       } else {
-        _selectedCapabilities.add(name);
+        // Add the exact instance from capabilities list
+        _selectedCapabilities.add(capability);
       }
-      widget.onSelectionChanged(_selectedCapabilities);
+      widget.onSelectionChanged(_selectedCapabilities.toList());
     });
   }
 
-  bool _isSelected(String name) {
-    return _selectedCapabilities.contains(name);
+  bool _isSelected(Capability capability) {
+    return _selectedCapabilities.any((selected) =>
+    selected.name == capability.name && selected.id == capability.id);
   }
 
   @override
@@ -131,6 +165,7 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection> with SingleTi
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Header
           InkWell(
@@ -171,6 +206,7 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection> with SingleTi
           SizeTransition(
             sizeFactor: _expandAnimation,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Divider(height: 1),
                 ListView.builder(
@@ -180,29 +216,35 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection> with SingleTi
                   itemCount: widget.capabilities.length,
                   itemBuilder: (context, index) {
                     final capability = widget.capabilities[index];
-                    final isSelected = _isSelected(capability.name);
+                    final isSelected = _isSelected(capability);
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: InkWell(
-                        onTap: widget.readOnly == true ? null : () => _toggleSelection(capability.name),
+                        onTap: widget.readOnly == true
+                            ? null
+                            : () => _toggleSelection(capability),
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
                           padding: const EdgeInsets.all(8.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
-                            color: Colors.transparent,
+                            color: isSelected
+                                ? Colors.blue.withOpacity(0.1)
+                                : Colors.transparent,
                           ),
                           child: Row(
                             children: [
                               CustomCheckbox(
                                 isSelected: isSelected,
-                                onChanged: widget.readOnly == true ? null : (_) => _toggleSelection(capability.name),
+                                onChanged: widget.readOnly == true
+                                    ? null
+                                    : (_) => _toggleSelection(capability),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
-                                  capability.name,
+                                  capability.name ?? "",
                                   style: const TextStyle(
                                     fontSize: 16,
                                     color: Colors.black,
@@ -223,4 +265,4 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection> with SingleTi
       ),
     );
   }
-}
+}  

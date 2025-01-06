@@ -14,6 +14,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../../generated/l10n.dart';
+import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../manger/Receptionist Details Cubit/receptionist_details_cubit.dart';
 import '../../../../../manger/Receptionist Details Cubit/receptionist_details_state.dart';
 import '../../../../Add Receptionist/presentation/view/widgets/add_receptionist_view_body.dart';
@@ -60,22 +61,13 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
       widget.cubit.selectedBranch = widget.cubit.receptionist?.branch;
       widget.cubit.selectedClinic = widget.cubit.receptionist?.clinic;
     }
+    if (widget.cubit.capabilities == null) {
+      widget.cubit.getCapabilities();
+    }
   }
 
-  final List<Capability> capabilities = [
-    Capability(name: 'Programming'),
-    Capability(name: 'Design'),
-    Capability(name: 'Project Management'),
-    Capability(name: 'Communication'),
-    Capability(name: 'Problem Solving'),
-  ];
-
   // List of selected capability names
-  List<String> selectedCapabilities = [
-    'Programming',
-    'Project Management',
-    'Communication',
-  ];
+  List<String?> selectedCapabilities = [];
 
   Widget _buildShimmer(Widget child) {
     return Shimmer.fromColors(
@@ -224,7 +216,7 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                             ),
                             items: widget.cubit.clinics?.clinics,
                             isValid: widget.cubit.chooseClinic,
-                            readOnly: widget.cubit.readOnly,
+                            readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities") ? widget.cubit.readOnly : true,
                             validateText: 'Clinic must not be Empty',
                             selectedValue: widget.cubit.selectedClinic?.name,
                             hintText: 'Select Clinic',
@@ -277,7 +269,6 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                             isLoading: widget.cubit.loading,
                           ),
                     const HeightSpacer(size: 20),
-                    const HeightSpacer(size: 20),
                     isLoading
                         ? _buildShimmer(Container(
                             width: MediaQuery.sizeOf(context).width,
@@ -288,12 +279,12 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                             ),
                           ))
                         : CapabilitiesSection(
-                            capabilities: capabilities,
+                            capabilities: widget.cubit.capabilities?.capabilities ?? [],
                             readOnly: widget.cubit.readOnly,
-                            initialSelectedCapabilities: selectedCapabilities,
+                            initialSelectedCapabilities: widget.cubit.receptionist?.capabilities ?? [],
                             onSelectionChanged: (newSelection) {
-                              selectedCapabilities = newSelection;
-                              log(selectedCapabilities.toString());
+                              widget.cubit.capabilitiesList = newSelection.map((e) => e.id).toList();
+                              log(widget.cubit.capabilitiesList.toString());
                               setState(() {});
                             },
                           ),

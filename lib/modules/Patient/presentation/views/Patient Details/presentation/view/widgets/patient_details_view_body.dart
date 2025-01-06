@@ -14,7 +14,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../../generated/l10n.dart';
-import '../../../../../../../Receptionist/presentation/views/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
+import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../manager/patient_cubit.dart';
 import '../../../../../manager/patient_state.dart';
 import 'examinations_view.dart';
@@ -51,28 +51,7 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
 
   fetchPatientData() async {
     await widget.cubit.getData(id: widget.id);
-
-    if (widget.cubit.patient != null) {
-      widget.cubit.nameController.text = widget.cubit.patient?.name ?? '';
-      widget.cubit.phoneNumberController.text = widget.cubit.patient?.phone ?? "";
-      widget.cubit.date = widget.cubit.patient?.birthDate;
-      widget.cubit.selectedBranch = widget.cubit.patient?.branch;
-      widget.cubit.selectedGender = widget.cubit.patient?.gender;
-      widget.cubit.emailController.text = widget.cubit.patient?.email ?? "";
-      widget.cubit.addressController.text = widget.cubit.patient?.address ?? "";
-      widget.cubit.nationalityController.text = widget.cubit.patient?.nationality ?? "";
-      widget.cubit.nationalIdController.text = widget.cubit.patient?.nationalId ?? "";
-      widget.cubit.selectedClinic = widget.cubit.patient?.clinic;
-    }
   }
-
-  final List<Capability> capabilities = [
-    Capability(name: 'Programming'),
-    Capability(name: 'Design'),
-    Capability(name: 'Project Management'),
-    Capability(name: 'Communication'),
-    Capability(name: 'Problem Solving'),
-  ];
 
   Widget _buildShimmer(Widget child) {
     return Shimmer.fromColors(
@@ -114,7 +93,7 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             ),
                             items: widget.cubit.clinics?.clinics,
                             isValid: widget.cubit.chooseClinic,
-                            readOnly: widget.cubit.readOnly,
+                            readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities") ? widget.cubit.readOnly : true,
                             validateText: 'Clinic must not be Empty',
                             selectedValue: widget.cubit.selectedClinic?.name,
                             hintText: 'Select Clinic',

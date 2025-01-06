@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
@@ -61,15 +62,8 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
       widget.cubit.selectedClinic = widget.cubit.doctor?.clinic;
       widget.cubit.qualificationController.text = widget.cubit.doctor?.qualifications ?? "";
     }
+    await widget.cubit.getCapabilities();
   }
-
-  final List<Capability> capabilities = [
-    Capability(name: 'Programming'),
-    Capability(name: 'Design'),
-    Capability(name: 'Project Management'),
-    Capability(name: 'Communication'),
-    Capability(name: 'Problem Solving'),
-  ];
 
   Widget _buildShimmer(Widget child) {
     return Shimmer.fromColors(
@@ -198,40 +192,46 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             ),
                             isShadow: _isPhoneShadow,
                           ),
-                    HeightSpacer(size: 16),
-                    isLoading
-                        ? _buildShimmer(Container(
-                            width: MediaQuery.sizeOf(context).width,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.white,
+                    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+                      isLoading
+                          ? _buildShimmer(Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Container(
+                                width: MediaQuery.sizeOf(context).width,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ))
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: DropdownItem(
+                                radius: 30,
+                                color: Colorz.white,
+                                isShadow: true,
+                                iconData: Icon(
+                                  Icons.arrow_drop_down_circle,
+                                  color: Colorz.primaryColor,
+                                ),
+                                readOnly: widget.cubit.readOnly,
+                                items: widget.cubit.clinics?.clinics,
+                                selectedValue: widget.cubit.selectedClinic?.name,
+                                hintText: 'Select Clinic',
+                                isValid: widget.cubit.chooseClinic,
+                                validateText: 'Clinic must not be Empty',
+                                itemAsString: (item) => item.name.toString(),
+                                onItemSelected: (item) {
+                                  setState(() {
+                                    if (item != "Not Found") {
+                                      widget.cubit.selectedClinic = item;
+                                    }
+                                  });
+                                },
+                                isLoading: widget.cubit.clinics == null,
+                              ),
                             ),
-                          ))
-                        : DropdownItem(
-                            radius: 30,
-                            color: Colorz.white,
-                            isShadow: true,
-                            iconData: Icon(
-                              Icons.arrow_drop_down_circle,
-                              color: Colorz.primaryColor,
-                            ),
-                            readOnly: widget.cubit.readOnly,
-                            items: widget.cubit.clinics?.clinics,
-                            selectedValue: widget.cubit.selectedClinic?.name,
-                            hintText: 'Select Clinic',
-                            isValid: widget.cubit.chooseClinic,
-                            validateText: 'Clinic must not be Empty',
-                            itemAsString: (item) => item.name.toString(),
-                            onItemSelected: (item) {
-                              setState(() {
-                                if (item != "Not Found") {
-                                  widget.cubit.selectedClinic = item;
-                                }
-                              });
-                            },
-                            isLoading: widget.cubit.clinics == null,
-                          ),
                     const HeightSpacer(size: 20),
                     isLoading
                         ? _buildShimmer(Container(
@@ -243,11 +243,11 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             ),
                           ))
                         : CapabilitiesSection(
-                            capabilities: capabilities,
+                            capabilities: widget.cubit.capabilities?.capabilities ?? [],
                             readOnly: widget.cubit.readOnly,
-                            initialSelectedCapabilities: widget.cubit.capabilitiesList,
+                            initialSelectedCapabilities: widget.cubit.doctor?.capabilities ?? [],
                             onSelectionChanged: (newSelection) {
-                              widget.cubit.capabilitiesList = newSelection;
+                              widget.cubit.capabilitiesList = newSelection.map((e) => e.id).toList();
                               log(widget.cubit.capabilitiesList.toString());
                               setState(() {});
                             },

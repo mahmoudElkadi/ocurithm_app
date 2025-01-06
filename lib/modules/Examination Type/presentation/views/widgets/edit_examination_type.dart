@@ -9,6 +9,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
+import '../../../../../core/Network/shared.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/model/examination_type_model.dart';
@@ -152,6 +153,14 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                           setState(() {
                             readOnly = !readOnly;
                           });
+
+                          if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+                            if (widget.cubit.clinics == null) {
+                              widget.cubit.getClinics();
+                            }
+                          } else {
+                            selectedClinic = widget.cubit.examinationType?.clinic ?? CacheHelper.getUser("user")?.clinic;
+                          }
                         },
                         icon: const Icon(Icons.edit),
                         splashRadius: 20,
@@ -187,7 +196,7 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                                 Icons.keyboard_arrow_down_rounded,
                                 color: Colorz.grey,
                               ),
-                              readOnly: readOnly,
+                              readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities") ? readOnly : true,
                               prefixIcon: Icon(Icons.local_hospital_outlined, color: Colorz.grey),
                               items: widget.cubit.clinics?.clinics,
                               isValid: _clinicValidation,

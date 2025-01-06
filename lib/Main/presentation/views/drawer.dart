@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
@@ -77,29 +78,43 @@ class CustomDrawer extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(shape: BoxShape.circle),
-                        child: const CircleAvatar(
-                          radius: 38,
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            Icons.person,
-                            size: 40,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                      const HeightSpacer(size: 0),
+                      CacheHelper.getUser("user")?.image != null
+                          ? Container(
+                              height: 80,
+                              width: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                image: DecorationImage(
+                                    image: NetworkImage(CacheHelper.getUser("user")?.image ?? "https://via.placeholder.com/150"),
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.center),
+                              ),
+                            )
+                          : Container(
+                              height: 70,
+                              width: 70,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 0))],
+                              ),
+                              child: CacheHelper.getUser("user")?.name != null
+                                  ? Center(
+                                      child: Text(CacheHelper.getUser("user")?.name?.split("")[0].toUpperCase() as String,
+                                          style: appStyle(context, 50, Colors.grey.shade700, FontWeight.bold)))
+                                  : null,
+                            ),
+                      const HeightSpacer(size: 10),
                       Text(
-                        "Name",
+                        CacheHelper.getUser("user")?.name ?? "Unknown",
                         style: appStyle(context, 18, Colors.black, FontWeight.w600),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const HeightSpacer(size: 5),
                       Text(
-                        "Dentist",
+                        CacheHelper.getUser("user")?.clinic?.name ?? "Clinic",
                         style: appStyle(context, 16, Colors.grey, FontWeight.w500),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

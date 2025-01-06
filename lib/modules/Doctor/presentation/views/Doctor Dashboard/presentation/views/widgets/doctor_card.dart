@@ -15,6 +15,7 @@ import '../../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../../core/widgets/pagination.dart';
 import '../../../../../../../../../core/widgets/width_spacer.dart';
+import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../../data/model/doctor_model.dart';
 import '../../../../../manager/doctor_cubit.dart';
 import '../../../../../manager/doctor_state.dart';
@@ -160,46 +161,47 @@ class _DoctorCardState extends State<DoctorCard> {
                   ],
                 ),
               ),
-              widget.isLoading
-                  ? _buildShimmer(Container(
-                      width: 30,
-                      height: 30,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                      ),
-                    ))
-                  : IconButton(
-                      onPressed: () async {
-                        showConfirmationDialog(
-                          context: context,
-                          title: "Delete Doctor",
-                          message: "Do you want to Delete ${widget.doctor?.name ?? "this Doctor"}?",
-                          onConfirm: () async {
-                            customLoading(context, "");
-                            bool connection = await InternetConnection().hasInternetAccess;
-                            if (!connection) {
+              if (CacheHelper.getStringList(key: "capabilities").contains("manageDoctors"))
+                widget.isLoading
+                    ? _buildShimmer(Container(
+                        width: 30,
+                        height: 30,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                      ))
+                    : IconButton(
+                        onPressed: () async {
+                          showConfirmationDialog(
+                            context: context,
+                            title: "Delete Doctor",
+                            message: "Do you want to Delete ${widget.doctor?.name ?? "this Doctor"}?",
+                            onConfirm: () async {
+                              customLoading(context, "");
+                              bool connection = await InternetConnection().hasInternetAccess;
+                              if (!connection) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  content: Text(
+                                    "No Internet Connection",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ));
+                              } else {
+                                await DoctorCubit.get(context).deleteDoctor(id: widget.doctor!.id.toString(), context: context);
+                              }
+                            },
+                            onCancel: () {
                               Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                content: Text(
-                                  "No Internet Connection",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                backgroundColor: Colors.red,
-                              ));
-                            } else {
-                              await DoctorCubit.get(context).deleteDoctor(id: widget.doctor!.id.toString(), context: context);
-                            }
-                          },
-                          onCancel: () {
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
-                      icon: Icon(
-                        Icons.delete_forever,
-                        color: Colorz.redColor,
-                      )),
+                            },
+                          );
+                        },
+                        icon: Icon(
+                          Icons.delete_forever,
+                          color: Colorz.redColor,
+                        )),
             ]),
           ),
         ),

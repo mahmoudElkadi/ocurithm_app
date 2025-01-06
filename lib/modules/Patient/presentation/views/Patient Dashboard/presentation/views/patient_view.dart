@@ -11,6 +11,7 @@ import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/
 
 import '../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../core/widgets/no_internet.dart';
+import '../../../../../../../core/Network/shared.dart';
 import '../../../../manager/patient_cubit.dart';
 import '../../../../manager/patient_state.dart';
 import '../../../Add Patient/presentation/view/add_patient_view.dart';
@@ -30,17 +31,18 @@ class AdminPatientView extends StatelessWidget {
           builder: (context, state) => CustomScaffold(
             title: "Patients",
             actions: [
-              IconButton(
-                onPressed: () {
-                  Get.to(() => CreatePatientView(
-                        cubit: PatientCubit.get(context),
-                      ));
-                },
-                icon: SvgPicture.asset(
-                  "assets/icons/add_user.svg",
-                  color: Colorz.primaryColor,
+              if (CacheHelper.getStringList(key: "capabilities").contains("managePatients"))
+                IconButton(
+                  onPressed: () {
+                    Get.to(() => CreatePatientView(
+                          cubit: PatientCubit.get(context),
+                        ));
+                  },
+                  icon: SvgPicture.asset(
+                    "assets/icons/add_user.svg",
+                    color: Colorz.primaryColor,
+                  ),
                 ),
-              ),
             ],
             body: CustomMaterialIndicator(
                 onRefresh: () async {

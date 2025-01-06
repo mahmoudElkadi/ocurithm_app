@@ -11,6 +11,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:month_picker_dialog/month_picker_dialog.dart';
+import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/format_helper.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/calendar_slider.dart';
@@ -448,7 +449,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                       Row(
                         children: [
                           SvgPicture.asset("assets/icons/doctor.svg", width: 18, height: 18),
-                          WidthSpacer(size: 8),
+                          const WidthSpacer(size: 8),
                           Text(
                             "${appointment.doctor?.name ?? 'Unknown'}",
                             style: appStyle(context, 16, Colorz.black, FontWeight.w600),
@@ -457,11 +458,11 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                       ),
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.watch_later_outlined,
                             size: 18,
                           ),
-                          WidthSpacer(size: 8),
+                          const WidthSpacer(size: 8),
                           Text(
                             FormatHelper.formatTimes(context, appointment.datetime.toString()),
                             style: appStyle(context, 18, Colorz.redColor, FontWeight.w500),
@@ -485,7 +486,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
               Row(
                 children: [
                   SvgPicture.asset("assets/icons/patient.svg", width: 18, height: 18),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     appointment.patient?.name ?? 'No Name',
                     style: appStyle(context, 16, Colorz.black, FontWeight.w500),
@@ -553,7 +554,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
               ),
               const SizedBox(height: 16),
               if (appointment.status != 'Completed')
-                appointment.status != 'Examining'
+                appointment.status != 'Examining' && CacheHelper.getStringList(key: "capabilities").contains("editAppointmentsReciptionist")
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -705,71 +706,80 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                           ),
                         ],
                       )
-                    : Row(spacing: 10, children: [
-                        Expanded(
-                          child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all<Color>(Colorz.primaryColor),
-                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  )),
-                              onPressed: () async {
-                                bool isChanged = await Get.to(
-                                    () => MultiStepFormPage(
-                                          appointment: appointment,
+                    : appointment.status == 'Examining' && CacheHelper.getStringList(key: "capabilities").contains("editAppointmentsDoctor")
+                        ? Row(spacing: 10, children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                  style: ButtonStyle(
+                                      backgroundColor: MaterialStateProperty.all<Color>(Colorz.primaryColor),
+                                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                        RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
-                                    transition: Transition.rightToLeft,
-                                    duration: const Duration(milliseconds: 500));
-                                if (isChanged) {
-                                  appointment.status = 'Completed';
-                                  setState(() {});
-                                }
-                              },
-                              child: Text(
-                                "Examine",
-                                style: TextStyle(color: Colors.white),
-                              )),
-                        ),
-                        Expanded(
-                          child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all<Color>(Colors.orange),
-                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  )),
-                              onPressed: () {
-                                showConfirmationDialog(
-                                  context: context,
-                                  title: "Wait Appointment",
-                                  message: "Do you want to Wait this Appointment?",
-                                  onConfirm: () async {
-                                    customLoading(context, "");
-                                    bool value = await InternetConnection().hasInternetAccess;
-                                    if (!value) {
-                                      Navigator.pop(context);
+                                      )),
+                                  onPressed: () async {
+                                    if (CacheHelper.getStringList(key: "capabilities").contains("manageExaminations")) {
+                                      bool isChanged = await Get.to(
+                                          () => MultiStepFormPage(
+                                                appointment: appointment,
+                                              ),
+                                          transition: Transition.rightToLeft,
+                                          duration: const Duration(milliseconds: 500));
+                                      if (isChanged) {
+                                        appointment.status = 'Completed';
+                                        setState(() {});
+                                      }
+                                    } else {
                                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                        content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                                        content: Text('Permission Denied', style: TextStyle(color: Colors.white)),
                                         backgroundColor: Colors.red,
                                       ));
-                                      return;
                                     }
-                                    cubit.editAppointment(context: context, id: appointment.id.toString(), action: 'wait');
                                   },
-                                  onCancel: () {
-                                    Navigator.pop(context);
+                                  child: const Text(
+                                    "Examine",
+                                    style: TextStyle(color: Colors.white),
+                                  )),
+                            ),
+                            Expanded(
+                              child: ElevatedButton(
+                                  style: ButtonStyle(
+                                      backgroundColor: MaterialStateProperty.all<Color>(Colors.orange),
+                                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                        RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      )),
+                                  onPressed: () {
+                                    showConfirmationDialog(
+                                      context: context,
+                                      title: "Wait Appointment",
+                                      message: "Do you want to Wait this Appointment?",
+                                      onConfirm: () async {
+                                        customLoading(context, "");
+                                        bool value = await InternetConnection().hasInternetAccess;
+                                        if (!value) {
+                                          Navigator.pop(context);
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                            content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                                            backgroundColor: Colors.red,
+                                          ));
+                                          return;
+                                        }
+                                        cubit.editAppointment(context: context, id: appointment.id.toString(), action: 'wait');
+                                      },
+                                      onCancel: () {
+                                        Navigator.pop(context);
+                                      },
+                                    );
                                   },
-                                );
-                              },
-                              child: Text(
-                                "Wait",
-                                style: TextStyle(color: Colors.white),
-                              )),
-                        ),
-                      ])
+                                  child: const Text(
+                                    "Wait",
+                                    style: TextStyle(color: Colors.white),
+                                  )),
+                            ),
+                          ])
+                        : const SizedBox.shrink()
             ],
           ),
         ),

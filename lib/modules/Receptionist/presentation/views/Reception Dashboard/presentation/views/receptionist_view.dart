@@ -9,6 +9,7 @@ import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/views/Reception%20Dashboard/presentation/views/widgets/receptionist_view_body.dart';
 
 import '../../../../../../../../core/utils/colors.dart';
+import '../../../../../../../core/Network/shared.dart';
 import '../../../../../data/repos/receptionist_details_repo_impl.dart';
 import '../../../../manger/Receptionist Details Cubit/receptionist_details_cubit.dart';
 import '../../../../manger/Receptionist Details Cubit/receptionist_details_state.dart';
@@ -25,17 +26,18 @@ class ReceptionistView extends StatelessWidget {
         builder: (BuildContext context, ReceptionistState state) => CustomScaffold(
           title: "Receptionists",
           actions: [
-            IconButton(
-              onPressed: () {
-                Get.to(() => CreateReceptionistView(
-                      cubit: ReceptionistCubit.get(context),
-                    ));
-              },
-              icon: SvgPicture.asset(
-                "assets/icons/add_user.svg",
-                color: Colorz.primaryColor,
+            if (CacheHelper.getStringList(key: "capabilities").contains("manageReciptionists"))
+              IconButton(
+                onPressed: () {
+                  Get.to(() => CreateReceptionistView(
+                        cubit: ReceptionistCubit.get(context),
+                      ));
+                },
+                icon: SvgPicture.asset(
+                  "assets/icons/add_user.svg",
+                  color: Colorz.primaryColor,
+                ),
               ),
-            ),
           ],
           body: ReceptionistCubit.get(context).connection != false
               ? const ReceptionistViewBody()

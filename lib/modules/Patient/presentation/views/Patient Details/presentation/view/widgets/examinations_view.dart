@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/patient_cubit.dart';
 
@@ -112,9 +113,11 @@ class ExaminationCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              Get.to(() => OneExaminationView(
-                    id: id,
-                  ));
+              if (CacheHelper.getStringList(key: "capabilities").contains("showExaminations")) {
+                Get.to(() => OneExaminationView(
+                      id: id,
+                    ));
+              }
             },
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,

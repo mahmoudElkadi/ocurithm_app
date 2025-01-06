@@ -15,6 +15,7 @@ import '../../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../../core/widgets/pagination.dart';
 import '../../../../../../../../../core/widgets/width_spacer.dart';
+import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../../data/models/receptionists_model.dart';
 import '../../../../../manger/Receptionist Details Cubit/receptionist_details_cubit.dart';
 import '../../../../../manger/Receptionist Details Cubit/receptionist_details_state.dart';
@@ -168,38 +169,39 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                   ],
                 ),
               ),
-              IconButton(
-                onPressed: () async {
-                  showConfirmationDialog(
-                    context: context,
-                    title: "Delete Receptionist",
-                    message: "Do you want to Delete ${widget.receptionist?.name ?? "this Receptionist"}?",
-                    onConfirm: () async {
-                      customLoading(context, "");
-                      bool connection = await InternetConnection().hasInternetAccess;
-                      if (!connection) {
+              if (CacheHelper.getStringList(key: "capabilities").contains("manageReciptionists"))
+                IconButton(
+                  onPressed: () async {
+                    showConfirmationDialog(
+                      context: context,
+                      title: "Delete Receptionist",
+                      message: "Do you want to Delete ${widget.receptionist?.name ?? "this Receptionist"}?",
+                      onConfirm: () async {
+                        customLoading(context, "");
+                        bool connection = await InternetConnection().hasInternetAccess;
+                        if (!connection) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text(
+                              "No Internet Connection",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: Colors.red,
+                          ));
+                        } else {
+                          await ReceptionistCubit.get(context).deleteReceptionist(id: widget.receptionist!.id.toString(), context: context);
+                        }
+                      },
+                      onCancel: () {
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text(
-                            "No Internet Connection",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          backgroundColor: Colors.red,
-                        ));
-                      } else {
-                        await ReceptionistCubit.get(context).deleteReceptionist(id: widget.receptionist!.id.toString(), context: context);
-                      }
-                    },
-                    onCancel: () {
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-                icon: Icon(
-                  Icons.delete_forever,
-                  color: Colorz.redColor,
-                ),
-              )
+                      },
+                    );
+                  },
+                  icon: Icon(
+                    Icons.delete_forever,
+                    color: Colorz.redColor,
+                  ),
+                )
             ]),
           ),
         ),

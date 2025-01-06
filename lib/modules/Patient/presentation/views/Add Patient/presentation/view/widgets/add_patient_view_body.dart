@@ -13,7 +13,7 @@ import 'package:password_generator/password_generator.dart';
 
 import '../../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../../generated/l10n.dart';
-import '../../../../../../../Receptionist/presentation/views/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
+import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../manager/patient_cubit.dart';
 import '../../../../../manager/patient_state.dart';
 
@@ -46,16 +46,15 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
   @override
   void initState() {
     super.initState();
-    widget.cubit.getClinics();
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+      if (widget.cubit.clinics == null) {
+        widget.cubit.getClinics();
+      }
+    } else {
+      widget.cubit.selectedClinic = CacheHelper.getUser("user")?.clinic;
+      widget.cubit.getBranches();
+    }
   }
-
-  final List<Capability> capabilities = [
-    Capability(name: 'Programming'),
-    Capability(name: 'Design'),
-    Capability(name: 'Project Management'),
-    Capability(name: 'Communication'),
-    Capability(name: 'Problem Solving'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -68,31 +67,32 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DropdownItem(
-                      radius: 30,
-                      color: Colorz.white,
-                      isShadow: true,
-                      iconData: Icon(
-                        Icons.arrow_drop_down_circle,
-                        color: Colorz.primaryColor,
+                    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+                      DropdownItem(
+                        radius: 30,
+                        color: Colorz.white,
+                        isShadow: true,
+                        iconData: Icon(
+                          Icons.arrow_drop_down_circle,
+                          color: Colorz.primaryColor,
+                        ),
+                        items: widget.cubit.clinics?.clinics,
+                        isValid: widget.cubit.chooseClinic,
+                        validateText: 'Clinic must not be Empty',
+                        selectedValue: widget.cubit.selectedClinic?.name,
+                        hintText: 'Select Clinic',
+                        itemAsString: (item) => item.name.toString(),
+                        onItemSelected: (item) {
+                          setState(() {
+                            if (item != "Not Found") {
+                              widget.cubit.selectedClinic = item;
+                              widget.cubit.selectedBranch = null;
+                              widget.cubit.getBranches();
+                            }
+                          });
+                        },
+                        isLoading: widget.cubit.clinics == null,
                       ),
-                      items: widget.cubit.clinics?.clinics,
-                      isValid: widget.cubit.chooseClinic,
-                      validateText: 'Clinic must not be Empty',
-                      selectedValue: widget.cubit.selectedClinic?.name,
-                      hintText: 'Select Clinic',
-                      itemAsString: (item) => item.name.toString(),
-                      onItemSelected: (item) {
-                        setState(() {
-                          if (item != "Not Found") {
-                            widget.cubit.selectedClinic = item;
-                            widget.cubit.selectedBranch = null;
-                            widget.cubit.getBranches();
-                          }
-                        });
-                      },
-                      isLoading: widget.cubit.clinics == null,
-                    ),
                     const HeightSpacer(size: 20),
                     DropdownItem(
                       radius: 30,

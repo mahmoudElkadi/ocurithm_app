@@ -10,4 +10,5 @@ class Config {
   static String get appointments => "appointments";
   static String get clinics => "clinics";
   static String get examination => "examinations";
+  static String get capabilities => "capabilities";
 }

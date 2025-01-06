@@ -13,8 +13,8 @@ import 'package:password_generator/password_generator.dart';
 
 import '../../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../../generated/l10n.dart';
+import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../../../Receptionist/presentation/views/Add Receptionist/presentation/view/widgets/add_receptionist_view_body.dart';
-import '../../../../../../../Receptionist/presentation/views/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
 import '../../../../../manager/doctor_cubit.dart';
 import '../../../../../manager/doctor_state.dart';
 
@@ -47,16 +47,12 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
     super.initState();
     widget.cubit.availableTo = "18:00";
     widget.cubit.availableFrom = "08:00";
-    widget.cubit.getClinics();
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+      widget.cubit.getClinics();
+    } else {
+      widget.cubit.selectedClinic = CacheHelper.getUser("user")?.clinic;
+    }
   }
-
-  final List<Capability> capabilities = [
-    Capability(name: 'Programming'),
-    Capability(name: 'Design'),
-    Capability(name: 'Project Management'),
-    Capability(name: 'Communication'),
-    Capability(name: 'Problem Solving'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -235,39 +231,30 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                       ],
                     ),
                     const HeightSpacer(size: 20),
-                    DropdownItem(
-                      radius: 30,
-                      color: Colorz.white,
-                      isShadow: true,
-                      iconData: Icon(
-                        Icons.arrow_drop_down_circle,
-                        color: Colorz.primaryColor,
+                    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+                      DropdownItem(
+                        radius: 30,
+                        color: Colorz.white,
+                        isShadow: true,
+                        iconData: Icon(
+                          Icons.arrow_drop_down_circle,
+                          color: Colorz.primaryColor,
+                        ),
+                        items: widget.cubit.clinics?.clinics,
+                        isValid: widget.cubit.chooseClinic,
+                        validateText: 'Clinic must not be Empty',
+                        selectedValue: widget.cubit.selectedClinic?.name,
+                        hintText: 'Select Clinic',
+                        itemAsString: (item) => item.name.toString(),
+                        onItemSelected: (item) {
+                          setState(() {
+                            if (item != "Not Found") {
+                              widget.cubit.selectedClinic = item;
+                            }
+                          });
+                        },
+                        isLoading: widget.cubit.clinics == null,
                       ),
-                      items: widget.cubit.clinics?.clinics,
-                      isValid: widget.cubit.chooseClinic,
-                      validateText: 'Clinic must not be Empty',
-                      selectedValue: widget.cubit.selectedClinic?.name,
-                      hintText: 'Select Clinic',
-                      itemAsString: (item) => item.name.toString(),
-                      onItemSelected: (item) {
-                        setState(() {
-                          if (item != "Not Found") {
-                            widget.cubit.selectedClinic = item;
-                          }
-                        });
-                      },
-                      isLoading: widget.cubit.clinics == null,
-                    ),
-                    const HeightSpacer(size: 20),
-                    CapabilitiesSection(
-                      capabilities: capabilities,
-                      onSelectionChanged: (newSelection) {
-                        widget.cubit.capabilitiesList = newSelection;
-                        log(widget.cubit.capabilitiesList.toString());
-                        setState(() {});
-                      },
-                      initialSelectedCapabilities: const [],
-                    ),
                     const HeightSpacer(size: 20),
                     MultilineTextInput(
                       hint: 'Enter Doctor Qualification',

@@ -9,6 +9,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
+import '../../../../../core/Network/shared.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/model/payment_method_model.dart';
@@ -49,7 +50,7 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
       _descriptionController.text = widget.cubit.paymentMethod?.description ?? '';
       selectedClinic = widget.cubit.paymentMethod?.clinic;
     }
-    await widget.cubit.getClinics();
+
     setState(() {});
   }
 
@@ -149,6 +150,13 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
                           setState(() {
                             readOnly = !readOnly;
                           });
+                          if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+                            if (widget.cubit.clinics == null) {
+                              widget.cubit.getClinics();
+                            }
+                          } else {
+                            selectedClinic = widget.cubit.paymentMethod?.clinic ?? CacheHelper.getUser("user")?.clinic;
+                          }
                         },
                         icon: const Icon(Icons.edit),
                         splashRadius: 20,
@@ -184,7 +192,7 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
                                 color: Colorz.grey,
                               ),
                               items: widget.cubit.clinics?.clinics,
-                              readOnly: readOnly,
+                              readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities") ? readOnly : true,
                               isValid: _clinicValidation,
                               validateText: 'Please enter a clinic',
                               selectedValue: selectedClinic?.name,

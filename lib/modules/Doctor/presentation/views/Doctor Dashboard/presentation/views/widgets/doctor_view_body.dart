@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../../core/widgets/height_spacer.dart';
+import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../core/widgets/search_fileld.dart';
 import '../../../../../manager/doctor_cubit.dart';
@@ -88,8 +89,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   }
 
   Future<void> _loadClinics() async {
-    if (widget.cubit.clinics == null) {
+    if (widget.cubit.clinics == null && CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
       await widget.cubit.getClinics();
+    } else {
+      widget.cubit.getBranches(clinic: CacheHelper.getUser("user")?.clinic?.id);
     }
   }
 
@@ -137,26 +140,27 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           spacing: 20,
           mainAxisSize: MainAxisSize.min,
           children: [
-            DropdownItem(
-              radius: 8,
-              border: Colorz.grey,
-              color: Colorz.white,
-              isShadow: false,
-              height: 14,
-              iconData: Icon(Icons.keyboard_arrow_down_rounded, color: Colorz.grey),
-              items: widget.cubit.clinics?.clinics ?? [],
-              validateText: 'Please choose a clinic',
-              selectedValue: widget.cubit.filterByClinic?.name,
-              hintText: 'Select Clinic',
-              itemAsString: (item) => item.name.toString(),
-              onItemSelected: (item) {
-                if (item != "Not Found") {
-                  setState(() => widget.cubit.filterByClinic = item);
-                  widget.cubit.getBranches();
-                }
-              },
-              isLoading: widget.cubit.clinics == null,
-            ),
+            if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+              DropdownItem(
+                radius: 8,
+                border: Colorz.grey,
+                color: Colorz.white,
+                isShadow: false,
+                height: 14,
+                iconData: Icon(Icons.keyboard_arrow_down_rounded, color: Colorz.grey),
+                items: widget.cubit.clinics?.clinics ?? [],
+                validateText: 'Please choose a clinic',
+                selectedValue: widget.cubit.filterByClinic?.name,
+                hintText: 'Select Clinic',
+                itemAsString: (item) => item.name.toString(),
+                onItemSelected: (item) {
+                  if (item != "Not Found") {
+                    setState(() => widget.cubit.filterByClinic = item);
+                    widget.cubit.getBranches();
+                  }
+                },
+                isLoading: widget.cubit.clinics == null,
+              ),
             DropdownItem(
               radius: 8,
               border: Colorz.grey,

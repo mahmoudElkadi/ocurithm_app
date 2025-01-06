@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 
@@ -45,7 +46,11 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
   @override
   void initState() {
     super.initState();
-    widget.cubit.getClinics();
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+      widget.cubit.getClinics();
+    } else {
+      selectedClinic = CacheHelper.getUser("user")?.clinic;
+    }
   }
 
   @override
@@ -152,32 +157,33 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                   child: Column(
                     children: [
                       // Code TextField
-                      DropdownItem(
-                        radius: 8,
-                        border: Colorz.grey,
-                        color: Colorz.white,
-                        isShadow: false,
-                        height: 14,
-                        iconData: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: Colorz.grey,
+                      if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+                        DropdownItem(
+                          radius: 8,
+                          border: Colorz.grey,
+                          color: Colorz.white,
+                          isShadow: false,
+                          height: 14,
+                          iconData: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: Colorz.grey,
+                          ),
+                          items: widget.cubit.clinics?.clinics,
+                          isValid: clinicValidation,
+                          validateText: 'Please choose a clinic',
+                          selectedValue: selectedClinic?.name,
+                          hintText: 'Select Clinic',
+                          itemAsString: (item) => item.name.toString(),
+                          onItemSelected: (item) {
+                            setState(() {
+                              if (item != "Not Found") {
+                                selectedClinic = item;
+                                log(selectedClinic.toString());
+                              }
+                            });
+                          },
+                          isLoading: widget.cubit.clinics == null,
                         ),
-                        items: widget.cubit.clinics?.clinics,
-                        isValid: clinicValidation,
-                        validateText: 'Please choose a clinic',
-                        selectedValue: selectedClinic?.name,
-                        hintText: 'Select Clinic',
-                        itemAsString: (item) => item.name.toString(),
-                        onItemSelected: (item) {
-                          setState(() {
-                            if (item != "Not Found") {
-                              selectedClinic = item;
-                              log(selectedClinic.toString());
-                            }
-                          });
-                        },
-                        isLoading: widget.cubit.clinics == null,
-                      ),
                       const SizedBox(height: 16),
 
                       TextFormField(

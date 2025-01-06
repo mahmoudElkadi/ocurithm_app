@@ -366,6 +366,16 @@ class PatientCubit extends Cubit<PatientState> {
         emit(AdminBranchError());
       } else {
         patient = await patientRepo.getPatient(id: id);
+        nameController.text = patient?.name ?? '';
+        phoneNumberController.text = patient?.phone ?? "";
+        date = patient?.birthDate;
+        selectedBranch = patient?.branch;
+        selectedGender = patient?.gender;
+        emailController.text = patient?.email ?? "";
+        addressController.text = patient?.address ?? "";
+        nationalityController.text = patient?.nationality ?? "";
+        nationalIdController.text = patient?.nationalId ?? "";
+        selectedClinic = patient?.clinic;
         if (patient?.error == null) {
           emit(AdminBranchSuccess());
         } else {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Doctor/presentation/views/Doctor%20Dashboard/presentation/views/widgets/doctor_view_body.dart';
 
@@ -30,17 +31,18 @@ class AdminDoctorView extends StatelessWidget {
           builder: (context, state) => CustomScaffold(
             title: "Doctors",
             actions: [
-              IconButton(
-                onPressed: () {
-                  Get.to(() => CreateDoctorView(
-                        cubit: DoctorCubit.get(context),
-                      ));
-                },
-                icon: SvgPicture.asset(
-                  "assets/icons/add_user.svg",
-                  color: Colorz.primaryColor,
+              if (CacheHelper.getStringList(key: "capabilities").contains("manageDoctors"))
+                IconButton(
+                  onPressed: () {
+                    Get.to(() => CreateDoctorView(
+                          cubit: DoctorCubit.get(context),
+                        ));
+                  },
+                  icon: SvgPicture.asset(
+                    "assets/icons/add_user.svg",
+                    color: Colorz.primaryColor,
+                  ),
                 ),
-              ),
             ],
             body: CustomMaterialIndicator(
                 onRefresh: () async {

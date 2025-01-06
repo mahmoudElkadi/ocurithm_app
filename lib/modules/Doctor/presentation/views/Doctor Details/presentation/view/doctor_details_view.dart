@@ -12,6 +12,7 @@ import 'package:ocurithm/modules/Doctor/presentation/views/Doctor%20Details/pres
 
 import '../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../../../core/widgets/no_internet.dart';
+import '../../../../../../../core/Network/shared.dart';
 import '../../../../manager/doctor_cubit.dart';
 import '../../../../manager/doctor_state.dart';
 
@@ -110,41 +111,45 @@ class _DoctorDetailsViewState extends State<DoctorDetailsView> {
                 style: appStyle(context, 20, Colorz.black, FontWeight.w600),
               ),
               centerTitle: true,
-              actions: [
-                widget.cubit.readOnly == true
-                    ? IconButton(
+              actions: CacheHelper.getStringList(key: "capabilities").contains("manageDoctors")
+                  ? [
+                      widget.cubit.readOnly == true
+                          ? IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  widget.cubit.readOnly = !widget.cubit.readOnly;
+                                });
+                                if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+                                  if (widget.cubit.clinics == null) {
+                                    widget.cubit.getClinics();
+                                  }
+                                } else {
+                                  widget.cubit.getBranches(clinic: widget.cubit.doctor?.clinic?.id ?? CacheHelper.getUser("user")?.clinic?.id);
+                                }
+                              },
+                              icon: Icon(Icons.edit, color: Colorz.black),
+                            )
+                          : TextButton(
+                              onPressed: () {
+                                _handleSave(context);
+                              },
+                              child: Text(
+                                "Done",
+                                style: appStyle(context, 16, Colorz.primaryColor, FontWeight.w600),
+                              )),
+                      IconButton(
                         onPressed: () {
-                          setState(() {
-                            widget.cubit.readOnly = !widget.cubit.readOnly;
-                          });
-                          Future.wait(
-                            [
-                              widget.cubit.getClinics(),
-                            ],
-                          );
+                          //  showAddBranchDialog(context: context, cubit: widget.cubit, id: widget.id);
+                          Get.dialog(AddBranch(
+                            cubit: widget.cubit,
+                            id: widget.id,
+                            clinic: widget.cubit.doctor!.clinic!.id.toString(),
+                          ));
                         },
-                        icon: Icon(Icons.edit, color: Colorz.black),
+                        icon: SvgPicture.asset("assets/icons/add_branch.svg", color: Colorz.black),
                       )
-                    : TextButton(
-                        onPressed: () {
-                          _handleSave(context);
-                        },
-                        child: Text(
-                          "Done",
-                          style: appStyle(context, 16, Colorz.primaryColor, FontWeight.w600),
-                        )),
-                IconButton(
-                  onPressed: () {
-                    //  showAddBranchDialog(context: context, cubit: widget.cubit, id: widget.id);
-                    Get.dialog(AddBranch(
-                      cubit: widget.cubit,
-                      id: widget.id,
-                      clinic: widget.cubit.doctor!.clinic!.id.toString(),
-                    ));
-                  },
-                  icon: SvgPicture.asset("assets/icons/add_branch.svg", color: Colorz.black),
-                )
-              ],
+                    ]
+                  : [],
             ),
             body: SingleChildScrollView(
                 child: widget.cubit.connection != false
