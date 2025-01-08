@@ -137,12 +137,16 @@ class _LoginFormState extends State<LoginForm> {
                         begin: Alignment.centerRight,
                         end: Alignment.centerLeft,
                         colors: [
-                          HexColor("#0E3366"),
-                          HexColor("#174784"),
-                          HexColor("#2762AA"),
-                          HexColor("#3171BF"),
-                          HexColor("#3E86DD"),
-                          HexColor("#4A97F6"),
+                          HexColor("#272d7a"),
+                          HexColor("#3c44ab"),
+                          Colorz.primaryColor,
+
+                          // HexColor("#0E3366"),
+                          // HexColor("#174784"),
+                          // HexColor("#2762AA"),
+                          // HexColor("#3171BF"),
+                          // HexColor("#3E86DD"),
+                          // HexColor("#4A97F6"),
                         ],
                       ),
                       child: LoginCubit.get(context).isLoading

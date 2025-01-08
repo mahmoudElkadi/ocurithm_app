@@ -549,11 +549,8 @@ class DoctorCubit extends Cubit<DoctorState> {
       chooseDays = true;
     }
     if (chooseBranch && chooseTime && chooseDays) {
-      log("true");
       return true;
     } else {
-      log("false");
-
       return false;
     }
   }

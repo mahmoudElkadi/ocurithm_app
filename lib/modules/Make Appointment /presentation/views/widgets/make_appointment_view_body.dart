@@ -376,7 +376,20 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                     child: ElevatedButton(
                       onPressed: () async {
                         if (cubit.selectedTime != null) {
-                          cubit.changeStep(2);
+                          if (cubit.selectedTime!.isBefore(DateTime.now())) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                backgroundColor: Colors.red,
+                                content: Text(
+                                  'Please select a valid date',
+                                  style: TextStyle(color: Colors.white, fontSize: 16),
+                                ),
+                              ),
+                            );
+                            return;
+                          } else {
+                            cubit.changeStep(2);
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(
