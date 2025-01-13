@@ -178,7 +178,7 @@ class _EditClinicDialogState extends State<EditClinicDialog> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter a name';
+                                  return 'Please enter a Title';
                                 }
                                 return null;
                               },
@@ -213,7 +213,7 @@ class _EditClinicDialogState extends State<EditClinicDialog> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter a code';
+                                  return 'Please enter a Description';
                                 }
                                 return null;
                               },

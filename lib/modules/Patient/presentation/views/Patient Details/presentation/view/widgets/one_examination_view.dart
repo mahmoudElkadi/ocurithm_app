@@ -48,7 +48,7 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
           appBar: AppBar(
             centerTitle: true,
             backgroundColor: Colorz.primaryColor,
-            title: Text("Examination Details"),
+            title: const Text("Examination Details"),
           ),
           body: PatientCubit.get(context).oneExamination == null
               ? Center(

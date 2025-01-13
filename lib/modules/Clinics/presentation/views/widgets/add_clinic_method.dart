@@ -132,7 +132,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a name';
+                          return 'Please enter a Title';
                         }
                         return null;
                       },
@@ -157,7 +157,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a price';
+                          return 'Please enter a description';
                         }
                         return null;
                       },
