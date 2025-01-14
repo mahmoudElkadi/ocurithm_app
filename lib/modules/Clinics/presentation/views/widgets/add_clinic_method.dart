@@ -119,6 +119,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                     TextFormField(
                       controller: _nameController,
                       cursorColor: Colors.black,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         hintText: 'Enter Title',
                         border: OutlineInputBorder(
@@ -131,7 +132,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty || value.trim().isEmpty) {
                           return 'Please enter a Title';
                         }
                         return null;
@@ -141,6 +142,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                     TextFormField(
                       controller: _descriptionController,
                       cursorColor: Colors.black,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         hintText: 'Enter Description',
                         border: OutlineInputBorder(
@@ -156,7 +158,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty || value.trim().isEmpty) {
                           return 'Please enter a description';
                         }
                         return null;
@@ -199,6 +201,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
 void showFormPopup(BuildContext context, ClinicCubit cubit) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return FormPopupDialog(
         cubit: cubit,

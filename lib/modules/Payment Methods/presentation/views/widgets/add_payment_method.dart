@@ -184,8 +184,8 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a name';
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter a Title';
                         }
                         return null;
                       },
@@ -209,8 +209,8 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a price';
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter a Description';
                         }
                         return null;
                       },
@@ -252,6 +252,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
 void showFormPopup(BuildContext context, PaymentMethodCubit cubit) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return FormPopupDialog(
         cubit: cubit,

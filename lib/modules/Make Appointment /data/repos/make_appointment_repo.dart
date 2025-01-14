@@ -12,9 +12,9 @@ abstract class MakeAppointmentRepo {
   });
   Future<BranchesModel> getAllBranches();
 
-  Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? search});
-  Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? search});
-  Future<PatientModel> getAllPatients();
+  Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? clinic});
+  Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? clinic});
+  Future<PatientModel> getAllPatients({String? search});
 
   Future<Appointment> makeAppointment({required MakeAppointmentModel model});
   Future<Appointment> editAppointment({required MakeAppointmentModel model, required String id});

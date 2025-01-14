@@ -147,24 +147,35 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (readOnly == true)
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            readOnly = !readOnly;
-                          });
+                    Row(
+                      children: [
+                        if (readOnly == true)
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                readOnly = !readOnly;
+                              });
 
-                          if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
-                            if (widget.cubit.clinics == null) {
-                              widget.cubit.getClinics();
-                            }
-                          } else {
-                            selectedClinic = widget.cubit.examinationType?.clinic ?? CacheHelper.getUser("user")?.clinic;
-                          }
-                        },
-                        icon: const Icon(Icons.edit),
-                        splashRadius: 20,
-                      )
+                              if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+                                if (widget.cubit.clinics == null) {
+                                  widget.cubit.getClinics();
+                                }
+                              } else {
+                                selectedClinic = widget.cubit.examinationType?.clinic ?? CacheHelper.getUser("user")?.clinic;
+                              }
+                            },
+                            icon: const Icon(Icons.edit),
+                            splashRadius: 20,
+                          ),
+                        IconButton(
+                          onPressed: () {
+                            Get.back();
+                          },
+                          icon: const Icon(Icons.close),
+                          splashRadius: 20,
+                        )
+                      ],
+                    ),
                   ],
                 ),
                 const Divider(),
@@ -241,7 +252,7 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'Please enter a name';
                                 }
                                 return null;
@@ -277,9 +288,22 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a code';
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter a Price';
                                 }
+
+                                // Convert string to double
+                                double? price = double.tryParse(value);
+
+                                // Check if it's a valid number and if it's less than or equal to zero
+                                if (price == null) {
+                                  return 'Please enter a valid number';
+                                }
+
+                                if (price <= 0) {
+                                  return 'Price must be greater than zero';
+                                }
+
                                 return null;
                               },
                             ),
@@ -313,9 +337,22 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a code';
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter a Duration';
                                 }
+
+                                // Convert string to double
+                                double? price = double.tryParse(value);
+
+                                // Check if it's a valid number and if it's less than or equal to zero
+                                if (price == null) {
+                                  return 'Please enter a valid number';
+                                }
+
+                                if (price <= 0) {
+                                  return 'Price must be greater than zero';
+                                }
+
                                 return null;
                               },
                             ),
@@ -358,6 +395,7 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
 // Example usage:
 void editExaminationType(BuildContext context, ExaminationTypeCubit cubit, String id) {
   showDialog(
+    barrierDismissible: false,
     context: context,
     builder: (BuildContext context) {
       return cubit.connection != false

@@ -50,15 +50,17 @@ class AdminBranchView extends StatelessWidget {
               indicatorBuilder: (BuildContext context, IndicatorController controller) {
                 return Image(image: AssetImage("assets/icons/logo.png"));
               },
-              child: SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  child: AdminBranchCubit.get(context).connection != false
-                      ? BranchViewBody()
-                      : NoInternet(
-                          onPressed: () {
-                            AdminBranchCubit.get(context).getBranches();
-                          },
-                        ))),
+              child: Scrollbar(
+                child: SingleChildScrollView(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    child: AdminBranchCubit.get(context).connection != false
+                        ? BranchViewBody()
+                        : NoInternet(
+                            onPressed: () {
+                              AdminBranchCubit.get(context).getBranches();
+                            },
+                          )),
+              )),
         ),
       ),
     );

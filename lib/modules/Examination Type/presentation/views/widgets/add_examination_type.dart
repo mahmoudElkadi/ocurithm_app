@@ -175,6 +175,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                       TextFormField(
                         controller: _nameController,
                         cursorColor: Colors.black,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: 'Enter name',
                           border: OutlineInputBorder(
@@ -187,7 +188,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Please enter a name';
                           }
                           return null;
@@ -213,9 +214,22 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a price';
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a Price';
                           }
+
+                          // Convert string to double
+                          double? price = double.tryParse(value);
+
+                          // Check if it's a valid number and if it's less than or equal to zero
+                          if (price == null) {
+                            return 'Please enter a valid number';
+                          }
+
+                          if (price <= 0) {
+                            return 'Price must be greater than zero';
+                          }
+
                           return null;
                         },
                       ),
@@ -239,9 +253,22 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a price';
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a Duration';
                           }
+
+                          // Convert string to double
+                          double? price = double.tryParse(value);
+
+                          // Check if it's a valid number and if it's less than or equal to zero
+                          if (price == null) {
+                            return 'Please enter a valid number';
+                          }
+
+                          if (price <= 0) {
+                            return 'Price must be greater than zero';
+                          }
+
                           return null;
                         },
                       ),
@@ -283,6 +310,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
 void showFormPopup(BuildContext context, ExaminationTypeCubit cubit) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return FormPopupDialog(
         cubit: cubit,

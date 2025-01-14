@@ -16,6 +16,7 @@ import '../../../../../core/Network/shared.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/choose_hours_range.dart';
 import '../../../../../core/widgets/work_day_selector.dart';
+import '../../../../../generated/l10n.dart';
 import '../../../data/model/add_branch_model.dart';
 import '../../manager/branch_cubit.dart';
 import '../../manager/branch_state.dart';
@@ -161,17 +162,28 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (readOnly == true)
-                      if (CacheHelper.getStringList(key: "capabilities").contains("manageBranches"))
+                    Row(
+                      children: [
+                        if (readOnly == true)
+                          if (CacheHelper.getStringList(key: "capabilities").contains("manageBranches"))
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  readOnly = !readOnly;
+                                });
+                              },
+                              icon: const Icon(Icons.edit),
+                              splashRadius: 20,
+                            ),
                         IconButton(
                           onPressed: () {
-                            setState(() {
-                              readOnly = !readOnly;
-                            });
+                            Get.back();
                           },
-                          icon: const Icon(Icons.edit),
+                          icon: const Icon(Icons.close),
                           splashRadius: 20,
-                        )
+                        ),
+                      ],
+                    )
                   ],
                 ),
                 const Divider(),
@@ -249,7 +261,7 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'Please enter a code';
                                 }
                                 return null;
@@ -283,7 +295,7 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'Please enter a name';
                                 }
                                 return null;
@@ -317,7 +329,7 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                                 prefixIcon: Icon(Icons.location_on, color: Colors.grey),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'Please enter an address';
                                 }
                                 return null;
@@ -355,8 +367,10 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'Please enter a phone number';
+                                } else if (!RegExp(r'^01[0125][0-9]{8}$').hasMatch(value)) {
+                                  return S.of(context).invalidPhoneNumber;
                                 }
                                 return null;
                               },
@@ -444,6 +458,7 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
 void editBranch(BuildContext context, AdminBranchCubit cubit, String id) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return cubit.connection != false
           ? EditBranchDialog(

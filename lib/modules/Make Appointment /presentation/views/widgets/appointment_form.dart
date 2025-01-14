@@ -79,12 +79,14 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
       selectedValue: cubit.selectedClinic?.name,
       hintText: 'Select Clinic',
       itemAsString: (item) => item.name.toString(),
-      onItemSelected: (item) {
+      onItemSelected: (item) async {
         setState(() {
           cubit.selectedClinic = item;
           cubit.selectedBranch = null;
         });
-        cubit.getBranches();
+        await cubit.getBranches();
+        await cubit.getExaminationTypes();
+        await cubit.getPaymentMethods();
       },
       isLoading: cubit.clinics == null,
     );
@@ -152,6 +154,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
       validateText: "Must Select Examination Type",
       selectedValue: cubit.selectedExaminationType?.name,
       hintText: 'Select Examination Type',
+      readOnly: cubit.selectedClinic == null,
       itemAsString: (item) => item.name.toString(),
       onItemSelected: (item) {
         setState(() {
@@ -173,6 +176,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
       validateText: "Must Select Payment Method",
       selectedValue: cubit.selectedPaymentMethod?.title,
       hintText: 'Select Payment Method',
+      readOnly: cubit.selectedClinic == null,
       itemAsString: (item) => item.title.toString(),
       onItemSelected: (item) {
         setState(() {

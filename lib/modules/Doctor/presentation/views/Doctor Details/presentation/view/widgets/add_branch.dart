@@ -181,6 +181,7 @@ class _AddBranchState extends State<AddBranch> {
                             );
                           } else {
                             // Show the snackbar using ScaffoldMessenger
+
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
@@ -192,12 +193,14 @@ class _AddBranchState extends State<AddBranch> {
                           }
                         } else {
                           // Show validation error if validateAddBranch() returns false
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please fill all required fields'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
+                          Get.snackbar('Please fill all required fields', 'please try again',
+                              icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
+                          // ScaffoldMessenger.of(context).showSnackBar(
+                          //   const SnackBar(
+                          //     content: Text('Please fill all required fields'),
+                          //     backgroundColor: Colors.red,
+                          //   ),
+                          // );
                         }
                       },
                       child: Text("Add Branch", style: TextStyle(color: Colorz.white, fontSize: 16, fontWeight: FontWeight.w500))),

@@ -18,10 +18,9 @@ class AppointmentView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-        create: (context) => AppointmentCubit(AppointmentRepoImpl())
-          ..getAppointments()
-          ..getDoctors()
-          ..getBranches(),
+        create: (context) => AppointmentCubit(AppointmentRepoImpl())..getAppointments(),
+        // ..getDoctors()
+        // ..getBranches(),
         child: BlocBuilder<AppointmentCubit, AppointmentState>(
             builder: (context, state) => CustomScaffold(
                 body: AppointmentCubit.get(context).connection != false
@@ -29,8 +28,8 @@ class AppointmentView extends StatelessWidget {
                     : NoInternet(
                         onPressed: () {
                           if (AppointmentCubit.get(context).doctors == null) {
-                            AppointmentCubit.get(context).getDoctors();
-                            AppointmentCubit.get(context).getBranches();
+                            AppointmentCubit.get(context).getAppointments();
+                            // AppointmentCubit.get(context).getBranches();
                           }
                         },
                       ),

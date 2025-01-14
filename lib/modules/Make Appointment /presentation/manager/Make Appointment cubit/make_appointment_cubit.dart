@@ -173,7 +173,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         loadPatients = false;
         emit(AdminPatientError());
       } else {
-        patients = await makeAppointmentRepo.getAllPatients();
+        patients = await makeAppointmentRepo.getAllPatients(search: patientController.text);
         if (patients!.patients.isNotEmpty) {
           loadPatients = false;
           emit(AdminPatientSuccess());
@@ -207,7 +207,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         );
         emit(PaymentMethodError());
       } else {
-        paymentMethods = await makeAppointmentRepo.getAllPaymentMethods(page: page, search: searchController.text);
+        paymentMethods = await makeAppointmentRepo.getAllPaymentMethods(clinic: selectedClinic?.id);
         if (paymentMethods?.error == null && paymentMethods!.paymentMethods!.isNotEmpty) {
           emit(PaymentMethodSuccess());
         } else {
@@ -238,7 +238,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         );
         emit(ExaminationTypeError());
       } else {
-        examinationTypes = await makeAppointmentRepo.getAllExaminationTypes();
+        examinationTypes = await makeAppointmentRepo.getAllExaminationTypes(clinic: selectedClinic?.id);
         if (examinationTypes?.error == null && examinationTypes!.examinationTypes!.isNotEmpty) {
           emit(ExaminationTypeSuccess());
         } else {
@@ -272,8 +272,6 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
       await Future.wait([
         getClinics(),
-        getExaminationTypes(),
-        getPaymentMethods(),
       ]);
     } else {
       selectedClinic = CacheHelper.getUser("user")?.clinic;

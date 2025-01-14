@@ -144,23 +144,34 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (readOnly == true)
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            readOnly = !readOnly;
-                          });
-                          if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
-                            if (widget.cubit.clinics == null) {
-                              widget.cubit.getClinics();
-                            }
-                          } else {
-                            selectedClinic = widget.cubit.paymentMethod?.clinic ?? CacheHelper.getUser("user")?.clinic;
-                          }
-                        },
-                        icon: const Icon(Icons.edit),
-                        splashRadius: 20,
-                      )
+                    Row(
+                      children: [
+                        if (readOnly == true)
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                readOnly = !readOnly;
+                              });
+                              if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+                                if (widget.cubit.clinics == null) {
+                                  widget.cubit.getClinics();
+                                }
+                              } else {
+                                selectedClinic = widget.cubit.paymentMethod?.clinic ?? CacheHelper.getUser("user")?.clinic;
+                              }
+                            },
+                            icon: const Icon(Icons.edit),
+                            splashRadius: 20,
+                          ),
+                        IconButton(
+                          onPressed: () {
+                            Get.back();
+                          },
+                          icon: const Icon(Icons.close),
+                          splashRadius: 20,
+                        ),
+                      ],
+                    )
                   ],
                 ),
                 const Divider(),
@@ -236,8 +247,8 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
                                       ),
                                     ),
                                     validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please enter a name';
+                                      if (value == null || value.trim().isEmpty) {
+                                        return 'Please enter a Title';
                                       }
                                       return null;
                                     },
@@ -271,8 +282,8 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
                                       ),
                                     ),
                                     validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please enter a code';
+                                      if (value == null || value.trim().isEmpty) {
+                                        return 'Please enter a Description';
                                       }
                                       return null;
                                     },
@@ -317,6 +328,7 @@ class _EditPaymentMethodDialogState extends State<EditPaymentMethodDialog> {
 void editPaymentMethod(BuildContext context, PaymentMethodCubit cubit, String id) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return cubit.connection != false
           ? EditPaymentMethodDialog(

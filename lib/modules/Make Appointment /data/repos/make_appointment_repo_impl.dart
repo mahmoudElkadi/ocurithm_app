@@ -71,11 +71,11 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   }
 
   @override
-  Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? search}) async {
+  Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? clinic}) async {
     final url = "${Config.baseUrl}${Config.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
     log("token: $token");
-    Map<String, dynamic> query = {"pagination": false};
+    Map<String, dynamic> query = {"clinic": clinic};
 
     final result = await ApiService.request<PaymentMethodsModel>(
       url: url,
@@ -97,11 +97,11 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   }
 
   @override
-  Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? search}) async {
+  Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? clinic}) async {
     final url = "${Config.baseUrl}${Config.examinationTypes}";
     final String? token = CacheHelper.getData(key: "token");
     log("token: $token");
-    Map<String, dynamic> query = {"pagination": false};
+    Map<String, dynamic> query = {"clinic": clinic};
 
     final result = await ApiService.request<ExaminationTypesModel>(
       url: url,
@@ -123,12 +123,12 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   }
 
   @override
-  Future<PatientModel> getAllPatients() async {
+  Future<PatientModel> getAllPatients({String? search}) async {
     final url = "${Config.baseUrl}${Config.patients}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> query = {
-      "pagination": true,
+      "search": search,
       "isActive": true,
     };
 

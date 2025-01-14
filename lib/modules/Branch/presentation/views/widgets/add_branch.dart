@@ -13,6 +13,7 @@ import '../../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/choose_hours_range.dart';
 import '../../../../../core/widgets/work_day_selector.dart';
+import '../../../../../generated/l10n.dart';
 import '../../../data/model/add_branch_model.dart';
 import '../../manager/branch_cubit.dart';
 import '../../manager/branch_state.dart';
@@ -204,7 +205,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Please enter a code';
                           }
                           return null;
@@ -228,7 +229,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Please enter a name';
                           }
                           return null;
@@ -252,7 +253,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           prefixIcon: Icon(Icons.location_on, color: Colors.grey),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Please enter an address';
                           }
                           return null;
@@ -280,8 +281,10 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Please enter a phone number';
+                          } else if (!RegExp(r'^01[0125][0-9]{8}$').hasMatch(value)) {
+                            return S.of(context).invalidPhoneNumber;
                           }
                           return null;
                         },
@@ -345,6 +348,7 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
 void showFormPopup(BuildContext context, AdminBranchCubit cubit) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return FormPopupDialog(
         cubit: cubit,

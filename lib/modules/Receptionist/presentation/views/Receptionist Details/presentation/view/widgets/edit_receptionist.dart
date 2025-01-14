@@ -327,9 +327,9 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                                     );
                                   },
                                   context: context,
-                                  initialDate: DateTime.now(),
+                                  initialDate: DateTime(2000),
                                   firstDate: DateTime(1900),
-                                  lastDate: DateTime.now(),
+                                  lastDate: DateTime.now().subtract(Duration(days: 6600)),
                                 ).then((selectedDate) {
                                   // After selecting the date, display the time picker.
                                   if (selectedDate != null) {

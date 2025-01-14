@@ -50,6 +50,8 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
   @override
   void initState() {
     super.initState();
+    widget.cubit.getBranches();
+    widget.cubit.getDoctors();
   }
 
   bool _filterLoading = false;

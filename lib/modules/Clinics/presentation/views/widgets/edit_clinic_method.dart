@@ -131,16 +131,27 @@ class _EditClinicDialogState extends State<EditClinicDialog> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (readOnly == true)
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            readOnly = !readOnly;
-                          });
-                        },
-                        icon: const Icon(Icons.edit),
-                        splashRadius: 20,
-                      )
+                    Row(
+                      children: [
+                        if (readOnly == true)
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                readOnly = !readOnly;
+                              });
+                            },
+                            icon: const Icon(Icons.edit),
+                            splashRadius: 20,
+                          ),
+                        IconButton(
+                          onPressed: () {
+                            Get.back();
+                          },
+                          icon: const Icon(Icons.close),
+                          splashRadius: 20,
+                        ),
+                      ],
+                    )
                   ],
                 ),
                 const Divider(),
@@ -164,6 +175,7 @@ class _EditClinicDialogState extends State<EditClinicDialog> {
                           : TextFormField(
                               controller: _nameController,
                               cursorColor: Colors.black,
+                              keyboardType: TextInputType.emailAddress,
                               readOnly: readOnly,
                               decoration: InputDecoration(
                                 hintText: 'Enter Title',
@@ -177,7 +189,7 @@ class _EditClinicDialogState extends State<EditClinicDialog> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'Please enter a Title';
                                 }
                                 return null;
@@ -197,6 +209,7 @@ class _EditClinicDialogState extends State<EditClinicDialog> {
                               controller: _descriptionController,
                               cursorColor: Colors.black,
                               readOnly: readOnly,
+                              keyboardType: TextInputType.emailAddress,
                               decoration: InputDecoration(
                                 hintText: 'Enter Description',
                                 border: OutlineInputBorder(
@@ -212,7 +225,7 @@ class _EditClinicDialogState extends State<EditClinicDialog> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'Please enter a Description';
                                 }
                                 return null;
@@ -258,6 +271,7 @@ class _EditClinicDialogState extends State<EditClinicDialog> {
 void editClinic(BuildContext context, ClinicCubit cubit, String id) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return cubit.connection != false
           ? EditClinicDialog(
