@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import '../../../../core/utils/colors.dart';
 import '../../../Appointment/data/models/appointment_model.dart';
 import '../../data/repos/examination_repo.dart';
+import '../views/widgets/prescription.dart';
 import 'examination_state.dart';
 
 class ExaminationCubit extends Cubit<ExaminationState> {
@@ -621,7 +622,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         );
 
         Navigator.pop(context);
-        Navigator.pop(context, true);
+        Get.to(() => PrescriptionTreatmentPage());
         emit(MakeExaminationSuccess());
       } else if (result != null && result.error != null) {
         Get.snackbar(
@@ -632,7 +633,6 @@ class ExaminationCubit extends Cubit<ExaminationState> {
           icon: Icon(Icons.error, color: Colorz.white),
         );
         Navigator.pop(context);
-
         emit(MakeExaminationError());
       } else {
         Get.snackbar(
