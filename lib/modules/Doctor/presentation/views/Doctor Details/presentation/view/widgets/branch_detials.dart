@@ -183,7 +183,7 @@ class _BranchCard extends StatelessWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: List<String>.from(branch!.workDays ?? []).map((day) {
+                  children: List<String>.from(branch?.workDays ?? []).map((day) {
                     final isAvailable = availableDays.contains(day);
                     return _DayChip(
                       day: day,

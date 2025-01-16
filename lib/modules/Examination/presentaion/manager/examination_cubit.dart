@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/utils/colors.dart';
 import '../../../Appointment/data/models/appointment_model.dart';
+import '../../../Appointment/presentation/views/appointment_view.dart';
 import '../../data/repos/examination_repo.dart';
 import '../views/widgets/prescription.dart';
 import 'examination_state.dart';
@@ -622,7 +623,9 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         );
 
         Navigator.pop(context);
-        Get.to(() => PrescriptionTreatmentPage());
+        Get.to(() => MedicalTreeForm(
+              id: result.examination!.id.toString(),
+            ));
         emit(MakeExaminationSuccess());
       } else if (result != null && result.error != null) {
         Get.snackbar(
@@ -656,6 +659,57 @@ class ExaminationCubit extends Cubit<ExaminationState> {
       );
       Navigator.pop(context);
       emit(MakeExaminationError());
+    }
+  }
+
+  makeFinalization({required BuildContext context, required String id, required Map<String, dynamic> data}) async {
+    emit(MakeFinalizationLoading());
+    try {
+      var result = await examinationRepo.makeFinalization(id: id, data: data);
+      if (result.message != null && result.error == null) {
+        Get.snackbar(
+          "Success",
+          result.message!,
+          backgroundColor: Colorz.primaryColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.check, color: Colorz.white),
+        );
+
+        Navigator.pop(context);
+        Get.off(() => AppointmentView());
+        emit(MakeFinalizationSuccess());
+      } else if (result != null && result.error != null) {
+        Get.snackbar(
+          result.error!,
+          "Failed to create Examination",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+        emit(MakeFinalizationError());
+      } else {
+        Get.snackbar(
+          "Error",
+          "Failed to create Finalization",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(MakeFinalizationError());
+      }
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Failed to create Finalization",
+        backgroundColor: Colorz.errorColor,
+        colorText: Colorz.white,
+        icon: Icon(Icons.error, color: Colorz.white),
+      );
+      Navigator.pop(context);
+      emit(MakeFinalizationError());
     }
   }
 }

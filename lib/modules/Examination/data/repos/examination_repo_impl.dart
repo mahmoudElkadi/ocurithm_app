@@ -6,11 +6,36 @@ import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/config.dart';
 import '../../../Branch/data/model/data.dart';
+import '../../../Patient/data/model/one_exam.dart';
 
 class ExaminationRepoImpl implements ExaminationRepo {
   @override
-  Future<DataModel> makeExamination({required Map<String, dynamic> data}) async {
+  Future<ExaminationModel> makeExamination({required Map<String, dynamic> data}) async {
     final url = "${Config.baseUrl}${Config.examination}";
+    final String? token = CacheHelper.getData(key: "token");
+    log(data.toString());
+    final result = await ApiService.request<ExaminationModel>(
+      url: url,
+      method: 'POST',
+      data: data,
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) 'Cookie': 'ocurithmToken=$token',
+      },
+      showError: true,
+      fromJson: (json) => ExaminationModel.fromJson(json),
+    );
+
+    if (result != null) {
+      return result;
+    } else {
+      throw Exception("Failed to make examination");
+    }
+  }
+
+  @override
+  Future<DataModel> makeFinalization({required String id, required Map<String, dynamic> data}) async {
+    final url = "${Config.baseUrl}${Config.examination}/$id/finalization";
     final String? token = CacheHelper.getData(key: "token");
     log(data.toString());
     final result = await ApiService.request<DataModel>(

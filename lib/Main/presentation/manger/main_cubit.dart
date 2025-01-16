@@ -7,6 +7,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/modules/Branch/presentation/views/branch_view.dart';
 import 'package:ocurithm/modules/Clinics/presentation/views/clinic_view.dart';
 import 'package:ocurithm/modules/Examination%20Type/presentation/views/examination_type_view.dart';
+import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
 
 import '../../../core/Network/shared.dart';
@@ -14,7 +15,6 @@ import '../../../core/utils/app_style.dart';
 import '../../../modules/Appointment/presentation/views/appointment_view.dart';
 import '../../../modules/Doctor/presentation/views/Doctor Dashboard/presentation/views/doctor_view.dart';
 import '../../../modules/Login/presentation/view/login_view.dart';
-import '../../../modules/Patient/presentation/views/Patient Dashboard/presentation/views/patient_view.dart';
 import '../../../modules/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
 import 'main_state.dart';
 

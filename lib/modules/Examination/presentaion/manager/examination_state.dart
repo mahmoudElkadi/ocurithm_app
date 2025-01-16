@@ -15,3 +15,9 @@ class MakeExaminationLoading extends ExaminationState {}
 class MakeExaminationSuccess extends ExaminationState {}
 
 class MakeExaminationError extends ExaminationState {}
+
+class MakeFinalizationLoading extends ExaminationState {}
+
+class MakeFinalizationSuccess extends ExaminationState {}
+
+class MakeFinalizationError extends ExaminationState {}

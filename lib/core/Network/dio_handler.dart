@@ -23,7 +23,6 @@ class ApiService {
     Duration timeout = const Duration(seconds: 60),
   }) async {
     try {
-      log(url);
       final response = await _dio.request<dynamic>(
         url,
         data: data,
@@ -36,6 +35,7 @@ class ApiService {
           validateStatus: (status) => status! <= 700,
         ),
       );
+      log('data: ${data}');
 
       log(response.data.toString());
       log(response.realUri.toString());

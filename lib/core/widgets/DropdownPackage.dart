@@ -452,7 +452,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                       ).copyWith(),
                     ),
                   )
-                : Scrollbar(
+                : RawScrollbar(
                     radius: Radius.circular(8),
                     thumbVisibility: true,
                     child: ListView.builder(

@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/modules/Doctor/data/model/doctor_model.dart';
 
 import '../../../../../../../../Services/time_parser.dart';
 import '../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../core/widgets/choose_hours_range.dart';
+import '../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../../../core/widgets/work_day_selector.dart';
 import '../../../../../../../../generated/l10n.dart';
 import '../../../../../manager/doctor_cubit.dart';
@@ -145,63 +146,70 @@ class _AddBranchState extends State<AddBranch> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: () async {
-                        // Parse times first
+                        // First validate branch selection and times
+                        if (!widget.cubit.validateAddBranch()) {
+                          Get.snackbar('Error', 'Please fill all required fields',
+                              icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
+                          return;
+                        }
+
+                        // Create a new branch element for validation
+                        final newBranchSchedule = BranchElement(
+                            branch: widget.cubit.selectedBranch,
+                            availableFrom: widget.cubit.availableFrom,
+                            availableTo: widget.cubit.availableTo,
+                            availableDays: widget.cubit.availableDays,
+                            id: null,
+                            branchId: widget.cubit.selectedBranch?.id);
+
+                        // Get existing branches for the doctor
+                        final existingBranches = widget.cubit.doctor?.branches ?? [];
+
+                        // Check for schedule conflicts
+                        if (BranchScheduleValidator.hasScheduleConflict(existingBranches, newBranchSchedule)) {
+                          Get.snackbar('Schedule Conflict', 'This schedule overlaps with existing branch assignments',
+                              icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
+                          return;
+                        }
+
+                        // Validate branch hours
                         final branchOpenTime = TimeComparer.parseTimeString(widget.cubit.selectedBranch?.openTime ?? "08:00");
                         final branchCloseTime = TimeComparer.parseTimeString(widget.cubit.selectedBranch?.closeTime ?? "18:00");
                         final doctorAvailableFrom = TimeComparer.parseTimeString(widget.cubit.availableFrom ?? "08:00");
                         final doctorAvailableTo = TimeComparer.parseTimeString(widget.cubit.availableTo ?? "18:00");
 
-                        // Validate branch first
-                        if (widget.cubit.validateAddBranch()) {
-                          // Check if doctor's available time is within branch hours
-                          if (TimeComparer.compareTimeOfDay(doctorAvailableFrom, branchOpenTime) >= 0 &&
-                              TimeComparer.compareTimeOfDay(doctorAvailableTo, branchCloseTime) <= 0) {
-                            log("Validation passed, checking connection...");
-
-                            customLoading(context, "");
-                            bool isConnection = await InternetConnection().hasInternetAccess;
-
-                            if (!isConnection) {
-                              Navigator.of(context).pop();
-                              Get.snackbar(
-                                "Error",
-                                "No Internet Connection",
-                                backgroundColor: Colorz.errorColor,
-                                colorText: Colorz.white,
-                                icon: Icon(Icons.error, color: Colorz.white),
-                              );
-                              return;
-                            }
-
-                            log("Connection OK, adding branch...");
-                            widget.cubit.addBranch(
-                              context: context,
-                              doctorId: widget.id,
-                              branchId: widget.cubit.selectedBranch!.id.toString(),
-                            );
-                          } else {
-                            // Show the snackbar using ScaffoldMessenger
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Please select a time between ${_formatTime(branchOpenTime)} and ${_formatTime(branchCloseTime)}',
-                                ),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        } else {
-                          // Show validation error if validateAddBranch() returns false
-                          Get.snackbar('Please fill all required fields', 'please try again',
-                              icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
-                          // ScaffoldMessenger.of(context).showSnackBar(
-                          //   const SnackBar(
-                          //     content: Text('Please fill all required fields'),
-                          //     backgroundColor: Colors.red,
-                          //   ),
-                          // );
+                        // Check if doctor's available time is within branch hours
+                        if (TimeComparer.compareTimeOfDay(doctorAvailableFrom, branchOpenTime) < 0 ||
+                            TimeComparer.compareTimeOfDay(doctorAvailableTo, branchCloseTime) > 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Please select a time between ${_formatTime(branchOpenTime)} and ${_formatTime(branchCloseTime)}'),
+                            backgroundColor: Colors.red,
+                          ));
+                          return;
                         }
+
+                        // Check internet connection
+                        customLoading(context, "");
+                        bool isConnection = await InternetConnection().hasInternetAccess;
+
+                        if (!isConnection) {
+                          Navigator.of(context).pop();
+                          Get.snackbar(
+                            "Error",
+                            "No Internet Connection",
+                            backgroundColor: Colorz.errorColor,
+                            colorText: Colorz.white,
+                            icon: Icon(Icons.error, color: Colorz.white),
+                          );
+                          return;
+                        }
+
+                        // If all validations pass, proceed with adding the branch
+                        widget.cubit.addBranch(
+                          context: context,
+                          doctorId: widget.id,
+                          branchId: widget.cubit.selectedBranch!.id.toString(),
+                        );
                       },
                       child: Text("Add Branch", style: TextStyle(color: Colorz.white, fontSize: 16, fontWeight: FontWeight.w500))),
                 ),
@@ -253,5 +261,36 @@ class TimeComparer {
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+}
+
+class BranchScheduleValidator {
+  static bool hasScheduleConflict(List<BranchElement> existingBranches, BranchElement newBranch) {
+    for (var existing in existingBranches) {
+      // Check if there are any overlapping days
+      final overlappingDays = existing.availableDays.where((day) => newBranch.availableDays.contains(day)).toList();
+
+      if (overlappingDays.isEmpty) continue;
+
+      // If there are overlapping days, check time conflicts
+      final existingStart = TimeComparer.parseTimeString(existing.availableFrom ?? "00:00");
+      final existingEnd = TimeComparer.parseTimeString(existing.availableTo ?? "00:00");
+      final newStart = TimeComparer.parseTimeString(newBranch.availableFrom ?? "00:00");
+      final newEnd = TimeComparer.parseTimeString(newBranch.availableTo ?? "00:00");
+
+      // Check if times overlap
+      if (_doTimesOverlap(existingStart, existingEnd, newStart, newEnd)) {
+        return true; // Conflict found
+      }
+    }
+    return false; // No conflicts
+  }
+
+  static bool _doTimesOverlap(TimeOfDay start1, TimeOfDay end1, TimeOfDay start2, TimeOfDay end2) {
+    final start1Minutes = start1.hour * 60 + start1.minute;
+    final end1Minutes = end1.hour * 60 + end1.minute;
+    final start2Minutes = start2.hour * 60 + start2.minute;
+    final end2Minutes = end2.hour * 60 + end2.minute;
+    return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
   }
 }

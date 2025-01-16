@@ -1,350 +1,699 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:developer';
 
-class PrescriptionTreatmentPage extends StatefulWidget {
-  const PrescriptionTreatmentPage({Key? key}) : super(key: key);
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ocurithm/core/utils/colors.dart';
+
+import '../../../data/repos/examination_repo_impl.dart';
+import '../../manager/examination_cubit.dart';
+import '../../manager/examination_state.dart';
+
+class MedicalTreeForm extends StatefulWidget {
+  const MedicalTreeForm({super.key, required this.id});
+  final String id;
 
   @override
-  State<PrescriptionTreatmentPage> createState() => _PrescriptionTreatmentPageState();
+  State<MedicalTreeForm> createState() => _MedicalTreeFormState();
 }
 
-class _PrescriptionTreatmentPageState extends State<PrescriptionTreatmentPage> {
-  String? selectedTreatmentType;
-  final TextEditingController dosageController = TextEditingController();
-  final TextEditingController notesController = TextEditingController();
+class _MedicalTreeFormState extends State<MedicalTreeForm> {
+  String? selectedMainOption;
+  String? selectedGlassesType;
+  final TextEditingController prescriptionController = TextEditingController();
 
-  // Treatment options
-  final List<String> treatmentTypes = [
-    'Medication',
-    'Exercise',
-    'Dietary Recommendations',
-    'Eye Drops',
-    'Contact Lenses',
+  // Investigation checkboxes
+  final Map<String, bool> investigationOptions = {
+    'Corneal': false,
+    'Cataract': false,
+    'B-scan ultransonography': false,
+    'Colored fundoscopy': false,
+    'FFA': false,
+    'OCT': false,
+    'OCTA': false,
+    'GCC': false,
+    'RNFL': false,
+    'Visual field': false,
+    'IOP measurement': false,
+  };
+
+  // Corneal sub-options
+  final Map<String, bool> cornealOptions = {
+    'Topography': false,
+    'Pentacam': false,
+  };
+
+  // Cataract sub-options
+  final Map<String, bool> biometryTypes = {
+    'Ultrasound': false,
+    'Optical': false,
+  };
+
+  final Map<String, bool> biometryFeatures = {
+    'Biometry': false,
+  };
+
+  // Laser options
+  final List<String> laserOptions = ['Laser refractive surgery', 'LASIK', 'PRK', 'FemtoLASIK', 'FemtoSMILE'];
+
+  // Keratoconus options
+  final List<String> keratoconusOptions = ['CXL', 'Athens protocol', 'Intacs'];
+
+  // OR options
+  final List<String> orOptions = ['Cataract surgery', 'Intravitreal injection', 'Retinal surgery', 'Glaucoma surgery', 'Other surgery'];
+  final List<String> eyes = ['OD', 'OS', 'BL'];
+
+  // Cataract surgery options
+  final Map<String, bool> cataractSurgeryOptions = {
+    'Phaco': false,
+    'Extracap': false,
+    'Type of lens': false,
+  };
+
+  // Intravitreal injection options
+  final Map<String, bool> injectionOptions = {
+    'Eylea': false,
+    'Lucentis': false,
+    'Avastin': false,
+    'Ziv-aflibercept': false,
+    'Vabysmo': false,
+    'VsiqqOO': false,
+    'Ozurdex': false,
+  };
+
+  // Appointment types
+  final List<String> appointmentTypes = ['As before', 'New appointment'];
+
+  String? selectedLaserOption;
+  String? selectedKeratoconusOption;
+  String? selectedOROption;
+  String? selectedeye;
+  String? selectedAppointmentType;
+
+  // Main category icons
+  final Map<String, IconData> categoryIcons = {
+    'Prescribe glasses': Icons.visibility,
+    'Prescribe medications': Icons.medication,
+    'Refer to investigations': Icons.science,
+    'Refer to lasers': Icons.flash_on,
+    'Keratoconus': Icons.remove_red_eye,
+    'Refer to OR': Icons.local_hospital,
+    'Book next appointment': Icons.calendar_today,
+  };
+
+  // Main categories
+  final List<String> mainOptions = [
+    'Prescribe glasses',
+    'Prescribe medications',
+    'Refer to investigations',
+    'Refer to lasers',
+    'Keratoconus',
+    'Refer to OR',
+    'Book next appointment'
   ];
 
-  // Medication frequency options
-  final List<String> frequencies = ['Once daily', 'Twice daily', 'Three times daily', 'Four times daily'];
-  String? selectedFrequency;
+  // Glasses prescription details
+  final List<String> glassesTypes = ['Near vision', 'Far vision', 'IPD', 'Remarks'];
+  String? selectedGlassesValue;
 
-  // Exercise duration options
-  final List<String> durations = ['10 minutes', '15 minutes', '20 minutes', '30 minutes'];
-  String? selectedDuration;
+  Map<String, dynamic> generatePrescriptionObject() {
+    Map<String, dynamic> prescription = {
+      'action': selectedMainOption?.toLowerCase() ?? '',
+      'data': '',
+      'metaData': [],
+      'eye': selectedeye?.toLowerCase()
+    };
 
-  // Contact lens types
-  final List<String> lensTypes = ['Daily', 'Weekly', 'Monthly', 'Extended Wear'];
-  String? selectedLensType;
+    switch (selectedMainOption) {
+      case 'Prescribe glasses':
+        prescription['data'] = selectedGlassesValue?.toLowerCase();
+        break;
 
-  // Dietary preferences
-  Map<String, bool> dietaryRestrictions = {
-    'Low Sodium': false,
-    'Sugar-Free': false,
-    'High Protein': false,
-    'Vitamin Rich': false,
-  };
+      case 'Prescribe medications':
+        prescription['data'] = prescriptionController.text.toLowerCase();
+        break;
+
+      case 'Refer to investigations':
+        // Main investigation options
+        prescription['metaData'] = [
+          ...investigationOptions.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
+
+          // Corneal sub-options
+          if (investigationOptions['Corneal'] == true)
+            ...cornealOptions.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
+
+          // Cataract sub-options
+          if (investigationOptions['Cataract'] == true) ...[
+            if (biometryFeatures['Biometry'] == true) 'biometry',
+            ...biometryTypes.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
+          ]
+        ];
+        break;
+
+      case 'Refer to lasers':
+        final selectedLaserOption = this.selectedLaserOption;
+        if (selectedLaserOption != null) {
+          prescription['data'] = selectedLaserOption.toLowerCase();
+        }
+        break;
+
+      case 'Keratoconus':
+        if (selectedKeratoconusOption != null) {
+          prescription['data'] = selectedKeratoconusOption?.toLowerCase();
+        }
+        break;
+
+      case 'Refer to OR':
+        if (selectedOROption != null) {
+          prescription['data'] = selectedOROption?.toLowerCase();
+        }
+        prescription['metaData'] = [
+          if (selectedOROption == 'Cataract surgery')
+            ...cataractSurgeryOptions.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
+          if (selectedOROption == 'Intravitreal injection')
+            ...injectionOptions.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
+        ];
+        break;
+
+      case 'Book next appointment':
+        if (selectedAppointmentType != null) {
+          prescription['data'] = selectedAppointmentType?.toLowerCase();
+        }
+        break;
+    }
+
+    return prescription;
+  }
 
   @override
   void dispose() {
-    dosageController.dispose();
-    notesController.dispose();
+    prescriptionController.dispose();
     super.dispose();
-  }
-
-  Widget _buildMedicationFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Dosage TextField
-        Container(
-          margin: EdgeInsets.symmetric(vertical: 8.h),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: TextField(
-            controller: dosageController,
-            decoration: InputDecoration(
-              labelText: 'Dosage',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-            ),
-          ),
-        ),
-
-        // Frequency Dropdown
-        Container(
-          margin: EdgeInsets.symmetric(vertical: 8.h),
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: DropdownButtonFormField<String>(
-            value: selectedFrequency,
-            decoration: const InputDecoration(
-              labelText: 'Frequency',
-              border: InputBorder.none,
-            ),
-            items: frequencies.map((String frequency) {
-              return DropdownMenuItem<String>(
-                value: frequency,
-                child: Text(frequency),
-              );
-            }).toList(),
-            onChanged: (String? value) {
-              setState(() {
-                selectedFrequency = value;
-              });
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildExerciseFields() {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.h),
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: DropdownButtonFormField<String>(
-        value: selectedDuration,
-        decoration: const InputDecoration(
-          labelText: 'Exercise Duration',
-          border: InputBorder.none,
-        ),
-        items: durations.map((String duration) {
-          return DropdownMenuItem<String>(
-            value: duration,
-            child: Text(duration),
-          );
-        }).toList(),
-        onChanged: (String? value) {
-          setState(() {
-            selectedDuration = value;
-          });
-        },
-      ),
-    );
-  }
-
-  Widget _buildDietaryFields() {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: dietaryRestrictions.entries.map((entry) {
-          return CheckboxListTile(
-            title: Text(entry.key),
-            value: entry.value,
-            onChanged: (bool? value) {
-              setState(() {
-                dietaryRestrictions[entry.key] = value ?? false;
-              });
-            },
-            controlAffinity: ListTileControlAffinity.leading,
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildContactLensFields() {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.h),
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: DropdownButtonFormField<String>(
-        value: selectedLensType,
-        decoration: const InputDecoration(
-          labelText: 'Lens Type',
-          border: InputBorder.none,
-        ),
-        items: lensTypes.map((String type) {
-          return DropdownMenuItem<String>(
-            value: type,
-            child: Text(type),
-          );
-        }).toList(),
-        onChanged: (String? value) {
-          setState(() {
-            selectedLensType = value;
-          });
-        },
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Prescription Treatment'),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
+    return BlocProvider(
+      create: (context) => ExaminationCubit(ExaminationRepoImpl()),
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          title: Column(
+            spacing: 10,
+            children: [
+              Text('Visit Finalization', style: TextStyle(color: Colorz.primaryColor)),
+              Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  width: MediaQuery.of(context).size.width,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: Colorz.primaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ))
+            ],
+          ),
+        ),
+        body: SingleChildScrollView(
           padding: EdgeInsets.all(16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Treatment Type Dropdown
-              Container(
-                margin: EdgeInsets.only(bottom: 16.h),
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: DropdownButtonFormField<String>(
-                  value: selectedTreatmentType,
-                  decoration: const InputDecoration(
-                    labelText: 'Treatment Type',
-                    border: InputBorder.none,
-                  ),
-                  items: treatmentTypes.map((String type) {
-                    return DropdownMenuItem<String>(
-                      value: type,
-                      child: Text(type),
-                    );
-                  }).toList(),
-                  onChanged: (String? value) {
-                    setState(() {
-                      selectedTreatmentType = value;
-                    });
-                  },
-                ),
-              ),
-
-              // Dynamic Fields based on selection
-              if (selectedTreatmentType != null) ...[
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: Column(
-                    key: ValueKey<String>(selectedTreatmentType!),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (selectedTreatmentType == 'Medication') _buildMedicationFields(),
-                      if (selectedTreatmentType == 'Exercise') _buildExerciseFields(),
-                      if (selectedTreatmentType == 'Dietary Recommendations') _buildDietaryFields(),
-                      if (selectedTreatmentType == 'Contact Lenses') _buildContactLensFields(),
-                    ],
-                  ),
-                ),
-              ],
-
-              // Notes TextField
-              Container(
-                margin: EdgeInsets.symmetric(vertical: 16.h),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: TextField(
-                  controller: notesController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    labelText: 'Additional Notes',
-                    alignLabelWithHint: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                  ),
-                ),
-              ),
-
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Implement save functionality
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Save Prescription'),
-                ),
-              ),
+              _buildMainOptions(),
+              SizedBox(height: 20.h),
+              if (selectedMainOption != null) _buildSelectedOptionContent(),
+              if (selectedMainOption != null) eyeForm(),
+              if (selectedMainOption != null) SizedBox(height: 20.h),
+              if (selectedMainOption != null) _buildSaveButton(context),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _clearAllData() async {
+    // Clear text controllers
+    prescriptionController.clear();
+
+    // Clear all investigation options
+    investigationOptions.updateAll((key, value) => false);
+    cornealOptions.updateAll((key, value) => false);
+    biometryTypes.updateAll((key, value) => false);
+    biometryFeatures.updateAll((key, value) => false);
+
+    // Clear selected values
+    selectedGlassesType = null;
+    selectedLaserOption = null;
+    selectedKeratoconusOption = null;
+    selectedOROption = null;
+    selectedAppointmentType = null;
+    selectedGlassesValue = null;
+
+    // Clear maps
+    cataractSurgeryOptions.updateAll((key, value) => false);
+    injectionOptions.updateAll((key, value) => false);
+  }
+
+  Future<void> clearOrOptions() async {
+    cataractSurgeryOptions.updateAll((key, value) => false);
+    injectionOptions.updateAll((key, value) => false);
+  }
+
+  Widget _buildMainOptions() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: mainOptions.length,
+      itemBuilder: (context, index) {
+        final category = mainOptions[index];
+        final isSelected = selectedMainOption == category;
+
+        return Card(
+          margin: EdgeInsets.only(bottom: 10.h),
+          elevation: isSelected ? 2 : 1,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.r),
+            side: BorderSide(
+              color: isSelected ? Colorz.primaryColor : Colors.transparent,
+              width: 2,
+            ),
+          ),
+          child: InkWell(
+            onTap: () async {
+              await _clearAllData();
+              setState(() => selectedMainOption = category);
+            },
+            child: Padding(
+              padding: EdgeInsets.all(16.w),
+              child: Row(
+                children: [
+                  Icon(
+                    categoryIcons[category],
+                    size: 24.sp,
+                    color: isSelected ? Colorz.primaryColor : Colors.grey[600],
+                  ),
+                  SizedBox(width: 16.w),
+                  Expanded(
+                    child: Text(
+                      category,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color: isSelected ? Colorz.primaryColor : Colors.black87,
+                      ),
+                    ),
+                  ),
+                  if (isSelected)
+                    Icon(
+                      Icons.check_circle,
+                      color: Colorz.primaryColor,
+                      size: 20.sp,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFormContainer({required String title, required Widget child}) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colorz.primaryColor,
+              ),
+            ),
+            Divider(height: 24.h),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedOptionContent() {
+    switch (selectedMainOption) {
+      case 'Prescribe glasses':
+        return _buildGlassesPrescriptionForm();
+      case 'Prescribe medications':
+        return _buildMedicationForm();
+      case 'Refer to investigations':
+        return _buildInvestigationsForm();
+      case 'Refer to lasers':
+        return _buildLaserOptionsForm();
+      case 'Keratoconus':
+        return _buildKeratoconusForm();
+      case 'Refer to OR':
+        return _buildORForm();
+      case 'Book next appointment':
+        return _buildAppointmentForm();
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildGlassesPrescriptionForm() {
+    return _buildFormContainer(
+      title: 'Glasses Prescription',
+      child: Column(
+        children: [
+          _buildDropdown(
+            items: ['Near vision', 'Far vision', 'IPD', 'Remarks'],
+            value: selectedGlassesValue,
+            onChanged: (value) {
+              setState(() {
+                selectedGlassesValue = value!;
+              });
+            },
+            hint: 'Select glasses type',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMedicationForm() {
+    return _buildFormContainer(
+      title: 'Medication Prescription',
+      child: TextField(
+        controller: prescriptionController,
+        maxLines: 5,
+        decoration: _getInputDecoration('Enter prescription details...'),
+      ),
+    );
+  }
+
+  Widget _buildInvestigationsForm() {
+    return _buildFormContainer(
+      title: 'Investigations',
+      child: Column(
+        children: investigationOptions.entries.map((entry) {
+          return Column(
+            children: [
+              _buildCheckbox(
+                title: entry.key,
+                value: entry.value,
+                onChanged: (value) {
+                  setState(() {
+                    log(value.toString());
+                    investigationOptions[entry.key] = value ?? false;
+                    if (value == false && entry.key == 'Corneal') {
+                      cornealOptions['Topography'] = false;
+                      cornealOptions['Pentacam'] = false;
+                    }
+                    if (value == false && entry.key == 'Cataract') {
+                      biometryFeatures['Biometry'] = false;
+                      biometryTypes['Ultrasound'] = false;
+                      biometryTypes['Optical'] = false;
+                    }
+                  });
+                },
+              ),
+              if (entry.key == 'Corneal' && entry.value)
+                Padding(
+                  padding: EdgeInsets.only(left: 32.w),
+                  child: Column(
+                    children: cornealOptions.entries.map((option) {
+                      return _buildCheckbox(
+                        title: option.key,
+                        value: option.value,
+                        onChanged: (value) {
+                          setState(() {
+                            cornealOptions[option.key] = value ?? false;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              if (entry.key == 'Cataract' && entry.value)
+                Padding(
+                  padding: EdgeInsets.only(left: 32.w),
+                  child: Column(
+                    children: biometryFeatures.entries.map((option) {
+                      return _buildCheckbox(
+                        title: option.key,
+                        value: option.value,
+                        onChanged: (value) {
+                          setState(() {
+                            biometryFeatures[option.key] = value ?? false;
+                            if (value == false && option.key == 'Biometry') {
+                              // biometryTypes['Ultrasound'] = false;
+                              // biometryTypes['Optical'] = false;
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              if (entry.key == 'Cataract' && entry.value && biometryFeatures['Biometry']!)
+                Padding(
+                  padding: EdgeInsets.only(left: 64.w),
+                  child: Column(
+                    children: biometryTypes.entries.map((option) {
+                      return _buildCheckbox(
+                        title: option.key,
+                        value: option.value,
+                        onChanged: (value) {
+                          setState(() {
+                            biometryTypes[option.key] = value ?? false;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildCheckbox({
+    required String title,
+    required bool value,
+    required Function(bool?) onChanged,
+  }) {
+    return CheckboxListTile(
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 15.sp,
+          color: value ? Colorz.primaryColor : Colors.black87,
+        ),
+      ),
+      value: value,
+      activeColor: Colorz.primaryColor,
+      controlAffinity: ListTileControlAffinity.leading,
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildLaserOptionsForm() {
+    return _buildFormContainer(
+      title: 'Laser Options',
+      child: _buildDropdown(
+        items: laserOptions,
+        value: selectedLaserOption,
+        onChanged: (value) => setState(() => selectedLaserOption = value),
+        hint: 'Select laser option',
+      ),
+    );
+  }
+
+  Widget _buildKeratoconusForm() {
+    return _buildFormContainer(
+      title: 'Keratoconus Options',
+      child: _buildDropdown(
+        items: keratoconusOptions,
+        value: selectedKeratoconusOption,
+        onChanged: (value) => setState(() => selectedKeratoconusOption = value),
+        hint: 'Select keratoconus option',
+      ),
+    );
+  }
+
+  Widget eyeForm() {
+    return _buildDropdown(
+      items: eyes,
+      value: selectedeye,
+      onChanged: (value) async {
+        await clearOrOptions();
+
+        setState(() {
+          selectedeye = value;
+        });
+      },
+      hint: 'Select eye',
+    );
+  }
+
+  Widget _buildORForm() {
+    return _buildFormContainer(
+      title: 'OR Options',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDropdown(
+            items: orOptions,
+            value: selectedOROption,
+            onChanged: (value) async {
+              await clearOrOptions();
+
+              setState(() {
+                selectedOROption = value;
+              });
+            },
+            hint: 'Select OR option',
+          ),
+          SizedBox(height: 16.h),
+          if (selectedOROption == 'Cataract surgery') ...[
+            ...cataractSurgeryOptions.entries.map((entry) {
+              return _buildCheckbox(
+                title: entry.key,
+                value: entry.value,
+                onChanged: (value) {
+                  setState(() {
+                    cataractSurgeryOptions[entry.key] = value ?? false;
+                  });
+                },
+              );
+            }).toList(),
+          ],
+          if (selectedOROption == 'Intravitreal injection') ...[
+            ...injectionOptions.entries.map((entry) {
+              return _buildCheckbox(
+                title: entry.key,
+                value: entry.value,
+                onChanged: (value) {
+                  setState(() {
+                    injectionOptions[entry.key] = value ?? false;
+                  });
+                },
+              );
+            }).toList(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppointmentForm() {
+    return _buildFormContainer(
+      title: 'Appointment Type',
+      child: _buildDropdown(
+        items: appointmentTypes,
+        value: selectedAppointmentType,
+        onChanged: (value) => setState(() => selectedAppointmentType = value),
+        hint: 'Select appointment type',
+      ),
+    );
+  }
+
+  Widget _buildDropdown({
+    required List<String> items,
+    required String? value,
+    required Function(String?) onChanged,
+    required String hint,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: _getInputDecoration(hint),
+      items: items.map((String item) {
+        return DropdownMenuItem<String>(
+          value: item,
+          child: Text(item),
+        );
+      }).toList(),
+      onChanged: onChanged,
+    );
+  }
+
+  InputDecoration _getInputDecoration(String label) {
+    return InputDecoration(
+      hintText: label,
+      labelStyle: TextStyle(color: Colors.grey[700]),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.r),
+        borderSide: BorderSide(color: Colors.grey[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.r),
+        borderSide: BorderSide(color: Colorz.primaryColor),
+      ),
+    );
+  }
+
+  List<String> _getOptionsForType(String type) {
+    switch (type) {
+      case 'Near vision':
+        return List.generate(20, (i) => '+${(i * 0.25).toStringAsFixed(2)}');
+      case 'Far vision':
+        return List.generate(20, (i) => '-${(i * 0.25).toStringAsFixed(2)}');
+      case 'IPD':
+        return List.generate(20, (i) => '${55 + i}mm');
+      case 'Remarks':
+        return ['None', 'With astigmatism', 'Bifocal needed', 'Progressive needed'];
+      default:
+        return [];
+    }
+  }
+
+  Widget _buildSaveButton(BuildContext context) {
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Container(
+        height: 45,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            gradient: LinearGradient(
+              colors: [
+                Colorz.primaryColor,
+                Color.lerp(Colorz.primaryColor, Colors.black, 0.2)!,
+                Color.lerp(Colorz.primaryColor, Colors.black, 0.3)!,
+                Color.lerp(Colorz.primaryColor, Colors.black, 0.4)!,
+              ],
+            )),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              final prescriptionObject = generatePrescriptionObject();
+              log(prescriptionObject.runtimeType.toString());
+              // Log the object to see the output
+              ExaminationCubit.get(context).makeFinalization(context: context, id: widget.id, data: prescriptionObject);
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: const Center(
+              child: Text(
+                'Save Prescription',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
           ),
         ),
       ),

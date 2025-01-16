@@ -4,15 +4,18 @@ class ExaminationModel {
   ExaminationModel({
     required this.examination,
     required this.error,
+    required this.message,
   });
 
   final Examination? examination;
   final String? error;
+  final String? message;
 
   factory ExaminationModel.fromJson(Map<String, dynamic> json) {
     return ExaminationModel(
       examination: json["examination"] == null ? null : Examination.fromJson(json["examination"]),
       error: json["error"],
+      message: json["message"],
     );
   }
 
