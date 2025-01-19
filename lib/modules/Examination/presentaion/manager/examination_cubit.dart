@@ -8,7 +8,6 @@ import 'package:get/get.dart';
 
 import '../../../../core/utils/colors.dart';
 import '../../../Appointment/data/models/appointment_model.dart';
-import '../../../Appointment/presentation/views/appointment_view.dart';
 import '../../data/repos/examination_repo.dart';
 import '../views/widgets/prescription.dart';
 import 'examination_state.dart';
@@ -18,8 +17,13 @@ class ExaminationCubit extends Cubit<ExaminationState> {
 
   ExaminationRepo examinationRepo;
   static ExaminationCubit get(context) => BlocProvider.of(context);
-  final TextEditingController historyController = TextEditingController();
-  final TextEditingController complaintController = TextEditingController();
+  final TextEditingController familyHistoryController = TextEditingController();
+  final TextEditingController presentIllnessController = TextEditingController();
+  final TextEditingController pastHistoryController = TextEditingController();
+  final TextEditingController medicationHistoryController = TextEditingController();
+  final TextEditingController oneComplaintController = TextEditingController();
+  final TextEditingController twoComplaintController = TextEditingController();
+  final TextEditingController threeComplaintController = TextEditingController();
   final int totalSteps = 4;
 
   int _currentStep = 0;
@@ -519,8 +523,17 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         "appointment": appointmentData?.id,
         "type": appointmentData?.examinationType?.id
       },
-      "examinationHistory": historyController.text,
-      "examinationComplain": complaintController.text,
+      "examinationHistory": {
+        "familyHistory": familyHistoryController.text,
+        "presentIllness": presentIllnessController.text,
+        "pastHistory": pastHistoryController.text,
+        "medicationHistory": medicationHistoryController.text,
+      },
+      "examinationComplain": {
+        "complainOne": oneComplaintController.text,
+        "complainTwo": twoComplaintController.text,
+        "complainThree": threeComplaintController.text
+      },
       "leftEyeMeasurement": {
         "eye": "Left",
         "autorefSpherical": leftAurorefSpherical,
@@ -675,8 +688,11 @@ class ExaminationCubit extends Cubit<ExaminationState> {
           icon: Icon(Icons.check, color: Colorz.white),
         );
 
-        Navigator.pop(context);
-        Get.off(() => AppointmentView());
+        Navigator.pop(context, true);
+        Navigator.pop(context, true);
+        Navigator.pop(context, true);
+        Navigator.pop(context, true);
+
         emit(MakeFinalizationSuccess());
       } else if (result != null && result.error != null) {
         Get.snackbar(

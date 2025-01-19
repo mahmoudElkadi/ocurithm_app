@@ -5,6 +5,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 
 import '../../../../../../core/utils/colors.dart';
+import '../../../../../core/widgets/custom_buttons.dart';
 import '../../../data/model/clinics_model.dart';
 import '../../manager/clinic_cubit.dart';
 import '../../manager/clinic_state.dart';
@@ -170,20 +171,10 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        ElevatedButton(
-                          onPressed: _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                            backgroundColor: Colorz.primaryColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Submit',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                        ),
+                        CoolDownButton(
+                          onTap: _submitForm,
+                          text: 'Submit',
+                        )
                       ],
                     ),
                   ],

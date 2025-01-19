@@ -18,7 +18,7 @@ class QuadrantWidget extends StatefulWidget {
   final int showTextAtCount; // At which tap count should text be shown
 
   const QuadrantWidget({
-    Key? key,
+    super.key,
     required this.size,
     required this.position,
     required this.onTap,
@@ -30,7 +30,7 @@ class QuadrantWidget extends StatefulWidget {
       fontWeight: FontWeight.bold,
     ),
     this.showTextAtCount = 2,
-  }) : super(key: key);
+  });
 
   @override
   State<QuadrantWidget> createState() => _QuadrantWidgetState();

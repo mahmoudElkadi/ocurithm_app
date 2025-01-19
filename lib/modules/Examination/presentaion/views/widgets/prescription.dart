@@ -3,8 +3,11 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 
+import '../../../../../core/widgets/confirmation_popuo.dart';
+import '../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../data/repos/examination_repo_impl.dart';
 import '../../manager/examination_cubit.dart';
 import '../../manager/examination_state.dart';
@@ -176,8 +179,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         break;
 
       case 'Book next appointment':
-        if (selectedAppointmentType != null) {
-          prescription['data'] = selectedAppointmentType?.toLowerCase();
+        if (selectedMainOption == 'Book next appointment' && selectedDate != null) {
+          prescription['data'] = _formatAppointmentDateTime();
         }
         break;
     }
@@ -199,6 +202,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
           backgroundColor: Colors.transparent,
+          leading: SizedBox.shrink(),
           title: Column(
             spacing: 10,
             children: [
@@ -595,16 +599,114 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     );
   }
 
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+
   Widget _buildAppointmentForm() {
     return _buildFormContainer(
-      title: 'Appointment Type',
-      child: _buildDropdown(
-        items: appointmentTypes,
-        value: selectedAppointmentType,
-        onChanged: (value) => setState(() => selectedAppointmentType = value),
-        hint: 'Select appointment type',
+      title: 'Next Appointment',
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => _showDateTimePicker(),
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today, color: Colorz.primaryColor),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      selectedDate != null ? _formatAppointmentDateTime() : 'Select appointment date and time',
+                      style: TextStyle(
+                        color: selectedDate != null ? Colors.black87 : Colors.grey[600],
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+// Add this method to handle date and time picking
+  void _showDateTimePicker() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colorz.primaryColor,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: ColorScheme.light(
+                primary: Colorz.primaryColor,
+                onPrimary: Colors.white,
+                surface: Colors.white,
+                onSurface: Colors.black,
+              ),
+            ),
+            child: child!,
+          );
+        },
+      );
+
+      if (pickedTime != null) {
+        setState(() {
+          selectedDate = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+          selectedTime = pickedTime;
+        });
+      }
+    }
+  }
+
+// Add this method to format the date and time
+  String _formatAppointmentDateTime() {
+    if (selectedDate == null) return '';
+
+    // Format date
+    String formattedDate = '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}';
+
+    // Format time
+    String period = selectedTime!.period == DayPeriod.am ? 'AM' : 'PM';
+    int hour = selectedTime!.hourOfPeriod;
+    String minute = selectedTime!.minute.toString().padLeft(2, '0');
+    String formattedTime = '$hour:$minute $period';
+
+    return 'As before $formattedDate $formattedTime';
   }
 
   Widget _buildDropdown({
@@ -678,9 +780,27 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           child: InkWell(
             onTap: () {
               final prescriptionObject = generatePrescriptionObject();
-              log(prescriptionObject.runtimeType.toString());
-              // Log the object to see the output
-              ExaminationCubit.get(context).makeFinalization(context: context, id: widget.id, data: prescriptionObject);
+              showConfirmationDialog(
+                context: context,
+                title: "Visit Finalization",
+                message: "Are you sure you want to Make Finalization?",
+                onConfirm: () async {
+                  customLoading(context, "");
+                  bool value = await InternetConnection().hasInternetAccess;
+                  if (!value) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                      backgroundColor: Colors.red,
+                    ));
+                    return;
+                  }
+                  ExaminationCubit.get(context).makeFinalization(context: context, id: widget.id, data: prescriptionObject);
+                },
+                onCancel: () {
+                  Navigator.pop(context);
+                },
+              );
             },
             borderRadius: BorderRadius.circular(8),
             child: const Center(

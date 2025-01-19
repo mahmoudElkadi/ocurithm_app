@@ -15,6 +15,7 @@ import '../../../../../Services/time_parser.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/choose_hours_range.dart';
+import '../../../../../core/widgets/custom_buttons.dart';
 import '../../../../../core/widgets/work_day_selector.dart';
 import '../../../../../generated/l10n.dart';
 import '../../../data/model/add_branch_model.dart';
@@ -426,20 +427,10 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            ElevatedButton(
-                              onPressed: _submitForm,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                                backgroundColor: Colorz.primaryColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Submit',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              ),
-                            ),
+                            CoolDownButton(
+                              onTap: _submitForm,
+                              text: 'Submit',
+                            )
                           ],
                         ),
                     ],

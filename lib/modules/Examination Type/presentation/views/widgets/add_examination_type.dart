@@ -12,6 +12,7 @@ import 'package:ocurithm/modules/Examination%20Type/presentation/manager/examina
 
 import '../../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../../core/widgets/custom_buttons.dart';
 import '../../../../Clinics/data/model/clinics_model.dart';
 
 class FormPopupDialog extends StatefulWidget {
@@ -278,20 +279,10 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ElevatedButton(
-                            onPressed: _submitForm,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                              backgroundColor: Colorz.primaryColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Submit',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                            ),
-                          ),
+                          CoolDownButton(
+                            onTap: _submitForm,
+                            text: 'Submit',
+                          )
                         ],
                       ),
                     ],

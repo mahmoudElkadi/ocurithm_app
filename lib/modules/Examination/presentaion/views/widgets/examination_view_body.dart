@@ -74,27 +74,245 @@ class _HistoryDetails extends StatelessWidget {
       builder: (context, state) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16).copyWith(bottom: 0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min, // Added this
+              children: [
+                Text(
+                  'Present Illness',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.grey[200]!,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey[100]!,
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    controller: cubit.presentIllnessController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: 'Type patient history here...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 15,
+                      ),
+                      contentPadding: const EdgeInsets.all(20),
+                      border: InputBorder.none,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                    ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Past History',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.grey[200]!,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey[100]!,
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    controller: cubit.pastHistoryController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: 'Type patient history here...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 15,
+                      ),
+                      contentPadding: const EdgeInsets.all(20),
+                      border: InputBorder.none,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                    ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Medication History',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.grey[200]!,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey[100]!,
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    controller: cubit.medicationHistoryController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: 'Type patient history here...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 15,
+                      ),
+                      contentPadding: const EdgeInsets.all(20),
+                      border: InputBorder.none,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                    ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Family History',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.grey[200]!,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey[100]!,
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    controller: cubit.familyHistoryController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: 'Type patient history here...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 15,
+                      ),
+                      contentPadding: const EdgeInsets.all(20),
+                      border: InputBorder.none,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                    ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+                StepNavigation(
+                  onPrevious: () => cubit.previousStep(),
+                  onNext: () => cubit.nextStep(),
+                  isLastStep: cubit.currentStep == cubit.totalSteps - 1,
+                  canGoBack: cubit.currentStep > 0,
+                  canContinue: cubit.currentStep < cubit.totalSteps - 1,
+                  onConfirm: () async {
+                    if (cubit.appointmentData != null) {
+                      customLoading(context, "");
+                      bool connection = await InternetConnection().hasInternetAccess;
+                      if (connection) {
+                        cubit.makeExamination(context: context);
+                      } else {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                          backgroundColor: Colorz.redColor,
+                        ));
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _StepTwoContent extends StatelessWidget {
+  const _StepTwoContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Padding(
+        padding: const EdgeInsets.all(16).copyWith(bottom: 0),
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min, // Added this
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Patient History',
+                ' Complaint One',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Colors.grey[800],
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                'Please provide detailed medical history',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 24),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -111,10 +329,10 @@ class _HistoryDetails extends StatelessWidget {
                   ],
                 ),
                 child: TextFormField(
-                  controller: cubit.historyController,
-                  maxLines: 6,
+                  maxLines: 4,
+                  controller: cubit.oneComplaintController,
                   decoration: InputDecoration(
-                    hintText: 'Type patient history here...',
+                    hintText: 'Describe the one complaint...',
                     hintStyle: TextStyle(
                       color: Colors.grey[400],
                       fontSize: 15,
@@ -130,28 +348,97 @@ class _HistoryDetails extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: Colors.grey[600],
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Include any relevant medical conditions, medications, or allergies',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 24),
+              Text(
+                ' Complaint Two',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey[800],
+                ),
               ),
-              Spacer(),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.grey[200]!,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey[100]!,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  maxLines: 4,
+                  controller: cubit.twoComplaintController,
+                  decoration: InputDecoration(
+                    hintText: 'Describe the one complaint...',
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 15,
+                    ),
+                    contentPadding: const EdgeInsets.all(20),
+                    border: InputBorder.none,
+                    filled: true,
+                    fillColor: Colors.transparent,
+                  ),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                ' Complaint Three',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.grey[200]!,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey[100]!,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  maxLines: 4,
+                  controller: cubit.threeComplaintController,
+                  decoration: InputDecoration(
+                    hintText: 'Describe the one complaint...',
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 15,
+                    ),
+                    contentPadding: const EdgeInsets.all(20),
+                    border: InputBorder.none,
+                    filled: true,
+                    fillColor: Colors.transparent,
+                  ),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               StepNavigation(
                 onPrevious: () => cubit.previousStep(),
                 onNext: () => cubit.nextStep(),
@@ -176,123 +463,6 @@ class _HistoryDetails extends StatelessWidget {
               ),
             ],
           ),
-        );
-      },
-    );
-  }
-}
-
-class _StepTwoContent extends StatelessWidget {
-  const _StepTwoContent();
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<ExaminationCubit>();
-
-    return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Padding(
-        padding: const EdgeInsets.all(16).copyWith(bottom: 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Current Complaints',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Describe the current symptoms and concerns',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.grey[200]!,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey[100]!,
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextFormField(
-                maxLines: 6,
-                controller: cubit.complaintController,
-                decoration: InputDecoration(
-                  hintText: 'Describe the main complaint...',
-                  hintStyle: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 15,
-                  ),
-                  contentPadding: const EdgeInsets.all(20),
-                  border: InputBorder.none,
-                  filled: true,
-                  fillColor: Colors.transparent,
-                ),
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.5,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: Colors.grey[600],
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Include main symptoms, when they started, and any treatments tried',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Spacer(),
-            StepNavigation(
-              onPrevious: () => cubit.previousStep(),
-              onNext: () => cubit.nextStep(),
-              isLastStep: cubit.currentStep == cubit.totalSteps - 1,
-              canGoBack: cubit.currentStep > 0,
-              canContinue: cubit.currentStep < cubit.totalSteps - 1,
-              onConfirm: () async {
-                if (cubit.appointmentData != null) {
-                  customLoading(context, "");
-                  bool connection = await InternetConnection().hasInternetAccess;
-                  if (connection) {
-                    cubit.makeExamination(context: context);
-                  } else {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
-                      backgroundColor: Colorz.redColor,
-                    ));
-                  }
-                }
-              },
-            ),
-          ],
         ),
       ),
     );

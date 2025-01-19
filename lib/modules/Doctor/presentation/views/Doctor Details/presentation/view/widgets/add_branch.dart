@@ -10,6 +10,7 @@ import '../../../../../../../../Services/time_parser.dart';
 import '../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../core/widgets/choose_hours_range.dart';
+import '../../../../../../../../core/widgets/custom_buttons.dart';
 import '../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../../../core/widgets/work_day_selector.dart';
 import '../../../../../../../../generated/l10n.dart';
@@ -138,14 +139,9 @@ class _AddBranchState extends State<AddBranch> {
                   ),
                 ],
                 SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: const StadiumBorder(),
-                        backgroundColor: Colorz.primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () async {
+                    width: double.infinity,
+                    child: CoolDownButton(
+                      onTap: () async {
                         // First validate branch selection and times
                         if (!widget.cubit.validateAddBranch()) {
                           Get.snackbar('Error', 'Please fill all required fields',
@@ -211,8 +207,8 @@ class _AddBranchState extends State<AddBranch> {
                           branchId: widget.cubit.selectedBranch!.id.toString(),
                         );
                       },
-                      child: Text("Add Branch", style: TextStyle(color: Colorz.white, fontSize: 16, fontWeight: FontWeight.w500))),
-                ),
+                      text: 'Add Branch',
+                    )),
               ],
             ),
           ),

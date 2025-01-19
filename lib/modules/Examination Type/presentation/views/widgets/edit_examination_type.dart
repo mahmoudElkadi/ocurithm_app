@@ -11,6 +11,7 @@ import '../../../../../../core/utils/colors.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../../core/widgets/custom_buttons.dart';
 import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/model/examination_type_model.dart';
 import '../../manager/examination_type_cubit.dart';
@@ -364,20 +365,10 @@ class _EditExaminationTypeDialogState extends State<EditExaminationTypeDialog> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            ElevatedButton(
-                              onPressed: _submitForm,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                                backgroundColor: Colorz.primaryColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Submit',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              ),
-                            ),
+                            CoolDownButton(
+                              onTap: _submitForm,
+                              text: 'Submit',
+                            )
                           ],
                         ),
                     ],

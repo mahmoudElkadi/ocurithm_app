@@ -586,21 +586,37 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
       builder: (context, state) {
         final cubit = context.read<ExaminationCubit>();
 
+        // Create complaints data map
+        final complaintsData = {
+          'Complain One': cubit.oneComplaintController.text,
+          'Complain Two': cubit.twoComplaintController.text,
+          'Complain Three': cubit.threeComplaintController.text,
+        };
+
+        // Create history data map
+        final historyData = {
+          'Family History': cubit.familyHistoryController.text,
+          'Present Illness': cubit.presentIllnessController.text,
+          'Past History': cubit.pastHistoryController.text,
+          'Medication History': cubit.medicationHistoryController.text,
+        };
+
         return Column(
-          spacing: 16,
           children: [
             HeightSpacer(size: 0),
             _buildExpandableCard(
-              title: 'Patient History',
+              title: 'Medical History',
               icon: Icons.history,
-              content: cubit.historyController.text,
+              content: historyData,
               color: Colorz.primaryColor,
+              isHistoryCard: true,
             ),
             _buildExpandableCard(
-              title: 'Chief Complaint',
+              title: 'Chief Complaints',
               icon: Icons.medical_information,
-              content: cubit.complaintController.text,
+              content: complaintsData,
               color: Colorz.primaryColor,
+              isComplaintCard: true,
             ),
           ],
         );
@@ -611,8 +627,10 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
   Widget _buildExpandableCard({
     required String title,
     required IconData icon,
-    required String content,
+    required dynamic content,
     required Color color,
+    bool isComplaintCard = false,
+    bool isHistoryCard = false,
   }) {
     return Card(
       elevation: 3,
@@ -639,14 +657,97 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
           ),
           childrenPadding: const EdgeInsets.all(16),
           children: [
-            Text(
-              content.isEmpty ? 'No data available' : content,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colorz.primaryColor,
-                height: 1.5,
+            if (isHistoryCard && content is Map<String, String>)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content.entries.map((entry) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.key,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colorz.primaryColor,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 8,
+                          top: 4,
+                          bottom: 16,
+                        ),
+                        child: Text(
+                          entry.value.isEmpty ? 'No data available' : entry.value,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colorz.black,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              )
+            else if (isComplaintCard && content is Map<String, String>)
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: content.isEmpty
+                      ? [
+                          Text(
+                            'No complaints available',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colorz.primaryColor,
+                              height: 1.5,
+                            ),
+                          ),
+                        ]
+                      : content.entries.map((entry) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.key,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colorz.primaryColor,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 8,
+                                  top: 4,
+                                  bottom: 16,
+                                ),
+                                child: Text(
+                                  entry.value,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colorz.black,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                ),
+              )
+            else
+              Text(
+                content?.isEmpty ?? true ? 'No data available' : content,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colorz.primaryColor,
+                  height: 1.5,
+                ),
               ),
-            ),
           ],
         ),
       ),
