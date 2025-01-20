@@ -68,6 +68,10 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                     Center(
                       child: ProfileImagePicker(
                         initialImageUrl: widget.cubit.imageUrl,
+                        onDelete: () {
+                          widget.cubit.imageUrl = null;
+                          setState(() {});
+                        },
                         onImageUploaded: (String url) {
                           setState(() {
                             widget.cubit.imageUrl = url;

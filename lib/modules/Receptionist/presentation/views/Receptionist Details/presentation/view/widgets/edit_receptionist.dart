@@ -101,6 +101,10 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                             ))
                           : ProfileImagePicker(
                               readOnly: widget.cubit.readOnly,
+                              onDelete: () {
+                                widget.cubit.imageUrl = null;
+                                setState(() {});
+                              },
                               initialImageUrl: widget.cubit.imageUrl,
                               onImageUploaded: (String url) {
                                 setState(() {

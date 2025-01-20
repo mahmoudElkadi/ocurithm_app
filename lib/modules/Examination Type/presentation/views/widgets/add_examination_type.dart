@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
@@ -239,6 +240,10 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                         controller: _durationController,
                         cursorColor: Colors.black,
                         keyboardType: TextInputType.number,
+                        // Add input formatter to only allow integer numbers
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly, // This ensures only digits can be entered
+                        ],
                         decoration: InputDecoration(
                           hintText: 'Enter Duration',
                           border: OutlineInputBorder(
@@ -258,16 +263,17 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                             return 'Please enter a Duration';
                           }
 
-                          // Convert string to double
-                          double? price = double.tryParse(value);
+                          // Convert string to integer
+                          int? duration = int.tryParse(value);
 
-                          // Check if it's a valid number and if it's less than or equal to zero
-                          if (price == null) {
-                            return 'Please enter a valid number';
+                          // Check if it's a valid integer
+                          if (duration == null) {
+                            return 'Please enter a valid integer';
                           }
 
-                          if (price <= 0) {
-                            return 'Price must be greater than zero';
+                          // Check if it's greater than zero
+                          if (duration <= 0) {
+                            return 'Duration must be greater than zero';
                           }
 
                           return null;

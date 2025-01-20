@@ -84,6 +84,10 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                     Center(
                       child: ProfileImagePicker(
                         initialImageUrl: widget.cubit.imageUrl,
+                        onDelete: () {
+                          widget.cubit.imageUrl = null;
+                          setState(() {});
+                        },
                         onImageUploaded: (String url) {
                           setState(() {
                             widget.cubit.imageUrl = url;
@@ -423,12 +427,14 @@ class ProfileImagePicker extends StatefulWidget {
   final Function(String) onImageUploaded;
   final String? initialImageUrl;
   final bool? readOnly;
+  final Function() onDelete;
 
   const ProfileImagePicker({
     Key? key,
     required this.onImageUploaded,
     this.initialImageUrl,
     this.readOnly = false,
+    required this.onDelete,
   }) : super(key: key);
 
   @override
@@ -439,6 +445,15 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
+  bool _isImageDeleted = false;
+
+  void _handleDelete() {
+    setState(() {
+      _imageFile = null;
+      _isImageDeleted = true; // Set this to true when image is deleted
+    });
+    widget.onDelete();
+  }
 
   Future<void> _uploadImage() async {
     if (_imageFile == null) return;
@@ -553,7 +568,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                           width: 120,
                           height: 120,
                         )
-                      : widget.initialImageUrl != null
+                      : (!_isImageDeleted && widget.initialImageUrl != null) // Modified this condition
                           ? Image.network(
                               widget.initialImageUrl!,
                               fit: BoxFit.cover,
@@ -569,7 +584,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
             bottom: 0,
             right: 0,
             child: GestureDetector(
-              onTap: widget.readOnly == true ? null : () => _showImageSourceDialog(),
+              onTap: widget.readOnly == true ? null : () => _showImageSourceDialog(_handleDelete), // Changed to use _handleDelete
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -589,7 +604,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
     );
   }
 
-  void _showImageSourceDialog() {
+  void _showImageSourceDialog(Function() onDelete) {
     showCupertinoModalPopup<void>(
       context: context,
       builder: (BuildContext context) => CupertinoActionSheet(
@@ -642,6 +657,30 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                 SizedBox(width: 8),
                 Text(
                   'Take a Photo',
+                  style: TextStyle(
+                    color: CupertinoColors.activeBlue,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              onDelete();
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  CupertinoIcons.delete,
+                  color: CupertinoColors.activeBlue,
+                  size: 24,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Delete Photo',
                   style: TextStyle(
                     color: CupertinoColors.activeBlue,
                     fontSize: 16,

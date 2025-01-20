@@ -452,38 +452,34 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                       ).copyWith(),
                     ),
                   )
-                : RawScrollbar(
-                    radius: Radius.circular(8),
-                    thumbVisibility: true,
-                    child: ListView.builder(
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      itemCount: filteredList.length,
-                      itemBuilder: (context, index) {
-                        final item = filteredList[index];
-                        final isDisabled = widget.disabledItems.contains(item);
-                        return InkWell(
-                          onTap: isDisabled ? null : () => _selectItem(item),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                            child: Text(
-                              widget.itemAsString(item),
-                              style: (widget.dropdownTextStyle ??
-                                      TextStyle(
-                                        color: Colors.grey.shade800,
-                                        fontSize: 16.0,
-                                      ))
-                                  .copyWith(
-                                color: isDisabled ? Colors.grey.shade400 : null,
-                              ),
+                : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: filteredList.length,
+                    itemBuilder: (context, index) {
+                      final item = filteredList[index];
+                      final isDisabled = widget.disabledItems.contains(item);
+                      return InkWell(
+                        onTap: isDisabled ? null : () => _selectItem(item),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                          child: Text(
+                            widget.itemAsString(item),
+                            style: (widget.dropdownTextStyle ??
+                                    TextStyle(
+                                      color: Colors.grey.shade800,
+                                      fontSize: 16.0,
+                                    ))
+                                .copyWith(
+                              color: isDisabled ? Colors.grey.shade400 : null,
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
       ),
     );
