@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
@@ -11,6 +12,7 @@ import '../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../data/model/doctor_model.dart';
 import '../../../../../manager/doctor_cubit.dart';
 import '../../../../../manager/doctor_state.dart';
+import 'add_branch.dart';
 
 class DoctorBranchesView extends StatelessWidget {
   final List<BranchElement> branches;
@@ -118,11 +120,34 @@ class _BranchCard extends StatelessWidget {
                       ),
                     ),
                     if (CacheHelper.getStringList(key: "capabilities").contains("manageDoctors"))
-                      Material(
-                        borderRadius: BorderRadius.circular(16),
-                        color: Colors.white,
-                        child: InkWell(
-                          onTap: () {
+                      PopupMenuButton<String>(
+                        itemBuilder: (BuildContext context) => [
+                          // Update Option
+                          PopupMenuItem<String>(
+                            value: 'update',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, color: Colors.blue), // Update Icon
+                                SizedBox(width: 8), // Spacing
+                                Text("Update"), // Update Text
+                              ],
+                            ),
+                          ),
+                          // Delete Option
+                          PopupMenuItem<String>(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, color: Colors.red), // Delete Icon
+                                SizedBox(width: 8), // Spacing
+                                Text("Delete"), // Delete Text
+                              ],
+                            ),
+                          ),
+                        ],
+                        onSelected: (String value) async {
+                          if (value == 'delete') {
+                            // Handle Delete Action
                             showConfirmationDialog(
                               context: context,
                               title: "Delete Branch",
@@ -132,27 +157,44 @@ class _BranchCard extends StatelessWidget {
                                 bool connection = await InternetConnection().hasInternetAccess;
                                 if (!connection) {
                                   Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                    content: Text(
-                                      "No Internet Connection",
-                                      style: TextStyle(color: Colors.white),
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "No Internet Connection",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      backgroundColor: Colors.red,
                                     ),
-                                    backgroundColor: Colors.red,
-                                  ));
+                                  );
                                 } else {
-                                  await cubit.deleteBranch(context: context, doctorId: doctorId, branchId: branch!.id.toString());
+                                  await cubit.deleteBranch(
+                                    context: context,
+                                    doctorId: doctorId,
+                                    branchId: branch!.id.toString(),
+                                  );
                                 }
                               },
                               onCancel: () {
                                 Navigator.pop(context);
                               },
                             );
-                          },
+                          } else if (value == 'update') {
+                            Get.dialog(AddBranch(
+                              cubit: cubit,
+                              id: doctorId,
+                              clinic: cubit.doctor!.clinic!.id.toString(),
+                              doctorBranchId: branchData.id.toString(),
+                            ));
+                          }
+                        },
+                        child: Material(
+                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.white,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             child: Icon(
-                              Icons.delete_forever,
-                              color: Colorz.redColor,
+                              Icons.more_vert, // Three dots icon for the menu
+                              color: Colors.grey, // Adjust the color as needed
                             ),
                           ),
                         ),

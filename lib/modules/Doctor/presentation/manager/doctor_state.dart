@@ -53,3 +53,9 @@ class GetCapabilityLoading extends DoctorState {}
 class GetCapabilitiesError extends DoctorState {}
 
 class GetCapabilitySuccess extends DoctorState {}
+
+class UpdateBranchLoading extends DoctorState {}
+
+class UpdateBranchSuccess extends DoctorState {}
+
+class UpdateBranchError extends DoctorState {}

@@ -114,6 +114,8 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   TextEditingController leftLacrimalController = TextEditingController();
   TextEditingController leftConjunctivaController = TextEditingController();
   TextEditingController leftScleraController = TextEditingController();
+  TextEditingController leftShapeController = TextEditingController();
+  TextEditingController rightShapeController = TextEditingController();
 
   // Additional Fields
   dynamic leftCornea;
@@ -547,7 +549,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         "iop": leftIOP,
         "meansOfMeasurement": leftMeansOfMeasurement,
         "acquireAnotherIOPMeasurement": leftAcquireAnotherIOPMeasurement,
-        "pupilsShape": leftPupilsShape,
+        "pupilsShape": leftPupilsShape == "others" ? leftShapeController.text : leftPupilsShape,
         "pupilsLightReflexTest": leftPupilsLightReflexTest,
         "pupilsNearReflexTest": leftPupilsNearReflexTest,
         "pupilsSwingingFlashLightTest": leftPupilsSwingingFlashLightTest,
@@ -589,7 +591,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         "iop": rightIOP,
         "meansOfMeasurement": rightMeansOfMeasurement,
         "acquireAnotherIOPMeasurement": rightAcquireAnotherIOPMeasurement,
-        "pupilsShape": rightPupilsShape,
+        "pupilsShape": rightPupilsShape == "others" ? rightShapeController.text : rightPupilsShape,
         "pupilsLightReflexTest": rightPupilsLightReflexTest,
         "pupilsNearReflexTest": rightPupilsNearReflexTest,
         "pupilsSwingingFlashLightTest": rightPupilsSwingingFlashLightTest,

@@ -123,7 +123,7 @@ class _HistoryDetails extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Text(
                   'Past History',
                   style: TextStyle(
@@ -168,7 +168,7 @@ class _HistoryDetails extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Text(
                   'Medication History',
                   style: TextStyle(
@@ -719,28 +719,23 @@ class AutorefContent extends StatelessWidget {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) => Column(
         children: [
-          DropValidateRow(
-            items: cubit.data['AurorefSpherical']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['AurorefSpherical'] ?? [],
             hintText: "",
             textRow: "Spherical :",
             selectedValue: isLeftEye ? cubit.leftAurorefSpherical : cubit.rightAurorefSpherical,
             onChanged: (selected) {
               if (isLeftEye) {
+                log("ssssssss" + selected.toString());
                 cubit.updateLeftEyeField('aurorefSpherical', selected);
               } else {
                 cubit.updateRightEyeField('aurorefSpherical', selected);
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['AurorefCylindrical']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['AurorefCylindrical'] ?? [],
             textRow: "Cylindrical :",
             hintText: '',
             selectedValue: isLeftEye ? cubit.leftAurorefCylindrical : cubit.rightAurorefCylindrical,
@@ -752,12 +747,9 @@ class AutorefContent extends StatelessWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['AurorefAxis']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['AurorefAxis'] ?? [],
             textRow: "Axis :",
             hintText: '',
             selectedValue: isLeftEye ? cubit.leftAurorefAxis : cubit.rightAurorefAxis,
@@ -861,10 +853,8 @@ class _VisualAcuityContentState extends State<VisualAcuityContent> {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) => Column(
         children: [
-          DropValidateRow(
-            items:
-                cubit.data['UCVA']?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString()))).toList() ??
-                    [],
+          CustomColumnDropdown(
+            items: cubit.data['UCVA'] ?? [],
             hintText: "",
             textRow: "UCVA :",
             radius: 15,
@@ -880,11 +870,9 @@ class _VisualAcuityContentState extends State<VisualAcuityContent> {
               setState(() {});
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items:
-                cubit.data['BCVA']?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString()))).toList() ??
-                    [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['BCVA'] ?? [],
             hintText: "",
             textRow: "BCVA :",
             radius: 15,
@@ -916,28 +904,61 @@ class PupilsContent extends StatelessWidget {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) => Column(
         children: [
-          DropValidateRow(
-            items: cubit.data['PupilsShape']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['PupilsShape'] ?? [],
             hintText: "",
             textRow: "Shape :",
             selectedValue: isLeftEye ? cubit.leftPupilsShape : cubit.rightPupilsShape,
             onChanged: (selected) {
               if (isLeftEye) {
                 cubit.updateLeftEyeField('pupilsShape', selected);
+                log(cubit.leftPupilsShape.toString());
               } else {
                 cubit.updateRightEyeField('pupilsShape', selected);
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['PupilsLightReflexTest']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          if (cubit.leftPupilsShape == "others" && isLeftEye)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: TextField2(
+                controller: isLeftEye ? cubit.leftShapeController : cubit.rightPupilsShape,
+                hintText: 'Shape',
+                required: false,
+                onTextFieldChanged: (value) {
+                  if (isLeftEye) {
+                    cubit.updateLeftEyeField('lidsShape', value);
+                  } else {
+                    cubit.updateRightEyeField('lidsShape', value);
+                  }
+                },
+                borderColor: Colors.black,
+                fillColor: Colors.white,
+                radius: 30,
+              ),
+            ),
+          if (cubit.rightPupilsShape == "others" && !isLeftEye)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: TextField2(
+                controller: isLeftEye ? cubit.leftShapeController : cubit.rightShapeController,
+                hintText: 'Shape',
+                required: false,
+                onTextFieldChanged: (value) {
+                  if (isLeftEye) {
+                    cubit.updateLeftEyeField('lidsShape', value);
+                  } else {
+                    cubit.updateRightEyeField('lidsShape', value);
+                  }
+                },
+                borderColor: Colors.black,
+                fillColor: Colors.white,
+                radius: 30,
+              ),
+            ),
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['PupilsLightReflexTest'] ?? [],
             textRow: "Light Reflex Test :",
             hintText: '',
             selectedValue: isLeftEye ? cubit.leftPupilsLightReflexTest : cubit.rightPupilsLightReflexTest,
@@ -949,12 +970,9 @@ class PupilsContent extends StatelessWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['PupilsNearReflexTest']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['PupilsNearReflexTest'] ?? [],
             hintText: "",
             textRow: "Near Reflex Test :",
             selectedValue: isLeftEye ? cubit.leftPupilsNearReflexTest : cubit.rightPupilsNearReflexTest,
@@ -966,12 +984,9 @@ class PupilsContent extends StatelessWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['PupilsSwingingFlashLightTest']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['PupilsSwingingFlashLightTest'] ?? [],
             hintText: "",
             textRow: "Swinging Flash Test :",
             selectedValue: isLeftEye ? cubit.leftPupilsSwingingFlashLightTest : cubit.rightPupilsSwingingFlashLightTest,
@@ -983,12 +998,9 @@ class PupilsContent extends StatelessWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['PupilsOtherDisorders']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['PupilsOtherDisorders'] ?? [],
             hintText: "",
             textRow: "Other Disorders :",
             selectedValue: isLeftEye ? cubit.leftPupilsOtherDisorders : cubit.rightPupilsOtherDisorders,
@@ -1017,11 +1029,8 @@ class RefinedRefractionContent extends StatelessWidget {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) => Column(
         children: [
-          DropValidateRow(
-            items: cubit.data['RefinedRefractionSpherical']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['RefinedRefractionSpherical'] ?? [],
             hintText: "",
             textRow: "Spherical :",
             selectedValue: isLeftEye ? cubit.leftRefinedRefractionSpherical : cubit.rightRefinedRefractionSpherical,
@@ -1033,12 +1042,9 @@ class RefinedRefractionContent extends StatelessWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['RefinedRefractionCylindrical']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['RefinedRefractionCylindrical'] ?? [],
             textRow: "Cylindrical :",
             hintText: '',
             selectedValue: isLeftEye ? cubit.leftRefinedRefractionCylindrical : cubit.rightRefinedRefractionCylindrical,
@@ -1050,12 +1056,9 @@ class RefinedRefractionContent extends StatelessWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['RefinedRefractionAxis']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['RefinedRefractionAxis'] ?? [],
             hintText: "",
             textRow: "Axis :",
             selectedValue: isLeftEye ? cubit.leftRefinedRefractionAxis : cubit.rightRefinedRefractionAxis,
@@ -1084,10 +1087,8 @@ class IOPContent extends StatelessWidget {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) => Column(
         children: [
-          DropValidateRow(
-            items:
-                cubit.data['IOP']?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString()))).toList() ??
-                    [],
+          CustomColumnDropdown(
+            items: cubit.data['IOP'] ?? [],
             hintText: "",
             textRow: "IOP :",
             radius: 15,
@@ -1101,12 +1102,9 @@ class IOPContent extends StatelessWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['MeansOfMeasurement']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['MeansOfMeasurement'] ?? [],
             hintText: "",
             textRow: "Means of Measurement:",
             selectedValue: isLeftEye ? cubit.leftMeansOfMeasurement : cubit.rightMeansOfMeasurement,
@@ -1118,12 +1116,9 @@ class IOPContent extends StatelessWidget {
               }
             },
           ),
-          const SizedBox(height: 16),
-          DropValidateRow(
-            items: cubit.data['AcquireAnotherIOPMeasurement']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          const SizedBox(height: 8),
+          CustomColumnDropdown(
+            items: cubit.data['AcquireAnotherIOPMeasurement'] ?? [],
             hintText: "",
             textRow: "Another IOP:",
             selectedValue: isLeftEye ? cubit.leftAcquireAnotherIOPMeasurement : cubit.rightAcquireAnotherIOPMeasurement,
@@ -1228,11 +1223,8 @@ class AdditionalExaminationContent extends StatelessWidget {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) => Column(
         children: [
-          DropValidateRow(
-            items: cubit.data['Cornea']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['Cornea'] ?? [],
             hintText: "",
             textRow: "Cornea :",
             selectedValue: isLeftEye ? cubit.leftCornea : cubit.rightCornea,
@@ -1245,11 +1237,8 @@ class AdditionalExaminationContent extends StatelessWidget {
             },
           ),
           const SizedBox(height: 15),
-          DropValidateRow(
-            items: cubit.data['AnteriorChambre']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['AnteriorChambre'] ?? [],
             hintText: "",
             textRow: "Anterior Chambre :",
             selectedValue: isLeftEye ? cubit.leftAnteriorChambre : cubit.rightAnteriorChambre,
@@ -1262,10 +1251,8 @@ class AdditionalExaminationContent extends StatelessWidget {
             },
           ),
           const SizedBox(height: 15),
-          DropValidateRow(
-            items:
-                cubit.data['Iris']?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString()))).toList() ??
-                    [],
+          CustomColumnDropdown(
+            items: cubit.data['Iris'] ?? [],
             hintText: "",
             textRow: "Iris :",
             selectedValue: isLeftEye ? cubit.leftIris : cubit.rightIris,
@@ -1278,10 +1265,8 @@ class AdditionalExaminationContent extends StatelessWidget {
             },
           ),
           const SizedBox(height: 15),
-          DropValidateRow(
-            items:
-                cubit.data['Lens']?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString()))).toList() ??
-                    [],
+          CustomColumnDropdown(
+            items: cubit.data['Lens'] ?? [],
             hintText: "",
             textRow: "Lens :",
             selectedValue: isLeftEye ? cubit.leftLens : cubit.rightLens,
@@ -1294,11 +1279,8 @@ class AdditionalExaminationContent extends StatelessWidget {
             },
           ),
           const SizedBox(height: 15),
-          DropValidateRow(
-            items: cubit.data['AnteriorVitreous']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['AnteriorVitreous'] ?? [],
             hintText: "",
             textRow: "Anterior Vitreous :",
             selectedValue: isLeftEye ? cubit.leftAnteriorVitreous : cubit.rightAnteriorVitreous,
@@ -1327,11 +1309,8 @@ class FundusExaminationContent extends StatelessWidget {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) => Column(
         children: [
-          DropValidateRow(
-            items: cubit.data['FundusOpticDisc']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['FundusOpticDisc'] ?? [],
             hintText: "",
             textRow: "Optic Disc :",
             selectedValue: isLeftEye ? cubit.leftFundusOpticDisc : cubit.rightFundusOpticDisc,
@@ -1344,11 +1323,8 @@ class FundusExaminationContent extends StatelessWidget {
             },
           ),
           const SizedBox(height: 15),
-          DropValidateRow(
-            items: cubit.data['FundusMacula']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['FundusMacula'] ?? [],
             hintText: "",
             textRow: "Macula :",
             selectedValue: isLeftEye ? cubit.leftFundusMacula : cubit.rightFundusMacula,
@@ -1361,11 +1337,8 @@ class FundusExaminationContent extends StatelessWidget {
             },
           ),
           const SizedBox(height: 15),
-          DropValidateRow(
-            items: cubit.data['FundusVessels']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['FundusVessels'] ?? [],
             hintText: "",
             textRow: "Vessels :",
             selectedValue: isLeftEye ? cubit.leftFundusVessels : cubit.rightFundusVessels,
@@ -1378,11 +1351,8 @@ class FundusExaminationContent extends StatelessWidget {
             },
           ),
           const SizedBox(height: 15),
-          DropValidateRow(
-            items: cubit.data['FundusPeriphery']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item.toString())))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['FundusPeriphery'] ?? [],
             hintText: "",
             textRow: "Fundus Periphery :",
             selectedValue: isLeftEye ? cubit.leftFundusPeriphery : cubit.rightFundusPeriphery,
@@ -1417,9 +1387,8 @@ class ExternalExaminationContent extends StatelessWidget {
             child: Text("Eyelid", style: appStyle(context, 20, Colors.black, FontWeight.w600)),
           ),
           const HeightSpacer(size: 10),
-          DropValidateRow(
-            items:
-                cubit.data['EyelidPtosis']?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item))).toList() ?? [],
+          CustomColumnDropdown(
+            items: cubit.data['EyelidPtosis'] ?? [],
             hintText: "",
             textRow: "Ptosis :",
             selectedValue: isLeftEye ? cubit.leftEyelidPtosis : cubit.rightEyelidPtosis,
@@ -1432,11 +1401,8 @@ class ExternalExaminationContent extends StatelessWidget {
             },
           ),
           const HeightSpacer(size: 15),
-          DropValidateRow(
-            items: cubit.data['EyelidLagophthalmos']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item)))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['EyelidLagophthalmos'] ?? [],
             textRow: "Lagophthalmos :",
             hintText: '',
             selectedValue: isLeftEye ? cubit.leftEyelidLagophthalmos : cubit.rightEyelidLagophthalmos,
@@ -1449,11 +1415,8 @@ class ExternalExaminationContent extends StatelessWidget {
             },
           ),
           const HeightSpacer(size: 15),
-          DropValidateRow(
-            items: cubit.data['PalpableLymphNodes']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item)))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['PalpableLymphNodes'] ?? [],
             hintText: "",
             textRow: "Palpable Lymph Nodes :",
             selectedValue: isLeftEye ? cubit.leftPalpableLymphNodes : cubit.rightPalpableLymphNodes,
@@ -1466,11 +1429,8 @@ class ExternalExaminationContent extends StatelessWidget {
             },
           ),
           const HeightSpacer(size: 15),
-          DropValidateRow(
-            items: cubit.data['PapableTemporalArtery']
-                    ?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item)))
-                    .toList() ??
-                [],
+          CustomColumnDropdown(
+            items: cubit.data['PapableTemporalArtery'] ?? [],
             hintText: "",
             textRow: "PapableTemporalArtery:",
             selectedValue: isLeftEye ? cubit.leftPapableTemporalArtery : cubit.rightPapableTemporalArtery,
@@ -1483,10 +1443,8 @@ class ExternalExaminationContent extends StatelessWidget {
             },
           ),
           const HeightSpacer(size: 15),
-          DropValidateRow(
-            items:
-                cubit.data['Exophthalmometry']?.map<DropdownMenuItem<dynamic>>((item) => DropdownMenuItem(value: item, child: Text(item))).toList() ??
-                    [],
+          CustomColumnDropdown(
+            items: cubit.data['Exophthalmometry'] ?? [],
             hintText: "",
             textRow: "Exophthalmometry:",
             selectedValue: isLeftEye ? cubit.leftExophthalmometry : cubit.rightExophthalmometry,

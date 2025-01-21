@@ -35,10 +35,11 @@ class ApiService {
           validateStatus: (status) => status! <= 700,
         ),
       );
-      // log('data: ${data}');
-      //
-      // log("response${response.data}");
-      // log("URL${response.realUri}");
+
+      log('data: ${data}');
+      log("response${response.data}");
+      log("URL${response.realUri}");
+
       if (response.data['message'] == "Invalid token") {
         await CacheHelper.removeData(key: "token");
         await CacheHelper.removeData(key: "id");

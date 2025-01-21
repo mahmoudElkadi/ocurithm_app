@@ -553,7 +553,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                 ],
               ),
               const SizedBox(height: 16),
-              if (appointment.status != 'Completed')
+              if (appointment.status != 'Completed' && appointment.status != 'Cancelled')
                 appointment.status != 'Examining' && CacheHelper.getStringList(key: "capabilities").contains("editAppointmentsReciptionist")
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,

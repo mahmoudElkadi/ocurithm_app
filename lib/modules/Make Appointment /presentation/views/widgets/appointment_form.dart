@@ -83,6 +83,8 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
         setState(() {
           cubit.selectedClinic = item;
           cubit.selectedBranch = null;
+          cubit.selectedExaminationType = null;
+          cubit.selectedPaymentMethod = null;
         });
         await cubit.getBranches();
         await cubit.getExaminationTypes();

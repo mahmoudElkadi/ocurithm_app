@@ -46,7 +46,7 @@ class ExaminationTypeCubit extends Cubit<ExaminationTypeState> {
       } else {
         Get.snackbar(
           "Error",
-          result.error!,
+          result.error ?? "error",
           backgroundColor: Colorz.errorColor,
           colorText: Colorz.white,
           icon: Icon(Icons.error, color: Colorz.white),

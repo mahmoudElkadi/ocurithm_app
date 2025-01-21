@@ -18,9 +18,10 @@ import '../../../../../manager/doctor_cubit.dart';
 import '../../../../../manager/doctor_state.dart';
 
 class AddBranch extends StatefulWidget {
-  const AddBranch({super.key, required this.cubit, required this.id, required this.clinic});
+  const AddBranch({super.key, required this.cubit, required this.id, required this.clinic, this.doctorBranchId});
   final DoctorCubit cubit;
   final String id;
+  final String? doctorBranchId;
   final String clinic;
 
   @override
@@ -32,10 +33,22 @@ class _AddBranchState extends State<AddBranch> {
   void initState() {
     super.initState();
     widget.cubit.getBranches(clinic: widget.clinic);
-    widget.cubit.availableFrom = "08:00";
-    widget.cubit.availableTo = "18:00";
-    log(widget.clinic);
-    log(widget.id);
+    log(widget.doctorBranchId.toString());
+    if (widget.doctorBranchId != null) {
+      widget.cubit.doctor?.branches?.forEach((element) {
+        if (element.id == widget.doctorBranchId) {
+          widget.cubit.selectedBranch = element.branch;
+          widget.cubit.availableFrom = element.availableFrom ?? "08:00";
+          widget.cubit.availableTo = element.availableTo ?? "18:00";
+          widget.cubit.availableDays = element.availableDays;
+          initialSelectedDays = element.availableDays;
+        }
+      });
+    } else {
+      widget.cubit.availableFrom = "08:00";
+      widget.cubit.availableTo = "18:00";
+      initialSelectedDays = [];
+    }
   }
 
   @override
@@ -46,6 +59,8 @@ class _AddBranchState extends State<AddBranch> {
     widget.cubit.selectedBranch = null;
     super.dispose();
   }
+
+  List initialSelectedDays = [];
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +96,7 @@ class _AddBranchState extends State<AddBranch> {
                   items: widget.cubit.branches?.branches,
                   isValid: widget.cubit.chooseBranch,
                   validateText: S.of(context).mustBranch,
+                  readOnly: widget.doctorBranchId == null ? false : true,
                   selectedValue: widget.cubit.selectedBranch?.name,
                   hintText: 'Select Branch',
                   itemAsString: (item) => item.name.toString(),
@@ -89,6 +105,8 @@ class _AddBranchState extends State<AddBranch> {
                       if (item != "Not Found") {
                         widget.cubit.chooseBranch = true;
                         widget.cubit.selectedBranch = item;
+                        widget.cubit.availableFrom = item.openTime ?? '08:00';
+                        widget.cubit.availableTo = item.closeTime ?? '18:00';
                         log(widget.cubit.selectedBranch.toString());
                         log(widget.cubit.chooseDays.toString());
                       }
@@ -111,7 +129,7 @@ class _AddBranchState extends State<AddBranch> {
                           print('Selected days: ${widget.cubit.availableDays}');
                         },
                         isValid: widget.cubit.chooseDays,
-                        initialSelectedDays: [],
+                        initialSelectedDays: initialSelectedDays,
                         enabledDays: widget.cubit.selectedBranch?.workDays,
                         icon: Icon(
                           Icons.arrow_drop_down_circle,
@@ -124,6 +142,12 @@ class _AddBranchState extends State<AddBranch> {
                           widget.cubit.availableFrom = '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
                           widget.cubit.availableTo = '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
                         },
+                        initialOpenTime: widget.doctorBranchId != null
+                            ? TimeParser.stringToTimeOfDay(widget.cubit.availableFrom)
+                            : TimeParser.stringToTimeOfDay(widget.cubit.selectedBranch?.openTime),
+                        initialCloseTime: widget.doctorBranchId != null
+                            ? TimeParser.stringToTimeOfDay(widget.cubit.availableTo)
+                            : TimeParser.stringToTimeOfDay(widget.cubit.selectedBranch?.closeTime),
                         icon: Icon(
                           Icons.arrow_drop_down_circle,
                           color: Colorz.primaryColor,
@@ -141,79 +165,154 @@ class _AddBranchState extends State<AddBranch> {
                 SizedBox(
                     width: double.infinity,
                     child: CoolDownButton(
-                      onTap: () async {
-                        // First validate branch selection and times
-                        if (!widget.cubit.validateAddBranch()) {
-                          Get.snackbar('Error', 'Please fill all required fields',
-                              icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
-                          return;
-                        }
-
-                        // Create a new branch element for validation
-                        final newBranchSchedule = BranchElement(
-                            branch: widget.cubit.selectedBranch,
-                            availableFrom: widget.cubit.availableFrom,
-                            availableTo: widget.cubit.availableTo,
-                            availableDays: widget.cubit.availableDays,
-                            id: null,
-                            branchId: widget.cubit.selectedBranch?.id);
-
-                        // Get existing branches for the doctor
-                        final existingBranches = widget.cubit.doctor?.branches ?? [];
-
-                        // Check for schedule conflicts
-                        if (BranchScheduleValidator.hasScheduleConflict(existingBranches, newBranchSchedule)) {
-                          Get.snackbar('Schedule Conflict', 'This schedule overlaps with existing branch assignments',
-                              icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
-                          return;
-                        }
-
-                        // Validate branch hours
-                        final branchOpenTime = TimeComparer.parseTimeString(widget.cubit.selectedBranch?.openTime ?? "08:00");
-                        final branchCloseTime = TimeComparer.parseTimeString(widget.cubit.selectedBranch?.closeTime ?? "18:00");
-                        final doctorAvailableFrom = TimeComparer.parseTimeString(widget.cubit.availableFrom ?? "08:00");
-                        final doctorAvailableTo = TimeComparer.parseTimeString(widget.cubit.availableTo ?? "18:00");
-
-                        // Check if doctor's available time is within branch hours
-                        if (TimeComparer.compareTimeOfDay(doctorAvailableFrom, branchOpenTime) < 0 ||
-                            TimeComparer.compareTimeOfDay(doctorAvailableTo, branchCloseTime) > 0) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Please select a time between ${_formatTime(branchOpenTime)} and ${_formatTime(branchCloseTime)}'),
-                            backgroundColor: Colors.red,
-                          ));
-                          return;
-                        }
-
-                        // Check internet connection
-                        customLoading(context, "");
-                        bool isConnection = await InternetConnection().hasInternetAccess;
-
-                        if (!isConnection) {
-                          Navigator.of(context).pop();
-                          Get.snackbar(
-                            "Error",
-                            "No Internet Connection",
-                            backgroundColor: Colorz.errorColor,
-                            colorText: Colorz.white,
-                            icon: Icon(Icons.error, color: Colorz.white),
-                          );
-                          return;
-                        }
-
-                        // If all validations pass, proceed with adding the branch
-                        widget.cubit.addBranch(
-                          context: context,
-                          doctorId: widget.id,
-                          branchId: widget.cubit.selectedBranch!.id.toString(),
-                        );
-                      },
-                      text: 'Add Branch',
+                      onTap: () => widget.doctorBranchId == null ? _submit() : _edit(),
+                      text: widget.doctorBranchId != null ? 'Edit Branch' : 'Add Branch',
                     )),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  _submit() async {
+    // First validate branch selection and times
+    log("i am here");
+    if (!widget.cubit.validateAddBranch()) {
+      Get.snackbar('Error', 'Please fill all required fields',
+          icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
+      return;
+    }
+
+    // Create a new branch element for validation
+    final newBranchSchedule = BranchElement(
+        branch: widget.cubit.selectedBranch,
+        availableFrom: widget.cubit.availableFrom,
+        availableTo: widget.cubit.availableTo,
+        availableDays: widget.cubit.availableDays,
+        id: null,
+        branchId: widget.cubit.selectedBranch?.id);
+
+    // Get existing branches for the doctor
+    final existingBranches = widget.cubit.doctor?.branches ?? [];
+
+    // Check for schedule conflicts
+    if (BranchScheduleValidator.hasScheduleConflict(existingBranches, newBranchSchedule)) {
+      Get.snackbar('Schedule Conflict', 'This schedule overlaps with existing branch assignments',
+          icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
+      return;
+    }
+
+    // Validate branch hours
+    final branchOpenTime = TimeComparer.parseTimeString(widget.cubit.selectedBranch?.openTime ?? "08:00");
+    final branchCloseTime = TimeComparer.parseTimeString(widget.cubit.selectedBranch?.closeTime ?? "18:00");
+    final doctorAvailableFrom = TimeComparer.parseTimeString(widget.cubit.availableFrom ?? "08:00");
+    final doctorAvailableTo = TimeComparer.parseTimeString(widget.cubit.availableTo ?? "18:00");
+
+    // Check if doctor's available time is within branch hours
+    if (TimeComparer.compareTimeOfDay(doctorAvailableFrom, branchOpenTime) < 0 ||
+        TimeComparer.compareTimeOfDay(doctorAvailableTo, branchCloseTime) > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Please select a time between ${_formatTime(branchOpenTime)} and ${_formatTime(branchCloseTime)}'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
+
+    // Check internet connection
+    customLoading(context, "");
+    bool isConnection = await InternetConnection().hasInternetAccess;
+
+    if (!isConnection) {
+      Navigator.of(context).pop();
+      Get.snackbar(
+        "Error",
+        "No Internet Connection",
+        backgroundColor: Colorz.errorColor,
+        colorText: Colorz.white,
+        icon: Icon(Icons.error, color: Colorz.white),
+      );
+      return;
+    }
+
+    // If all validations pass, proceed with adding the branch
+    widget.cubit.addBranch(
+      context: context,
+      doctorId: widget.id,
+      branchId: widget.cubit.selectedBranch!.id.toString(),
+    );
+  }
+
+  _edit() async {
+    // First validate branch selection and times
+
+    if (!widget.cubit.validateAddBranch()) {
+      Get.snackbar('Error', 'Please fill all required fields',
+          icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
+      return;
+    }
+
+    // Create a new branch element for validation
+    final newBranchSchedule = BranchElement(
+        branch: widget.cubit.selectedBranch,
+        availableFrom: widget.cubit.availableFrom,
+        availableTo: widget.cubit.availableTo,
+        availableDays: widget.cubit.availableDays,
+        id: null,
+        branchId: widget.cubit.selectedBranch?.id);
+
+    // Get existing branches for the doctor
+    final existingBranches = widget.cubit.doctor?.branches
+            ?.where((e) => e.id != widget.doctorBranchId) // Filter branches
+            .map((e) => e) // Map to create copies of the remaining branches
+            .toList() ??
+        [];
+
+    // Check for schedule conflicts
+    if (BranchScheduleValidator.hasScheduleConflict(existingBranches, newBranchSchedule)) {
+      Get.snackbar('Schedule Conflict', 'This schedule overlaps with existing branch assignments',
+          icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
+      return;
+    }
+
+    // Validate branch hours
+    final branchOpenTime = TimeComparer.parseTimeString(widget.cubit.selectedBranch?.openTime ?? "08:00");
+    final branchCloseTime = TimeComparer.parseTimeString(widget.cubit.selectedBranch?.closeTime ?? "18:00");
+    final doctorAvailableFrom = TimeComparer.parseTimeString(widget.cubit.availableFrom ?? "08:00");
+    final doctorAvailableTo = TimeComparer.parseTimeString(widget.cubit.availableTo ?? "18:00");
+
+    // Check if doctor's available time is within branch hours
+    if (TimeComparer.compareTimeOfDay(doctorAvailableFrom, branchOpenTime) < 0 ||
+        TimeComparer.compareTimeOfDay(doctorAvailableTo, branchCloseTime) > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Please select a time between ${_formatTime(branchOpenTime)} and ${_formatTime(branchCloseTime)}'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
+
+    // Check internet connection
+    customLoading(context, "");
+    bool isConnection = await InternetConnection().hasInternetAccess;
+
+    if (!isConnection) {
+      Navigator.of(context).pop();
+      Get.snackbar(
+        "Error",
+        "No Internet Connection",
+        backgroundColor: Colorz.errorColor,
+        colorText: Colorz.white,
+        icon: Icon(Icons.error, color: Colorz.white),
+      );
+      return;
+    }
+
+    // If all validations pass, proceed with adding the branch
+    widget.cubit.editBranch(
+      context: context,
+      doctorId: widget.id,
+      branchId: widget.cubit.selectedBranch!.id.toString(),
     );
   }
 

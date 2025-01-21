@@ -312,6 +312,44 @@ class DoctorCubit extends Cubit<DoctorState> {
     }
   }
 
+  editBranch({context, required String doctorId, required String branchId}) async {
+    emit(UpdateBranchLoading());
+    try {
+      var result = await doctorRepo.editBranch(
+          doctorId: doctorId, branchId: branchId, availableFrom: availableFrom, availableTo: availableTo, availableDays: availableDays);
+      if (result.error == null && (result.name != null || result.id != null)) {
+        Get.snackbar(
+          "Success",
+          "Branch updated Successfully",
+          backgroundColor: Colorz.primaryColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.check, color: Colorz.white),
+        );
+        Navigator.pop(context);
+        Navigator.pop(context);
+
+        doctor = result;
+        emit(UpdateBranchSuccess());
+      } else {
+        Get.snackbar(
+          "Error",
+          result.error!,
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        Navigator.pop(context);
+
+        emit(UpdateBranchError());
+      }
+    } catch (e) {
+      log(e.toString());
+      Navigator.pop(context);
+
+      emit(UpdateBranchError());
+    }
+  }
+
   deleteBranch({context, required String doctorId, required String branchId}) async {
     emit(DeleteBranchLoading());
     // try {

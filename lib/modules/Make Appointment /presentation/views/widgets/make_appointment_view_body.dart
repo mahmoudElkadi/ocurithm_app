@@ -130,7 +130,8 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       "startDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 0, 0, 0),
       "endDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 23, 59, 59),
       'doctor': BlocProvider.of<MakeAppointmentCubit>(context).selectedDoctor?.id,
-      'branch': BlocProvider.of<MakeAppointmentCubit>(context).selectedBranch?.id
+      'branch': BlocProvider.of<MakeAppointmentCubit>(context).selectedBranch?.id,
+      "reservation": true,
     };
 
     try {

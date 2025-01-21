@@ -1348,3 +1348,135 @@ class _DropValidateRowState extends State<DropValidateRow> {
     );
   }
 }
+
+class CustomColumnDropdown<T> extends StatefulWidget {
+  const CustomColumnDropdown({
+    super.key,
+    required this.items,
+    this.onChanged,
+    this.selectedValue,
+    this.text,
+    required this.hintText,
+    this.border,
+    this.height,
+    this.hintColor,
+    this.validate,
+    this.icon,
+    this.radius,
+    this.prefixIcon,
+    this.textRow,
+  });
+  final List<T> items;
+  final void Function(T)? onChanged;
+  final dynamic selectedValue;
+  final String? text;
+  final String? textRow;
+  final Widget? icon;
+  final Widget? prefixIcon;
+  final String hintText;
+  final double? border;
+  final double? height;
+  final double? radius;
+  final Color? hintColor;
+  final bool? validate;
+
+  @override
+  State<CustomColumnDropdown> createState() => _CustomColumnDropdownState();
+}
+
+class _CustomColumnDropdownState extends State<CustomColumnDropdown> {
+  TextEditingController textEditingController = TextEditingController();
+
+  bool customSearchMatch(String itemValue, String searchValue) {
+    int itemIndex = 0;
+    int searchIndex = 0;
+
+    while (itemIndex < itemValue.length && searchIndex < searchValue.length) {
+      if (itemValue[itemIndex].toLowerCase() == searchValue[searchIndex].toLowerCase()) {
+        searchIndex++;
+      }
+      itemIndex++;
+    }
+    return searchIndex == searchValue.length;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.text != null
+            ? Column(
+                children: [
+                  widget.icon ??
+                      const SizedBox(
+                        height: 0,
+                        width: 0,
+                      ),
+                  const WidthSpacer(size: 10),
+                  Text(
+                    widget.text!,
+                    style: appStyle(context, 18, Colors.grey, FontWeight.bold),
+                  ),
+                ],
+              )
+            : const SizedBox(
+                height: 0,
+                width: 0,
+              ),
+        const HeightSpacer(size: 10),
+        Column(
+          spacing: 10,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "   ${widget.textRow ?? " "}",
+              style: appStyle(context, 18, Colors.grey, FontWeight.w600),
+            ),
+            DropdownItem(
+                items: widget.items,
+                hintText: widget.textRow ?? "",
+                hintStyle: appStyle(context, 16, Colors.grey, FontWeight.w500),
+                radius: 30,
+                iconData: Container(
+                  padding: const EdgeInsets.all(1),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.shade300,
+                        spreadRadius: 2,
+                        blurRadius: 4,
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.expand_more,
+                    color: Colors.black,
+                  ),
+                ),
+                selectedValue: widget.selectedValue,
+                itemAsString: (item) => item.toString(),
+                onItemSelected: widget.onChanged ?? (_) {},
+                isLoading: false),
+          ],
+        ),
+        if (widget.validate == true)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const HeightSpacer(
+                size: 10,
+              ),
+              Text(
+                S.of(context).mustNotEmpty,
+                style: appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+}
