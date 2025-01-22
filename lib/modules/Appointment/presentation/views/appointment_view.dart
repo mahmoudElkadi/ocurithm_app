@@ -37,8 +37,8 @@ class AppointmentView extends StatelessWidget {
                   if (CacheHelper.getStringList(key: "capabilities").contains("addAppointments"))
                     IconButton(
                       onPressed: () async {
-                        bool isChanged = await Get.to(() => MakeAppointmentView());
-                        if (isChanged) {
+                        bool? isChanged = await Get.to(() => MakeAppointmentView());
+                        if (isChanged == true) {
                           AppointmentCubit.get(context).getAppointments();
                         }
                       },

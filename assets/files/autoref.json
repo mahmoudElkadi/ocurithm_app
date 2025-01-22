@@ -83,7 +83,7 @@
     "60","60.5","61","61.5","62","62.5","63","63.5","64","64.5","65","65.5","66","66.5","67","67.5","68","68.5","69","69.5",
     "70"
   ],
-  "PupilsShape": ["-", "rounded", "irregular","others"],
+  "PupilsShape": ["rounded", "irregular","others"],
   "PupilsLightReflexTest": ["Normal response", "abnormal response"],
   "PupilsNearReflexTest": ["Normal response", "absolute afferent", "RAPD"],
   "PupilsSwingingFlashLightTest": [

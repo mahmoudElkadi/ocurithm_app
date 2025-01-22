@@ -627,7 +627,7 @@ class EyeExaminationView extends StatelessWidget {
             _buildExpandableContainer('Autoref', AutorefContent(isLeftEye: isLeftEye)),
             _buildExpandableContainer('Visual Acuity', VisualAcuityContent(isLeftEye: isLeftEye)),
             _buildExpandableContainer('Refined Refraction', RefinedRefractionContent(isLeftEye: isLeftEye)),
-            _buildExpandableContainer('IOP', IOPContent(isLeftEye: isLeftEye)),
+            _buildExpandableContainer('IOP (mmHg)', IOPContent(isLeftEye: isLeftEye)),
             isLeftEye
                 ? QuadrantContainer(
                     // Left side configuration

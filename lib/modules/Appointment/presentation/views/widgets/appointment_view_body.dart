@@ -719,13 +719,13 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                                       )),
                                   onPressed: () async {
                                     if (CacheHelper.getStringList(key: "capabilities").contains("manageExaminations")) {
-                                      bool isChanged = await Get.to(
+                                      bool? isChanged = await Get.to(
                                           () => MultiStepFormPage(
                                                 appointment: appointment,
                                               ),
                                           transition: Transition.rightToLeft,
                                           duration: const Duration(milliseconds: 500));
-                                      if (isChanged) {
+                                      if (isChanged == true) {
                                         appointment.status = 'Completed';
                                         setState(() {});
                                       }
