@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
@@ -39,7 +42,7 @@ class _DashboardViewState extends State<DashboardView> {
               onSurface: Colors.black, // Text color on the surface
             ),
             // Customize the text theme
-            textTheme: TextTheme(
+            textTheme: const TextTheme(
               bodyLarge: TextStyle(color: Colors.black), // Text color for dates
               bodyMedium: TextStyle(color: Colors.black), // Text color for headers
             ),
@@ -67,10 +70,22 @@ class _DashboardViewState extends State<DashboardView> {
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) => CustomScaffold(
           body: DashboardCubit.get(context).connection != false
-              ? DashboardViewBody(
-                  isLoading: DashboardCubit.get(context).dashboard == null,
-                  dashboardData: DashboardCubit.get(context).dashboard,
-                  cubit: DashboardCubit.get(context), // Pass the cubit
+              ? CustomMaterialIndicator(
+                  onRefresh: () async {
+                    try {
+                      DashboardCubit.get(context).getDashboard();
+                    } catch (e) {
+                      log(e.toString());
+                    }
+                  },
+                  indicatorBuilder: (BuildContext context, IndicatorController controller) {
+                    return const Image(image: AssetImage("assets/icons/logo.png"));
+                  },
+                  child: DashboardViewBody(
+                    isLoading: DashboardCubit.get(context).dashboard == null,
+                    dashboardData: DashboardCubit.get(context).dashboard,
+                    cubit: DashboardCubit.get(context), // Pass the cubit
+                  ),
                 )
               : NoInternet(
                   onPressed: () {
