@@ -56,7 +56,6 @@ class PaymentMethodCubit extends Cubit<PaymentMethodState> {
         emit(PaymentMethodError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(PaymentMethodError());
@@ -82,7 +81,6 @@ class PaymentMethodCubit extends Cubit<PaymentMethodState> {
         emit(AdminClinicError());
       } else {
         clinics = await ServicesApi().getAllClinics();
-        log(clinics.toString());
         if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
           emit(AdminClinicSuccess());
         } else {
@@ -90,7 +88,6 @@ class PaymentMethodCubit extends Cubit<PaymentMethodState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminClinicError());
     }
   }

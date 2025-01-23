@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -48,7 +46,9 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
     widget.cubit.availableTo = "18:00";
     widget.cubit.availableFrom = "08:00";
     if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
-      widget.cubit.getClinics();
+      if (widget.cubit.clinics == null) {
+        widget.cubit.getClinics();
+      }
     } else {
       widget.cubit.selectedClinic = CacheHelper.getUser("user")?.clinic;
     }
@@ -203,12 +203,10 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                                   final String generatedPassword = passwordControllerGenerator.generatePassword();
                                   final double entropy = generatedPassword.checkStrength();
                                   if (entropy >= 128) {
-                                    log('Extremely Strong.');
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
                                   } else if (entropy >= 60) {
-                                    log('Very Strong.');
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
@@ -216,12 +214,10 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
-                                    log('Strong.');
                                   } else if (entropy >= 28) {
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
-                                    log('Ok.');
                                   }
                                 },
                                 icon: SvgPicture.asset(
@@ -328,9 +324,7 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
                               selectedDate.month,
                               selectedDate.day,
                             );
-                            setState(() {
-                              log(widget.cubit.date.toString());
-                            });
+                            setState(() {});
                           }
                         });
                       },
@@ -406,135 +400,4 @@ class _CreateDoctorViewBodyState extends State<CreateDoctorViewBody> {
               ),
             ));
   }
-}
-
-void alertDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("Delete"),
-        content: Text("Are you sure you want to delete this item?"),
-        actions: [
-          TextButton(
-            child: Text(S.of(context).cancel),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          // DropdownItem(
-          //   radius: 30,
-          //   color: Colorz.white,
-          //   isShadow: true,
-          //   iconData: Icon(
-          //     Icons.arrow_drop_down_circle,
-          //     color: Colorz.primaryColor,
-          //   ),
-          //   items: ["mahmoud", "ahmed"],
-          //   selectedValue: "widget.cubit.selectedBranch",
-          //   hintText: 'Select Branch',
-          //   itemAsString: (item) => item.toString(),
-          //   onItemSelected: (item) {},
-          //   isLoading: false,
-          // ),
-
-          DropdownItem2(
-            items: ["mahmoud", "ahmed"],
-            hintText: "Select an item",
-            label: "Your Label",
-            itemAsString: (item) => item,
-            onItemSelected: (item) {
-              log("Selected: ${item}");
-            },
-            isLoading: false,
-            isValid: true,
-            color: Colors.white,
-            radius: 8,
-            height: 50,
-            dropdownHeight: 200,
-            dropdownBgColor: Colors.white,
-            border: Colors.grey,
-            isShadow: true,
-            validateText: "Please select an item",
-            textStyle: const TextStyle(fontSize: 16),
-            dropdownTextStyle: const TextStyle(fontSize: 14),
-            hintStyle: const TextStyle(color: Colors.grey),
-          ),
-          DropdownItem2(
-            items: ["mahmoud", "ahmed"],
-            hintText: "Select an item",
-            label: "Your Label",
-            itemAsString: (item) => item,
-            onItemSelected: (item) {
-              log("Selected: ${item}");
-            },
-            isLoading: false,
-            isValid: true,
-            color: Colors.white,
-            radius: 8,
-            height: 50,
-            dropdownHeight: 200,
-            dropdownBgColor: Colors.white,
-            border: Colors.grey,
-            isShadow: true,
-            validateText: "Please select an item",
-            textStyle: const TextStyle(fontSize: 16),
-            dropdownTextStyle: const TextStyle(fontSize: 14),
-            hintStyle: const TextStyle(color: Colors.grey),
-          ),
-          DropdownItem2(
-            items: ["mahmoud", "ahmed"],
-            hintText: "Select an item",
-            label: "Your Label",
-            itemAsString: (item) => item,
-            onItemSelected: (item) {
-              log("Selected: ${item}");
-            },
-            isLoading: false,
-            isValid: true,
-            color: Colors.white,
-            radius: 8,
-            height: 50,
-            dropdownHeight: 200,
-            dropdownBgColor: Colors.white,
-            border: Colors.grey,
-            isShadow: true,
-            validateText: "Please select an item",
-            textStyle: const TextStyle(fontSize: 16),
-            dropdownTextStyle: const TextStyle(fontSize: 14),
-            hintStyle: const TextStyle(color: Colors.grey),
-          ),
-          DropdownItem2(
-            items: ["mahmoud", "ahmed"],
-            hintText: "Select an item",
-            label: "Your Label",
-            itemAsString: (item) => item,
-            onItemSelected: (item) {
-              log("Selected: ${item}");
-            },
-            isLoading: false,
-            isValid: true,
-            color: Colors.white,
-            radius: 8,
-            height: 50,
-            dropdownHeight: 200,
-            dropdownBgColor: Colors.white,
-            border: Colors.grey,
-            isShadow: true,
-            validateText: "Please select an item",
-            textStyle: const TextStyle(fontSize: 16),
-            dropdownTextStyle: const TextStyle(fontSize: 14),
-            hintStyle: const TextStyle(color: Colors.grey),
-          ),
-          const HeightSpacer(size: 100),
-          TextButton(
-            child: Text(S.of(context).delete),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
 }

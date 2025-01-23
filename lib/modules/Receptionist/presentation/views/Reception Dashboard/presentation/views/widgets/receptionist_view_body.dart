@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,9 +31,7 @@ class _ReceptionistViewBodyState extends State<ReceptionistViewBody> {
                     ReceptionistCubit.get(context).page = 1;
                     ReceptionistCubit.get(context).searchController.clear();
                     await ReceptionistCubit.get(context).getReceptionists();
-                  } catch (e) {
-                    log(e.toString());
-                  }
+                  } catch (e) {}
                 },
                 indicatorBuilder: (BuildContext context, IndicatorController controller) {
                   return const Image(image: AssetImage("assets/icons/logo.png"));

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -55,7 +53,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         emit(AdminClinicError());
       } else {
         clinics = await ServicesApi().getAllClinics();
-        log(clinics.toString());
         if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
           emit(AdminClinicSuccess());
         } else {
@@ -63,7 +60,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminClinicError());
     }
   }
@@ -82,13 +78,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(AdminBranchError());
       } else {
         receptionists = await receptionistRepo.getAllReceptionists(page: page, search: searchController.text);
@@ -99,7 +88,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminBranchError());
     }
   }
@@ -113,22 +101,19 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
     emit(GetCapabilityLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(GetCapabilitiesError());
       } else {
         capabilities = await ServicesApi().getAllCapability();
         emit(GetCapabilitySuccess());
       }
     } catch (e) {
-      log(e.toString());
       emit(GetCapabilitiesError());
     }
+  }
+
+  checkConnection() async {
+    connection = await InternetConnection().hasInternetAccess;
+    emit(CheckConnection());
   }
 
   Future<void> sendWhatsAppMessage(String phone, String message) async {
@@ -203,11 +188,7 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
       chooseClinic = true;
     }
 
-    log(picDate.toString());
-    log(chooseBranch.toString());
-
     if (picDate && chooseBranch && chooseClinic) {
-      log(isValidate.toString());
       isValidate = true;
     } else {
       isValidate = false;
@@ -264,7 +245,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         emit(AddReceptionistError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(AddReceptionistError());
@@ -283,13 +263,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         loading = false;
         emit(AdminBranchError());
       } else {
@@ -303,7 +276,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       loading = false;
       emit(AdminBranchError());
     }
@@ -342,7 +314,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         emit(AdminBranchError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(AdminBranchError());
@@ -357,16 +328,19 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(AdminBranchError());
       } else {
         receptionist = await receptionistRepo.getReceptionist(id: id);
+
+        if (receptionist != null) {
+          imageUrl = receptionist?.image;
+          nameController.text = receptionist?.name ?? '';
+          phoneNumberController.text = receptionist?.phone ?? "";
+          passwordController.text = receptionist?.password ?? "";
+          date = receptionist?.birthDate;
+          selectedBranch = receptionist?.branch;
+          selectedClinic = receptionist?.clinic;
+        }
         if (receptionist?.error == null) {
           emit(AdminBranchSuccess());
         } else {
@@ -374,7 +348,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminBranchError());
     }
   }
@@ -438,7 +411,6 @@ class ReceptionistCubit extends Cubit<ReceptionistState> {
         emit(AdminBranchError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(AdminBranchError());

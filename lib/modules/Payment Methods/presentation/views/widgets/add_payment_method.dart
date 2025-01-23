@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -162,7 +160,6 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                           setState(() {
                             if (item != "Not Found") {
                               selectedClinic = item;
-                              log(selectedClinic.toString());
                             }
                           });
                         },

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -33,7 +31,6 @@ class _AddBranchState extends State<AddBranch> {
   void initState() {
     super.initState();
     widget.cubit.getBranches(clinic: widget.clinic);
-    log(widget.doctorBranchId.toString());
     if (widget.doctorBranchId != null) {
       widget.cubit.doctor?.branches?.forEach((element) {
         if (element.id == widget.doctorBranchId) {
@@ -107,8 +104,6 @@ class _AddBranchState extends State<AddBranch> {
                         widget.cubit.selectedBranch = item;
                         widget.cubit.availableFrom = item.openTime ?? '08:00';
                         widget.cubit.availableTo = item.closeTime ?? '18:00';
-                        log(widget.cubit.selectedBranch.toString());
-                        log(widget.cubit.chooseDays.toString());
                       }
                     });
                   },
@@ -178,7 +173,6 @@ class _AddBranchState extends State<AddBranch> {
 
   _submit() async {
     // First validate branch selection and times
-    log("i am here");
     if (!widget.cubit.validateAddBranch()) {
       Get.snackbar('Error', 'Please fill all required fields',
           icon: Icon(Icons.error, color: Colorz.white), backgroundColor: Colorz.errorColor, colorText: Colorz.white);
@@ -333,10 +327,8 @@ class TimeComparer {
         final minute = int.parse(parts[1].trim());
         return TimeOfDay(hour: hour, minute: minute);
       }
-      log('Invalid time format: $timeStr');
       return const TimeOfDay(hour: 0, minute: 0);
     } catch (e) {
-      log('Error parsing time: $timeStr, error: $e');
       return const TimeOfDay(hour: 0, minute: 0);
     }
   }
@@ -347,7 +339,6 @@ class TimeComparer {
       final minutes2 = time2.hour * 60 + time2.minute;
       return minutes1.compareTo(minutes2);
     } catch (e) {
-      log('Error comparing times: $e');
       return 0;
     }
   }

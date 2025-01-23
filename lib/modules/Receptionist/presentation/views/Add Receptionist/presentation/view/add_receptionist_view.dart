@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -7,6 +5,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/views/Add%20Receptionist/presentation/view/widgets/add_receptionist_view_body.dart';
 
 import '../../../../../../../../generated/l10n.dart';
@@ -46,7 +45,6 @@ class _CreateReceptionistViewState extends State<CreateReceptionistView> {
 
         await widget.cubit.addReceptionist(context: context);
       } catch (e) {
-        log("Error saving: $e");
         Navigator.of(context).pop();
       }
     }
@@ -101,7 +99,14 @@ class _CreateReceptionistViewState extends State<CreateReceptionistView> {
                 ),
               ],
             ),
-            body: SingleChildScrollView(child: CreateReceptionistViewBody(cubit: widget.cubit, formKey: formKey)),
+            body: SingleChildScrollView(
+                child: widget.cubit.connection != false
+                    ? CreateReceptionistViewBody(cubit: widget.cubit, formKey: formKey)
+                    : NoInternet(
+                        onPressed: () async {
+                          widget.cubit.checkConnection();
+                        },
+                      )),
           ),
         ),
       ),

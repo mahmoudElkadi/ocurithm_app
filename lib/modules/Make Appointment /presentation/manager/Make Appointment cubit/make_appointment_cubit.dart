@@ -65,7 +65,6 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         emit(AdminClinicError());
       } else {
         clinics = await ServicesApi().getAllClinics();
-        log(clinics.toString());
         if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
           emit(AdminClinicSuccess());
         } else {
@@ -215,7 +214,6 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(PaymentMethodError());
     }
   }
@@ -246,7 +244,6 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(ExaminationTypeError());
     }
   }
@@ -345,7 +342,6 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       loading = false;
       emit(GetBranchError());
     }

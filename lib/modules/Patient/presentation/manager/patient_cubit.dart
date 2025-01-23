@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -32,6 +30,11 @@ class PatientCubit extends Cubit<PatientState> {
   TextEditingController nationalIdController = TextEditingController();
   bool readOnly = true;
 
+  checkConnection() async {
+    connection = await InternetConnection().hasInternetAccess;
+    emit(CheckConnection());
+  }
+
   @override
   Future<void> close() {
     nameController.dispose();
@@ -59,13 +62,6 @@ class PatientCubit extends Cubit<PatientState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(AdminBranchError());
       } else {
         patients = await patientRepo.getAllPatients(page: page, search: searchController.text);
@@ -76,7 +72,6 @@ class PatientCubit extends Cubit<PatientState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminBranchError());
     }
   }
@@ -160,9 +155,6 @@ class PatientCubit extends Cubit<PatientState> {
       gender = true;
     }
 
-    log(picDate.toString());
-    log(chooseBranch.toString());
-
     if (picDate && chooseBranch && gender) {
       isValidate = true;
     } else {
@@ -229,7 +221,6 @@ class PatientCubit extends Cubit<PatientState> {
         emit(AddPatientError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(AddPatientError());
@@ -247,17 +238,9 @@ class PatientCubit extends Cubit<PatientState> {
     emit(AdminClinicLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(AdminClinicError());
       } else {
         clinics = await ServicesApi().getAllClinics();
-        log(clinics.toString());
         if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
           emit(AdminClinicSuccess());
         } else {
@@ -265,7 +248,6 @@ class PatientCubit extends Cubit<PatientState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminClinicError());
     }
   }
@@ -282,13 +264,6 @@ class PatientCubit extends Cubit<PatientState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         loading = false;
         emit(AdminBranchError());
       } else {
@@ -302,7 +277,6 @@ class PatientCubit extends Cubit<PatientState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       loading = false;
       emit(AdminBranchError());
     }
@@ -341,7 +315,6 @@ class PatientCubit extends Cubit<PatientState> {
         emit(AdminBranchError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(AdminBranchError());
@@ -356,13 +329,6 @@ class PatientCubit extends Cubit<PatientState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(AdminBranchError());
       } else {
         patient = await patientRepo.getPatient(id: id);
@@ -383,7 +349,6 @@ class PatientCubit extends Cubit<PatientState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminBranchError());
     }
   }
@@ -396,13 +361,6 @@ class PatientCubit extends Cubit<PatientState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(GetPatientExaminationsError());
       } else {
         patientExamination = await patientRepo.getPatientExaminations(id: id);
@@ -413,7 +371,6 @@ class PatientCubit extends Cubit<PatientState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminBranchError());
     }
   }
@@ -443,7 +400,6 @@ class PatientCubit extends Cubit<PatientState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(GetOneExaminationsError());
     }
   }
@@ -508,7 +464,6 @@ class PatientCubit extends Cubit<PatientState> {
         emit(AdminBranchError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(AdminBranchError());

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 
 import '../../../../../../core/Network/dio_handler.dart';
@@ -31,8 +29,6 @@ class ReceptionistRepoImpl implements ReceptionistRepo {
 
       // Remove null values from the map
 
-      log("Creating receptionist with data: ${data.toString()}");
-
       final result = await ApiService.request<AddReceptionistsModel>(
         url: url,
         data: data,
@@ -51,7 +47,6 @@ class ReceptionistRepoImpl implements ReceptionistRepo {
         throw Exception("Failed to create receptionist: No response from server");
       }
     } catch (e) {
-      log("Error creating receptionist: $e");
       if (e is DioException) {
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
@@ -76,7 +71,6 @@ class ReceptionistRepoImpl implements ReceptionistRepo {
   Future<BranchesModel> getAllBranches() async {
     final url = "${Config.baseUrl}${Config.branches}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
 
     final result = await ApiService.request<BranchesModel>(
       url: url,
@@ -100,7 +94,6 @@ class ReceptionistRepoImpl implements ReceptionistRepo {
   Future<ReceptionistsModel> getAllReceptionists({int? page, String? search}) async {
     final url = "${Config.baseUrl}${Config.receptionists}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
     Map<String, dynamic> query = {"page": page ?? 1, 'limit': 10, "search": search};
 
     final result = await ApiService.request<ReceptionistsModel>(

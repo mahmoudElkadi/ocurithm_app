@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -272,12 +270,10 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                                   final String generatedPassword = passwordControllerGenerator.generatePassword();
                                   final double entropy = generatedPassword.checkStrength();
                                   if (entropy >= 128) {
-                                    log('Extremely Strong.');
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
                                   } else if (entropy >= 60) {
-                                    log('Very Strong.');
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
@@ -285,12 +281,10 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
-                                    log('Strong.');
                                   } else if (entropy >= 28) {
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
-                                    log('Ok.');
                                   }
                                 },
                                 icon: SvgPicture.asset(color: Colorz.primaryColor, "assets/icons/password.svg"),
@@ -408,9 +402,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                               selectedDate.month,
                               selectedDate.day,
                             );
-                            setState(() {
-                              log(widget.cubit.date.toString());
-                            });
+                            setState(() {});
                           }
                         });
                       },

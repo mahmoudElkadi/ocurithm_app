@@ -82,7 +82,6 @@ class ExaminationTypeCubit extends Cubit<ExaminationTypeState> {
         emit(AdminClinicError());
       } else {
         clinics = await ServicesApi().getAllClinics(page: page, search: searchController.text);
-        log(clinics.toString());
         if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
           emit(AdminClinicSuccess());
         } else {

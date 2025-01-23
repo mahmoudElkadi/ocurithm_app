@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -62,7 +60,6 @@ class _DoctorDetailsViewState extends State<DoctorDetailsView> {
         await widget.cubit.updateDoctor(id: widget.id, context: context);
       } catch (e) {
         if (!_mounted) return;
-        log("Error saving: $e");
         Navigator.of(context).pop();
       }
     }
@@ -139,7 +136,6 @@ class _DoctorDetailsViewState extends State<DoctorDetailsView> {
                               )),
                       IconButton(
                         onPressed: () {
-                          //  showAddBranchDialog(context: context, cubit: widget.cubit, id: widget.id);
                           Get.dialog(AddBranch(
                             cubit: widget.cubit,
                             id: widget.id,
@@ -159,9 +155,12 @@ class _DoctorDetailsViewState extends State<DoctorDetailsView> {
                         formKey: formKey,
                       )
                     : NoInternet(
-                        onPressed: () {
-                          widget.cubit.getDoctor(id: widget.id);
-                          widget.cubit.getBranches();
+                        onPressed: () async {
+                          widget.cubit.readOnly = true;
+                          widget.cubit.chooseClinic = true;
+                          widget.cubit.connection = await InternetConnection().hasInternetAccess;
+                          setState(() {});
+                          // widget.cubit.getBranches();
                         },
                       )),
           ),

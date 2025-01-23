@@ -30,7 +30,6 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   int get currentStep => _currentStep;
 
   void nextStep() {
-    log(currentStep.toString());
     if (_currentStep < totalSteps - 1) {
       _currentStep++;
       emit(ExaminationStepChanged());
@@ -70,7 +69,6 @@ class ExaminationCubit extends Cubit<ExaminationState> {
     try {
       final response = await rootBundle.loadString('assets/files/autoref.json');
       data = await json.decode(response);
-      log(data.toString());
       emit(ReadJson());
     } catch (e) {
       debugPrint('Error loading JSON: $e');
@@ -225,7 +223,6 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   }
 
   void updateLeftEyeField(String field, dynamic value) {
-    log(value.toString());
     switch (field) {
       case 'aurorefSpherical':
         leftAurorefSpherical = value;
@@ -241,7 +238,6 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         break;
       case 'ucva':
         leftUCVA = value;
-        log("in");
         emit(ChooseData());
         break;
       case 'bcva':

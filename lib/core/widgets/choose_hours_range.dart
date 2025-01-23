@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 
 import '../utils/colors.dart';
@@ -103,7 +101,6 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
         );
       },
     );
-    log("picked: $picked");
 
     if (picked != null) {
       if (!_isTimeInRange(picked)) {

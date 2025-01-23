@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/config.dart';
@@ -47,7 +45,6 @@ class AppointmentRepoImpl implements AppointmentRepo {
   Future<BranchesModel> getAllBranches() async {
     final url = "${Config.baseUrl}${Config.branches}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
 
     final result = await ApiService.request<BranchesModel>(
       url: url,
@@ -71,7 +68,6 @@ class AppointmentRepoImpl implements AppointmentRepo {
   Future<AppointmentModel> getAllAppointment({DateTime? date, String? branch, String? doctor}) async {
     final url = "${Config.baseUrl}${Config.appointments}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
 
     Map<String, dynamic> quary = {
       if (date != null) "startDate": DateTime(date.year, date.month, date.day, 0, 0, 0).toString(),
@@ -79,7 +75,6 @@ class AppointmentRepoImpl implements AppointmentRepo {
       if (doctor != null) "doctor": doctor,
       if (branch != null) "branch": branch
     };
-    log(quary.toString());
 
     final result = await ApiService.request<AppointmentModel>(
       url: url,
@@ -105,7 +100,6 @@ class AppointmentRepoImpl implements AppointmentRepo {
     final url = "${Config.baseUrl}${Config.appointments}/$id";
     final String? token = CacheHelper.getData(key: "token");
     Map<String, dynamic> data = {"action": action, if (doctor != null) "doctor": doctor, if (date != null) "datetime": date.toString()};
-    log(data.toString());
     final result = await ApiService.request<Appointment>(
       url: url,
       method: 'PUT',

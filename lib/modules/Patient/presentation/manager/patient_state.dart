@@ -14,6 +14,8 @@ class ChoosePatient extends PatientState {}
 
 class AddPatientLoading extends PatientState {}
 
+class CheckConnection extends PatientState {}
+
 class AddPatientSuccess extends PatientState {}
 
 class AddPatientError extends PatientState {}

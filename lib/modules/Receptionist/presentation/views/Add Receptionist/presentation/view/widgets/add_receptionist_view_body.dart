@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -220,12 +219,10 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                                   final String generatedPassword = passwordControllerGenerator.generatePassword();
                                   final double entropy = generatedPassword.checkStrength();
                                   if (entropy >= 128) {
-                                    log('Extremely Strong.');
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
                                   } else if (entropy >= 60) {
-                                    log('Very Strong.');
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
@@ -233,12 +230,10 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
-                                    log('Strong.');
                                   } else if (entropy >= 28) {
                                     setState(() {
                                       widget.cubit.passwordController.text = generatedPassword;
                                     });
-                                    log('Ok.');
                                   }
                                 },
                                 icon: SvgPicture.asset(color: Colorz.primaryColor, "assets/icons/password.svg"),
@@ -296,8 +291,6 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                         setState(() {
                           if (item != "Not Found") {
                             widget.cubit.selectedBranch = item;
-
-                            log(widget.cubit.selectedBranch.toString());
                           }
                         });
                       },
@@ -343,9 +336,7 @@ class _CreateReceptionistViewBodyState extends State<CreateReceptionistViewBody>
                               selectedDate.month,
                               selectedDate.day,
                             );
-                            setState(() {
-                              log(widget.cubit.date.toString());
-                            });
+                            setState(() {});
                           }
                         });
                       },
@@ -746,7 +737,6 @@ class CloudinaryService {
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        log(jsonResponse['secure_url']);
         return jsonResponse['secure_url'] as String;
       } else {
         throw Exception('Failed to upload image: ${response.body}');

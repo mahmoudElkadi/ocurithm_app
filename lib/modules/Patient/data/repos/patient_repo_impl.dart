@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
 import 'package:ocurithm/modules/Patient/data/model/patient_examination.dart';
@@ -36,8 +34,6 @@ class PatientRepoImpl implements PatientRepo {
         if (patient.birthDate != null) "birthDate": patient.birthDate.toString(),
       };
 
-      log("Creating Patient with data: ${data.toString()}");
-
       final result = await ApiService.request<Patient>(
         url: url,
         data: data,
@@ -56,7 +52,6 @@ class PatientRepoImpl implements PatientRepo {
         throw Exception("Failed to create Patient: No response from server");
       }
     } catch (e) {
-      log("Error creating Patient: $e");
       if (e is DioException) {
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
@@ -157,8 +152,6 @@ class PatientRepoImpl implements PatientRepo {
       if (patient.birthDate != null) "birthDate": patient.birthDate.toString(),
     };
 
-    log(data.toString());
-
     final result = await ApiService.request<Patient>(
       url: url,
       method: 'PUT',
@@ -205,7 +198,6 @@ class PatientRepoImpl implements PatientRepo {
   Future<BranchesModel> getAllBranches() async {
     final url = "${Config.baseUrl}${Config.branches}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
 
     final result = await ApiService.request<BranchesModel>(
       url: url,
@@ -229,7 +221,6 @@ class PatientRepoImpl implements PatientRepo {
   Future<PatientExaminationModel> getPatientExaminations({required String id}) async {
     final url = "${Config.baseUrl}${Config.examination}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
 
     final result = await ApiService.request<PatientExaminationModel>(
       url: url,
@@ -254,7 +245,6 @@ class PatientRepoImpl implements PatientRepo {
   Future<ExaminationModel> getOneExamination({required String id}) async {
     final url = "${Config.baseUrl}${Config.examination}/$id";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
 
     final result = await ApiService.request<ExaminationModel>(
       url: url,

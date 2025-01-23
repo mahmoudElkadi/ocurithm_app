@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -49,7 +47,6 @@ class _CreateDoctorViewState extends State<CreateDoctorView> {
 
         await widget.cubit.addDoctor(context: context);
       } catch (e) {
-        log("Error saving: $e");
         Navigator.of(context).pop();
       }
     }
@@ -112,8 +109,8 @@ class _CreateDoctorViewState extends State<CreateDoctorView> {
                       formKey: formKey,
                     )
                   : NoInternet(
-                      onPressed: () {
-                        widget.cubit.getBranches();
+                      onPressed: () async {
+                        widget.cubit.connection = await InternetConnection().hasInternetAccess;
                       },
                     ),
             ),

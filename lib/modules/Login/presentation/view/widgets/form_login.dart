@@ -107,21 +107,21 @@ class _LoginFormState extends State<LoginForm> {
                       ),
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        S.of(context).forgetPassword,
-                        style: appStyle(context, 16, Colorz.grey, FontWeight.w500),
-                      ),
-                    ),
-                  ),
+                  // Align(
+                  //   alignment: Alignment.centerRight,
+                  //   child: TextButton(
+                  //     onPressed: () {},
+                  //     child: Text(
+                  //       S.of(context).forgetPassword,
+                  //       style: appStyle(context, 16, Colorz.grey, FontWeight.w500),
+                  //     ),
+                  //   ),
+                  // ),
                   const HeightSpacer(size: 20),
                   MyElevatedButton(
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
-                          LoginCubit.get(context).userLogin(username: email.text, password: password.text);
+                          LoginCubit.get(context).userLogin(context: context, username: email.text, password: password.text);
                         }
                       },
                       boxShadow: [

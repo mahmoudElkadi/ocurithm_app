@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/config.dart';
@@ -12,7 +10,6 @@ class PaymentMethodRepoImpl implements PaymentMethodRepo {
   Future<PaymentMethod> createPaymentMethod({required PaymentMethod paymentMethod}) async {
     final url = "${Config.baseUrl}${Config.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
-    log("paymentMethod: ${paymentMethod.toJson()}");
 
     final result = await ApiService.request<PaymentMethod>(
       url: url,
@@ -37,7 +34,6 @@ class PaymentMethodRepoImpl implements PaymentMethodRepo {
   Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? search}) async {
     final url = "${Config.baseUrl}${Config.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
     Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
 
     final result = await ApiService.request<PaymentMethodsModel>(

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -203,13 +202,6 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       selectNewDateRange();
       _dataFetched = true;
     }
-    // Call initial data fetch
-    // if (initialDate != DateTime.now()) {
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     log("jjj");
-    //     selectNewDateRange();
-    //   });
-    // }
   }
 
   void _initializeHolidayWeeks() {
@@ -460,7 +452,6 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       //    widget.showAppointmentDetails?.call(controller.getBookingSlotInformation(index));
     } else {
       // Allow selecting and changing selection for available slots
-      log("message");
       controller.selectSlot(index);
       if (widget.onDateSelected != null) {
         widget.onDateSelected!(controller.allBookingSlots[controller.selectedSlot]);

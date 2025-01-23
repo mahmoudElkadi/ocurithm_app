@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -414,7 +412,6 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                 value: entry.value,
                 onChanged: (value) {
                   setState(() {
-                    log(value.toString());
                     investigationOptions[entry.key] = value ?? false;
                     if (value == false && entry.key == 'Corneal') {
                       cornealOptions['Topography'] = false;

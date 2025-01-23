@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -60,7 +58,6 @@ class _PatientDetailsViewState extends State<PatientDetailsView> {
         await widget.cubit.updatePatient(id: widget.id, context: context);
       } catch (e) {
         if (!_mounted) return;
-        log("Error saving: $e");
         Navigator.of(context).pop();
       }
     }
@@ -146,8 +143,9 @@ class _PatientDetailsViewState extends State<PatientDetailsView> {
                       )
                     : NoInternet(
                         onPressed: () {
-                          widget.cubit.getPatient(id: widget.id);
-                          widget.cubit.getBranches();
+                          widget.cubit.readOnly = true;
+                          widget.cubit.chooseClinic = true;
+                          widget.cubit.checkConnection();
                         },
                       )),
           ),

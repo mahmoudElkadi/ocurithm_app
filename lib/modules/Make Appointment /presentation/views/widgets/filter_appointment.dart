@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -144,7 +142,6 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                           // widget.cubit.chooseBranch = true;
                           widget.cubit.selectedDoctor = item;
                           //  widget.cubit.branchId = item.id;
-                          log(widget.cubit.selectedDoctor.toString());
                         }
                       });
                     },
@@ -173,7 +170,6 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                         if (item != "Not Found") {
                           //   widget.cubit.chooseBranch = true;
                           widget.cubit.selectedBranch = item;
-                          log(widget.cubit.selectedBranch!.id.toString());
                         }
                       });
                     },

@@ -7,14 +7,15 @@ import '../utils/app_style.dart';
 import '../utils/colors.dart';
 
 class NoInternet extends StatelessWidget {
-  const NoInternet({super.key, this.onPressed, this.withImage = true});
+  const NoInternet({super.key, this.onPressed, this.withImage = true, this.fromTop});
   final void Function()? onPressed;
   final bool withImage;
+  final double? fromTop;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 80),
+      padding: EdgeInsets.only(top: fromTop ?? 80),
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.6,
         width: MediaQuery.sizeOf(context).width,

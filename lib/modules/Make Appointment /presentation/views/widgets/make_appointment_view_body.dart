@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -76,8 +75,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       }
     }
 
-    log("list ${cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableDays}");
-
     // Get doctor's available hours
     final availableFrom = getTimeOfDay(
         cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableFrom ?? "8:00",
@@ -118,8 +115,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
   Future<void> fetchInitialData({required DateTime date}) async {
     if (_disposed) return;
 
-    log("data ${date.toString()}");
-
     var dio = Dio(BaseOptions(
       connectTimeout: const Duration(minutes: 2),
       receiveTimeout: const Duration(minutes: 2),
@@ -150,7 +145,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
         fetchInitialData(date: date);
       }
       if (_disposed) return;
-      log(response.data.toString());
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = response.data;
@@ -166,7 +160,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       }
     } catch (e) {
       if (_disposed) return;
-      log('Error fetching data: $e');
     }
   }
 
@@ -183,11 +176,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     required DateTime start,
     required DateTime end,
   }) {
-    // Start polling
-    // _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-    //   log("tabibooking polling");
     fetchInitialData(date: start);
-    // });
 
     return _controller.stream;
   }
@@ -217,7 +206,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
     // Check if a selection was made and fetch data
     if (result == true) {
-      log("result.toString()" + result.toString());
       await fetchInitialData(
         date: DateTime.now(),
       );
@@ -244,7 +232,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
         "full_name": patient.name,
         "phone": patient.phone,
       };
-      log('Uploading booking data: $data');
 
       var response = await dio.post(
         "${Config.baseUrl}appointment",
@@ -255,7 +242,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
           },
         ),
       );
-      log('Response: ${response.data.toString()}');
 
       if (response.statusCode == 200) {
         return 'Booking uploaded successfully';
@@ -266,9 +252,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       } else {
         return 'Server Error';
       }
-    } catch (e) {
-      log('Error uploading booking: $e');
-    }
+    } catch (e) {}
   }
 
   List<Map<String, dynamic>> dateTimeRanges = [];
@@ -295,7 +279,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       }
     } else {
       // Handle the case where streamResult is not a List
-      log('Invalid streamResult format');
     }
 
     return dateTimeRanges;

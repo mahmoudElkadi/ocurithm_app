@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../../../core/utils/colors.dart';
@@ -187,9 +188,28 @@ class DashboardViewBody extends StatelessWidget {
       return _buildShimmerList();
     }
 
-    return Column(
-      children: dashboardData?.examinationTypes.map((type) => _buildListItem(type.name ?? "N/A", type.count?.toString() ?? "0")).toList() ?? [],
-    );
+    return dashboardData!.examinationTypes.isNotEmpty
+        ? Column(
+            children: dashboardData?.examinationTypes.map((type) => _buildListItem(type.name ?? "N/A", type.count?.toString() ?? "0")).toList() ?? [],
+          )
+        : Center(
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                SvgPicture.asset(
+                  "assets/icons/exam_type.svg",
+                  width: 40,
+                  height: 40,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "No Examination Types Found",
+                  style: TextStyle(color: Colorz.grey, fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          );
   }
 
   Widget _buildBranches() {
@@ -197,9 +217,28 @@ class DashboardViewBody extends StatelessWidget {
       return _buildShimmerList();
     }
 
-    return Column(
-      children: dashboardData?.branches.map((branch) => _buildListItem(branch.name ?? "N/A", branch.count?.toString() ?? "0")).toList() ?? [],
-    );
+    return dashboardData?.branches.isNotEmpty == true
+        ? Column(
+            children: dashboardData?.branches.map((branch) => _buildListItem(branch.name ?? "N/A", branch.count?.toString() ?? "0")).toList() ?? [],
+          )
+        : Center(
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                SvgPicture.asset(
+                  "assets/icons/branch.svg",
+                  width: 40,
+                  height: 40,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "No Branches Found",
+                  style: TextStyle(color: Colorz.grey, fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          );
   }
 
   Widget _buildDoctors() {
@@ -207,9 +246,27 @@ class DashboardViewBody extends StatelessWidget {
       return _buildShimmerList();
     }
 
-    return Column(
-      children: dashboardData?.doctors.map((doctor) => _buildListItem(doctor.name ?? "N/A", doctor.count?.toString() ?? "0")).toList() ?? [],
-    );
+    return dashboardData?.doctors.isNotEmpty == true
+        ? Column(
+            children: dashboardData?.doctors.map((doctor) => _buildListItem(doctor.name ?? "N/A", doctor.count?.toString() ?? "0")).toList() ?? [],
+          )
+        : Center(
+            child: Column(
+            children: [
+              const SizedBox(height: 16),
+              SvgPicture.asset(
+                "assets/icons/doctor.svg",
+                width: 40,
+                height: 40,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "No Doctors Found",
+                style: TextStyle(color: Colorz.grey, fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ));
   }
 
   Widget _buildPatients() {
@@ -217,16 +274,34 @@ class DashboardViewBody extends StatelessWidget {
       return _buildShimmerList();
     }
 
-    return Column(
-      children: dashboardData?.patients
-              .map((patient) => _buildPatientCard(
-                    patient.name ?? "N/A",
-                    patient.examinationType ?? "N/A",
-                    patient.count?.toString() ?? "0",
-                  ))
-              .toList() ??
-          [],
-    );
+    return dashboardData?.patients.isNotEmpty == true
+        ? Column(
+            children: dashboardData?.patients
+                    .map((patient) => _buildPatientCard(
+                          patient.name ?? "N/A",
+                          patient.examinationType ?? "N/A",
+                          patient.count?.toString() ?? "0",
+                        ))
+                    .toList() ??
+                [],
+          )
+        : Center(
+            child: Column(
+            children: [
+              const SizedBox(height: 16),
+              SvgPicture.asset(
+                "assets/icons/patient.svg",
+                width: 40,
+                height: 40,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "No Patients Found",
+                style: TextStyle(color: Colorz.grey, fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ));
   }
 
   Widget _buildStatuses() {
@@ -234,9 +309,27 @@ class DashboardViewBody extends StatelessWidget {
       return _buildShimmerList();
     }
 
-    return Column(
-      children: dashboardData?.statuses.map((status) => _buildListItem(status.name ?? "N/A", status.count?.toString() ?? "0")).toList() ?? [],
-    );
+    return dashboardData?.statuses.isNotEmpty == true
+        ? Column(
+            children: dashboardData?.statuses.map((status) => _buildListItem(status.name ?? "N/A", status.count?.toString() ?? "0")).toList() ?? [],
+          )
+        : Center(
+            child: Column(
+            children: [
+              const SizedBox(height: 16),
+              SvgPicture.asset(
+                "assets/icons/status.svg",
+                width: 40,
+                height: 40,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "No Status Found",
+                style: TextStyle(color: Colorz.grey, fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ));
   }
 
   Widget _buildListItem(String title, String value) {

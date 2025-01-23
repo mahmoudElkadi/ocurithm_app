@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -36,11 +35,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
       if (onBoarding != null) {
         return const SplashScreen();
       } else {
-        log('onBoarding is null');
         return OnBoardingScreen();
       }
     } catch (e) {
-      log('$e in loading screen');
       // Return an error widget
       return Scaffold(body: Center(child: Text('Error: $e')));
     }
@@ -83,7 +80,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       setState(() {});
       if (result == true) {
         final String? token = CacheHelper.getData(key: "token");
-        log("token: $token");
         // Prepare headers with token if available
         final headers = {
           'Content-Type': 'application/json',
@@ -95,11 +91,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           Uri.parse('${Config.baseUrl}/me'),
           headers: headers,
         );
-        log("message");
-        log('${response.statusCode} ${response.body}');
 
         if (!mounted) return;
-        log('${response.statusCode} ${response.body}');
 
         final responseData = json.decode(response.body);
 

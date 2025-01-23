@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -43,7 +41,6 @@ class ReceptionistView extends StatelessWidget {
               ? const ReceptionistViewBody()
               : NoInternet(
                   onPressed: () {
-                    log("message");
                     ReceptionistCubit.get(context).getReceptionists();
                   },
                 ),

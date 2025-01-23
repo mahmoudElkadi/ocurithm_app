@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -28,7 +26,6 @@ class _CreatePatientViewState extends State<CreatePatientView> {
 
   Future<void> _handleSave(BuildContext context) async {
     widget.cubit.validateFirstPage();
-    log("vv" + widget.cubit.isValidate.toString());
     if (formKey.currentState!.validate() && widget.cubit.isValidate) {
       customLoading(context, "");
 
@@ -49,7 +46,6 @@ class _CreatePatientViewState extends State<CreatePatientView> {
 
         await widget.cubit.addPatient(context: context);
       } catch (e) {
-        log("Error saving: $e");
         Navigator.of(context).pop();
       }
     }

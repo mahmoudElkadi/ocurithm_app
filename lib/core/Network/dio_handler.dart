@@ -36,9 +36,8 @@ class ApiService {
         ),
       );
 
-      log('data: ${data}');
-      log("response${response.data}");
-      log("URL${response.realUri}");
+      log(response.realUri.toString());
+      log(response.data.toString());
 
       if (response.data['message'] == "Invalid token") {
         await CacheHelper.removeData(key: "token");
@@ -56,7 +55,6 @@ class ApiService {
         } else if (response.statusCode != null && response.statusCode! >= 400 && response.statusCode! <= 500) {
           return response.data as T;
         } else {
-          log("HTTP error with status code: ${response.statusCode}");
           //_handleHttpError(response.statusCode);
           return null;
         }
@@ -64,7 +62,6 @@ class ApiService {
         if (response.data != null && response.statusCode != null && response.statusCode! >= 200 && response.statusCode! <= 500 && fromJson != null) {
           return fromJson(response.data);
         } else {
-          log("HTTP error with status code: ${response.statusCode}");
           //_handleHttpError(response.statusCode);
           return null;
         }
@@ -79,7 +76,6 @@ class ApiService {
   }
 
   static T? _handleDioError<T>(DioException e) {
-    log("DioExceptions: ${e}");
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
@@ -102,13 +98,11 @@ class ApiService {
   }
 
   static T? _handleSocketException<T>(SocketException e) {
-    log("SocketException: $e");
     _showErrorSnackbar("No Internet", "Please check your internet connection and try again.");
     return null;
   }
 
   static T? _handleUnexpectedError<T>(dynamic e) {
-    log("Unexpected error: $e");
     _showErrorSnackbar("Connection Error", "An unexpected error occurred. Please try again.");
     return null;
   }
@@ -200,9 +194,6 @@ class EitherService {
         ),
       );
 
-      log(response.data.toString());
-      log(response.realUri.toString());
-
       // Handle successful responses
       if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
         if (response.data != null) {
@@ -210,7 +201,6 @@ class EitherService {
             final result = fromJson != null ? fromJson(response.data) : response.data as T;
             return Right(result);
           } catch (e) {
-            log("Data parsing error: $e");
             return Left(UnexpectedFailure());
           }
         }
@@ -229,14 +219,12 @@ class EitherService {
       }
       return Left(failure);
     } on SocketException catch (e) {
-      log("SocketException: $e");
       final failure = NetworkFailure();
       if (showError) {
         _showErrorSnackbar(failure.title, failure.message);
       }
       return Left(failure);
     } catch (e) {
-      log("Unexpected error: $e");
       final failure = UnexpectedFailure();
       if (showError) {
         _showErrorSnackbar(failure.title, failure.message);
@@ -246,7 +234,6 @@ class EitherService {
   }
 
   static ApiFailure _handleDioError(DioException e) {
-    log("DioException: ${e.message}");
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:

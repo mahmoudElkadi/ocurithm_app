@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/config.dart';
@@ -36,7 +34,6 @@ class ClinicRepoImpl implements ClinicRepo {
   Future<ClinicsModel> getAllClinics({int? page, String? search}) async {
     final url = "${Config.baseUrl}${Config.clinics}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
     Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
 
     final result = await ApiService.request<ClinicsModel>(

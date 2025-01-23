@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -148,297 +146,302 @@ class _EditBranchDialogState extends State<EditBranchDialog> {
               ),
             ],
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Branch',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        if (readOnly == true)
-                          if (CacheHelper.getStringList(key: "capabilities").contains("manageBranches"))
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  readOnly = !readOnly;
-                                });
-                              },
-                              icon: const Icon(Icons.edit),
-                              splashRadius: 20,
-                            ),
-                        IconButton(
-                          onPressed: () {
-                            Get.back();
-                          },
-                          icon: const Icon(Icons.close),
-                          splashRadius: 20,
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-                const Divider(),
-                const SizedBox(height: 16),
-
-                // Form
-                Form(
-                  key: _formKey,
+          child: widget.cubit.connection != false
+              ? SingleChildScrollView(
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Code TextField
-                      isLoading
-                          ? _buildShimmer(Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(8)),
-                                color: Colors.white,
-                              ),
-                            ))
-                          : DropdownItem(
-                              radius: 8,
-                              border: Colorz.grey,
-                              color: Colorz.white,
-                              isShadow: false,
-                              height: 14,
-                              iconData: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: Colorz.grey,
-                              ),
-                              readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities") ? readOnly : true,
-
-                              items: widget.cubit.clinics?.clinics,
-                              // isValid: widget.cubit.chooseBranch,
-                              // validateText: S.of(context).mustBranch,
-                              selectedValue: selectedClinic?.name,
-                              hintText: 'Select Clinic',
-                              itemAsString: (item) => item.name.toString(),
-                              onItemSelected: (item) {
-                                setState(() {
-                                  if (item != "Not Found") {
-                                    selectedClinic = item;
-                                    log(selectedClinic.toString());
-                                  }
-                                });
-                              },
-                              isLoading: widget.cubit.clinics == null,
+                      // Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Branch',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
-                      const SizedBox(height: 16),
-                      isLoading
-                          ? _buildShimmer(Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(8)),
-                                color: Colors.white,
+                          ),
+                          Row(
+                            children: [
+                              if (readOnly == true)
+                                if (CacheHelper.getStringList(key: "capabilities").contains("manageBranches"))
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        readOnly = !readOnly;
+                                      });
+                                    },
+                                    icon: const Icon(Icons.edit),
+                                    splashRadius: 20,
+                                  ),
+                              IconButton(
+                                onPressed: () {
+                                  Get.back();
+                                },
+                                icon: const Icon(Icons.close),
+                                splashRadius: 20,
                               ),
-                            ))
-                          : TextFormField(
-                              controller: _codeController,
-                              cursorColor: Colors.black,
-                              readOnly: readOnly,
-                              decoration: InputDecoration(
-                                hintText: 'Enter code',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Colors.grey),
-                                ),
-                                prefixIcon: Icon(
-                                  Icons.code,
-                                  color: Colorz.grey,
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter a code';
-                                }
-                                return null;
-                              },
-                            ),
+                            ],
+                          )
+                        ],
+                      ),
+                      const Divider(),
                       const SizedBox(height: 16),
 
-                      // Name TextField
-                      isLoading
-                          ? _buildShimmer(Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(8)),
-                                color: Colors.white,
-                              ),
-                            ))
-                          : TextFormField(
-                              controller: _nameController,
-                              cursorColor: Colors.black,
-                              readOnly: readOnly,
-                              decoration: InputDecoration(
-                                hintText: 'Enter name',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                prefixIcon: const Icon(Icons.person, color: Colors.grey),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Colors.grey),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter a name';
-                                }
-                                return null;
-                              },
-                            ),
-                      const SizedBox(height: 16),
-
-                      // Address TextField
-                      isLoading
-                          ? _buildShimmer(Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(8)),
-                                color: Colors.white,
-                              ),
-                            ))
-                          : TextFormField(
-                              controller: _addressController,
-                              cursorColor: Colors.black,
-                              readOnly: readOnly,
-                              decoration: InputDecoration(
-                                hintText: 'Enter address',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Colors.grey),
-                                ),
-                                prefixIcon: Icon(Icons.location_on, color: Colors.grey),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter an address';
-                                }
-                                return null;
-                              },
-                            ),
-                      const SizedBox(height: 16),
-
-                      // Phone TextField
-                      isLoading
-                          ? _buildShimmer(Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(8)),
-                                color: Colors.white,
-                              ),
-                            ))
-                          : TextFormField(
-                              controller: _phoneController,
-                              cursorColor: Colors.black,
-                              readOnly: readOnly,
-                              decoration: InputDecoration(
-                                hintText: 'Enter phone number',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                prefixIcon: const Icon(Icons.phone, color: Colors.grey),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Colors.grey),
-                                ),
-                              ),
-                              keyboardType: TextInputType.phone,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter a phone number';
-                                } else if (!RegExp(r'^01[0125][0-9]{8}$').hasMatch(value)) {
-                                  return S.of(context).invalidPhoneNumber;
-                                }
-                                return null;
-                              },
-                            ),
-                      const SizedBox(height: 16),
-
-                      isLoading
-                          ? _buildShimmer(Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(8)),
-                                color: Colors.white,
-                              ),
-                            ))
-                          : WorkDaysSelector(
-                              onDaysSelected: (List days) {
-                                setState(() {
-                                  selectedDays = days;
-                                });
-                                print('Selected days: $selectedDays');
-                              },
-                              initialSelectedDays: widget.cubit.branch!.workDays,
-                              readOnly: readOnly, // Optional
-                            ),
-                      const SizedBox(height: 16),
-
-                      isLoading
-                          ? _buildShimmer(Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: 60,
-                              decoration: const BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(8)),
-                                color: Colors.white,
-                              ),
-                            ))
-                          : BusinessHoursSelector(
-                              onTimeRangeSelected: (openTime, closeTime) {
-                                log('Business hours: ${openTime.format(context)} - ${closeTime.format(context)}');
-                                openingTime = '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
-                                closingTime = '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
-                              },
-                              use24HourFormat: true,
-                              initialOpenTime: TimeParser.parseTimeString(widget.cubit.branch!.openTime.toString()),
-                              initialCloseTime: TimeParser.parseTimeString(widget.cubit.branch!.closeTime.toString()),
-                              readOnly: readOnly,
-                              // This will show times in 24-hour format
-                            ),
-                      const SizedBox(height: 24),
-
-                      // Submit Button
-                      if (readOnly != true)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                      // Form
+                      Form(
+                        key: _formKey,
+                        child: Column(
                           children: [
-                            CoolDownButton(
-                              onTap: _submitForm,
-                              text: 'Submit',
-                            )
+                            // Code TextField
+                            isLoading
+                                ? _buildShimmer(Container(
+                                    width: MediaQuery.sizeOf(context).width,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                    ),
+                                  ))
+                                : DropdownItem(
+                                    radius: 8,
+                                    border: Colorz.grey,
+                                    color: Colorz.white,
+                                    isShadow: false,
+                                    height: 14,
+                                    iconData: Icon(
+                                      Icons.keyboard_arrow_down_rounded,
+                                      color: Colorz.grey,
+                                    ),
+                                    readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities") ? readOnly : true,
+
+                                    items: widget.cubit.clinics?.clinics,
+                                    // isValid: widget.cubit.chooseBranch,
+                                    // validateText: S.of(context).mustBranch,
+                                    selectedValue: selectedClinic?.name,
+                                    hintText: 'Select Clinic',
+                                    itemAsString: (item) => item.name.toString(),
+                                    onItemSelected: (item) {
+                                      setState(() {
+                                        if (item != "Not Found") {
+                                          selectedClinic = item;
+                                        }
+                                      });
+                                    },
+                                    isLoading: widget.cubit.clinics == null,
+                                  ),
+                            const SizedBox(height: 16),
+                            isLoading
+                                ? _buildShimmer(Container(
+                                    width: MediaQuery.sizeOf(context).width,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                    ),
+                                  ))
+                                : TextFormField(
+                                    controller: _codeController,
+                                    cursorColor: Colors.black,
+                                    readOnly: readOnly,
+                                    decoration: InputDecoration(
+                                      hintText: 'Enter code',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(color: Colors.grey),
+                                      ),
+                                      prefixIcon: Icon(
+                                        Icons.code,
+                                        color: Colorz.grey,
+                                      ),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.trim().isEmpty) {
+                                        return 'Please enter a code';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                            const SizedBox(height: 16),
+
+                            // Name TextField
+                            isLoading
+                                ? _buildShimmer(Container(
+                                    width: MediaQuery.sizeOf(context).width,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                    ),
+                                  ))
+                                : TextFormField(
+                                    controller: _nameController,
+                                    cursorColor: Colors.black,
+                                    readOnly: readOnly,
+                                    decoration: InputDecoration(
+                                      hintText: 'Enter name',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      prefixIcon: const Icon(Icons.person, color: Colors.grey),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(color: Colors.grey),
+                                      ),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.trim().isEmpty) {
+                                        return 'Please enter a name';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                            const SizedBox(height: 16),
+
+                            // Address TextField
+                            isLoading
+                                ? _buildShimmer(Container(
+                                    width: MediaQuery.sizeOf(context).width,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                    ),
+                                  ))
+                                : TextFormField(
+                                    controller: _addressController,
+                                    cursorColor: Colors.black,
+                                    readOnly: readOnly,
+                                    decoration: InputDecoration(
+                                      hintText: 'Enter address',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(color: Colors.grey),
+                                      ),
+                                      prefixIcon: Icon(Icons.location_on, color: Colors.grey),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.trim().isEmpty) {
+                                        return 'Please enter an address';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                            const SizedBox(height: 16),
+
+                            // Phone TextField
+                            isLoading
+                                ? _buildShimmer(Container(
+                                    width: MediaQuery.sizeOf(context).width,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                    ),
+                                  ))
+                                : TextFormField(
+                                    controller: _phoneController,
+                                    cursorColor: Colors.black,
+                                    readOnly: readOnly,
+                                    decoration: InputDecoration(
+                                      hintText: 'Enter phone number',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      prefixIcon: const Icon(Icons.phone, color: Colors.grey),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(color: Colors.grey),
+                                      ),
+                                    ),
+                                    keyboardType: TextInputType.phone,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    validator: (value) {
+                                      if (value == null || value.trim().isEmpty) {
+                                        return 'Please enter a phone number';
+                                      } else if (!RegExp(r'^01[0125][0-9]{8}$').hasMatch(value)) {
+                                        return S.of(context).invalidPhoneNumber;
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                            const SizedBox(height: 16),
+
+                            isLoading
+                                ? _buildShimmer(Container(
+                                    width: MediaQuery.sizeOf(context).width,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                    ),
+                                  ))
+                                : WorkDaysSelector(
+                                    onDaysSelected: (List days) {
+                                      setState(() {
+                                        selectedDays = days;
+                                      });
+                                      print('Selected days: $selectedDays');
+                                    },
+                                    initialSelectedDays: widget.cubit.branch!.workDays,
+                                    readOnly: readOnly, // Optional
+                                  ),
+                            const SizedBox(height: 16),
+
+                            isLoading
+                                ? _buildShimmer(Container(
+                                    width: MediaQuery.sizeOf(context).width,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      color: Colors.white,
+                                    ),
+                                  ))
+                                : BusinessHoursSelector(
+                                    onTimeRangeSelected: (openTime, closeTime) {
+                                      openingTime = '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
+                                      closingTime = '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
+                                    },
+                                    use24HourFormat: true,
+                                    initialOpenTime: TimeParser.parseTimeString(widget.cubit.branch!.openTime.toString()),
+                                    initialCloseTime: TimeParser.parseTimeString(widget.cubit.branch!.closeTime.toString()),
+                                    readOnly: readOnly,
+                                    // This will show times in 24-hour format
+                                  ),
+                            const SizedBox(height: 24),
+
+                            // Submit Button
+                            if (readOnly != true)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CoolDownButton(
+                                    onTap: _submitForm,
+                                    text: 'Submit',
+                                  )
+                                ],
+                              ),
                           ],
                         ),
+                      ),
                     ],
                   ),
+                )
+              : NoInternet(
+                  fromTop: 0,
+                  onPressed: () {
+                    fetchData();
+                  },
                 ),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -451,17 +454,10 @@ void editBranch(BuildContext context, AdminBranchCubit cubit, String id) {
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
-      return cubit.connection != false
-          ? EditBranchDialog(
-              cubit: cubit,
-              id: id,
-            )
-          : NoInternet(
-              withImage: false,
-              onPressed: () {
-                cubit.getBranch(id: id);
-              },
-            );
+      return EditBranchDialog(
+        cubit: cubit,
+        id: id,
+      );
     },
   );
 }

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 
 import '../../../../../core/Network/dio_handler.dart';
@@ -28,8 +26,6 @@ class DoctorRepoImpl implements DoctorRepo {
         if (doctor.image != null && doctor.image!.isNotEmpty) "image": doctor.image,
       };
 
-      log("Creating doctor with data: ${data.toString()}");
-
       final result = await ApiService.request<Doctor>(
         url: url,
         data: data,
@@ -48,7 +44,6 @@ class DoctorRepoImpl implements DoctorRepo {
         throw Exception("Failed to create doctor: No response from server");
       }
     } catch (e) {
-      log("Error creating doctor: $e");
       if (e is DioException) {
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
@@ -107,7 +102,6 @@ class DoctorRepoImpl implements DoctorRepo {
         throw Exception("Failed to create doctor: No response from server");
       }
     } catch (e) {
-      log("Error creating doctor: $e");
       if (e is DioException) {
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
@@ -166,7 +160,6 @@ class DoctorRepoImpl implements DoctorRepo {
         throw Exception("Failed to create doctor: No response from server");
       }
     } catch (e) {
-      log("Error creating doctor: $e");
       if (e is DioException) {
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
@@ -199,8 +192,6 @@ class DoctorRepoImpl implements DoctorRepo {
         "branchId": branchId,
       };
 
-      log("Creating doctor with data: ${data.toString()}");
-
       final result = await ApiService.request<Doctor>(
         url: url,
         data: data,
@@ -219,7 +210,6 @@ class DoctorRepoImpl implements DoctorRepo {
         throw Exception("Failed to delete branch: No response from server");
       }
     } catch (e) {
-      log("Error creating doctor: $e");
       if (e is DioException) {
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
@@ -317,8 +307,6 @@ class DoctorRepoImpl implements DoctorRepo {
       if (doctor.image != null && doctor.image!.isNotEmpty) "image": doctor.image,
     };
 
-    log("data: $data");
-
     final result = await ApiService.request<Doctor>(
       url: url,
       method: 'PUT',
@@ -365,7 +353,6 @@ class DoctorRepoImpl implements DoctorRepo {
   Future<BranchesModel> getAllBranches() async {
     final url = "${Config.baseUrl}${Config.branches}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
 
     final result = await ApiService.request<BranchesModel>(
       url: url,

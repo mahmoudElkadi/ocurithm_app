@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -60,7 +58,6 @@ class _ReceptionistDetailsViewState extends State<ReceptionistDetailsView> {
         await widget.cubit.updateReceptionist(id: widget.id, context: context);
       } catch (e) {
         if (!_mounted) return;
-        log("Error saving: $e");
         Navigator.of(context).pop();
       }
     }
@@ -142,7 +139,8 @@ class _ReceptionistDetailsViewState extends State<ReceptionistDetailsView> {
                       )
                     : NoInternet(
                         onPressed: () async {
-                          widget.cubit.getReceptionist(id: widget.id);
+                          widget.cubit.readOnly = true;
+                          widget.cubit.checkConnection();
                         },
                       )),
           ),

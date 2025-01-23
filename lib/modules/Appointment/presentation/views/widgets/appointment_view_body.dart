@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -485,6 +484,17 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
               const SizedBox(height: 8),
               Row(
                 children: [
+                  SvgPicture.asset("assets/icons/branch.svg", width: 18, height: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    appointment.branch?.name ?? 'No Branch',
+                    style: appStyle(context, 16, Colorz.black, FontWeight.w500),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
                   SvgPicture.asset("assets/icons/patient.svg", width: 18, height: 18),
                   const SizedBox(width: 8),
                   Text(
@@ -616,7 +626,6 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                                           appointment: appointment,
                                           cubit: cubit,
                                         ));
-                                    log("isResult: $isResult");
                                     if (isResult == true) {
                                       cubit.getAppointments();
                                     }

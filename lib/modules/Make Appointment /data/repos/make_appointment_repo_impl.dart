@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
 
 import '../../../../../core/Network/dio_handler.dart';
@@ -74,7 +72,6 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? clinic}) async {
     final url = "${Config.baseUrl}${Config.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
     Map<String, dynamic> query = {"clinic": clinic};
 
     final result = await ApiService.request<PaymentMethodsModel>(
@@ -100,7 +97,6 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? clinic}) async {
     final url = "${Config.baseUrl}${Config.examinationTypes}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
     Map<String, dynamic> query = {"clinic": clinic};
 
     final result = await ApiService.request<ExaminationTypesModel>(
@@ -155,7 +151,6 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   Future<Appointment> makeAppointment({required MakeAppointmentModel model}) async {
     final url = "${Config.baseUrl}${Config.appointments}";
     final String? token = CacheHelper.getData(key: "token");
-    log(model.toJson().toString());
     final result = await ApiService.request<Appointment>(
       url: url,
       method: 'POST',
@@ -179,8 +174,6 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   Future<Appointment> editAppointment({required MakeAppointmentModel model, required String id}) async {
     final url = "${Config.baseUrl}${Config.appointments}/${model.id}";
     final String? token = CacheHelper.getData(key: "token");
-    log(model.toJson().toString());
-    log(url);
     final result = await ApiService.request<Appointment>(
       url: url,
       method: 'PUT',
@@ -204,7 +197,6 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   Future<AppointmentModel> getAllAppointment({DateTime? date, String? branch, String? doctor}) async {
     final url = "${Config.baseUrl}${Config.appointments}";
     final String? token = CacheHelper.getData(key: "token");
-    log("token: $token");
 
     Map<String, dynamic> quary = {
       if (date != null) "startDate": DateTime(date.year, date.month, date.day, 0, 0, 0).toString(),
@@ -212,7 +204,6 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
       if (doctor != null) "doctor": doctor,
       if (branch != null) "branch": branch
     };
-    log(quary.toString());
 
     final result = await ApiService.request<AppointmentModel>(
       url: url,

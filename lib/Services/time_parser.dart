@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 
 class TimeParser {
@@ -36,10 +34,8 @@ class TimeParser {
 
       // If the time is a simple hour format (e.g., "9")
       final hour = int.parse(timeStr);
-      log('parseTimeString: $hour');
       return TimeOfDay(hour: hour, minute: 0);
     } catch (e) {
-      print('Error parsing time: $timeStr');
       // Return a default time if parsing fails
       return const TimeOfDay(hour: 9, minute: 0);
     }
@@ -60,7 +56,6 @@ class TimeParser {
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
 
-    log('formatTimeOfDay: $hour:$minute');
     return '$hour:$minute';
   }
 }

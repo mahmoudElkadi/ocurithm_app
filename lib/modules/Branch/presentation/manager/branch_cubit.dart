@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -59,7 +57,6 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
         emit(AdminBranchError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(AdminBranchError());
@@ -106,7 +103,6 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
         emit(AdminBranchError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(AdminBranchError());
@@ -146,7 +142,6 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
         emit(AdminBranchError());
       }
     } catch (e) {
-      log(e.toString());
       Navigator.pop(context);
 
       emit(AdminBranchError());
@@ -180,7 +175,6 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminBranchError());
     }
   }
@@ -196,17 +190,10 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(AdminBranchError());
       } else {
         clinics = await ServicesApi().getAllClinics(page: page, search: searchController.text);
-        log(clinics.toString());
+
         if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
           emit(AdminBranchSuccess());
         } else {
@@ -214,7 +201,6 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminBranchError());
     }
   }
@@ -227,13 +213,13 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
+        // Get.snackbar(
+        //   "Error",
+        //   "No Internet Connection",
+        //   backgroundColor: Colorz.errorColor,
+        //   colorText: Colorz.white,
+        //   icon: Icon(Icons.error, color: Colorz.white),
+        // );
         emit(AdminBranchError());
       } else {
         branch = await branchRepo.getBranch(id: id);
@@ -244,7 +230,6 @@ class AdminBranchCubit extends Cubit<AdminBranchState> {
         }
       }
     } catch (e) {
-      log(e.toString());
       emit(AdminBranchError());
     }
   }

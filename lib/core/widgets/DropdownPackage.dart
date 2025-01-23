@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -122,32 +121,12 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     if (widget.items != oldWidget.items) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_isDropdownOpen) {
-          log("in");
           _overlayEntry?.markNeedsBuild();
         }
         _overlayEntry?.markNeedsBuild();
       });
     }
   }
-
-  // void _setupKeyboardListener() {
-  //   _isKeyboardVisible.value = WidgetsBinding.instance.window.viewInsets.bottom > 0;
-  //
-  //   // Update overlay when keyboard visibility changes
-  //   _isKeyboardVisible.addListener(() {
-  //     if (WidgetsBinding.instance.window.viewInsets.bottom > 0.0) {
-  //       log(WidgetsBinding.instance.window.viewInsets.bottom.toString());
-  //       _isVisible = true;
-  //       log("is Visible");
-  //     } else {
-  //       _isVisible = false;
-  //       log("Not Visible");
-  //     }
-  //     if (_isDropdownOpen) {
-  //       _updateOverlay();
-  //     }
-  //   });
-  // }
 
   @override
   void dispose() {
@@ -164,10 +143,8 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
 
     // Update only if the visibility has changed
     if (newKeyboardVisible != _isVisible) {
-      log(WidgetsBinding.instance.window.viewInsets.bottom.toString());
       setState(() {
         _isVisible = newKeyboardVisible;
-        log("is Visible $_isVisible");
         setState(() {});
       });
     }
@@ -325,7 +302,6 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
             });
           }
           if (_overlayEntry != null) {
-            log("overlay entry not null");
             _overlayEntry!.markNeedsBuild();
           }
         },

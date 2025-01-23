@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -726,7 +724,6 @@ class AutorefContent extends StatelessWidget {
             selectedValue: isLeftEye ? cubit.leftAurorefSpherical : cubit.rightAurorefSpherical,
             onChanged: (selected) {
               if (isLeftEye) {
-                log("ssssssss" + selected.toString());
                 cubit.updateLeftEyeField('aurorefSpherical', selected);
               } else {
                 cubit.updateRightEyeField('aurorefSpherical', selected);
@@ -861,7 +858,6 @@ class _VisualAcuityContentState extends State<VisualAcuityContent> {
             height: 40,
             selectedValue: widget.isLeftEye ? cubit.leftUCVA : cubit.rightUCVA,
             onChanged: (selected) {
-              log(selected.toString());
               if (widget.isLeftEye) {
                 cubit.updateLeftEyeField('ucva', selected);
               } else {
@@ -912,7 +908,6 @@ class PupilsContent extends StatelessWidget {
             onChanged: (selected) {
               if (isLeftEye) {
                 cubit.updateLeftEyeField('pupilsShape', selected);
-                log(cubit.leftPupilsShape.toString());
               } else {
                 cubit.updateRightEyeField('pupilsShape', selected);
               }

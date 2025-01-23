@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -52,17 +50,9 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
 
   fetchDoctorData() async {
     await widget.cubit.getDoctor(id: widget.id);
-
-    if (widget.cubit.doctor != null) {
-      widget.cubit.imageUrl = widget.cubit.doctor?.image;
-      widget.cubit.nameController.text = widget.cubit.doctor?.name ?? '';
-      widget.cubit.phoneNumberController.text = widget.cubit.doctor?.phone ?? "";
-      widget.cubit.passwordController.text = widget.cubit.doctor?.password ?? "";
-      widget.cubit.date = widget.cubit.doctor?.birthDate;
-      widget.cubit.selectedClinic = widget.cubit.doctor?.clinic;
-      widget.cubit.qualificationController.text = widget.cubit.doctor?.qualifications ?? "";
+    if (widget.cubit.capabilities == null) {
+      widget.cubit.getCapabilities();
     }
-    await widget.cubit.getCapabilities();
   }
 
   Widget _buildShimmer(Widget child) {
@@ -252,7 +242,6 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             initialSelectedCapabilities: widget.cubit.doctor?.capabilities ?? [],
                             onSelectionChanged: (newSelection) {
                               widget.cubit.capabilitiesList = newSelection.map((e) => e.id).toList();
-                              log(widget.cubit.capabilitiesList.toString());
                               setState(() {});
                             },
                           ),
@@ -345,9 +334,7 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                                       selectedDate.month,
                                       selectedDate.day,
                                     );
-                                    setState(() {
-                                      log(widget.cubit.date.toString());
-                                    });
+                                    setState(() {});
                                   }
                                 });
                               }

@@ -42,7 +42,6 @@ class DoctorCubit extends Cubit<DoctorState> {
   String availableTo = "";
   Branch? selectedBranch;
   chooseBranchId(selected) {
-    log(selected.branchId.toString());
     selectedBranch = selected;
     emit(ChooseBranch());
   }
@@ -58,13 +57,6 @@ class DoctorCubit extends Cubit<DoctorState> {
     emit(AdminDoctorLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(AdminDoctorError());
       } else {
         doctors = await doctorRepo.getAllDoctors(page: page, search: searchController.text, clinic: filterByClinic?.id, branch: filterByBranch?.id);
@@ -148,7 +140,6 @@ class DoctorCubit extends Cubit<DoctorState> {
     }
 
     if (picDate && chooseClinic) {
-      log(isValidate.toString());
       isValidate = true;
     } else {
       isValidate = false;
@@ -166,17 +157,9 @@ class DoctorCubit extends Cubit<DoctorState> {
     emit(AdminClinicLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(AdminClinicError());
       } else {
         clinics = await ServicesApi().getAllClinics(page: page, search: searchController.text);
-        log(clinics.toString());
         if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
           emit(AdminClinicSuccess());
         } else {
@@ -198,13 +181,6 @@ class DoctorCubit extends Cubit<DoctorState> {
     emit(GetCapabilityLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(GetCapabilitiesError());
       } else {
         capabilities = await ServicesApi().getAllCapability();
@@ -354,7 +330,6 @@ class DoctorCubit extends Cubit<DoctorState> {
     emit(DeleteBranchLoading());
     // try {
     var result = await doctorRepo.deleteBranch(doctorId: doctorId, branchId: branchId);
-    log(result.toJson().toString());
     if (result.error == null && (result.name != null || result.id != null)) {
       Get.snackbar(
         "Success",
@@ -404,13 +379,6 @@ class DoctorCubit extends Cubit<DoctorState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         loading = false;
         emit(AdminBranchError());
       } else {
@@ -478,16 +446,18 @@ class DoctorCubit extends Cubit<DoctorState> {
     emit(AdminBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
         emit(AdminBranchError());
       } else {
         doctor = await doctorRepo.getDoctor(id: id);
+        if (doctor != null) {
+          imageUrl = doctor?.image;
+          nameController.text = doctor?.name ?? '';
+          phoneNumberController.text = doctor?.phone ?? "";
+          passwordController.text = doctor?.password ?? "";
+          date = doctor?.birthDate;
+          selectedClinic = doctor?.clinic;
+          qualificationController.text = doctor?.qualifications ?? "";
+        }
         if (doctor?.error == null) {
           emit(AdminBranchSuccess());
         } else {

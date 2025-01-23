@@ -32,16 +32,12 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
     cubit.validateField('examinationType', cubit.selectedExaminationType != null);
     cubit.validateField('paymentMethod', cubit.selectedPaymentMethod != null);
 
-    log(cubit.validationState.toString());
-
     if (cubit.isFormValid) {
       try {
         cubit.changeStep(1);
       } catch (e) {
         log(e.toString());
       }
-    } else {
-      log('Form is not valid');
     }
   }
 

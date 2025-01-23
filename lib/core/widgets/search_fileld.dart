@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +49,6 @@ class _SearchFieldState extends State<SearchField> {
       operation = CancelableOperation.fromFuture(
         widget.onTextFieldChanged(),
         onCancel: () {
-          log('Search operation cancelled');
           _operations.remove(operation);
         },
       );

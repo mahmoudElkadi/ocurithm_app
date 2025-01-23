@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -180,7 +178,6 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                             setState(() {
                               if (item != "Not Found") {
                                 selectedClinic = item;
-                                log(selectedClinic.toString());
                               }
                             });
                           },
@@ -304,10 +301,8 @@ class _FormPopupDialogState extends State<FormPopupDialog> {
                       const SizedBox(height: 16),
                       BusinessHoursSelector(
                         onTimeRangeSelected: (openTime, closeTime) {
-                          log('Business hours: ${openTime.format(context)} - ${closeTime.format(context)}');
                           openingTime = '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
                           closingTime = '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
-                          log('Business hours: $openingTime - $closingTime');
                         },
                         use24HourFormat: true, // This will show times in 24-hour format
                       ),

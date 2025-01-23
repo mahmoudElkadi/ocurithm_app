@@ -14,6 +14,8 @@ class ChooseReceptionist extends ReceptionistState {}
 
 class AddReceptionistLoading extends ReceptionistState {}
 
+class CheckConnection extends ReceptionistState {}
+
 class AddReceptionistSuccess extends ReceptionistState {}
 
 class AddReceptionistError extends ReceptionistState {}

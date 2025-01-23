@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -119,8 +118,6 @@ class _DelayAppointmentState extends State<DelayAppointment> {
   Future<void> fetchInitialData({required DateTime date}) async {
     if (_disposed) return;
 
-    log("data ${date.toString()}");
-
     var dio = Dio(BaseOptions(
       connectTimeout: const Duration(minutes: 2),
       receiveTimeout: const Duration(minutes: 2),
@@ -150,7 +147,6 @@ class _DelayAppointmentState extends State<DelayAppointment> {
         fetchInitialData(date: date);
       }
       if (_disposed) return;
-      log(response.data.toString());
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = response.data;
@@ -166,7 +162,6 @@ class _DelayAppointmentState extends State<DelayAppointment> {
       }
     } catch (e) {
       if (_disposed) return;
-      log('Error fetching data: $e');
     }
   }
 
@@ -183,11 +178,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
     required DateTime start,
     required DateTime end,
   }) {
-    // Start polling
-    // _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-    //   log("tabibooking polling");
     fetchInitialData(date: start);
-    // });
 
     return _controller.stream;
   }
@@ -210,7 +201,6 @@ class _DelayAppointmentState extends State<DelayAppointment> {
         "full_name": patient.name,
         "phone": patient.phone,
       };
-      log('Uploading booking data: $data');
 
       var response = await dio.post(
         "${Config.baseUrl}appointment",
@@ -221,7 +211,6 @@ class _DelayAppointmentState extends State<DelayAppointment> {
           },
         ),
       );
-      log('Response: ${response.data.toString()}');
 
       if (response.statusCode == 200) {
         return 'Booking uploaded successfully';
@@ -232,9 +221,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
       } else {
         return 'Server Error';
       }
-    } catch (e) {
-      log('Error uploading booking: $e');
-    }
+    } catch (e) {}
   }
 
   List<Map<String, dynamic>> dateTimeRanges = [];
@@ -261,7 +248,6 @@ class _DelayAppointmentState extends State<DelayAppointment> {
       }
     } else {
       // Handle the case where streamResult is not a List
-      log('Invalid streamResult format');
     }
 
     return dateTimeRanges;

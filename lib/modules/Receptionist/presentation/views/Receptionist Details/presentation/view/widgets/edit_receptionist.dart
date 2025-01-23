@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -52,15 +50,6 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
 
   fetchReceptionist() async {
     await widget.cubit.getReceptionist(id: widget.id);
-    if (widget.cubit.receptionist != null) {
-      widget.cubit.imageUrl = widget.cubit.receptionist?.image;
-      widget.cubit.nameController.text = widget.cubit.receptionist?.name ?? '';
-      widget.cubit.phoneNumberController.text = widget.cubit.receptionist?.phone ?? "";
-      widget.cubit.passwordController.text = widget.cubit.receptionist?.password ?? "";
-      widget.cubit.date = widget.cubit.receptionist?.birthDate;
-      widget.cubit.selectedBranch = widget.cubit.receptionist?.branch;
-      widget.cubit.selectedClinic = widget.cubit.receptionist?.clinic;
-    }
     if (widget.cubit.capabilities == null) {
       widget.cubit.getCapabilities();
     }
@@ -266,7 +255,6 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                                 if (item != "Not Found") {
                                   widget.cubit.chooseBranch = true;
                                   widget.cubit.selectedBranch = item;
-                                  log(widget.cubit.selectedBranch.toString());
                                 }
                               });
                             },
@@ -288,7 +276,6 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                             initialSelectedCapabilities: widget.cubit.receptionist?.capabilities ?? [],
                             onSelectionChanged: (newSelection) {
                               widget.cubit.capabilitiesList = newSelection.map((e) => e.id).toList();
-                              log(widget.cubit.capabilitiesList.toString());
                               setState(() {});
                             },
                           ),
@@ -342,9 +329,7 @@ class _EditReceptionistViewBodyState extends State<EditReceptionistViewBody> {
                                       selectedDate.month,
                                       selectedDate.day,
                                     );
-                                    setState(() {
-                                      log(widget.cubit.date.toString());
-                                    });
+                                    setState(() {});
                                   }
                                 });
                               }
