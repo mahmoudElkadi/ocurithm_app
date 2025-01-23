@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -353,8 +354,6 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                   BookingExplanation(color: widget.availableSlotColor ?? Colors.greenAccent, text: widget.availableSlotText ?? 'Available'),
                   BookingExplanation(color: widget.selectedSlotColor ?? Colors.orangeAccent, text: widget.selectedSlotText ?? 'Selected'),
                   BookingExplanation(color: widget.bookedSlotColor ?? Colors.redAccent, text: widget.bookedSlotText ?? 'Booked'),
-                  if (widget.hideBreakTime != true)
-                    BookingExplanation(color: widget.pauseSlotColor ?? Colors.grey, text: widget.pauseSlotText ?? 'Break Time'),
                 ],
               ),
           const SizedBox(height: 8),
@@ -427,7 +426,11 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       isPauseTime: controller.isSlotInPauseTime(slot),
       isBooked: controller.isSlotBooked(index),
       isSelected: index == controller.selectedSlot,
-      onTap: () => _handleSlotTap(controller, index, slot),
+      onTap: () {
+        log("Slot: $slot");
+        log("Slot: $index");
+        _handleSlotTap(controller, index, slot);
+      },
       child: Center(
         child: Text(
           widget.formatDateTime?.call(slot) ?? BookingUtil.formatDateTime(slot),
@@ -454,7 +457,9 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       // Allow selecting and changing selection for available slots
       controller.selectSlot(index);
       if (widget.onDateSelected != null) {
-        widget.onDateSelected!(controller.allBookingSlots[controller.selectedSlot]);
+        if (controller.selectedSlot != -1) {
+          widget.onDateSelected!(controller.allBookingSlots[controller.selectedSlot]);
+        }
       }
       setState(() {});
     }

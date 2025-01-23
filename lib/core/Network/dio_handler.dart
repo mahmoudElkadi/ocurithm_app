@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -20,21 +21,22 @@ class ApiService {
     Map<String, String>? headers,
     T Function(dynamic)? fromJson,
     bool showError = true,
-    Duration timeout = const Duration(seconds: 60),
+    Duration timeout = const Duration(seconds: 20),
   }) async {
     try {
-      final response = await _dio.request<dynamic>(
-        url,
-        data: data,
-        queryParameters: queryParameters,
-        options: Options(
-          method: method,
-          headers: headers ?? {'Content-Type': 'application/json'},
-          sendTimeout: timeout,
-          receiveTimeout: timeout,
-          validateStatus: (status) => status! <= 700,
-        ),
-      );
+      final response = await _dio
+          .request<dynamic>(
+            url,
+            data: data,
+            queryParameters: queryParameters,
+            options: Options(
+              method: method,
+              headers: headers ?? {'Content-Type': 'application/json'},
+              receiveTimeout: timeout,
+              validateStatus: (status) => status! <= 700,
+            ),
+          )
+          .timeout(timeout);
 
       log(response.realUri.toString());
       log(response.data.toString());
@@ -55,22 +57,25 @@ class ApiService {
         } else if (response.statusCode != null && response.statusCode! >= 400 && response.statusCode! <= 500) {
           return response.data as T;
         } else {
-          //_handleHttpError(response.statusCode);
           return null;
         }
       } else {
         if (response.data != null && response.statusCode != null && response.statusCode! >= 200 && response.statusCode! <= 500 && fromJson != null) {
           return fromJson(response.data);
         } else {
-          //_handleHttpError(response.statusCode);
           return null;
         }
       }
     } on DioException catch (e) {
+      log(e.toString());
       return _handleDioError<T>(e);
     } on SocketException catch (e) {
       return _handleSocketException<T>(e);
     } catch (e) {
+      if (e is TimeoutException) {
+        Get.snackbar("Timeout", "The request timed out. Please try again later.", colorText: Colors.white, backgroundColor: Colors.red);
+        rethrow;
+      }
       return _handleUnexpectedError<T>(e);
     }
   }
@@ -165,113 +170,4 @@ class ServerFailure extends ApiFailure {
 
 class UnexpectedFailure extends ApiFailure {
   UnexpectedFailure() : super('Unexpected Error', 'An unexpected error occurred. Please try again.');
-}
-
-class EitherService {
-  static final Dio _dio = Dio();
-
-  static Future<Either<ApiFailure, T>> request<T>({
-    required String url,
-    required String method,
-    Map<String, dynamic>? data,
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-    T Function(dynamic)? fromJson,
-    bool showError = true,
-    Duration timeout = const Duration(seconds: 60),
-  }) async {
-    try {
-      final response = await _dio.request<dynamic>(
-        url,
-        data: data,
-        queryParameters: queryParameters,
-        options: Options(
-          method: method,
-          headers: headers ?? {'Content-Type': 'application/json'},
-          sendTimeout: timeout,
-          receiveTimeout: timeout,
-          validateStatus: (status) => status! <= 500,
-        ),
-      );
-
-      // Handle successful responses
-      if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
-        if (response.data != null) {
-          try {
-            final result = fromJson != null ? fromJson(response.data) : response.data as T;
-            return Right(result);
-          } catch (e) {
-            return Left(UnexpectedFailure());
-          }
-        }
-      }
-
-      // Handle error responses
-      final failure = _createFailureFromStatus(response.statusCode);
-      if (showError) {
-        _showErrorSnackbar(failure.title, failure.message);
-      }
-      return Left(failure);
-    } on DioException catch (e) {
-      final failure = _handleDioError(e);
-      if (showError) {
-        _showErrorSnackbar(failure.title, failure.message);
-      }
-      return Left(failure);
-    } on SocketException catch (e) {
-      final failure = NetworkFailure();
-      if (showError) {
-        _showErrorSnackbar(failure.title, failure.message);
-      }
-      return Left(failure);
-    } catch (e) {
-      final failure = UnexpectedFailure();
-      if (showError) {
-        _showErrorSnackbar(failure.title, failure.message);
-      }
-      return Left(failure);
-    }
-  }
-
-  static ApiFailure _handleDioError(DioException e) {
-    switch (e.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        return TimeoutFailure();
-      case DioExceptionType.badResponse:
-        return _createFailureFromStatus(e.response?.statusCode);
-      case DioExceptionType.connectionError:
-        return NetworkFailure();
-      default:
-        return UnexpectedFailure();
-    }
-  }
-
-  static ApiFailure _createFailureFromStatus(int? statusCode) {
-    switch (statusCode) {
-      case 400:
-        return ServerFailure('Bad Request', 'The request was invalid.', statusCode: statusCode);
-      case 401:
-        return ServerFailure('Unauthorized', 'Please log in to access this resource.', statusCode: statusCode);
-      case 403:
-        return ServerFailure('Forbidden', "You don't have permission to access this resource.", statusCode: statusCode);
-      case 404:
-        return ServerFailure('Not Found', 'The requested resource was not found.', statusCode: statusCode);
-      case 500:
-        return ServerFailure('Server Error', 'An internal server error occurred. Please try again later.', statusCode: statusCode);
-      default:
-        return ServerFailure('HTTP Error', 'An HTTP error occurred. Status code: $statusCode', statusCode: statusCode);
-    }
-  }
-
-  static void _showErrorSnackbar(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      colorText: Colors.white,
-      backgroundColor: Colors.red,
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  }
 }

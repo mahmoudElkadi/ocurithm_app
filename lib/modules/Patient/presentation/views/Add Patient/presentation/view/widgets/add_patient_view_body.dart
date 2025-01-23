@@ -45,6 +45,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
   void initState() {
     super.initState();
     if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+      widget.cubit.branches = null;
+
       if (widget.cubit.clinics == null) {
         widget.cubit.getClinics();
       }

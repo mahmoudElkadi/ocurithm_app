@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/Services/whatsapp_confirmation.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -73,43 +76,6 @@ class PatientCubit extends Cubit<PatientState> {
       }
     } catch (e) {
       emit(AdminBranchError());
-    }
-  }
-
-  Future<void> sendWhatsAppMessage(String phone, String message) async {
-    // Ensure the phone number is formatted correctly for Egypt
-    final formattedPhone = "20" + phone.replaceFirst(RegExp(r'^0'), '');
-
-    final whatsappUrl = Uri.parse("whatsapp://send?phone=$formattedPhone&text=${Uri.encodeComponent(message)}");
-
-    // Print URL for debugging purposes
-    print("WhatsApp URL: $whatsappUrl");
-
-    try {
-      if (await canLaunch(whatsappUrl.toString())) {
-        await launch(whatsappUrl.toString());
-      } else {
-        // Print error if canLaunch returns false
-        print("WhatsApp is not installed or the URL scheme is not supported.");
-        Get.snackbar(
-          "WhatsApp not installed",
-          "Please install WhatsApp to send messages.",
-          padding: EdgeInsets.only(top: 30.h),
-          colorText: Colorz.white,
-          backgroundColor: Colors.red,
-          icon: const Icon(Icons.error),
-        );
-      }
-    } catch (e) {
-      print("Error launching WhatsApp: $e");
-      Get.snackbar(
-        "Error",
-        "Failed to launch WhatsApp.",
-        padding: EdgeInsets.only(top: 30.h),
-        colorText: Colorz.white,
-        backgroundColor: Colors.red,
-        icon: const Icon(Icons.error),
-      );
     }
   }
 
@@ -194,6 +160,9 @@ class PatientCubit extends Cubit<PatientState> {
           colorText: Colorz.white,
           icon: Icon(Icons.check, color: Colorz.white),
         );
+        await WhatsAppConfirmation().sendWhatsAppMessage(phoneNumberController.text,
+            "Welcome to our clinics ❤️ .\n You can now check your appointments, by downloading Ocurithm application. \n Your credentials: \n username: ${phoneNumberController.text} \n password: ${passwordController.text} \n Thank you.");
+
         Navigator.pop(context);
         Navigator.pop(context);
 

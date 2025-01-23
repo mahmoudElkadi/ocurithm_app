@@ -65,67 +65,65 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Widget _buildUserInfo(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        color: Colorz.primaryColor.withOpacity(0.1),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CacheHelper.getUser("user")?.image != null
-                          ? Container(
-                              height: 80,
-                              width: 80,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                image: DecorationImage(
-                                    image: NetworkImage(CacheHelper.getUser("user")?.image ?? "https://via.placeholder.com/150"),
-                                    fit: BoxFit.cover,
-                                    alignment: Alignment.center),
-                              ),
-                            )
-                          : Container(
-                              height: 70,
-                              width: 70,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 0))],
-                              ),
-                              child: CacheHelper.getUser("user")?.name != null
-                                  ? Center(
-                                      child: Text(CacheHelper.getUser("user")?.name?.split("")[0].toUpperCase() as String,
-                                          style: appStyle(context, 50, Colors.grey.shade700, FontWeight.bold)))
-                                  : null,
+    return Container(
+      color: Colorz.primaryColor.withOpacity(0.1),
+      child: Padding(
+        padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.07),
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CacheHelper.getUser("user")?.image != null
+                        ? Container(
+                            height: 80,
+                            width: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              image: DecorationImage(
+                                  image: NetworkImage(CacheHelper.getUser("user")?.image ?? "https://via.placeholder.com/150"),
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.center),
                             ),
-                      const HeightSpacer(size: 10),
-                      Text(
-                        CacheHelper.getUser("user")?.name ?? "Unknown",
-                        style: appStyle(context, 18, Colors.black, FontWeight.w600),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const HeightSpacer(size: 5),
-                      Text(
-                        CacheHelper.getUser("user")?.clinic?.name ?? "Clinic",
-                        style: appStyle(context, 16, Colors.grey, FontWeight.w500),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const HeightSpacer(size: 5),
-                    ],
-                  ),
+                          )
+                        : Container(
+                            height: 70,
+                            width: 70,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 0))],
+                            ),
+                            child: CacheHelper.getUser("user")?.name != null
+                                ? Center(
+                                    child: Text(CacheHelper.getUser("user")?.name?.split("")[0].toUpperCase() as String,
+                                        style: appStyle(context, 50, Colors.grey.shade700, FontWeight.bold)))
+                                : null,
+                          ),
+                    const HeightSpacer(size: 10),
+                    Text(
+                      CacheHelper.getUser("user")?.name ?? "Unknown",
+                      style: appStyle(context, 18, Colors.black, FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const HeightSpacer(size: 5),
+                    Text(
+                      CacheHelper.getUser("user")?.clinic?.name ?? "Clinic",
+                      style: appStyle(context, 16, Colors.grey, FontWeight.w500),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const HeightSpacer(size: 5),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -328,72 +329,75 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                 });
               },
               patient: Patient(),
-              actionButton: Row(
-                children: [
-                  if (widget.isUpdate == false)
+              actionButton: Padding(
+                padding: EdgeInsets.only(bottom: Platform.isIOS ? 8.0 : 0.0),
+                child: Row(
+                  children: [
+                    if (widget.isUpdate == false)
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            cubit.changeStep(0);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 16.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            side: BorderSide(
+                              color: Colorz.primaryColor,
+                            ),
+                          ),
+                          child: Text(
+                            'Previous',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: Colorz.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    SizedBox(width: 16.w),
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          cubit.changeStep(0);
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (cubit.selectedTime != null) {
+                            if (cubit.selectedTime!.isBefore(DateTime.now())) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content: Text(
+                                    'Please select a valid date',
+                                    style: TextStyle(color: Colors.white, fontSize: 16),
+                                  ),
+                                ),
+                              );
+                              return;
+                            } else {
+                              cubit.changeStep(2);
+                            }
+                          }
                         },
-                        style: OutlinedButton.styleFrom(
+                        style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 16.h),
+                          backgroundColor: Colorz.primaryColor,
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.r),
                           ),
-                          side: BorderSide(
-                            color: Colorz.primaryColor,
-                          ),
                         ),
                         child: Text(
-                          'Previous',
+                          widget.isUpdate == true ? 'Update' : 'Next',
                           style: TextStyle(
                             fontSize: 16.sp,
-                            color: Colorz.primaryColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                  SizedBox(width: 16.w),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (cubit.selectedTime != null) {
-                          if (cubit.selectedTime!.isBefore(DateTime.now())) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                backgroundColor: Colors.red,
-                                content: Text(
-                                  'Please select a valid date',
-                                  style: TextStyle(color: Colors.white, fontSize: 16),
-                                ),
-                              ),
-                            );
-                            return;
-                          } else {
-                            cubit.changeStep(2);
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        backgroundColor: Colorz.primaryColor,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                      ),
-                      child: Text(
-                        widget.isUpdate == true ? 'Update' : 'Next',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

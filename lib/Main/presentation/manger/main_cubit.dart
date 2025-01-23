@@ -83,7 +83,7 @@ class MainCubit extends Cubit<MainState> {
       "showPatients": ["Patients", const AdminPatientView(), "assets/icons/patient.svg"],
       "showAppointments": ["Appointments", const AppointmentView(), "assets/icons/appointment.svg"],
       "manageExaminationTypes": ["Examination Types", const ExaminationTypeView(), "assets/icons/exam_type.svg"],
-      "managePaymentMethods": ["payment Method", const PaymentMethodView(), "assets/icons/payment.svg"],
+      "managePaymentMethods": ["Payment Methods", const PaymentMethodView(), "assets/icons/payment.svg"],
     };
 
     drawerItems = [];

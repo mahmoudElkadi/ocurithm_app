@@ -361,7 +361,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
               status: "Scheduled",
               clinic: selectedClinic?.id,
               note: noteController.text));
-      if (result != null && result.error == null) {
+      if (result.error == null) {
         Get.snackbar(
           "Success",
           "Appointment created successfully",
@@ -373,7 +373,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         Navigator.pop(context);
         Navigator.pop(context, true);
         emit(MakeAppointmentSuccess());
-      } else if (result != null && result.error != null) {
+      } else if (result.error != null) {
         Get.snackbar(
           result.error!,
           "Failed to create appointment",
@@ -397,6 +397,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         emit(MakeAppointmentError());
       }
     } catch (e) {
+      Navigator.pop(context);
       emit(MakeAppointmentError());
     }
   }
