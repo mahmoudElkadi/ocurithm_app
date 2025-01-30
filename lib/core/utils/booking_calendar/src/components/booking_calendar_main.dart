@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -427,8 +426,6 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       isBooked: controller.isSlotBooked(index),
       isSelected: index == controller.selectedSlot,
       onTap: () {
-        log("Slot: $slot");
-        log("Slot: $index");
         _handleSlotTap(controller, index, slot);
       },
       child: Center(

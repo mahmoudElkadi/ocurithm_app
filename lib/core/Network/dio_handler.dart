@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -37,9 +36,6 @@ class ApiService {
             ),
           )
           .timeout(timeout);
-
-      log(response.realUri.toString());
-      log(response.data.toString());
 
       if (response.data['message'] == "Invalid token") {
         await CacheHelper.removeData(key: "token");

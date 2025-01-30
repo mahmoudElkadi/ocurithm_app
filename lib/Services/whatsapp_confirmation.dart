@@ -12,7 +12,6 @@ class WhatsAppConfirmation {
     final whatsappUrl = Uri.parse("whatsapp://send?phone=$formattedPhone&text=${Uri.encodeComponent(message)}");
 
     // Print URL for debugging purposes
-    print("WhatsApp URL: $whatsappUrl");
 
     try {
       if (await canLaunchUrl(whatsappUrl)) {
