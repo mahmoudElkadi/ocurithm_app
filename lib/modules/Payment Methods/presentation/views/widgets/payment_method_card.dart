@@ -96,9 +96,13 @@ class _PaymentMethodCardState extends State<PaymentMethodCard> {
                                   color: Colors.white,
                                 ),
                               ))
-                            : Text(
-                                '${widget.paymentMethod?.description ?? "N/A"} ',
-                                style: appStyle(context, 18, Colorz.grey, FontWeight.w500),
+                            : Expanded(
+                                child: Text(
+                                  '${widget.paymentMethod?.description ?? "N/A"} ',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: appStyle(context, 18, Colorz.grey, FontWeight.w500),
+                                ),
                               ),
                       ],
                     ),

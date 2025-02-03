@@ -59,7 +59,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           children: [
             SizedBox(
               //color: Colors.red,
-              height: MediaQuery.of(context).size.height * 0.7,
+              height: MediaQuery.of(context).size.height * 0.72,
               child: PageView.builder(
                 onPageChanged: (int index) {
                   if (index == boarding.length - 1) {

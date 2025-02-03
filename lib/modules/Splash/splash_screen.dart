@@ -11,6 +11,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:lottie/lottie.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:upgrader/upgrader.dart';
 
 import '../../Main/presentation/views/main_view.dart';
 import '../../core/Network/shared.dart';
@@ -99,12 +100,37 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         if (response.statusCode == 201 && responseData['message'] != 'No user logged in') {
           // User is authenticated, navigate to Main View
 
-          Get.offAll(() => MainView(), transition: Transition.fadeIn, duration: const Duration(seconds: 1));
+          Get.offAll(
+            () => UpgradeAlert(
+              showIgnore: false,
+              showReleaseNotes: false,
+              dialogStyle: UpgradeDialogStyle.cupertino,
+              upgrader: Upgrader(
+                countryCode: 'EG',
+                durationUntilAlertAgain: const Duration(hours: 2),
+              ),
+              child: MainView(),
+            ),
+            transition: Transition.fadeIn,
+            duration: const Duration(seconds: 1),
+          );
         } else {
           // User is not authenticated, navigate to Login View
           CacheHelper.removeData(key: "token");
           CacheHelper.removeData(key: "user");
-          Get.offAll(() => const LoginView(), transition: Transition.fadeIn, duration: const Duration(seconds: 1));
+          Get.offAll(
+            () => UpgradeAlert(
+                showIgnore: false,
+                showReleaseNotes: false,
+                dialogStyle: UpgradeDialogStyle.cupertino,
+                upgrader: Upgrader(
+                  countryCode: 'EG',
+                  durationUntilAlertAgain: const Duration(hours: 2),
+                ),
+                child: const LoginView()),
+            transition: Transition.fadeIn,
+            duration: const Duration(seconds: 1),
+          );
         }
       }
     } catch (e) {

@@ -36,23 +36,6 @@ class _MainViewState extends State<MainView> {
 
           return WillPopScope(
             onWillPop: () async {
-              // if (!mainCubit.isBackEnabled) {
-              //   return false;
-              // }
-              //
-              // final difference = DateTime.now().difference(timeBackPressed);
-              // final isExitWarning = difference >= const Duration(seconds: 2);
-              // timeBackPressed = DateTime.now();
-              //
-              // if (isExitWarning) {
-              //   const message = 'Press back again to exit';
-              //   Fluttertoast.showToast(msg: message, fontSize: 14, backgroundColor: Colorz.primaryColor);
-              //   return false;
-              // } else {
-              //   SystemNavigator.pop();
-              //   Fluttertoast.cancel();
-              //   return true;
-              // }
               return false;
             },
             child: const MainScreen(),

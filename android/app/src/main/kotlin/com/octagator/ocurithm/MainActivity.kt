@@ -1,4 +1,4 @@
-package com.octagator.ocurithm
+package com.ocurithm.ocurithmapp
 
 import io.flutter.embedding.android.FlutterActivity
 

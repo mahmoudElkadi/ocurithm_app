@@ -96,9 +96,13 @@ class _ClinicCardState extends State<ClinicCard> {
                                   color: Colors.white,
                                 ),
                               ))
-                            : Text(
-                                '${widget.clinic?.description ?? "N/A"} ',
-                                style: appStyle(context, 18, Colorz.grey, FontWeight.w500),
+                            : Expanded(
+                                child: Text(
+                                  '${widget.clinic?.description ?? "N/A"} ',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: appStyle(context, 18, Colorz.grey, FontWeight.w500),
+                                ),
                               ),
                       ],
                     ),
@@ -184,10 +188,10 @@ class _ClinicListViewState extends State<ClinicListView> {
       itemBuilder: (context, index) => Column(
         children: [
           ClinicCard(
-            clinic: cubit.clinics!.clinics?[index],
+            clinic: cubit.clinics!.clinics[index],
             isLoading: false,
           ),
-          cubit.clinics!.clinics?.length != index + 1
+          cubit.clinics!.clinics.length != index + 1
               ? const SizedBox.shrink()
               : cubit.clinics?.totalPages != null && cubit.clinics!.totalPages! > 1
                   ? Padding(
@@ -205,7 +209,7 @@ class _ClinicListViewState extends State<ClinicListView> {
         ],
       ),
       separatorBuilder: (context, index) => const HeightSpacer(size: 20),
-      itemCount: cubit.clinics!.clinics!.length,
+      itemCount: cubit.clinics!.clinics.length,
     );
   }
 
