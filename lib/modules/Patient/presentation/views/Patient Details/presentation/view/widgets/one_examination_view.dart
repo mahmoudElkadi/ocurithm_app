@@ -75,67 +75,68 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
                         Column(
                           children: [
                             // Tab bar
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => setState(() => _selectedTab = 0),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          bottom: BorderSide(
-                                            color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey.shade300,
-                                            width: 2,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'Left Eye',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey,
-                                          fontWeight: _selectedTab == 0 ? FontWeight.bold : FontWeight.normal,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => setState(() => _selectedTab = 1),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          bottom: BorderSide(
-                                            color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey.shade300,
-                                            width: 2,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'Right Eye',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey,
-                                          fontWeight: _selectedTab == 1 ? FontWeight.bold : FontWeight.normal,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                            // Row(
+                            //   children: [
+                            //     Expanded(
+                            //       child: InkWell(
+                            //         onTap: () => setState(() => _selectedTab = 0),
+                            //         child: Container(
+                            //           padding: const EdgeInsets.symmetric(vertical: 12),
+                            //           decoration: BoxDecoration(
+                            //             border: Border(
+                            //               bottom: BorderSide(
+                            //                 color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey.shade300,
+                            //                 width: 2,
+                            //               ),
+                            //             ),
+                            //           ),
+                            //           child: Text(
+                            //             'Left Eye',
+                            //             textAlign: TextAlign.center,
+                            //             style: TextStyle(
+                            //               color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey,
+                            //               fontWeight: _selectedTab == 0 ? FontWeight.bold : FontWeight.normal,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //     Expanded(
+                            //       child: InkWell(
+                            //         onTap: () => setState(() => _selectedTab = 1),
+                            //         child: Container(
+                            //           padding: const EdgeInsets.symmetric(vertical: 12),
+                            //           decoration: BoxDecoration(
+                            //             border: Border(
+                            //               bottom: BorderSide(
+                            //                 color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey.shade300,
+                            //                 width: 2,
+                            //               ),
+                            //             ),
+                            //           ),
+                            //           child: Text(
+                            //             'Right Eye',
+                            //             textAlign: TextAlign.center,
+                            //             style: TextStyle(
+                            //               color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey,
+                            //               fontWeight: _selectedTab == 1 ? FontWeight.bold : FontWeight.normal,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ],
+                            // ),
 
                             // Content
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                child: _selectedTab == 0 ? _buildEyeExaminationContent(isLeft: true) : _buildEyeExaminationContent(isLeft: false),
-                              ),
-                            ),
+
+                            Row(
+                              spacing: 10,
+                              children: [
+                                _buildEyeExaminationContent(isLeft: false),
+                                _buildEyeExaminationContent(isLeft: true),
+                              ],
+                            )
                           ],
                         )
                       ],
@@ -164,29 +165,22 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           maintainState: true,
-          initiallyExpanded: false,
+          initiallyExpanded: true,
+          enabled: true,
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
           childrenPadding: const EdgeInsets.all(16),
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.grid_4x4, color: Colorz.primaryColor),
-          ),
           title: Text(
             'Confrontation Fields',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colorz.primaryColor,
             ),
           ),
           children: [
             QuadrantContainer(
-              containerSize: 300,
+              containerSize: 280,
               colorList: _colorList,
               tapCounts: isLeft
                   ? [
@@ -252,181 +246,206 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
 
         return cubit.oneExamination!.examination!.measurements.isEmpty
             ? const SizedBox.shrink()
-            : Column(
-                mainAxisSize: MainAxisSize.min, // Add this line
+            : Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min, // Add this line
 
-                children: [
-                  _buildExaminationSection(
-                    title: 'Autoref',
-                    icon: Icons.remove_red_eye,
-                    isLeft: isLeft,
-                    sectionIndex: 0,
-                    data: {
-                      'Spherical': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].autorefSpherical ?? '-'
-                          : cubit.oneExamination?.examination?.measurements[1].autorefSpherical ?? '-',
-                      'Cylindrical': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].autorefCylindrical ?? '-'
-                          : cubit.oneExamination?.examination?.measurements[1].autorefCylindrical,
-                      'Axis': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].autorefAxis
-                          : cubit.oneExamination?.examination?.measurements[1].autorefAxis,
-                    },
-                  ),
-                  _buildExaminationSection(
-                    title: 'Visual Acuity',
-                    icon: Icons.visibility,
-                    isLeft: isLeft,
-                    sectionIndex: 1,
-                    data: {
-                      'UCVA':
-                          isLeft ? cubit.oneExamination?.examination?.measurements[0].ucva : cubit.oneExamination?.examination?.measurements[1].ucva,
-                      'BCVA':
-                          isLeft ? cubit.oneExamination?.examination?.measurements[0].bcva : cubit.oneExamination?.examination?.measurements[1].bcva,
-                    },
-                  ),
-                  _buildExaminationSection(
-                    title: 'Refined Refraction',
-                    icon: Icons.science,
-                    isLeft: isLeft,
-                    sectionIndex: 2,
-                    data: {
-                      'Spherical': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].refinedRefractionSpherical
-                          : cubit.oneExamination?.examination?.measurements[1].refinedRefractionSpherical,
-                      'Cylindrical': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].refinedRefractionCylindrical
-                          : cubit.oneExamination?.examination?.measurements[1].refinedRefractionCylindrical,
-                      'Axis': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].refinedRefractionAxis
-                          : cubit.oneExamination?.examination?.measurements[1].refinedRefractionAxis,
-                    },
-                  ),
-                  _buildExaminationSection(
-                    title: 'IOP',
-                    icon: Icons.opacity,
-                    isLeft: isLeft,
-                    sectionIndex: 3,
-                    data: {
-                      'IOP Value':
-                          isLeft ? cubit.oneExamination?.examination?.measurements[0].iop : cubit.oneExamination?.examination?.measurements[1].iop,
-                      'Measurement Method': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].meansOfMeasurement
-                          : cubit.oneExamination?.examination?.measurements[1].meansOfMeasurement,
-                      'Acquire Another IOP Measurement': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].acquireAnotherIopMeasurement
-                          : cubit.oneExamination?.examination?.measurements[1].acquireAnotherIopMeasurement,
-                    },
-                  ),
-                  _buildExaminationSection(
-                    title: 'Pupils',
-                    icon: Icons.lens_blur,
-                    isLeft: isLeft,
-                    sectionIndex: 4,
-                    data: {
-                      'Shape': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].pupilsShape
-                          : cubit.oneExamination?.examination?.measurements[1].pupilsShape,
-                      'Light Reflex': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].pupilsLightReflexTest
-                          : cubit.oneExamination?.examination?.measurements[1].pupilsLightReflexTest,
-                      'Near Reflex': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].pupilsNearReflexTest
-                          : cubit.oneExamination?.examination?.measurements[1].pupilsNearReflexTest,
-                      'Swinging Flashlight': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].pupilsSwingingFlashLightTest
-                          : cubit.oneExamination?.examination?.measurements[1].pupilsSwingingFlashLightTest,
-                      'Other Disorders': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].pupilsOtherDisorders
-                          : cubit.oneExamination?.examination?.measurements[1].pupilsOtherDisorders,
-                    },
-                  ),
-                  _buildQuadrantSection(isLeft: isLeft, cubit: cubit),
-                  _buildExaminationSection(
-                    title: 'External Examination',
-                    icon: Icons.visibility_outlined,
-                    isLeft: isLeft,
-                    sectionIndex: 5,
-                    data: {
-                      'Eyelid Ptosis': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].eyelidPtosis
-                          : cubit.oneExamination?.examination?.measurements[1].eyelidPtosis,
-                      'Lagophthalmos': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].eyelidLagophthalmos
-                          : cubit.oneExamination?.examination?.measurements[1].eyelidLagophthalmos,
-                      'Palpable Lymph Nodes': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].palpableLymphNodes
-                          : cubit.oneExamination?.examination?.measurements[1].palpableLymphNodes,
-                      'Papable Temporal Artery': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].palpableTemporalArtery
-                          : cubit.oneExamination?.examination?.measurements[1].palpableTemporalArtery,
-                    },
-                  ),
-                  _buildExaminationSection(
-                    title: 'Slitlamp Examination',
-                    icon: Icons.biotech,
-                    isLeft: isLeft,
-                    sectionIndex: 6,
-                    data: {
-                      'Lids':
-                          isLeft ? cubit.oneExamination?.examination?.measurements[0].lids : cubit.oneExamination?.examination?.measurements[1].lids,
-                      'Lashes': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].lashes
-                          : cubit.oneExamination?.examination?.measurements[1].lashes,
-                      'Lacrimal': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].lacrimalSystem
-                          : cubit.oneExamination?.examination?.measurements[1].lacrimalSystem,
-                      'Conjunctiva': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].conjunctiva
-                          : cubit.oneExamination?.examination?.measurements[1].conjunctiva,
-                      'Sclera': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].sclera
-                          : cubit.oneExamination?.examination?.measurements[1].sclera,
-                    },
-                  ),
-                  _buildExaminationSection(
-                    title: 'Additional Examination',
-                    icon: Icons.add_circle_outline,
-                    isLeft: isLeft,
-                    sectionIndex: 7,
-                    data: {
-                      'Cornea': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].cornea
-                          : cubit.oneExamination?.examination?.measurements[1].cornea,
-                      'Anterior Chambre': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].anteriorChamber
-                          : cubit.oneExamination?.examination?.measurements[1].anteriorChamber,
-                      'Iris':
-                          isLeft ? cubit.oneExamination?.examination?.measurements[0].iris : cubit.oneExamination?.examination?.measurements[1].iris,
-                      'Lens':
-                          isLeft ? cubit.oneExamination?.examination?.measurements[0].lens : cubit.oneExamination?.examination?.measurements[1].lens,
-                      'Anterior Vitreous': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].anteriorVitreous
-                          : cubit.oneExamination?.examination?.measurements[1].anteriorVitreous,
-                    },
-                  ),
-                  _buildExaminationSection(
-                    title: 'Fundus Examination',
-                    icon: Icons.center_focus_strong,
-                    isLeft: isLeft,
-                    sectionIndex: 8,
-                    data: {
-                      'Optic Disc': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].fundusOpticDisc
-                          : cubit.oneExamination?.examination?.measurements[1].fundusOpticDisc,
-                      'Macula': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].fundusMacula
-                          : cubit.oneExamination?.examination?.measurements[1].fundusMacula,
-                      'Vessels': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].fundusVessels
-                          : cubit.oneExamination?.examination?.measurements[1].fundusVessels,
-                      'Periphery': isLeft
-                          ? cubit.oneExamination?.examination?.measurements[0].fundusPeriphery
-                          : cubit.oneExamination?.examination?.measurements[1].fundusPeriphery,
-                    },
-                  ),
-                  const SizedBox(height: 16), // Bottom padding
-                ],
+                  children: [
+                    Text(
+                      isLeft ? 'Left Eye' : 'Right Eye',
+                      style: TextStyle(color: Colorz.primaryColor, fontWeight: FontWeight.w500, fontSize: 16),
+                    ),
+                    const HeightSpacer(size: 12),
+                    _buildQuadrantSection(isLeft: isLeft, cubit: cubit),
+
+                    _buildExaminationSection(
+                      title: 'Autorefraction',
+                      icon: Icons.remove_red_eye,
+                      isLeft: isLeft,
+                      sectionIndex: 0,
+                      data: {
+                        'Spherical': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].autorefSpherical ?? '-'
+                            : cubit.oneExamination?.examination?.measurements[1].autorefSpherical ?? '-',
+                        'Cylindrical': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].autorefCylindrical ?? '-'
+                            : cubit.oneExamination?.examination?.measurements[1].autorefCylindrical,
+                        'Axis': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].autorefAxis
+                            : cubit.oneExamination?.examination?.measurements[1].autorefAxis,
+                      },
+                    ),
+                    _buildExaminationSection(
+                      title: 'Refined Refraction',
+                      icon: Icons.science,
+                      isLeft: isLeft,
+                      sectionIndex: 2,
+                      data: {
+                        'Spherical': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].refinedRefractionSpherical
+                            : cubit.oneExamination?.examination?.measurements[1].refinedRefractionSpherical,
+                        'Cylindrical': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].refinedRefractionCylindrical
+                            : cubit.oneExamination?.examination?.measurements[1].refinedRefractionCylindrical,
+                        'Axis': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].refinedRefractionAxis
+                            : cubit.oneExamination?.examination?.measurements[1].refinedRefractionAxis,
+                      },
+                    ),
+                    _buildExaminationSection(
+                      title: 'Visual Acuity',
+                      icon: Icons.visibility,
+                      isLeft: isLeft,
+                      sectionIndex: 1,
+                      data: {
+                        'UCVA': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].ucva
+                            : cubit.oneExamination?.examination?.measurements[1].ucva,
+                        'BCVA': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].bcva
+                            : cubit.oneExamination?.examination?.measurements[1].bcva,
+                      },
+                    ),
+
+                    _buildExaminationSection(
+                      title: 'IOP',
+                      icon: Icons.opacity,
+                      isLeft: isLeft,
+                      sectionIndex: 3,
+                      data: {
+                        'IOP Value':
+                            isLeft ? cubit.oneExamination?.examination?.measurements[0].iop : cubit.oneExamination?.examination?.measurements[1].iop,
+                        'Measurement Method': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].meansOfMeasurement
+                            : cubit.oneExamination?.examination?.measurements[1].meansOfMeasurement,
+                        'Acquire Another IOP Measurement': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].acquireAnotherIopMeasurement
+                            : cubit.oneExamination?.examination?.measurements[1].acquireAnotherIopMeasurement,
+                      },
+                    ),
+                    _buildExaminationSection(
+                      title: 'Pupils',
+                      icon: Icons.lens_blur,
+                      isLeft: isLeft,
+                      sectionIndex: 4,
+                      data: {
+                        'Shape': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsShape
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsShape,
+                        'Light Reflex': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsLightReflexTest
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsLightReflexTest,
+                        'Near Reflex': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsNearReflexTest
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsNearReflexTest,
+                        'Swinging Flashlight': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsSwingingFlashLightTest
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsSwingingFlashLightTest,
+                        'Other Disorders': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsOtherDisorders
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsOtherDisorders,
+                      },
+                    ),
+                    _buildExaminationSection(
+                      title: 'Eyelid & Physical',
+                      icon: Icons.visibility_outlined,
+                      isLeft: isLeft,
+                      sectionIndex: 5,
+                      data: {
+                        'Eyelid Ptosis': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].eyelidPtosis
+                            : cubit.oneExamination?.examination?.measurements[1].eyelidPtosis,
+                        'Lagophthalmos': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].eyelidLagophthalmos
+                            : cubit.oneExamination?.examination?.measurements[1].eyelidLagophthalmos,
+                        'Palpable Lymph Nodes': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].palpableLymphNodes
+                            : cubit.oneExamination?.examination?.measurements[1].palpableLymphNodes,
+                        'Papable Temporal Artery': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].palpableTemporalArtery
+                            : cubit.oneExamination?.examination?.measurements[1].palpableTemporalArtery,
+                      },
+                    ),
+
+                    _buildExaminationSection(
+                      title: 'Eye Structure',
+                      icon: Icons.add_circle_outline,
+                      isLeft: isLeft,
+                      sectionIndex: 7,
+                      data: {
+                        'Cornea': (isLeft
+                                ? cubit.oneExamination?.examination?.measurements[0].cornea
+                                : cubit.oneExamination?.examination?.measurements[1].cornea)
+                            .join(', '),
+                        'Anterior Chambre': (isLeft
+                                ? cubit.oneExamination?.examination?.measurements[0].anteriorChamber
+                                : cubit.oneExamination?.examination?.measurements[1].anteriorChamber)
+                            .join(', '),
+                        'Iris': (isLeft
+                                ? cubit.oneExamination?.examination?.measurements[0].iris
+                                : cubit.oneExamination?.examination?.measurements[1].iris)
+                            .join(', '),
+                        'Lens': (isLeft
+                                ? cubit.oneExamination?.examination?.measurements[0].lens
+                                : cubit.oneExamination?.examination?.measurements[1].lens)
+                            .join(', '),
+                        'Anterior Vitreous': (isLeft
+                                ? cubit.oneExamination?.examination?.measurements[0].anteriorVitreous
+                                : cubit.oneExamination?.examination?.measurements[1].anteriorVitreous)
+                            .join(', '),
+                      },
+                    ),
+                    _buildExaminationSection(
+                      title: 'Fundus Examination',
+                      icon: Icons.center_focus_strong,
+                      isLeft: isLeft,
+                      sectionIndex: 8,
+                      data: {
+                        'Optic Disc': (isLeft
+                                ? cubit.oneExamination?.examination?.measurements[0].fundusOpticDisc
+                                : cubit.oneExamination?.examination?.measurements[1].fundusOpticDisc)
+                            .join(', '),
+                        'Macula': (isLeft
+                                ? cubit.oneExamination?.examination?.measurements[0].fundusMacula
+                                : cubit.oneExamination?.examination?.measurements[1].fundusMacula)
+                            .join(', '),
+                        'Vessels': (isLeft
+                                ? cubit.oneExamination?.examination?.measurements[0].fundusVessels
+                                : cubit.oneExamination?.examination?.measurements[1].fundusVessels)
+                            .join(', '),
+                        'Periphery': (isLeft
+                                ? cubit.oneExamination?.examination?.measurements[0].fundusPeriphery
+                                : cubit.oneExamination?.examination?.measurements[1].fundusPeriphery)
+                            .join(', '),
+                      },
+                    ),
+                    _buildExaminationSection(
+                      title: 'External Features',
+                      icon: Icons.biotech,
+                      isLeft: isLeft,
+                      sectionIndex: 6,
+                      data: {
+                        'Lids': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].lids
+                            : cubit.oneExamination?.examination?.measurements[1].lids,
+                        'Lashes': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].lashes
+                            : cubit.oneExamination?.examination?.measurements[1].lashes,
+                        'Lacrimal': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].lacrimalSystem
+                            : cubit.oneExamination?.examination?.measurements[1].lacrimalSystem,
+                        'Conjunctiva': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].conjunctiva
+                            : cubit.oneExamination?.examination?.measurements[1].conjunctiva,
+                        'Sclera': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].sclera
+                            : cubit.oneExamination?.examination?.measurements[1].sclera,
+                      },
+                    ),
+                    const SizedBox(height: 16), // Bottom padding
+                  ],
+                ),
               );
       },
     );
@@ -448,22 +467,16 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           maintainState: true, // Add this
-          initiallyExpanded: false, // Add this
+          initiallyExpanded: true,
+          enabled: false, // Add this
           tilePadding: const EdgeInsets.symmetric(horizontal: 16), // Optional for better spacing
           expandedCrossAxisAlignment: CrossAxisAlignment.start, // Add this for better alignment
           childrenPadding: const EdgeInsets.all(16), // Add this for better padding
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: Colorz.primaryColor),
-          ),
+
           title: Text(
             title,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colorz.primaryColor,
             ),
@@ -655,7 +668,7 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
             ),
           ),
           subtitle: Text(
-            'Eye: ${finalization.eye?.toUpperCase() ?? 'N/A'}',
+            'Eye: ${finalization.eye?.toUpperCase() ?? ''}',
             style: const TextStyle(
               fontSize: 14,
               color: Colors.grey,
@@ -663,6 +676,19 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
           ),
           childrenPadding: const EdgeInsets.all(16),
           children: [
+            if (finalization.diagnosis != null)
+              SizedBox(
+                width: double.infinity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Diagnosis", style: TextStyle(fontSize: 14, color: Colorz.primaryColor, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text(finalization.diagnosis ?? 'N/A', style: const TextStyle(fontSize: 14)),
+                    const HeightSpacer(size: 10)
+                  ],
+                ),
+              ),
             _buildFinalizationContent(finalization),
           ],
         ),
@@ -851,9 +877,7 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
           const SizedBox(height: 8),
           if (finalization.data?.toLowerCase() == 'cataract surgery') ...[
             // Cataract surgery options
-            ...finalization.metaData
-                .where((detail) => ['phaco', 'extracap', 'type of lens'].contains(detail.toString().toLowerCase()))
-                .map((detail) => _buildORDetailItem(detail)),
+            ...finalization.metaData.map((detail) => _buildORDetailItem(detail)),
           ] else if (finalization.data?.toLowerCase() == 'intravitreal injection') ...[
             // Injection options
             ...finalization.metaData

@@ -1332,7 +1332,7 @@ class CustomColumnDropdown<T> extends StatefulWidget {
     this.onChanged,
     this.selectedValue,
     this.text,
-    required this.hintText,
+    this.hintText,
     this.border,
     this.height,
     this.hintColor,
@@ -1349,7 +1349,7 @@ class CustomColumnDropdown<T> extends StatefulWidget {
   final String? textRow;
   final Widget? icon;
   final Widget? prefixIcon;
-  final String hintText;
+  final String? hintText;
   final double? border;
   final double? height;
   final double? radius;
@@ -1407,32 +1407,18 @@ class _CustomColumnDropdownState extends State<CustomColumnDropdown> {
           children: [
             Text(
               "   ${widget.textRow ?? " "}",
-              style: appStyle(context, 18, Colors.grey, FontWeight.w600),
+              style: appStyle(context, 14, Colors.grey, FontWeight.w600),
             ),
             DropdownItem(
                 items: widget.items,
-                hintText: widget.textRow ?? "",
+                hintText: widget.hintText ?? widget.textRow ?? "",
                 hintStyle: appStyle(context, 16, Colors.grey, FontWeight.w500),
                 radius: 30,
-                iconData: Container(
-                  padding: const EdgeInsets.all(1),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade300,
-                        spreadRadius: 2,
-                        blurRadius: 4,
-                        offset: const Offset(0, 0),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.expand_more,
-                    color: Colors.black,
-                  ),
+                iconData: const Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.grey,
                 ),
+                height: 6,
                 selectedValue: widget.selectedValue,
                 itemAsString: (item) => item.toString(),
                 onItemSelected: widget.onChanged ?? (_) {},

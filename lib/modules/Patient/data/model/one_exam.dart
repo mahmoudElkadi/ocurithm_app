@@ -1,16 +1,14 @@
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 
+import '../../../Doctor/data/model/doctor_model.dart';
+
 class ExaminationModel {
-  ExaminationModel({
-    required this.error,
-    required this.message,
-    required this.examination,
-    required this.finalization,
-  });
+  ExaminationModel({this.error, this.message, this.examination, this.finalization, this.doctor});
 
   final String? error;
   final String? message;
   final Examination? examination;
+  final Doctor? doctor;
   final Finalization? finalization;
 
   factory ExaminationModel.fromJson(Map<String, dynamic> json) {
@@ -19,6 +17,7 @@ class ExaminationModel {
       message: json["message"],
       examination: json["examination"] == null ? null : Examination.fromJson(json["examination"]),
       finalization: json["finalization"] == null ? null : Finalization.fromJson(json["finalization"]),
+      doctor: json["doctor"] == null ? null : Doctor.fromJson(json["doctor"]),
     );
   }
 
@@ -26,22 +25,23 @@ class ExaminationModel {
         "error": error,
         "message": message,
         "examination": examination?.toJson(),
+        "doctor": doctor?.toJson(),
         "finalization": finalization?.toJson(),
       };
 }
 
 class Examination {
   Examination({
-    required this.clinic,
-    required this.patient,
-    required this.appointment,
-    required this.type,
+    this.clinic,
+    this.patient,
+    this.appointment,
+    this.type,
     required this.measurements,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.history,
-    required this.complain,
-    required this.id,
+    this.createdAt,
+    this.updatedAt,
+    this.history,
+    this.complain,
+    this.id,
   });
 
   final String? clinic;
@@ -86,20 +86,20 @@ class Examination {
 
 class Appointment {
   Appointment({
-    required this.clinic,
-    required this.patient,
-    required this.branch,
-    required this.doctor,
-    required this.examinationType,
-    required this.datetime,
-    required this.paymentMethod,
-    required this.status,
-    required this.note,
-    required this.price,
-    required this.createBy,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.id,
+    this.clinic,
+    this.patient,
+    this.branch,
+    this.doctor,
+    this.examinationType,
+    this.datetime,
+    this.paymentMethod,
+    this.status,
+    this.note,
+    this.price,
+    this.createBy,
+    this.createdAt,
+    this.updatedAt,
+    this.id,
   });
 
   final String? clinic;
@@ -156,13 +156,13 @@ class Appointment {
 
 class Complain {
   Complain({
-    required this.examination,
-    required this.complainOne,
-    required this.complainTwo,
-    required this.complainThree,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.id,
+    this.examination,
+    this.complainOne,
+    this.complainTwo,
+    this.complainThree,
+    this.createdAt,
+    this.updatedAt,
+    this.id,
   });
 
   final String? examination;
@@ -198,14 +198,14 @@ class Complain {
 
 class History {
   History({
-    required this.examination,
-    required this.presentIllness,
-    required this.pastHistory,
-    required this.medicationHistory,
-    required this.familyHistory,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.id,
+    this.examination,
+    this.presentIllness,
+    this.pastHistory,
+    this.medicationHistory,
+    this.familyHistory,
+    this.createdAt,
+    this.updatedAt,
+    this.id,
   });
 
   final String? examination;
@@ -244,50 +244,51 @@ class History {
 
 class Measurement {
   Measurement({
-    required this.eye,
-    required this.examination,
-    required this.autorefSpherical,
-    required this.autorefCylindrical,
-    required this.autorefAxis,
-    required this.ucva,
-    required this.bcva,
-    required this.refinedRefractionSpherical,
-    required this.refinedRefractionCylindrical,
-    required this.refinedRefractionAxis,
-    required this.iop,
-    required this.meansOfMeasurement,
-    required this.acquireAnotherIopMeasurement,
-    required this.pupilsShape,
-    required this.pupilsLightReflexTest,
-    required this.pupilsNearReflexTest,
-    required this.pupilsSwingingFlashLightTest,
-    required this.pupilsOtherDisorders,
-    required this.eyelidPtosis,
-    required this.eyelidLagophthalmos,
-    required this.palpableLymphNodes,
-    required this.palpableTemporalArtery,
-    required this.exophthalmometry,
-    required this.cornea,
-    required this.anteriorChamber,
-    required this.iris,
-    required this.lens,
-    required this.anteriorVitreous,
-    required this.fundusOpticDisc,
-    required this.fundusMacula,
-    required this.fundusVessels,
-    required this.fundusPeriphery,
-    required this.lids,
-    required this.lashes,
-    required this.sclera,
-    required this.conjunctiva,
-    required this.lacrimalSystem,
-    required this.topLeft,
-    required this.topRight,
-    required this.bottomLeft,
-    required this.bottomRight,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.id,
+    this.eye,
+    this.examination,
+    this.autorefSpherical,
+    this.autorefCylindrical,
+    this.autorefAxis,
+    this.ucva,
+    this.bcva,
+    this.refinedRefractionSpherical,
+    this.refinedRefractionCylindrical,
+    this.refinedRefractionAxis,
+    this.iop,
+    this.meansOfMeasurement,
+    this.acquireAnotherIopMeasurement,
+    this.pupilsShape,
+    this.pupilsLightReflexTest,
+    this.pupilsNearReflexTest,
+    this.pupilsSwingingFlashLightTest,
+    this.pupilsOtherDisorders,
+    this.eyelidPtosis,
+    this.eyelidLagophthalmos,
+    this.palpableLymphNodes,
+    this.palpableTemporalArtery,
+    this.exophthalmometry,
+    this.cornea,
+    this.anteriorChamber,
+    this.iris,
+    this.lens,
+    this.anteriorVitreous,
+    this.fundusOpticDisc,
+    this.fundusMacula,
+    this.fundusVessels,
+    this.fundusPeriphery,
+    this.lids,
+    this.lashes,
+    this.sclera,
+    this.conjunctiva,
+    this.lacrimalSystem,
+    this.topLeft,
+    this.topRight,
+    this.bottomLeft,
+    this.bottomRight,
+    this.createdAt,
+    this.updatedAt,
+    this.id,
+    this.nearVisionAddition,
   });
 
   final String? eye;
@@ -322,6 +323,7 @@ class Measurement {
   final dynamic fundusMacula;
   final dynamic fundusVessels;
   final dynamic fundusPeriphery;
+  final dynamic nearVisionAddition;
   final String? lids;
   final String? lashes;
   final String? sclera;
@@ -341,6 +343,7 @@ class Measurement {
       examination: json["examination"],
       autorefSpherical: json["autorefSpherical"],
       autorefCylindrical: json["autorefCylindrical"],
+      nearVisionAddition: json["nearVisionAddition"],
       autorefAxis: json["autorefAxis"],
       ucva: json["ucva"],
       bcva: json["bcva"],
@@ -434,14 +437,14 @@ class Measurement {
 
 class Type {
   Type({
-    required this.clinic,
-    required this.name,
-    required this.price,
-    required this.duration,
-    required this.isActive,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.id,
+    this.clinic,
+    this.name,
+    this.price,
+    this.duration,
+    this.isActive,
+    this.createdAt,
+    this.updatedAt,
+    this.id,
   });
 
   final String? clinic;
@@ -480,20 +483,22 @@ class Type {
 
 class Finalization {
   Finalization({
-    required this.examination,
-    required this.action,
-    required this.eye,
-    required this.data,
+    this.examination,
+    this.action,
+    this.eye,
+    this.data,
+    this.diagnosis,
     required this.metaData,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.id,
+    this.createdAt,
+    this.updatedAt,
+    this.id,
   });
 
   final String? examination;
   final String? action;
   final String? eye;
   final String? data;
+  final String? diagnosis;
   final List<dynamic> metaData;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -509,6 +514,7 @@ class Finalization {
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
+      diagnosis: json["diagnosis"],
     );
   }
 
@@ -517,6 +523,7 @@ class Finalization {
         "action": action,
         "eye": eye,
         "data": data,
+        "diagnosis": diagnosis,
         "metaData": metaData.map((x) => x).toList(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),

@@ -1,18 +1,27 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/modules/Examination/presentaion/views/widgets/prescription_pdf.dart';
+import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
 
 import '../../../../../core/widgets/confirmation_popuo.dart';
+import '../../../../../core/widgets/custom_column_section.dart';
 import '../../../../../core/widgets/custom_freeze_loading.dart';
+import '../../../../Doctor/data/model/doctor_model.dart';
 import '../../../data/repos/examination_repo_impl.dart';
 import '../../manager/examination_cubit.dart';
 import '../../manager/examination_state.dart';
 
 class MedicalTreeForm extends StatefulWidget {
-  const MedicalTreeForm({super.key, required this.id});
-  final String id;
+  const MedicalTreeForm({super.key, required this.examination, this.doctor});
+
+  final Examination? examination;
+  final Doctor? doctor;
 
   @override
   State<MedicalTreeForm> createState() => _MedicalTreeFormState();
@@ -22,6 +31,9 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   String? selectedMainOption;
   String? selectedGlassesType;
   final TextEditingController prescriptionController = TextEditingController();
+  final TextEditingController IPDController = TextEditingController();
+  final TextEditingController typeOfLens = TextEditingController();
+  final TextEditingController diagnosisController = TextEditingController();
 
   // Investigation checkboxes
   final Map<String, bool> investigationOptions = {
@@ -68,7 +80,6 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   final Map<String, bool> cataractSurgeryOptions = {
     'Phaco': false,
     'Extracap': false,
-    'Type of lens': false,
   };
 
   // Intravitreal injection options
@@ -81,6 +92,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     'VsiqqOO': false,
     'Ozurdex': false,
   };
+
+  String? selectedOption; // Store the selected key instead of a Map
 
   // Appointment types
   final List<String> appointmentTypes = ['As before', 'New appointment'];
@@ -112,6 +125,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     'Refer to OR',
     'Book next appointment'
   ];
+  bool unDiagnosedYet = false;
 
   // Glasses prescription details
   final List<String> glassesTypes = ['Near vision', 'Far vision', 'IPD', 'Remarks'];
@@ -122,12 +136,13 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
       'action': selectedMainOption?.toLowerCase() ?? '',
       'data': '',
       'metaData': [],
+      'diagnosis': unDiagnosedYet ? null : diagnosisController.text.toLowerCase(),
       'eye': selectedeye?.toLowerCase()
     };
 
     switch (selectedMainOption) {
       case 'Prescribe glasses':
-        prescription['data'] = selectedGlassesValue?.toLowerCase();
+        prescription['data'] = IPDController.text.toLowerCase();
         break;
 
       case 'Prescribe medications':
@@ -169,8 +184,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           prescription['data'] = selectedOROption?.toLowerCase();
         }
         prescription['metaData'] = [
-          if (selectedOROption == 'Cataract surgery')
-            ...cataractSurgeryOptions.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
+          if (selectedOROption == 'Cataract surgery') selectedOption,
+          typeOfLens.text,
           if (selectedOROption == 'Intravitreal injection')
             ...injectionOptions.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
         ];
@@ -183,12 +198,17 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         break;
     }
 
+    log(prescription.toString());
+
     return prescription;
   }
 
   @override
   void dispose() {
     prescriptionController.dispose();
+    IPDController.dispose();
+    diagnosisController.dispose();
+    typeOfLens.dispose();
     super.dispose();
   }
 
@@ -215,16 +235,36 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                   ))
             ],
           ),
+          actions: [
+            IconButton(
+                icon: Icon(Icons.picture_as_pdf),
+                color: Colorz.primaryColor,
+                onPressed: () {
+                  log("sss" + generatePrescriptionObject()['diagnosis']);
+                  generateAndPrintPrescription(
+                      ExaminationModel(
+                          examination: widget.examination,
+                          doctor: widget.doctor,
+                          finalization: Finalization(
+                              action: generatePrescriptionObject()['action'],
+                              eye: generatePrescriptionObject()['eye'],
+                              data: generatePrescriptionObject()['data'],
+                              diagnosis: generatePrescriptionObject()['diagnosis'],
+                              metaData: generatePrescriptionObject()['metaData'])),
+                      showPrescriptionTable: selectedMainOption == 'Prescribe glasses');
+                }),
+          ],
         ),
         body: SingleChildScrollView(
           padding: EdgeInsets.all(16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _buildFinalDiagnosisForm(),
               _buildMainOptions(),
               SizedBox(height: 20.h),
               if (selectedMainOption != null) _buildSelectedOptionContent(),
-              if (selectedMainOption != null) eyeForm(),
+              if (selectedMainOption != null && selectedMainOption != 'Prescribe glasses' && selectedMainOption != 'Prescribe medications') eyeForm(),
               if (selectedMainOption != null) SizedBox(height: 20.h),
               if (selectedMainOption != null) _buildSaveButton(context),
             ],
@@ -237,6 +277,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   Future<void> _clearAllData() async {
     // Clear text controllers
     prescriptionController.clear();
+    IPDController.clear();
+    typeOfLens.clear();
 
     // Clear all investigation options
     investigationOptions.updateAll((key, value) => false);
@@ -260,6 +302,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   Future<void> clearOrOptions() async {
     cataractSurgeryOptions.updateAll((key, value) => false);
     injectionOptions.updateAll((key, value) => false);
+    selectedOption = null;
   }
 
   Widget _buildMainOptions() {
@@ -331,6 +374,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               title,
@@ -370,21 +414,115 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   }
 
   Widget _buildGlassesPrescriptionForm() {
-    return _buildFormContainer(
-      title: 'Glasses Prescription',
-      child: Column(
-        children: [
-          _buildDropdown(
-            items: ['Near vision', 'Far vision', 'IPD', 'Remarks'],
-            value: selectedGlassesValue,
-            onChanged: (value) {
-              setState(() {
-                selectedGlassesValue = value!;
-              });
-            },
-            hint: 'Select glasses type',
-          ),
-        ],
+    return Card(
+      margin: EdgeInsets.only(bottom: 16.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "IPD",
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colorz.primaryColor,
+              ),
+            ),
+            Divider(height: 24.h),
+            TextField(
+              controller: IPDController,
+              maxLines: 1,
+              decoration: _getInputDecoration('Enter IPD...'),
+            ),
+            HeightSpacer(size: 10),
+            Row(
+              spacing: 10,
+              children: [
+                Expanded(
+                  child: Column(
+                    spacing: 6,
+                    children: [
+                      BuildExaminationSection(
+                        title: 'Right eye',
+                        sectionIndex: 2,
+                        data: {
+                          'Spherical': widget.examination?.measurements?[1].refinedRefractionSpherical ?? 'N/A',
+                          'Cylindrical': widget.examination?.measurements?[1].refinedRefractionCylindrical ?? 'N/A',
+                          'Axis': widget.examination?.measurements?[1].refinedRefractionAxis ?? 'N/A',
+                          'NearVision': widget.examination?.measurements?[1].nearVisionAddition ?? 'N/A',
+                        },
+                        isLeft: false,
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    spacing: 6,
+                    children: [
+                      BuildExaminationSection(
+                        title: 'left eye',
+                        sectionIndex: 2,
+                        data: {
+                          'Spherical': widget.examination?.measurements?[0].refinedRefractionSpherical ?? 'N/A',
+                          'Cylindrical': widget.examination?.measurements?[0].refinedRefractionCylindrical ?? 'N/A',
+                          'Axis': widget.examination?.measurements?[0].refinedRefractionAxis ?? 'N/A',
+                          'NearVision': widget.examination?.measurements?[0].nearVisionAddition ?? 'N/A',
+                        },
+                        isLeft: true,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFinalDiagnosisForm() {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Final Diagnosis",
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colorz.primaryColor,
+              ),
+            ),
+            Divider(height: 24.h),
+            _buildCheckbox(
+                title: "Undiagnosed Yet",
+                value: unDiagnosedYet,
+                onChanged: (value) {
+                  unDiagnosedYet = value ?? false;
+                  setState(() {});
+                }),
+            if (!unDiagnosedYet)
+              TextField(
+                controller: diagnosisController,
+                maxLines: 1,
+                decoration: _getInputDecoration('Enter Diagnosis...'),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -507,6 +645,28 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     );
   }
 
+  Widget _buildRadioButton({
+    required String title,
+    required bool value,
+    required String? groupValue, // Add groupValue parameter
+    required Function(String?) onChanged, // Change onChanged to handle String
+  }) {
+    return RadioListTile<String>(
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 15.sp,
+          color: title == groupValue ? Colorz.primaryColor : Colors.black87,
+        ),
+      ),
+      value: title, // Use the title as the value
+      groupValue: groupValue, // Compare with groupValue
+      activeColor: Colorz.primaryColor,
+      controlAffinity: ListTileControlAffinity.leading,
+      onChanged: onChanged,
+    );
+  }
+
   Widget _buildLaserOptionsForm() {
     return _buildFormContainer(
       title: 'Laser Options',
@@ -567,16 +727,31 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           SizedBox(height: 16.h),
           if (selectedOROption == 'Cataract surgery') ...[
             ...cataractSurgeryOptions.entries.map((entry) {
-              return _buildCheckbox(
+              return _buildRadioButton(
                 title: entry.key,
                 value: entry.value,
+                groupValue: selectedOption, // Pass the currently selected option
                 onChanged: (value) {
                   setState(() {
-                    cataractSurgeryOptions[entry.key] = value ?? false;
+                    // Reset all values to false
+                    cataractSurgeryOptions.forEach((key, _) {
+                      cataractSurgeryOptions[key] = false;
+                    });
+                    // Set only the selected one to true
+                    if (value != null) {
+                      selectedOption = value;
+                      cataractSurgeryOptions[value] = true;
+                    }
                   });
                 },
               );
             }).toList(),
+            SizedBox(height: 16.h),
+            TextField(
+              controller: typeOfLens,
+              maxLines: 1,
+              decoration: _getInputDecoration('Type Of Lens...'),
+            ),
           ],
           if (selectedOROption == 'Intravitreal injection') ...[
             ...injectionOptions.entries.map((entry) {
@@ -743,21 +918,6 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     );
   }
 
-  List<String> _getOptionsForType(String type) {
-    switch (type) {
-      case 'Near vision':
-        return List.generate(20, (i) => '+${(i * 0.25).toStringAsFixed(2)}');
-      case 'Far vision':
-        return List.generate(20, (i) => '-${(i * 0.25).toStringAsFixed(2)}');
-      case 'IPD':
-        return List.generate(20, (i) => '${55 + i}mm');
-      case 'Remarks':
-        return ['None', 'With astigmatism', 'Bifocal needed', 'Progressive needed'];
-      default:
-        return [];
-    }
-  }
-
   Widget _buildSaveButton(BuildContext context) {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) => Container(
@@ -792,7 +952,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                     ));
                     return;
                   }
-                  ExaminationCubit.get(context).makeFinalization(context: context, id: widget.id, data: prescriptionObject);
+                  ExaminationCubit.get(context).makeFinalization(context: context, id: widget.examination?.id ?? '', data: prescriptionObject);
                 },
                 onCancel: () {
                   Navigator.pop(context);
@@ -802,7 +962,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
             borderRadius: BorderRadius.circular(8),
             child: const Center(
               child: Text(
-                'Save Prescription',
+                'Finalize Visit',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,

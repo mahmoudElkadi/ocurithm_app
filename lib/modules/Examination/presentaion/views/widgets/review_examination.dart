@@ -61,67 +61,67 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
               Column(
                 children: [
                   // Tab bar
+                  // Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: InkWell(
+                  //         onTap: () => setState(() => _selectedTab = 0),
+                  //         child: Container(
+                  //           padding: const EdgeInsets.symmetric(vertical: 12),
+                  //           decoration: BoxDecoration(
+                  //             border: Border(
+                  //               bottom: BorderSide(
+                  //                 color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey.shade300,
+                  //                 width: 2,
+                  //               ),
+                  //             ),
+                  //           ),
+                  //           child: Text(
+                  //             'Left Eye',
+                  //             textAlign: TextAlign.center,
+                  //             style: TextStyle(
+                  //               color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey,
+                  //               fontWeight: _selectedTab == 0 ? FontWeight.bold : FontWeight.normal,
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     Expanded(
+                  //       child: InkWell(
+                  //         onTap: () => setState(() => _selectedTab = 1),
+                  //         child: Container(
+                  //           padding: const EdgeInsets.symmetric(vertical: 12),
+                  //           decoration: BoxDecoration(
+                  //             border: Border(
+                  //               bottom: BorderSide(
+                  //                 color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey.shade300,
+                  //                 width: 2,
+                  //               ),
+                  //             ),
+                  //           ),
+                  //           child: Text(
+                  //             'Right Eye',
+                  //             textAlign: TextAlign.center,
+                  //             style: TextStyle(
+                  //               color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey,
+                  //               fontWeight: _selectedTab == 1 ? FontWeight.bold : FontWeight.normal,
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 10,
                     children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () => setState(() => _selectedTab = 0),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey.shade300,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              'Left Eye',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey,
-                                fontWeight: _selectedTab == 0 ? FontWeight.bold : FontWeight.normal,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () => setState(() => _selectedTab = 1),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey.shade300,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              'Right Eye',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey,
-                                fontWeight: _selectedTab == 1 ? FontWeight.bold : FontWeight.normal,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      _buildEyeExaminationContent(isLeft: false),
+                      _buildEyeExaminationContent(isLeft: true),
                     ],
-                  ),
-
+                  )
                   // Content
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: _selectedTab == 0 ? _buildEyeExaminationContent(isLeft: true) : _buildEyeExaminationContent(isLeft: false),
-                    ),
-                  ),
                 ],
               ),
 
@@ -173,29 +173,21 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           maintainState: true,
-          initiallyExpanded: false,
+          initiallyExpanded: true,
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
-          childrenPadding: const EdgeInsets.all(16),
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.grid_4x4, color: Colorz.primaryColor),
-          ),
+          childrenPadding: const EdgeInsets.all(0),
           title: Text(
             'Confrontation Fields',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colorz.primaryColor,
             ),
           ),
           children: [
             QuadrantContainer(
-              containerSize: 300,
+              containerSize: 280,
               colorList: _colorList,
               tapCounts: isLeft
                   ? [
@@ -218,160 +210,129 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
     );
   }
 
-  Widget _buildCustomTabButton({
-    required String text,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colorz.primaryColor.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isSelected ? Colorz.primaryColor : Colors.grey[600],
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildEyeExaminationContent({required bool isLeft}) {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) {
         final cubit = context.read<ExaminationCubit>();
 
-        return Column(
-          mainAxisSize: MainAxisSize.min, // Add this line
+        return Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // Add this line
 
-          children: [
-            _buildExaminationSection(
-              title: 'Autoref',
-              icon: Icons.remove_red_eye,
-              isLeft: isLeft,
-              sectionIndex: 0,
-              data: {
-                'Spherical': isLeft ? cubit.leftAurorefSpherical : cubit.rightAurorefSpherical,
-                'Cylindrical': isLeft ? cubit.leftAurorefCylindrical : cubit.rightAurorefCylindrical,
-                'Axis': isLeft ? cubit.leftAurorefAxis : cubit.rightAurorefAxis,
-              },
-            ),
-            _buildExaminationSection(
-              title: 'Visual Acuity',
-              icon: Icons.visibility,
-              isLeft: isLeft,
-              sectionIndex: 1,
-              data: {
-                'UCVA': isLeft ? cubit.leftUCVA : cubit.rightUCVA,
-                'BCVA': isLeft ? cubit.leftBCVA : cubit.rightBCVA,
-              },
-            ),
-            _buildExaminationSection(
-              title: 'Refined Refraction',
-              icon: Icons.science,
-              isLeft: isLeft,
-              sectionIndex: 2,
-              data: {
-                'Spherical': isLeft ? cubit.leftRefinedRefractionSpherical : cubit.rightRefinedRefractionSpherical,
-                'Cylindrical': isLeft ? cubit.leftRefinedRefractionCylindrical : cubit.rightRefinedRefractionCylindrical,
-                'Axis': isLeft ? cubit.leftRefinedRefractionAxis : cubit.rightRefinedRefractionAxis,
-              },
-            ),
-            _buildExaminationSection(
-              title: 'IOP',
-              icon: Icons.opacity,
-              isLeft: isLeft,
-              sectionIndex: 3,
-              data: {
-                'IOP Value': isLeft ? cubit.leftIOP : cubit.rightIOP,
-                'Measurement Method': isLeft ? cubit.leftMeansOfMeasurement : cubit.rightMeansOfMeasurement,
-                'Additional Measurement': isLeft ? cubit.leftAcquireAnotherIOPMeasurement : cubit.rightAcquireAnotherIOPMeasurement,
-              },
-            ),
-            _buildExaminationSection(
-              title: 'Pupils',
-              icon: Icons.lens_blur,
-              isLeft: isLeft,
-              sectionIndex: 4,
-              data: {
-                'Shape': isLeft ? cubit.leftPupilsShape : cubit.rightPupilsShape,
-                'Light Reflex': isLeft ? cubit.leftPupilsLightReflexTest : cubit.rightPupilsLightReflexTest,
-                'Near Reflex': isLeft ? cubit.leftPupilsNearReflexTest : cubit.rightPupilsNearReflexTest,
-                'Swinging Flashlight': isLeft ? cubit.leftPupilsSwingingFlashLightTest : cubit.rightPupilsSwingingFlashLightTest,
-                'Other Disorders': isLeft ? cubit.leftPupilsOtherDisorders : cubit.rightPupilsOtherDisorders,
-              },
-            ),
-            _buildQuadrantSection(isLeft: isLeft),
-            _buildExaminationSection(
-              title: 'External Examination',
-              icon: Icons.visibility_outlined,
-              isLeft: isLeft,
-              sectionIndex: 5,
-              data: {
-                'Eyelid Ptosis': isLeft ? cubit.leftEyelidPtosis : cubit.rightEyelidPtosis,
-                'Lagophthalmos': isLeft ? cubit.leftEyelidLagophthalmos : cubit.rightEyelidLagophthalmos,
-                'Palpable Lymph Nodes': isLeft ? cubit.leftPalpableLymphNodes : cubit.rightPalpableLymphNodes,
-                'Papable Temporal Artery': isLeft ? cubit.leftPapableTemporalArtery : cubit.rightPapableTemporalArtery,
-              },
-            ),
-            _buildExaminationSection(
-              title: 'Slitlamp Examination',
-              icon: Icons.biotech,
-              isLeft: isLeft,
-              sectionIndex: 6,
-              data: {
-                'Lids': isLeft ? cubit.leftLidsController.text : cubit.rightLidsController.text,
-                'Lashes': isLeft ? cubit.leftLashesController.text : cubit.rightLashesController.text,
-                'Lacrimal': isLeft ? cubit.leftLacrimalController.text : cubit.rightLacrimalController.text,
-                'Conjunctiva': isLeft ? cubit.leftConjunctivaController.text : cubit.rightConjunctivaController.text,
-                'Sclera': isLeft ? cubit.leftScleraController.text : cubit.rightScleraController.text,
-              },
-            ),
-            _buildExaminationSection(
-              title: 'Additional Examination',
-              icon: Icons.add_circle_outline,
-              isLeft: isLeft,
-              sectionIndex: 7,
-              data: {
-                'Cornea': isLeft ? cubit.leftCornea : cubit.rightCornea,
-                'Anterior Chambre': isLeft ? cubit.leftAnteriorChambre : cubit.rightAnteriorChambre,
-                'Iris': isLeft ? cubit.leftIris : cubit.rightIris,
-                'Lens': isLeft ? cubit.leftLens : cubit.rightLens,
-                'Anterior Vitreous': isLeft ? cubit.leftAnteriorVitreous : cubit.rightAnteriorVitreous,
-              },
-            ),
-            _buildExaminationSection(
-              title: 'Fundus Examination',
-              icon: Icons.center_focus_strong,
-              isLeft: isLeft,
-              sectionIndex: 8,
-              data: {
-                'Optic Disc': isLeft ? cubit.leftFundusOpticDisc : cubit.rightFundusOpticDisc,
-                'Macula': isLeft ? cubit.leftFundusMacula : cubit.rightFundusMacula,
-                'Vessels': isLeft ? cubit.leftFundusVessels : cubit.rightFundusVessels,
-                'Periphery': isLeft ? cubit.leftFundusPeriphery : cubit.rightFundusPeriphery,
-              },
-            ),
-            const SizedBox(height: 16), // Bottom padding
-          ],
+            children: [
+              Text(isLeft ? 'Left Eye' : 'Right Eye',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colorz.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  )),
+              HeightSpacer(size: 10),
+              _buildQuadrantSection(isLeft: isLeft),
+              _buildExaminationSection(
+                title: 'Auto-refraction',
+                isLeft: isLeft,
+                sectionIndex: 0,
+                data: {
+                  'Spherical': isLeft ? cubit.leftAurorefSpherical : cubit.rightAurorefSpherical,
+                  'Cylindrical': isLeft ? cubit.leftAurorefCylindrical : cubit.rightAurorefCylindrical,
+                  'Axis': isLeft ? cubit.leftAurorefAxis : cubit.rightAurorefAxis,
+                },
+              ),
+              _buildExaminationSection(
+                title: 'Refined Refraction',
+                isLeft: isLeft,
+                sectionIndex: 2,
+                data: {
+                  'Spherical': isLeft ? cubit.leftRefinedRefractionSpherical : cubit.rightRefinedRefractionSpherical,
+                  'Cylindrical': isLeft ? cubit.leftRefinedRefractionCylindrical : cubit.rightRefinedRefractionCylindrical,
+                  'Axis': isLeft ? cubit.leftRefinedRefractionAxis : cubit.rightRefinedRefractionAxis,
+                  'NearVision': isLeft ? cubit.leftNearVisionAddition : cubit.rightNearVisionAddition,
+                },
+              ),
+              _buildExaminationSection(
+                title: 'Visual Acuity',
+                isLeft: isLeft,
+                sectionIndex: 1,
+                data: {
+                  'UCVA': isLeft ? cubit.leftUCVA : cubit.rightUCVA,
+                  'BCVA': isLeft ? cubit.leftBCVA : cubit.rightBCVA,
+                },
+              ),
+
+              _buildExaminationSection(
+                title: 'IOP',
+                isLeft: isLeft,
+                sectionIndex: 3,
+                data: {
+                  'IOP Value': isLeft ? cubit.leftIOP : cubit.rightIOP,
+                  'Measurement Method': isLeft ? cubit.leftMeansOfMeasurement : cubit.rightMeansOfMeasurement,
+                  'Additional Measurement': isLeft ? cubit.leftAcquireAnotherIOPMeasurement : cubit.rightAcquireAnotherIOPMeasurement,
+                },
+              ),
+              _buildExaminationSection(
+                title: 'Pupils',
+                isLeft: isLeft,
+                sectionIndex: 4,
+                data: {
+                  'Shape': isLeft ? cubit.leftPupilsShape : cubit.rightPupilsShape,
+                  'Light Reflex': isLeft ? cubit.leftPupilsLightReflexTest : cubit.rightPupilsLightReflexTest,
+                  'Near Reflex': isLeft ? cubit.leftPupilsNearReflexTest : cubit.rightPupilsNearReflexTest,
+                  'Swinging Flashlight': isLeft ? cubit.leftPupilsSwingingFlashLightTest : cubit.rightPupilsSwingingFlashLightTest,
+                  'Other Disorders': isLeft ? cubit.leftPupilsOtherDisorders : cubit.rightPupilsOtherDisorders,
+                },
+              ),
+              _buildExaminationSection(
+                title: 'Eyelid & Physcal',
+                isLeft: isLeft,
+                sectionIndex: 5,
+                data: {
+                  'Eyelid Ptosis': isLeft ? cubit.leftEyelidPtosis : cubit.rightEyelidPtosis,
+                  'Lagophthalmos': isLeft ? cubit.leftEyelidLagophthalmos : cubit.rightEyelidLagophthalmos,
+                  'Palpable Lymph Nodes': isLeft ? cubit.leftPalpableLymphNodes : cubit.rightPalpableLymphNodes,
+                  'Papable Temporal Artery': isLeft ? cubit.leftPapableTemporalArtery : cubit.rightPapableTemporalArtery,
+                },
+              ),
+
+              _buildExaminationSection(
+                title: 'Eye Structure',
+                isLeft: isLeft,
+                sectionIndex: 7,
+                data: {
+                  'Cornea': (isLeft ? cubit.leftCornea : cubit.rightCornea).join(', '),
+                  'Anterior Chambre': (isLeft ? cubit.leftAnteriorChambre : cubit.rightAnteriorChambre).join(', '),
+                  'Iris': (isLeft ? cubit.leftIris : cubit.rightIris).join(', '),
+                  'Lens': (isLeft ? cubit.leftLens : cubit.rightLens).join(', '),
+                  'Anterior Vitreous': (isLeft ? cubit.leftAnteriorVitreous : cubit.rightAnteriorVitreous).join(', '),
+                },
+              ),
+              _buildExaminationSection(
+                title: 'Fundus Examination',
+                isLeft: isLeft,
+                sectionIndex: 8,
+                data: {
+                  'Optic Disc': (isLeft ? cubit.leftFundusOpticDisc : cubit.rightFundusOpticDisc).join(', '),
+                  'Macula': (isLeft ? cubit.leftFundusMacula : cubit.rightFundusMacula).join(', '),
+                  'Vessels': (isLeft ? cubit.leftFundusVessels : cubit.rightFundusVessels).join(', '),
+                  'Periphery': (isLeft ? cubit.leftFundusPeriphery : cubit.rightFundusPeriphery).join(', '),
+                },
+              ),
+              _buildExaminationSection(
+                title: 'External Features',
+                isLeft: isLeft,
+                sectionIndex: 6,
+                data: {
+                  'Lids': isLeft ? cubit.leftLidsController.text : cubit.rightLidsController.text,
+                  'Lashes': isLeft ? cubit.leftLashesController.text : cubit.rightLashesController.text,
+                  'Lacrimal': isLeft ? cubit.leftLacrimalController.text : cubit.rightLacrimalController.text,
+                  'Conjunctiva': isLeft ? cubit.leftConjunctivaController.text : cubit.rightConjunctivaController.text,
+                  'Sclera': isLeft ? cubit.leftScleraController.text : cubit.rightScleraController.text,
+                },
+              ),
+
+              const SizedBox(height: 16), // Bottom padding
+            ],
+          ),
         );
       },
     );
@@ -379,7 +340,6 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
 
   Widget _buildExaminationSection({
     required String title,
-    required IconData icon,
     required Map<String, dynamic> data,
     required int sectionIndex,
     required bool isLeft,
@@ -392,19 +352,13 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          maintainState: true, // Add this
-          initiallyExpanded: false, // Add this
+          maintainState: false, // Add this
+          initiallyExpanded: true,
+          enabled: false, // Ad d this
           tilePadding: const EdgeInsets.symmetric(horizontal: 16), // Optional for better spacing
           expandedCrossAxisAlignment: CrossAxisAlignment.start, // Add this for better alignment
           childrenPadding: const EdgeInsets.all(16), // Add this for better padding
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: Colorz.primaryColor),
-          ),
+
           title: Text(
             title,
             style: TextStyle(
@@ -639,6 +593,8 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
+          enabled: false,
+          initiallyExpanded: true,
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -661,33 +617,36 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: content.entries.map((entry) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        entry.key,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colorz.primaryColor,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 8,
-                          top: 4,
-                          bottom: 16,
-                        ),
-                        child: Text(
-                          entry.value.isEmpty ? 'No data available' : entry.value,
+                  return SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          entry.key,
                           style: TextStyle(
-                            fontSize: 15,
-                            color: Colorz.black,
-                            height: 1.5,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colorz.primaryColor,
                           ),
                         ),
-                      ),
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 8,
+                            top: 4,
+                            bottom: 16,
+                          ),
+                          child: Text(
+                            entry.value.isEmpty ? 'No data available' : entry.value,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colorz.black,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 }).toList(),
               )
@@ -708,33 +667,36 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                           ),
                         ]
                       : content.entries.map((entry) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                entry.key,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colorz.primaryColor,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 8,
-                                  top: 4,
-                                  bottom: 16,
-                                ),
-                                child: Text(
-                                  entry.value,
+                          return SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  entry.key,
                                   style: TextStyle(
-                                    fontSize: 15,
-                                    color: Colorz.black,
-                                    height: 1.5,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colorz.primaryColor,
                                   ),
                                 ),
-                              ),
-                            ],
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 8,
+                                    top: 4,
+                                    bottom: 16,
+                                  ),
+                                  child: Text(
+                                    entry.value,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colorz.black,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           );
                         }).toList(),
                 ),

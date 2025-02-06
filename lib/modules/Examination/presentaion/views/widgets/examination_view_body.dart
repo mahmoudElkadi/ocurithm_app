@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
@@ -9,6 +8,7 @@ import 'package:ocurithm/modules/Examination/presentaion/views/widgets/review_ex
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
+import '../../../../../core/widgets/multi_select.dart';
 import '../../../../../core/widgets/text_field.dart';
 import '../../manager/examination_cubit.dart';
 import '../../manager/examination_state.dart';
@@ -48,9 +48,9 @@ class MultiStepFormView extends StatelessWidget {
   Widget _buildStepContent(int step) {
     switch (step) {
       case 0:
-        return const _HistoryDetails();
-      case 1:
         return const _StepTwoContent();
+      case 1:
+        return const _HistoryDetails();
       case 2:
         return const StepThreeContent();
       case 3:
@@ -271,7 +271,7 @@ class _HistoryDetails extends StatelessWidget {
                       } else {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                          content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                           backgroundColor: Colorz.redColor,
                         ));
                       }
@@ -452,7 +452,7 @@ class _StepTwoContent extends StatelessWidget {
                     } else {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                        content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                         backgroundColor: Colorz.redColor,
                       ));
                     }
@@ -475,48 +475,11 @@ class StepThreeContent extends StatefulWidget {
 }
 
 class _StepThreeContentState extends State<StepThreeContent> {
-  int index = 0;
-  // Cache eye examination views
-  late final leftEyeView = RepaintBoundary(child: EyeExaminationView(isLeftEye: true));
-  late final rightEyeView = RepaintBoundary(child: EyeExaminationView(isLeftEye: false));
-
   @override
   Widget build(BuildContext context) {
     return ListView(
       physics: const ClampingScrollPhysics(),
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: CupertinoSlidingSegmentedControl<int>(
-              groupValue: index,
-              thumbColor: Colorz.primaryColor,
-              backgroundColor: Colorz.white,
-              padding: EdgeInsets.zero,
-              children: {
-                0: SegmentLabel(
-                  text: "Left Eye",
-                  index: 0,
-                  color: index == 0 ? Colorz.white : Colorz.black,
-                ),
-                1: SegmentLabel(
-                  text: "Right Eye",
-                  index: 1,
-                  color: index == 1 ? Colorz.white : Colorz.black,
-                ),
-              },
-              onValueChanged: (value) {
-                if (value != null && value != index) {
-                  setState(() => index = value);
-                }
-              },
-            ),
-          ),
-        ),
-        // Use cached views
-        index == 0 ? leftEyeView : rightEyeView,
-      ],
+      children: [const EyeExaminationView()],
     );
   }
 }
@@ -552,9 +515,7 @@ class SegmentLabel extends StatelessWidget {
 }
 
 class EyeExaminationView extends StatelessWidget {
-  final bool isLeftEye;
-
-  const EyeExaminationView({Key? key, required this.isLeftEye}) : super(key: key);
+  const EyeExaminationView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -564,91 +525,25 @@ class EyeExaminationView extends StatelessWidget {
       Colors.black,
       Colors.white,
     ];
-    // // Create a list of all content widgets
-    // final List<Widget> contentWidgets = [
-    //   _buildExpandableContainer('Autoref', AutorefContent(isLeftEye: isLeftEye)),
-    //   _buildExpandableContainer('Visual Acuity', VisualAcuityContent(isLeftEye: isLeftEye)),
-    //   _buildExpandableContainer('Refined Refraction', RefinedRefractionContent(isLeftEye: isLeftEye)),
-    //   _buildExpandableContainer('IOP', IOPContent(isLeftEye: isLeftEye)),
-    //   isLeftEye
-    //       ? QuadrantContainer(
-    //           // Left side configuration
-    //           containerSize: 300,
-    //           colorList: _colorList,
-    //           tapCounts: [
-    //             cubit.leftTopLeftTapCount,
-    //             cubit.leftTopRightTapCount,
-    //             cubit.leftBottomLeftTapCount,
-    //             cubit.leftBottomRightTapCount,
-    //           ],
-    //           tapHandlers: [
-    //             cubit.leftTopLeftHandleTap,
-    //             cubit.leftTopRightHandleTap,
-    //             cubit.leftBottomLeftHandleTap,
-    //             cubit.leftBottomRightHandleTap,
-    //           ],
-    //
-    //           side: 'left',
-    //         )
-    //       : QuadrantContainer(
-    //           // Left side configuration
-    //           containerSize: 300,
-    //           colorList: _colorList,
-    //           tapCounts: [
-    //             cubit.rightTopLeftTapCount,
-    //             cubit.rightTopRightTapCount,
-    //             cubit.rightBottomLeftTapCount,
-    //             cubit.rightBottomRightTapCount,
-    //           ],
-    //           tapHandlers: [
-    //             cubit.rightTopLeftHandleTap,
-    //             cubit.rightTopRightHandleTap,
-    //             cubit.rightBottomLeftHandleTap,
-    //             cubit.rightBottomRightHandleTap,
-    //           ],
-    //
-    //           side: 'right',
-    //         ),
-    //   _buildExpandableContainer('Pupils', PupilsContent(isLeftEye: isLeftEye)),
-    //   _buildExpandableContainer('External Examination', ExternalExaminationContent(isLeftEye: isLeftEye)),
-    //   _buildExpandableContainer('Slitlamp Examination', SlitLampExaminationContent(isLeftEye: isLeftEye)),
-    //   _buildExpandableContainer('Additional Examination', AdditionalExaminationContent(isLeftEye: isLeftEye)),
-    //   _buildExpandableContainer('Fundus Examination', FundusExaminationContent(isLeftEye: isLeftEye)),
-    // ];
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) => Padding(
         padding: const EdgeInsets.only(left: 16, right: 16),
         child: Column(
-          spacing: 20,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildExpandableContainer('Autoref', AutorefContent(isLeftEye: isLeftEye)),
-            _buildExpandableContainer('Visual Acuity', VisualAcuityContent(isLeftEye: isLeftEye)),
-            _buildExpandableContainer('Refined Refraction', RefinedRefractionContent(isLeftEye: isLeftEye)),
-            _buildExpandableContainer('IOP (mmHg)', IOPContent(isLeftEye: isLeftEye)),
-            isLeftEye
-                ? QuadrantContainer(
+            Text(
+              "Confrontation field",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            Row(
+              spacing: 10,
+              children: [
+                Expanded(
+                  child: QuadrantContainer(
                     // Left side configuration
                     containerSize: 300,
-                    colorList: _colorList,
-                    tapCounts: [
-                      cubit.leftTopLeftTapCount,
-                      cubit.leftTopRightTapCount,
-                      cubit.leftBottomLeftTapCount,
-                      cubit.leftBottomRightTapCount,
-                    ],
-                    tapHandlers: [
-                      cubit.leftTopLeftHandleTap,
-                      cubit.leftTopRightHandleTap,
-                      cubit.leftBottomLeftHandleTap,
-                      cubit.leftBottomRightHandleTap,
-                    ],
-
-                    side: 'left',
-                  )
-                : QuadrantContainer(
-                    // Left side configuration
-                    containerSize: 300,
+                    title: "right eye",
                     colorList: _colorList,
                     tapCounts: [
                       cubit.rightTopLeftTapCount,
@@ -665,11 +560,123 @@ class EyeExaminationView extends StatelessWidget {
 
                     side: 'right',
                   ),
-            _buildExpandableContainer('Pupils', PupilsContent(isLeftEye: isLeftEye)),
-            _buildExpandableContainer('External Examination', ExternalExaminationContent(isLeftEye: isLeftEye)),
-            _buildExpandableContainer('Slitlamp Examination', SlitLampExaminationContent(isLeftEye: isLeftEye)),
-            _buildExpandableContainer('Additional Examination', AdditionalExaminationContent(isLeftEye: isLeftEye)),
-            _buildExpandableContainer('Fundus Examination', FundusExaminationContent(isLeftEye: isLeftEye)),
+                ),
+                Expanded(
+                  child: QuadrantContainer(
+                    // Left side configuration
+                    containerSize: 300,
+                    title: 'left eye',
+                    colorList: _colorList,
+                    tapCounts: [
+                      cubit.leftTopLeftTapCount,
+                      cubit.leftTopRightTapCount,
+                      cubit.leftBottomLeftTapCount,
+                      cubit.leftBottomRightTapCount,
+                    ],
+                    tapHandlers: [
+                      cubit.leftTopLeftHandleTap,
+                      cubit.leftTopRightHandleTap,
+                      cubit.leftBottomLeftHandleTap,
+                      cubit.leftBottomRightHandleTap,
+                    ],
+
+                    side: 'left',
+                  ),
+                ),
+              ],
+            ),
+            const HeightSpacer(size: 10),
+            Text(
+              "Auto-refraction",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const HeightSpacer(size: 4),
+            const Row(
+              spacing: 10,
+              children: [RightAutorefContent(), LeftAutorefContent()],
+            ),
+            const HeightSpacer(size: 8),
+            Text(
+              "Refined Refraction",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const HeightSpacer(size: 4),
+            const Row(
+              spacing: 10,
+              children: [RightRefinedRefractionContent(), LeftRefinedRefractionContent()],
+            ),
+            const HeightSpacer(size: 8),
+            Text(
+              "Visual Acuity",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const HeightSpacer(size: 4),
+            const Row(
+              spacing: 10,
+              children: [RightVisualAcuityContent(), LeftVisualAcuityContent()],
+            ),
+            const HeightSpacer(size: 8),
+            Text(
+              "IOP (mmHg)",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const HeightSpacer(size: 4),
+            const Row(
+              spacing: 10,
+              children: [RightIOPContent(), LeftIOPContent()],
+            ),
+            const HeightSpacer(size: 8),
+            Text(
+              "Pupils",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const HeightSpacer(size: 4),
+            const Row(
+              spacing: 10,
+              children: [RightPupilsContent(), LeftPupilsContent()],
+            ),
+            const HeightSpacer(size: 8),
+            Text(
+              "EyeLid & Physical",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const HeightSpacer(size: 4),
+            const Row(
+              spacing: 10,
+              children: [RightEyeLid(), LeftEyeLid()],
+            ),
+            const HeightSpacer(size: 8),
+            Text(
+              "Eye Structure",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const HeightSpacer(size: 4),
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 10,
+              children: [RightAdditionalExaminationContent(), LeftAdditionalExaminationContent()],
+            ),
+            const HeightSpacer(size: 8),
+            Text(
+              "Fundus Examination",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const HeightSpacer(size: 4),
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 10,
+              children: [FundusExaminationContent(isLeftEye: false), FundusExaminationContent(isLeftEye: true)],
+            ),
+            const HeightSpacer(size: 8),
+            Text(
+              "External Features ",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 10,
+              children: [SlitLampExaminationContent(isLeftEye: false), SlitLampExaminationContent(isLeftEye: true)],
+            ),
             StepNavigation(
               onPrevious: () => cubit.previousStep(),
               onNext: () => cubit.nextStep(),
@@ -685,7 +692,7 @@ class EyeExaminationView extends StatelessWidget {
                   } else {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                      content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                       backgroundColor: Colorz.redColor,
                     ));
                   }
@@ -706,60 +713,113 @@ class EyeExaminationView extends StatelessWidget {
   }
 }
 
-class AutorefContent extends StatelessWidget {
-  final bool isLeftEye;
-  const AutorefContent({Key? key, required this.isLeftEye}) : super(key: key);
+class RightAutorefContent extends StatelessWidget {
+  const RightAutorefContent({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ExaminationCubit>();
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        children: [
-          CustomColumnDropdown(
-            items: cubit.data['AurorefSpherical'] ?? [],
-            hintText: "",
-            textRow: "Spherical :",
-            selectedValue: isLeftEye ? cubit.leftAurorefSpherical : cubit.rightAurorefSpherical,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('aurorefSpherical', selected);
-              } else {
-                cubit.updateRightEyeField('aurorefSpherical', selected);
-              }
-            },
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['AurorefCylindrical'] ?? [],
-            textRow: "Cylindrical :",
-            hintText: '',
-            selectedValue: isLeftEye ? cubit.leftAurorefCylindrical : cubit.rightAurorefCylindrical,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('aurorefCylindrical', selected);
-              } else {
-                cubit.updateRightEyeField('aurorefCylindrical', selected);
-              }
-            },
+          child: Column(
+            children: [
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Spherical :",
+                selectedValue: cubit.rightAurorefSpherical,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('aurorefSpherical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Cylindrical :",
+                hintText: '',
+                selectedValue: cubit.rightAurorefCylindrical,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('aurorefCylindrical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefAxis'] ?? [],
+                textRow: "Axis :",
+                hintText: '',
+                selectedValue: cubit.rightAurorefAxis,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('aurorefAxis', selected);
+                },
+              ),
+              // Add other Autoref fields...
+            ],
           ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['AurorefAxis'] ?? [],
-            textRow: "Axis :",
-            hintText: '',
-            selectedValue: isLeftEye ? cubit.leftAurorefAxis : cubit.rightAurorefAxis,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('aurorefAxis', selected);
-              } else {
-                cubit.updateRightEyeField('aurorefAxis', selected);
-              }
-            },
+        ),
+      ),
+    );
+  }
+}
+
+class LeftAutorefContent extends StatelessWidget {
+  const LeftAutorefContent({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          // Add other Autoref fields...
-        ],
+          child: Column(
+            children: [
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Spherical :",
+                selectedValue: cubit.leftAurorefSpherical,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('aurorefSpherical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Cylindrical :",
+                hintText: '',
+                selectedValue: cubit.leftAurorefCylindrical,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('aurorefCylindrical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefAxis'] ?? [],
+                textRow: "Axis :",
+                hintText: '',
+                selectedValue: cubit.leftAurorefAxis,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('aurorefAxis', selected);
+                },
+              ),
+              // Add other Autoref fields...
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -780,7 +840,7 @@ class ModifiedExpandableContainer extends StatefulWidget {
 }
 
 class _ModifiedExpandableContainerState extends State<ModifiedExpandableContainer> {
-  bool isExpanded = false;
+  bool isExpanded = true;
 
   @override
   Widget build(BuildContext context) {
@@ -834,298 +894,528 @@ class _ModifiedExpandableContainerState extends State<ModifiedExpandableContaine
   }
 }
 
-class VisualAcuityContent extends StatefulWidget {
-  final bool isLeftEye;
-  const VisualAcuityContent({Key? key, required this.isLeftEye}) : super(key: key);
+class RightVisualAcuityContent extends StatefulWidget {
+  const RightVisualAcuityContent({Key? key}) : super(key: key);
 
   @override
-  State<VisualAcuityContent> createState() => _VisualAcuityContentState();
+  State<RightVisualAcuityContent> createState() => _RightVisualAcuityContentState();
 }
 
-class _VisualAcuityContentState extends State<VisualAcuityContent> {
+class _RightVisualAcuityContentState extends State<RightVisualAcuityContent> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ExaminationCubit>();
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        children: [
-          CustomColumnDropdown(
-            items: cubit.data['UCVA'] ?? [],
-            hintText: "",
-            textRow: "UCVA :",
-            radius: 15,
-            height: 40,
-            selectedValue: widget.isLeftEye ? cubit.leftUCVA : cubit.rightUCVA,
-            onChanged: (selected) {
-              if (widget.isLeftEye) {
-                cubit.updateLeftEyeField('ucva', selected);
-              } else {
-                cubit.updateRightEyeField('ucva', selected);
-              }
-              setState(() {});
-            },
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['BCVA'] ?? [],
-            hintText: "",
-            textRow: "BCVA :",
-            radius: 15,
-            height: 40,
-            selectedValue: widget.isLeftEye ? cubit.leftBCVA : cubit.rightBCVA,
-            onChanged: (selected) {
-              if (widget.isLeftEye) {
-                cubit.updateLeftEyeField('bcva', selected);
-              } else {
-                cubit.updateRightEyeField('bcva', selected);
-              }
-              setState(() {});
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class PupilsContent extends StatelessWidget {
-  final bool isLeftEye;
-  const PupilsContent({Key? key, required this.isLeftEye}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<ExaminationCubit>();
-
-    return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        children: [
-          CustomColumnDropdown(
-            items: cubit.data['PupilsShape'] ?? [],
-            hintText: "",
-            textRow: "Shape :",
-            selectedValue: isLeftEye ? cubit.leftPupilsShape : cubit.rightPupilsShape,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('pupilsShape', selected);
-              } else {
-                cubit.updateRightEyeField('pupilsShape', selected);
-              }
-            },
-          ),
-          if (cubit.leftPupilsShape == "others" && isLeftEye)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: TextField2(
-                controller: isLeftEye ? cubit.leftShapeController : cubit.rightPupilsShape,
-                hintText: 'Shape',
-                required: false,
-                onTextFieldChanged: (value) {
-                  if (isLeftEye) {
-                    cubit.updateLeftEyeField('lidsShape', value);
-                  } else {
-                    cubit.updateRightEyeField('lidsShape', value);
-                  }
+          child: Column(
+            children: [
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['UCVA'] ?? [],
+                textRow: "UCVA :",
+                radius: 15,
+                height: 40,
+                selectedValue: cubit.rightUCVA,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('ucva', selected);
+                  setState(() {});
                 },
-                borderColor: Colors.black,
-                fillColor: Colors.white,
-                radius: 30,
               ),
-            ),
-          if (cubit.rightPupilsShape == "others" && !isLeftEye)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: TextField2(
-                controller: isLeftEye ? cubit.leftShapeController : cubit.rightShapeController,
-                hintText: 'Shape',
-                required: false,
-                onTextFieldChanged: (value) {
-                  if (isLeftEye) {
-                    cubit.updateLeftEyeField('lidsShape', value);
-                  } else {
-                    cubit.updateRightEyeField('lidsShape', value);
-                  }
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['BCVA'] ?? [],
+                textRow: "BCVA :",
+                radius: 15,
+                height: 40,
+                selectedValue: cubit.rightBCVA,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('bcva', selected);
+                  setState(() {});
                 },
-                borderColor: Colors.black,
-                fillColor: Colors.white,
-                radius: 30,
               ),
-            ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['PupilsLightReflexTest'] ?? [],
-            textRow: "Light Reflex Test :",
-            hintText: '',
-            selectedValue: isLeftEye ? cubit.leftPupilsLightReflexTest : cubit.rightPupilsLightReflexTest,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('pupilsLightReflexTest', selected);
-              } else {
-                cubit.updateRightEyeField('pupilsLightReflexTest', selected);
-              }
-            },
+            ],
           ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['PupilsNearReflexTest'] ?? [],
-            hintText: "",
-            textRow: "Near Reflex Test :",
-            selectedValue: isLeftEye ? cubit.leftPupilsNearReflexTest : cubit.rightPupilsNearReflexTest,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('pupilsNearReflexTest', selected);
-              } else {
-                cubit.updateRightEyeField('pupilsNearReflexTest', selected);
-              }
-            },
-          ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['PupilsSwingingFlashLightTest'] ?? [],
-            hintText: "",
-            textRow: "Swinging Flash Test :",
-            selectedValue: isLeftEye ? cubit.leftPupilsSwingingFlashLightTest : cubit.rightPupilsSwingingFlashLightTest,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('pupilsSwingingFlashLightTest', selected);
-              } else {
-                cubit.updateRightEyeField('pupilsSwingingFlashLightTest', selected);
-              }
-            },
-          ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['PupilsOtherDisorders'] ?? [],
-            hintText: "",
-            textRow: "Other Disorders :",
-            selectedValue: isLeftEye ? cubit.leftPupilsOtherDisorders : cubit.rightPupilsOtherDisorders,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('pupilsOtherDisorders', selected);
-              } else {
-                cubit.updateRightEyeField('pupilsOtherDisorders', selected);
-              }
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class RefinedRefractionContent extends StatelessWidget {
-  final bool isLeftEye;
-  const RefinedRefractionContent({Key? key, required this.isLeftEye}) : super(key: key);
+class LeftVisualAcuityContent extends StatefulWidget {
+  const LeftVisualAcuityContent({Key? key}) : super(key: key);
+
+  @override
+  State<LeftVisualAcuityContent> createState() => _LeftVisualAcuityContentState();
+}
+
+class _LeftVisualAcuityContentState extends State<LeftVisualAcuityContent> {
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['UCVA'] ?? [],
+                textRow: "UCVA :",
+                radius: 15,
+                height: 40,
+                selectedValue: cubit.leftUCVA,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('ucva', selected);
+                  setState(() {});
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['BCVA'] ?? [],
+                textRow: "BCVA :",
+                radius: 15,
+                height: 40,
+                selectedValue: cubit.leftBCVA,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('bcva', selected);
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RightPupilsContent extends StatelessWidget {
+  const RightPupilsContent({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ExaminationCubit>();
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        children: [
-          CustomColumnDropdown(
-            items: cubit.data['RefinedRefractionSpherical'] ?? [],
-            hintText: "",
-            textRow: "Spherical :",
-            selectedValue: isLeftEye ? cubit.leftRefinedRefractionSpherical : cubit.rightRefinedRefractionSpherical,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('refinedRefractionSpherical', selected);
-              } else {
-                cubit.updateRightEyeField('refinedRefractionSpherical', selected);
-              }
-            },
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['RefinedRefractionCylindrical'] ?? [],
-            textRow: "Cylindrical :",
-            hintText: '',
-            selectedValue: isLeftEye ? cubit.leftRefinedRefractionCylindrical : cubit.rightRefinedRefractionCylindrical,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('refinedRefractionCylindrical', selected);
-              } else {
-                cubit.updateRightEyeField('refinedRefractionCylindrical', selected);
-              }
-            },
+          child: Column(
+            children: [
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsShape'] ?? [],
+                textRow: "Shape :",
+                selectedValue: cubit.rightPupilsShape,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('pupilsShape', selected);
+                },
+              ),
+              if (cubit.rightPupilsShape == "others")
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: TextField2(
+                    controller: cubit.rightShapeController,
+                    hintText: 'Shape:',
+                    required: false,
+                    onTextFieldChanged: (value) {
+                      cubit.updateRightEyeField('lidsShape', value);
+                    },
+                    borderColor: Colors.black,
+                    fillColor: Colors.white,
+                    radius: 30,
+                  ),
+                ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsLightReflexTest'] ?? [],
+                textRow: "Light Reflex Test :",
+                hintText: 'Light Reflex:',
+                selectedValue: cubit.rightPupilsLightReflexTest,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('pupilsLightReflexTest', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsNearReflexTest'] ?? [],
+                textRow: "Near Reflex Test:",
+                hintText: 'Near Reflex',
+                selectedValue: cubit.rightPupilsNearReflexTest,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('pupilsNearReflexTest', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsSwingingFlashLightTest'] ?? [],
+                textRow: "Swinging Flash Test :",
+                hintText: "Swinging Flash:",
+                selectedValue: cubit.rightPupilsSwingingFlashLightTest,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('pupilsSwingingFlashLightTest', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsOtherDisorders'] ?? [],
+                textRow: "Other Disorders :",
+                selectedValue: cubit.rightPupilsOtherDisorders,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('pupilsOtherDisorders', selected);
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['RefinedRefractionAxis'] ?? [],
-            hintText: "",
-            textRow: "Axis :",
-            selectedValue: isLeftEye ? cubit.leftRefinedRefractionAxis : cubit.rightRefinedRefractionAxis,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('refinedRefractionAxis', selected);
-              } else {
-                cubit.updateRightEyeField('refinedRefractionAxis', selected);
-              }
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class IOPContent extends StatelessWidget {
-  final bool isLeftEye;
-  const IOPContent({Key? key, required this.isLeftEye}) : super(key: key);
+class LeftPupilsContent extends StatelessWidget {
+  const LeftPupilsContent({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ExaminationCubit>();
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        children: [
-          CustomColumnDropdown(
-            items: cubit.data['IOP'] ?? [],
-            hintText: "",
-            textRow: "IOP :",
-            radius: 15,
-            height: 40,
-            selectedValue: isLeftEye ? cubit.leftIOP : cubit.rightIOP,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('iop', selected);
-              } else {
-                cubit.updateRightEyeField('iop', selected);
-              }
-            },
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['MeansOfMeasurement'] ?? [],
-            hintText: "",
-            textRow: "Means of Measurement:",
-            selectedValue: isLeftEye ? cubit.leftMeansOfMeasurement : cubit.rightMeansOfMeasurement,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('meansOfMeasurement', selected);
-              } else {
-                cubit.updateRightEyeField('meansOfMeasurement', selected);
-              }
-            },
+          child: Column(
+            children: [
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsShape'] ?? [],
+                textRow: "Shape :",
+                selectedValue: cubit.leftPupilsShape,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('pupilsShape', selected);
+                },
+              ),
+              if (cubit.leftPupilsShape == "others")
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: TextField2(
+                    controller: cubit.leftShapeController,
+                    hintText: 'Shape',
+                    required: false,
+                    onTextFieldChanged: (value) {
+                      cubit.updateLeftEyeField('lidsShape', value);
+                    },
+                    borderColor: Colors.black,
+                    fillColor: Colors.white,
+                    radius: 30,
+                  ),
+                ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsLightReflexTest'] ?? [],
+                textRow: "Light Reflex Test :",
+                hintText: 'Light Reflex',
+                selectedValue: cubit.leftPupilsLightReflexTest,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('pupilsLightReflexTest', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsNearReflexTest'] ?? [],
+                textRow: "Near Reflex Test :",
+                hintText: "Near Reflex:",
+                selectedValue: cubit.leftPupilsNearReflexTest,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('pupilsNearReflexTest', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsSwingingFlashLightTest'] ?? [],
+                textRow: "Swinging Flash Test :",
+                hintText: "Swinging Flash:",
+                selectedValue: cubit.leftPupilsSwingingFlashLightTest,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('pupilsSwingingFlashLightTest', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['PupilsOtherDisorders'] ?? [],
+                textRow: "Other Disorders :",
+                selectedValue: cubit.leftPupilsOtherDisorders,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('pupilsOtherDisorders', selected);
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          CustomColumnDropdown(
-            items: cubit.data['AcquireAnotherIOPMeasurement'] ?? [],
-            hintText: "",
-            textRow: "Another IOP:",
-            selectedValue: isLeftEye ? cubit.leftAcquireAnotherIOPMeasurement : cubit.rightAcquireAnotherIOPMeasurement,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('acquireAnotherIOPMeasurement', selected);
-              } else {
-                cubit.updateRightEyeField('acquireAnotherIOPMeasurement', selected);
-              }
-            },
+        ),
+      ),
+    );
+  }
+}
+
+class RightRefinedRefractionContent extends StatelessWidget {
+  const RightRefinedRefractionContent({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-        ],
+          child: Column(
+            children: [
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Spherical :",
+                selectedValue: cubit.rightRefinedRefractionSpherical,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('refinedRefractionSpherical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Cylindrical :",
+                hintText: '',
+                selectedValue: cubit.rightRefinedRefractionCylindrical,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('refinedRefractionCylindrical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefAxis'] ?? [],
+                textRow: "Axis :",
+                selectedValue: cubit.rightRefinedRefractionAxis,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('refinedRefractionAxis', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['NearVisionAddition'] ?? [],
+                hintText: "",
+                textRow: "Near vision addition :",
+                selectedValue: cubit.rightNearVisionAddition,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('nearVisionAddition', selected);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LeftRefinedRefractionContent extends StatelessWidget {
+  const LeftRefinedRefractionContent({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Spherical :",
+                selectedValue: cubit.leftRefinedRefractionSpherical,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('refinedRefractionSpherical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Cylindrical :",
+                hintText: '',
+                selectedValue: cubit.leftRefinedRefractionCylindrical,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('refinedRefractionCylindrical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefAxis'] ?? [],
+                textRow: "Axis :",
+                selectedValue: cubit.leftRefinedRefractionAxis,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('refinedRefractionAxis', selected);
+                },
+              ),
+              CustomColumnDropdown(
+                items: cubit.data['NearVisionAddition'] ?? [],
+                textRow: "Near vision addition :",
+                hintText: "",
+                selectedValue: cubit.leftNearVisionAddition,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('nearVisionAddition', selected);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RightIOPContent extends StatelessWidget {
+  const RightIOPContent({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['IOP'] ?? [],
+                textRow: "IOP :",
+                radius: 15,
+                height: 40,
+                selectedValue: cubit.rightIOP,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('iop', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['MeansOfMeasurement'] ?? [],
+                textRow: "Means of Measurement:",
+                hintText: "Measurement",
+                selectedValue: cubit.rightMeansOfMeasurement,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('meansOfMeasurement', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AcquireAnotherIOPMeasurement'] ?? [],
+                textRow: "Another IOP:",
+                selectedValue: cubit.rightAcquireAnotherIOPMeasurement,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('acquireAnotherIOPMeasurement', selected);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LeftIOPContent extends StatelessWidget {
+  const LeftIOPContent({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['IOP'] ?? [],
+                textRow: "IOP :",
+                radius: 15,
+                height: 40,
+                selectedValue: cubit.leftIOP,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('iop', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['MeansOfMeasurement'] ?? [],
+                textRow: "Means of Measurement:",
+                hintText: "Measurement",
+                selectedValue: cubit.leftMeansOfMeasurement,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('meansOfMeasurement', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AcquireAnotherIOPMeasurement'] ?? [],
+                textRow: "Another IOP:",
+                selectedValue: cubit.leftAcquireAnotherIOPMeasurement,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('acquireAnotherIOPMeasurement', selected);
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1140,154 +1430,228 @@ class SlitLampExaminationContent extends StatelessWidget {
     final cubit = context.read<ExaminationCubit>();
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        children: [
-          TextField2(
-            controller: isLeftEye ? cubit.leftLidsController : cubit.rightLidsController,
-            hintText: 'Lids',
-            required: false,
-            onTextFieldChanged: (value) {
-              // cubit.updateStepState();
-            },
-            borderColor: Colors.black,
-            fillColor: Colors.white,
-            radius: 10,
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 20),
-          TextField2(
-            controller: isLeftEye ? cubit.leftLashesController : cubit.rightLashesController,
-            hintText: 'Lashes',
-            required: false,
-            onTextFieldChanged: (value) {
-              // cubit.updateStepState();
-            },
-            borderColor: Colors.black,
-            fillColor: Colors.white,
-            radius: 10,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("${isLeftEye ? 'Left' : 'Right'} eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              TextField2(
+                controller: isLeftEye ? cubit.leftLidsController : cubit.rightLidsController,
+                hintText: 'Lids',
+                required: false,
+                onTextFieldChanged: (value) {
+                  // cubit.updateStepState();
+                },
+                borderColor: Colors.black,
+                fillColor: Colors.white,
+                radius: 10,
+              ),
+              const SizedBox(height: 20),
+              TextField2(
+                controller: isLeftEye ? cubit.leftLashesController : cubit.rightLashesController,
+                hintText: 'Lashes',
+                required: false,
+                onTextFieldChanged: (value) {
+                  // cubit.updateStepState();
+                },
+                borderColor: Colors.black,
+                fillColor: Colors.white,
+                radius: 10,
+              ),
+              const SizedBox(height: 20),
+              TextField2(
+                controller: isLeftEye ? cubit.leftLacrimalController : cubit.rightLacrimalController,
+                hintText: 'Lacrimal System',
+                required: false,
+                onTextFieldChanged: (value) {
+                  // cubit.updateStepState();
+                },
+                borderColor: Colors.black,
+                fillColor: Colors.white,
+                radius: 10,
+              ),
+              const SizedBox(height: 20),
+              TextField2(
+                controller: isLeftEye ? cubit.leftConjunctivaController : cubit.rightConjunctivaController,
+                hintText: 'Conjunctiva',
+                required: false,
+                onTextFieldChanged: (value) {
+                  //  cubit.updateStepState();
+                },
+                borderColor: Colors.black,
+                fillColor: Colors.white,
+                radius: 10,
+              ),
+              const SizedBox(height: 20),
+              TextField2(
+                controller: isLeftEye ? cubit.leftScleraController : cubit.rightScleraController,
+                hintText: 'Sclera',
+                required: false,
+                onTextFieldChanged: (value) {
+                  // cubit.updateStepState();
+                },
+                borderColor: Colors.black,
+                fillColor: Colors.white,
+                radius: 10,
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          TextField2(
-            controller: isLeftEye ? cubit.leftLacrimalController : cubit.rightLacrimalController,
-            hintText: 'Lacrimal System',
-            required: false,
-            onTextFieldChanged: (value) {
-              // cubit.updateStepState();
-            },
-            borderColor: Colors.black,
-            fillColor: Colors.white,
-            radius: 10,
-          ),
-          const SizedBox(height: 20),
-          TextField2(
-            controller: isLeftEye ? cubit.leftConjunctivaController : cubit.rightConjunctivaController,
-            hintText: 'Conjunctiva',
-            required: false,
-            onTextFieldChanged: (value) {
-              //  cubit.updateStepState();
-            },
-            borderColor: Colors.black,
-            fillColor: Colors.white,
-            radius: 10,
-          ),
-          const SizedBox(height: 20),
-          TextField2(
-            controller: isLeftEye ? cubit.leftScleraController : cubit.rightScleraController,
-            hintText: 'Sclera',
-            required: false,
-            onTextFieldChanged: (value) {
-              // cubit.updateStepState();
-            },
-            borderColor: Colors.black,
-            fillColor: Colors.white,
-            radius: 10,
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class AdditionalExaminationContent extends StatelessWidget {
-  final bool isLeftEye;
-  const AdditionalExaminationContent({Key? key, required this.isLeftEye}) : super(key: key);
+class RightAdditionalExaminationContent extends StatelessWidget {
+  const RightAdditionalExaminationContent({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ExaminationCubit>();
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        children: [
-          CustomColumnDropdown(
-            items: cubit.data['Cornea'] ?? [],
-            hintText: "",
-            textRow: "Cornea :",
-            selectedValue: isLeftEye ? cubit.leftCornea : cubit.rightCornea,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('cornea', selected);
-              } else {
-                cubit.updateRightEyeField('cornea', selected);
-              }
-            },
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 15),
-          CustomColumnDropdown(
-            items: cubit.data['AnteriorChambre'] ?? [],
-            hintText: "",
-            textRow: "Anterior Chambre :",
-            selectedValue: isLeftEye ? cubit.leftAnteriorChambre : cubit.rightAnteriorChambre,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('anteriorChambre', selected);
-              } else {
-                cubit.updateRightEyeField('anteriorChambre', selected);
-              }
-            },
+          child: Column(
+            children: [
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomMultiSelectDropdown(
+                items: cubit.data['Cornea'] ?? [],
+                textRow: "Cornea :",
+                hintText: "Cornea :",
+                selectedValues: cubit.rightCornea,
+                onChanged: (selected) {
+                  cubit.rightCornea = selected;
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['AnteriorChambre'] ?? [],
+                textRow: "Anterior Chambre :",
+                hintText: "Anterior...",
+                selectedValues: cubit.rightAnteriorChambre,
+                onChanged: (selected) {
+                  cubit.rightAnteriorChambre = selected;
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['Iris'] ?? [],
+                textRow: "Iris :",
+                selectedValues: cubit.rightIris,
+                onChanged: (selected) {
+                  cubit.rightIris = selected;
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['Lens'] ?? [],
+                textRow: "Lens :",
+                selectedValues: cubit.rightLens,
+                onChanged: (selected) {
+                  cubit.rightLens = selected;
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['AnteriorVitreous'] ?? [],
+                textRow: "Anterior Vitreous :",
+                hintText: "Anterior...",
+                selectedValues: cubit.rightAnteriorVitreous,
+                onChanged: (selected) {
+                  cubit.rightAnteriorVitreous = selected;
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 15),
-          CustomColumnDropdown(
-            items: cubit.data['Iris'] ?? [],
-            hintText: "",
-            textRow: "Iris :",
-            selectedValue: isLeftEye ? cubit.leftIris : cubit.rightIris,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('iris', selected);
-              } else {
-                cubit.updateRightEyeField('iris', selected);
-              }
-            },
+        ),
+      ),
+    );
+  }
+}
+
+class LeftAdditionalExaminationContent extends StatelessWidget {
+  const LeftAdditionalExaminationContent({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 15),
-          CustomColumnDropdown(
-            items: cubit.data['Lens'] ?? [],
-            hintText: "",
-            textRow: "Lens :",
-            selectedValue: isLeftEye ? cubit.leftLens : cubit.rightLens,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('lens', selected);
-              } else {
-                cubit.updateRightEyeField('lens', selected);
-              }
-            },
+          child: Column(
+            children: [
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomMultiSelectDropdown(
+                items: cubit.data['Cornea'] ?? [],
+                textRow: "Cornea :",
+                hintText: "Cornea :",
+                selectedValues: cubit.leftCornea,
+                onChanged: (selected) {
+                  cubit.leftCornea = selected;
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['AnteriorChambre'] ?? [],
+                textRow: "Anterior Chambre :",
+                hintText: "Anterior...",
+                selectedValues: cubit.leftAnteriorChambre,
+                onChanged: (selected) {
+                  cubit.leftAnteriorChambre = selected;
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['Iris'] ?? [],
+                textRow: "Iris :",
+                selectedValues: cubit.leftIris,
+                onChanged: (selected) {
+                  cubit.leftIris = selected;
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['Lens'] ?? [],
+                textRow: "Lens :",
+                selectedValues: cubit.leftLens,
+                onChanged: (selected) {
+                  cubit.leftLens = selected;
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['AnteriorVitreous'] ?? [],
+                textRow: "Anterior Vitreous :",
+                hintText: "Anterior...",
+                selectedValues: cubit.leftAnteriorVitreous,
+                onChanged: (selected) {
+                  cubit.leftAnteriorVitreous = selected;
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 15),
-          CustomColumnDropdown(
-            items: cubit.data['AnteriorVitreous'] ?? [],
-            hintText: "",
-            textRow: "Anterior Vitreous :",
-            selectedValue: isLeftEye ? cubit.leftAnteriorVitreous : cubit.rightAnteriorVitreous,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('anteriorVitreous', selected);
-              } else {
-                cubit.updateRightEyeField('anteriorVitreous', selected);
-              }
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1302,156 +1666,229 @@ class FundusExaminationContent extends StatelessWidget {
     final cubit = context.read<ExaminationCubit>();
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        children: [
-          CustomColumnDropdown(
-            items: cubit.data['FundusOpticDisc'] ?? [],
-            hintText: "",
-            textRow: "Optic Disc :",
-            selectedValue: isLeftEye ? cubit.leftFundusOpticDisc : cubit.rightFundusOpticDisc,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('fundusOpticDisc', selected);
-              } else {
-                cubit.updateRightEyeField('fundusOpticDisc', selected);
-              }
-            },
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 15),
-          CustomColumnDropdown(
-            items: cubit.data['FundusMacula'] ?? [],
-            hintText: "",
-            textRow: "Macula :",
-            selectedValue: isLeftEye ? cubit.leftFundusMacula : cubit.rightFundusMacula,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('fundusMacula', selected);
-              } else {
-                cubit.updateRightEyeField('fundusMacula', selected);
-              }
-            },
+          child: Column(
+            children: [
+              Text("${isLeftEye ? 'Left' : 'Right'} eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomMultiSelectDropdown(
+                items: cubit.data['FundusOpticDisc'] ?? [],
+                textRow: "Optic Disc :",
+                hintText: "Optic Disc :",
+                selectedValues: isLeftEye ? cubit.leftFundusOpticDisc : cubit.rightFundusOpticDisc,
+                onChanged: (selected) {
+                  if (isLeftEye) {
+                    cubit.leftFundusOpticDisc = selected;
+                  } else {
+                    cubit.rightFundusOpticDisc = selected;
+                  }
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['FundusMacula'] ?? [],
+                textRow: "Macula :",
+                hintText: "Macula :",
+                selectedValues: isLeftEye ? cubit.leftFundusMacula : cubit.rightFundusMacula,
+                onChanged: (selected) {
+                  if (isLeftEye) {
+                    cubit.leftFundusMacula = selected;
+                  } else {
+                    cubit.rightFundusMacula = selected;
+                  }
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['FundusVessels'] ?? [],
+                textRow: "Vessels :",
+                hintText: "Vessels :",
+                selectedValues: isLeftEye ? cubit.leftFundusVessels : cubit.rightFundusVessels,
+                onChanged: (selected) {
+                  if (isLeftEye) {
+                    cubit.leftFundusVessels = selected;
+                  } else {
+                    cubit.rightFundusVessels = selected;
+                  }
+                },
+              ),
+              const SizedBox(height: 15),
+              CustomMultiSelectDropdown(
+                items: cubit.data['FundusPeriphery'] ?? [],
+                textRow: "Fundus Periphery :",
+                hintText: "Fundus Periphery :",
+                selectedValues: isLeftEye ? cubit.leftFundusPeriphery : cubit.rightFundusPeriphery,
+                onChanged: (selected) {
+                  if (isLeftEye) {
+                    cubit.leftFundusPeriphery = selected;
+                  } else {
+                    cubit.rightFundusPeriphery = selected;
+                  }
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 15),
-          CustomColumnDropdown(
-            items: cubit.data['FundusVessels'] ?? [],
-            hintText: "",
-            textRow: "Vessels :",
-            selectedValue: isLeftEye ? cubit.leftFundusVessels : cubit.rightFundusVessels,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('fundusVessels', selected);
-              } else {
-                cubit.updateRightEyeField('fundusVessels', selected);
-              }
-            },
-          ),
-          const SizedBox(height: 15),
-          CustomColumnDropdown(
-            items: cubit.data['FundusPeriphery'] ?? [],
-            hintText: "",
-            textRow: "Fundus Periphery :",
-            selectedValue: isLeftEye ? cubit.leftFundusPeriphery : cubit.rightFundusPeriphery,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('fundusPeriphery', selected);
-              } else {
-                cubit.updateRightEyeField('fundusPeriphery', selected);
-              }
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class ExternalExaminationContent extends StatelessWidget {
-  final bool isLeftEye;
-  const ExternalExaminationContent({Key? key, required this.isLeftEye}) : super(key: key);
+class RightEyeLid extends StatelessWidget {
+  const RightEyeLid({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ExaminationCubit>();
 
     return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const HeightSpacer(size: 10),
-          Center(
-            child: Text("Eyelid", style: appStyle(context, 20, Colors.black, FontWeight.w600)),
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const HeightSpacer(size: 10),
-          CustomColumnDropdown(
-            items: cubit.data['EyelidPtosis'] ?? [],
-            hintText: "",
-            textRow: "Ptosis :",
-            selectedValue: isLeftEye ? cubit.leftEyelidPtosis : cubit.rightEyelidPtosis,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('eyelidPtosis', selected);
-              } else {
-                cubit.updateRightEyeField('eyelidPtosis', selected);
-              }
-            },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const HeightSpacer(size: 10),
+              CustomColumnDropdown(
+                items: cubit.data['EyelidPtosis'] ?? [],
+                textRow: "Ptosis :",
+                hintText: "-",
+                selectedValue: cubit.rightEyelidPtosis,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('eyelidPtosis', selected);
+                },
+              ),
+              const HeightSpacer(size: 15),
+              CustomColumnDropdown(
+                items: cubit.data['EyelidLagophthalmos'] ?? [],
+                textRow: "Lagophthalmos :",
+                hintText: "-",
+                selectedValue: cubit.rightEyelidLagophthalmos,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('eyelidLagophthalmos', selected);
+                },
+              ),
+              const HeightSpacer(size: 15),
+              CustomColumnDropdown(
+                items: cubit.data['PalpableLymphNodes'] ?? [],
+                textRow: "Palpable Lymph Nodes :",
+                hintText: "-",
+                selectedValue: cubit.rightPalpableLymphNodes,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('palpableLymphNodes', selected);
+                },
+              ),
+              const HeightSpacer(size: 15),
+              CustomColumnDropdown(
+                items: cubit.data['PapableTemporalArtery'] ?? [],
+                textRow: "PapableTemporalArtery:",
+                hintText: "-",
+                selectedValue: cubit.rightPapableTemporalArtery,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('papableTemporalArtery', selected);
+                },
+              ),
+              const HeightSpacer(size: 15),
+              CustomColumnDropdown(
+                items: cubit.data['Exophthalmometry'] ?? [],
+                textRow: "Exophthalmometry:",
+                hintText: "-",
+                selectedValue: cubit.rightExophthalmometry,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('exophthalmometry', selected);
+                },
+              ),
+            ],
           ),
-          const HeightSpacer(size: 15),
-          CustomColumnDropdown(
-            items: cubit.data['EyelidLagophthalmos'] ?? [],
-            textRow: "Lagophthalmos :",
-            hintText: '',
-            selectedValue: isLeftEye ? cubit.leftEyelidLagophthalmos : cubit.rightEyelidLagophthalmos,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('eyelidLagophthalmos', selected);
-              } else {
-                cubit.updateRightEyeField('eyelidLagophthalmos', selected);
-              }
-            },
+        ),
+      ),
+    );
+  }
+}
+
+class LeftEyeLid extends StatelessWidget {
+  const LeftEyeLid({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          const HeightSpacer(size: 15),
-          CustomColumnDropdown(
-            items: cubit.data['PalpableLymphNodes'] ?? [],
-            hintText: "",
-            textRow: "Palpable Lymph Nodes :",
-            selectedValue: isLeftEye ? cubit.leftPalpableLymphNodes : cubit.rightPalpableLymphNodes,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('palpableLymphNodes', selected);
-              } else {
-                cubit.updateRightEyeField('palpableLymphNodes', selected);
-              }
-            },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const HeightSpacer(size: 10),
+              CustomColumnDropdown(
+                items: cubit.data['EyelidPtosis'] ?? [],
+                textRow: "Ptosis :",
+                hintText: "-",
+                selectedValue: cubit.leftEyelidPtosis,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('eyelidPtosis', selected);
+                },
+              ),
+              const HeightSpacer(size: 15),
+              CustomColumnDropdown(
+                items: cubit.data['EyelidLagophthalmos'] ?? [],
+                textRow: "Lagophthalmos :",
+                hintText: "-",
+                selectedValue: cubit.leftEyelidLagophthalmos,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('eyelidLagophthalmos', selected);
+                },
+              ),
+              const HeightSpacer(size: 15),
+              CustomColumnDropdown(
+                items: cubit.data['PalpableLymphNodes'] ?? [],
+                textRow: "Palpable Lymph Nodes :",
+                hintText: "-",
+                selectedValue: cubit.leftPalpableLymphNodes,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('palpableLymphNodes', selected);
+                },
+              ),
+              const HeightSpacer(size: 15),
+              CustomColumnDropdown(
+                items: cubit.data['PapableTemporalArtery'] ?? [],
+                textRow: "PapableTemporalArtery:",
+                hintText: "-",
+                selectedValue: cubit.leftPapableTemporalArtery,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('papableTemporalArtery', selected);
+                },
+              ),
+              const HeightSpacer(size: 15),
+              CustomColumnDropdown(
+                items: cubit.data['Exophthalmometry'] ?? [],
+                textRow: "Exophthalmometry:",
+                hintText: "-",
+                selectedValue: cubit.leftExophthalmometry,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('exophthalmometry', selected);
+                },
+              ),
+            ],
           ),
-          const HeightSpacer(size: 15),
-          CustomColumnDropdown(
-            items: cubit.data['PapableTemporalArtery'] ?? [],
-            hintText: "",
-            textRow: "PapableTemporalArtery:",
-            selectedValue: isLeftEye ? cubit.leftPapableTemporalArtery : cubit.rightPapableTemporalArtery,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('papableTemporalArtery', selected);
-              } else {
-                cubit.updateRightEyeField('papableTemporalArtery', selected);
-              }
-            },
-          ),
-          const HeightSpacer(size: 15),
-          CustomColumnDropdown(
-            items: cubit.data['Exophthalmometry'] ?? [],
-            hintText: "",
-            textRow: "Exophthalmometry:",
-            selectedValue: isLeftEye ? cubit.leftExophthalmometry : cubit.rightExophthalmometry,
-            onChanged: (selected) {
-              if (isLeftEye) {
-                cubit.updateLeftEyeField('exophthalmometry', selected);
-              } else {
-                cubit.updateRightEyeField('exophthalmometry', selected);
-              }
-            },
-          ),
-        ],
+        ),
       ),
     );
   }

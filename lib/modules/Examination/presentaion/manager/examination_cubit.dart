@@ -87,6 +87,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   dynamic leftRefinedRefractionSpherical;
   dynamic leftRefinedRefractionCylindrical;
   dynamic leftRefinedRefractionAxis;
+  dynamic leftNearVisionAddition;
 
   // IOP
   dynamic leftIOP;
@@ -116,17 +117,17 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   TextEditingController rightShapeController = TextEditingController();
 
   // Additional Fields
-  dynamic leftCornea;
-  dynamic leftAnteriorChambre;
-  dynamic leftIris;
-  dynamic leftLens;
-  dynamic leftAnteriorVitreous;
+  List leftCornea = [];
+  List leftAnteriorChambre = [];
+  List leftIris = [];
+  List leftLens = [];
+  List leftAnteriorVitreous = [];
 
   // Fundus Examination
-  dynamic leftFundusOpticDisc;
-  dynamic leftFundusMacula;
-  dynamic leftFundusVessels;
-  dynamic leftFundusPeriphery;
+  List leftFundusOpticDisc = [];
+  List leftFundusMacula = [];
+  List leftFundusVessels = [];
+  List leftFundusPeriphery = [];
   dynamic leftExophthalmometry;
 
   //circle data
@@ -150,6 +151,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   dynamic rightRefinedRefractionSpherical;
   dynamic rightRefinedRefractionCylindrical;
   dynamic rightRefinedRefractionAxis;
+  dynamic rightNearVisionAddition;
 
   // IOP
   dynamic rightIOP;
@@ -178,11 +180,11 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   TextEditingController rightScleraController = TextEditingController();
 
   // Additional Fields
-  dynamic rightCornea;
-  dynamic rightAnteriorChambre;
-  dynamic rightIris;
-  dynamic rightLens;
-  dynamic rightAnteriorVitreous;
+  List rightCornea = [];
+  List rightAnteriorChambre = [];
+  List rightIris = [];
+  List rightLens = [];
+  List rightAnteriorVitreous = [];
 
   // circle data
   int rightTopRightTapCount = 0;
@@ -191,10 +193,10 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   int rightBottomLeftTapCount = 0;
 
   // Fundus Examination
-  dynamic rightFundusOpticDisc;
-  dynamic rightFundusMacula;
-  dynamic rightFundusVessels;
-  dynamic rightFundusPeriphery;
+  List rightFundusOpticDisc = [];
+  List rightFundusMacula = [];
+  List rightFundusVessels = [];
+  List rightFundusPeriphery = [];
   @override
   Future<void> close() {
     // Dispose all controllers
@@ -254,6 +256,10 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         break;
       case 'refinedRefractionAxis':
         leftRefinedRefractionAxis = value;
+        emit(ChooseData());
+        break;
+      case 'nearVisionAddition':
+        leftNearVisionAddition = value;
         emit(ChooseData());
         break;
       case 'iop':
@@ -347,7 +353,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
     }
   }
 
-  void updateRightEyeField(String field, dynamic value) {
+  void updateRightEyeField(String field, dynamic value, {List? values}) {
     switch (field) {
       case 'aurorefSpherical':
         rightAurorefSpherical = value;
@@ -379,6 +385,10 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         break;
       case 'refinedRefractionAxis':
         rightRefinedRefractionAxis = value;
+        emit(ChooseData());
+        break;
+      case 'nearVisionAddition':
+        rightNearVisionAddition = value;
         emit(ChooseData());
         break;
       case 'iop':
@@ -430,7 +440,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         emit(ChooseData());
         break;
       case 'cornea':
-        rightCornea = value;
+        rightCornea = values ?? [];
         emit(ChooseData());
         break;
       case 'anteriorChambre':
@@ -634,8 +644,10 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         );
 
         Navigator.pop(context);
+        log(result.toJson().toString());
         Get.to(() => MedicalTreeForm(
-              id: result.examination!.id.toString(),
+              examination: result.examination,
+              doctor: result.doctor,
             ));
         emit(MakeExaminationSuccess());
       } else if (result != null && result.error != null) {

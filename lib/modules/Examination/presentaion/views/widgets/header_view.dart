@@ -164,9 +164,11 @@ class StepHeader extends StatelessWidget {
   String _getStepTitle(int step) {
     switch (step) {
       case 0:
-        return 'Patient History';
-      case 1:
         return 'Patient Complaint';
+
+      case 1:
+        return 'Patient History';
+
       case 2:
         return 'Diagnosis';
       case 3:

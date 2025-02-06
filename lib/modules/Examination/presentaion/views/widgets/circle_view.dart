@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/utils/app_style.dart';
+import '../../../../../core/utils/colors.dart';
+
 enum QuadrantPosition {
   topLeft,
   topRight,
@@ -84,6 +87,7 @@ class QuadrantContainer extends StatelessWidget {
   final List<VoidCallback>? tapHandlers;
   final List<Color> colorList;
   final String side;
+  final String? title;
 
   const QuadrantContainer({
     Key? key,
@@ -92,6 +96,7 @@ class QuadrantContainer extends StatelessWidget {
     this.tapHandlers,
     required this.colorList,
     required this.side,
+    this.title,
   })  : assert(tapCounts.length == 4),
         super(key: key);
 
@@ -103,13 +108,21 @@ class QuadrantContainer extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.all(Radius.circular(50)),
+        borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Text(title ?? '', style: appStyle(context, 18, Colorz.black, FontWeight.bold)),
+              ),
+              SizedBox(
+                height: 10,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
