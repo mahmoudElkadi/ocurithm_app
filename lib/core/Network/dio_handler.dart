@@ -37,9 +37,6 @@ class ApiService {
           )
           .timeout(timeout);
 
-      log(response.realUri.toString());
-      log(response.data.toString());
-
       if (response.data['message'] == "Invalid token") {
         await CacheHelper.removeData(key: "token");
         await CacheHelper.removeData(key: "id");
