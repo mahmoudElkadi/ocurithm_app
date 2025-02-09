@@ -218,7 +218,7 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             suffixIcon: Container(
                               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                               child: SvgPicture.asset(
-                                //    color: Colorz.primaryColor,
+                                color: Colorz.primaryColor,
                                 "assets/icons/email.svg",
                               ),
                             ),
@@ -265,7 +265,7 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             suffixIcon: Container(
                               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
                               child: SvgPicture.asset(
-                                //    color: Colorz.primaryColor,
+                                color: Colorz.primaryColor,
                                 "assets/icons/phone_number.svg",
                               ),
                             ),
@@ -292,7 +292,7 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             suffixIcon: Container(
                               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
                               child: SvgPicture.asset(
-                                //   color: Colorz.primaryColor,
+                                color: Colorz.primaryColor,
                                 "assets/icons/home.svg",
                               ),
                             ),
@@ -319,7 +319,7 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             suffixIcon: Container(
                               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
                               child: SvgPicture.asset(
-                                //  color: Colorz.primaryColor,
+                                color: Colorz.primaryColor,
                                 "assets/icons/national_id.svg",
                               ),
                             ),
@@ -363,40 +363,11 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             suffixIcon: Container(
                               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                               child: SvgPicture.asset(
-                                //  color: Colorz.primaryColor,
+                                color: Colorz.primaryColor,
                                 "assets/icons/flag_icon.svg",
                               ),
                             ),
                             isShadow: true,
-                          ),
-                    const HeightSpacer(size: 20),
-                    isLoading
-                        ? _buildShimmer(Container(
-                            width: MediaQuery.sizeOf(context).width,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.white,
-                            ),
-                          ))
-                        : Container(
-                            width: MediaQuery.sizeOf(context).width,
-                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), color: Colorz.white, boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                              ),
-                            ]),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(widget.cubit.patient?.serialNumber ?? "N/A",
-                                    style: TextStyle(color: Colorz.black, fontWeight: FontWeight.w400, fontSize: 16)),
-                                SvgPicture.asset("assets/icons/password.svg"),
-                              ],
-                            ),
                           ),
                     const HeightSpacer(size: 20),
                     Divider(

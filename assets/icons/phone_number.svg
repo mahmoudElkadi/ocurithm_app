@@ -6,7 +6,7 @@
   </defs>
   <g id="Mask_Group_96" data-name="Mask Group 96" transform="translate(-294 -11)" clip-path="url(#clip-path)">
     <g id="Layer_2" data-name="Layer 2" transform="translate(298.584 11)">
-      <rect id="Rectangle_16942" data-name="Rectangle 16942" width="11.917" height="21.083" rx="2.292" transform="translate(0.458 0.458)" fill="#6E77F6"/>
+      <rect id="Rectangle_16942" data-name="Rectangle 16942" width="11.917" height="21.083" rx="2.292" transform="translate(0.458 0.458)" fill="#2196f3"/>
       <rect id="Rectangle_16943" data-name="Rectangle 16943" width="11.917" height="14.667" transform="translate(0.458 3.653)" fill="#7fb5f6"/>
       <path id="Path_11071" data-name="Path 11071" d="M10.247,22H2.586A2.624,2.624,0,0,1,0,19.345V2.655A2.624,2.624,0,0,1,2.586,0h7.661a2.624,2.624,0,0,1,2.586,2.655V5.942a.458.458,0,1,1-.917,0V2.655A1.707,1.707,0,0,0,10.247.917H2.586A1.707,1.707,0,0,0,.917,2.655V19.345a1.707,1.707,0,0,0,1.67,1.738h7.661a1.707,1.707,0,0,0,1.669-1.738v-9.7a.458.458,0,0,1,.917,0v9.7A2.624,2.624,0,0,1,10.247,22Z"/>
       <path id="Path_11072" data-name="Path 11072" d="M7.792,2.75H5.042a.458.458,0,0,1,0-.917h2.75a.458.458,0,1,1,0,.917ZM3.208,1.833a.458.458,0,1,0,.458.458.458.458,0,0,0-.458-.458Z"/>
