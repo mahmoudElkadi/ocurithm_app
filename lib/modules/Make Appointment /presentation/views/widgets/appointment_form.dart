@@ -101,6 +101,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
       validateText: "Must Select Patient",
       selectedValue: cubit.selectedPatient?.name,
       hintText: 'Select Patient',
+      readOnly: cubit.selectedClinic == null,
       onChanged: (value) {
         cubit.patientController.text = value;
         cubit.searchPatients();
@@ -127,6 +128,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
       isValid: cubit.validationState['branch']!,
       validateText: S.of(context).mustBranch,
       selectedValue: cubit.selectedBranch?.name,
+      readOnly: cubit.selectedClinic == null,
       hintText: 'Select Branch',
       itemAsString: (item) => item.name.toString(),
       onItemSelected: (item) {

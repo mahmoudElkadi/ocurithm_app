@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:ocurithm/modules/Examination/data/repos/examination_repo.dart';
 
 import '../../../../../core/Network/dio_handler.dart';
@@ -13,7 +11,6 @@ class ExaminationRepoImpl implements ExaminationRepo {
   Future<ExaminationModel> makeExamination({required Map<String, dynamic> data}) async {
     final url = "${Config.baseUrl}${Config.examination}";
     final String? token = CacheHelper.getData(key: "token");
-    log(url);
     final result = await ApiService.request<ExaminationModel>(
       url: url,
       method: 'POST',

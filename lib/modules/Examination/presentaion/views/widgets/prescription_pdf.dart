@@ -8,10 +8,12 @@ import '../../../../Patient/data/model/one_exam.dart';
 
 Future<void> generateAndPrintPrescription(ExaminationModel examination, {bool showPrescriptionTable = false}) async {
   final pdf = pw.Document();
+  final regularFont = await rootBundle.load("assets/fonts/Cairo-Regular.ttf");
+  final bold = await rootBundle.load("assets/fonts/Cairo-Bold.ttf");
+  final font = pw.Font.ttf(regularFont);
+  final boldFont = pw.Font.ttf(bold);
 
   // Load custom font (optional)
-  final font = await PdfGoogleFonts.nunitoRegular();
-  final boldFont = await PdfGoogleFonts.nunitoBold();
   final logoData = await rootBundle.load('assets/icons/logo.png');
   final logoBytes = logoData.buffer.asUint8List();
 
@@ -46,6 +48,9 @@ Future<void> generateAndPrintPrescription(ExaminationModel examination, {bool sh
                             fontSize: 24,
                             color: PdfColors.blue900,
                           ),
+                          textDirection: isPredominantlyArabic(examination.examination?.patient?.clinic?.name ?? "N/A")
+                              ? pw.TextDirection.rtl
+                              : pw.TextDirection.ltr,
                         ),
                         pw.SizedBox(height: 5),
                         pw.Text(
@@ -55,6 +60,7 @@ Future<void> generateAndPrintPrescription(ExaminationModel examination, {bool sh
                             fontSize: 16,
                             color: PdfColors.blue800,
                           ),
+                          textDirection: isPredominantlyArabic(examination.doctor?.name ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
                         ),
                         pw.SizedBox(height: 3),
                         pw.Text(
@@ -115,6 +121,8 @@ Future<void> generateAndPrintPrescription(ExaminationModel examination, {bool sh
                     pw.Text(
                       examination.finalization?.diagnosis ?? "",
                       style: pw.TextStyle(font: font, fontSize: 14),
+                      textDirection:
+                          isPredominantlyArabic(examination.finalization?.diagnosis ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
                     ),
                     pw.SizedBox(height: 10),
 
@@ -129,6 +137,7 @@ Future<void> generateAndPrintPrescription(ExaminationModel examination, {bool sh
                     pw.Text(
                       examination.finalization?.action ?? "",
                       style: pw.TextStyle(font: font, fontSize: 16),
+                      textDirection: isPredominantlyArabic(examination.finalization?.action ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
                     ),
                     if (examination.finalization?.data != null && examination.finalization!.data!.isNotEmpty)
                       pw.Column(children: [
@@ -145,6 +154,8 @@ Future<void> generateAndPrintPrescription(ExaminationModel examination, {bool sh
                           child: pw.Text(
                             examination.finalization?.data ?? '',
                             style: pw.TextStyle(font: font, fontSize: 14),
+                            textDirection:
+                                isPredominantlyArabic(examination.finalization?.data ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
                           ),
                         ),
                       ]),
@@ -167,6 +178,9 @@ Future<void> generateAndPrintPrescription(ExaminationModel examination, {bool sh
                                     .map((metaData) => pw.Text(
                                           ' ${FormatHelper.capitalizeFirstLetter(metaData)}',
                                           style: pw.TextStyle(font: font, fontSize: 14),
+                                          textDirection: isPredominantlyArabic(FormatHelper.capitalizeFirstLetter(metaData))
+                                              ? pw.TextDirection.rtl
+                                              : pw.TextDirection.ltr,
                                         ))
                                     .toList()))
                       ]),
@@ -393,6 +407,8 @@ Future<void> generateAndPrintPrescription(ExaminationModel examination, {bool sh
                         pw.Text(
                           'Name: ${examination.examination?.patient?.name ?? ""}',
                           style: pw.TextStyle(font: font, fontSize: 12),
+                          textDirection:
+                              isPredominantlyArabic(examination.examination?.patient?.name ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
                         ),
                         pw.Text(
                           'ID: ${examination.examination?.patient?.serialNumber ?? ""}',
@@ -441,4 +457,20 @@ Future<void> generateAndPrintPrescription(ExaminationModel examination, {bool sh
   await Printing.layoutPdf(
     onLayout: (PdfPageFormat format) async => pdf.save(),
   );
+}
+
+bool isPredominantlyArabic(String text) {
+  int arabicCount = 0;
+  int otherCount = 0;
+
+  for (int i = 0; i < text.length; i++) {
+    int charCode = text.codeUnitAt(i);
+    if (charCode >= 0x0600 && charCode <= 0x06FF) {
+      arabicCount++;
+    } else if (charCode > 32) {
+      otherCount++;
+    }
+  }
+
+  return arabicCount > otherCount;
 }

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -43,7 +42,6 @@ class ExaminationCubit extends Cubit<ExaminationState> {
 
   void setAppointment(Appointment appointment) {
     appointmentData = appointment;
-    log(appointment.toJson().toString());
     emit(ExaminationStepChanged());
   }
 
@@ -552,6 +550,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         "refinedRefractionSpherical": leftRefinedRefractionSpherical,
         "refinedRefractionCylindrical": leftRefinedRefractionCylindrical,
         "refinedRefractionAxis": leftRefinedRefractionAxis,
+        "nearVisionAddition": leftNearVisionAddition,
         "iop": leftIOP,
         "meansOfMeasurement": leftMeansOfMeasurement,
         "acquireAnotherIOPMeasurement": leftAcquireAnotherIOPMeasurement,
@@ -607,6 +606,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         "palpableLymphNodes": rightPalpableLymphNodes,
         "palpableTemporalArtery": rightPapableTemporalArtery,
         "exophthalmometry": rightExophthalmometry,
+        "nearVisionAddition": rightNearVisionAddition,
         "cornea": rightCornea,
         "anteriorChamber": rightAnteriorChambre,
         "iris": rightIris,
@@ -644,7 +644,6 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         );
 
         Navigator.pop(context);
-        log(result.toJson().toString());
         Get.to(() => MedicalTreeForm(
               examination: result.examination,
               doctor: result.doctor,

@@ -291,6 +291,9 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
                         'Axis': isLeft
                             ? cubit.oneExamination?.examination?.measurements[0].refinedRefractionAxis
                             : cubit.oneExamination?.examination?.measurements[1].refinedRefractionAxis,
+                        'Near Vision': isLeft
+                            ? cubit.oneExamination?.examination?.measurements[0].nearVisionAddition
+                            : cubit.oneExamination?.examination?.measurements[1].nearVisionAddition,
                       },
                     ),
                     _buildExaminationSection(

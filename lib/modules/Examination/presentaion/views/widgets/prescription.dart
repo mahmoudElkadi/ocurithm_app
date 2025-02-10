@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -198,8 +196,6 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         break;
     }
 
-    log(prescription.toString());
-
     return prescription;
   }
 
@@ -240,7 +236,6 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                 icon: Icon(Icons.picture_as_pdf),
                 color: Colorz.primaryColor,
                 onPressed: () {
-                  log("sss" + generatePrescriptionObject()['diagnosis']);
                   generateAndPrintPrescription(
                       ExaminationModel(
                           examination: widget.examination,
