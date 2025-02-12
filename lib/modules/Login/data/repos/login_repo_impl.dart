@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:ocurithm/core/utils/config.dart';
 import 'package:ocurithm/modules/Login/data/model/login_response.dart';
 
@@ -9,7 +11,7 @@ class LoginRepoImpl extends LoginRepo {
   Future<LoginModel> loginUser({required String username, required String password, bool? rememberMe}) async {
     final url = "${Config.baseUrl}${Config.login}";
     Map<String, dynamic> data = {"username": username, "password": password, "rememberMe": rememberMe};
-
+    log(url.toString());
     final result = await ApiService.request<LoginModel>(
       url: url,
       data: data,

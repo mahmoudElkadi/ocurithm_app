@@ -60,6 +60,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
   void initState() {
     super.initState();
     final cubit = BlocProvider.of<MakeAppointmentCubit>(context);
+
     final now = DateTime.now();
 
     // Parse working hours safely
@@ -83,7 +84,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     final availableTo = getTimeOfDay(
         cubit.selectedDoctor?.branches?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id).availableTo ?? "18:00",
         const TimeOfDay(hour: 18, minute: 0));
-
     // Set up examination duration
     final duration = int.tryParse(cubit.selectedExaminationType?.duration?.toString() ?? "10") ?? 10;
 

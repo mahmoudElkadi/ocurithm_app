@@ -1,10 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
-import 'package:ocurithm/modules/Examination/presentaion/views/widgets/prescription_pdf.dart';
 import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
 
 import '../../../../../core/widgets/confirmation_popuo.dart';
@@ -32,6 +33,115 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   final TextEditingController IPDController = TextEditingController();
   final TextEditingController typeOfLens = TextEditingController();
   final TextEditingController diagnosisController = TextEditingController();
+
+  // Add these to your state class
+  final List<String> selectedMainOptions = [];
+  final List<Map<String, dynamic>> prescriptionsList = [];
+
+// Add a method to check if an option is selected
+  bool isOptionSelected(String option) {
+    return selectedMainOptions.contains(option);
+  }
+
+// Add a method to toggle selection
+  // Update toggleMainOption to initialize eye selection
+  void toggleMainOption(String option) {
+    setState(() {
+      if (selectedMainOptions.contains(option)) {
+        // Remove option and its prescription
+        selectedMainOptions.remove(option);
+        handleOptionDeselection(option);
+        // Remove eye selection for this option
+        eyeSelections.remove(option);
+      } else {
+        // Add new option
+        selectedMainOptions.add(option);
+        // Initialize empty prescription and eye selection for this option
+        prescriptionsList.add({
+          'action': option.toLowerCase(),
+          'data': '',
+          'metaData': [],
+          'diagnosis': unDiagnosedYet ? null : diagnosisController.text.toLowerCase(),
+          'eye': null
+        });
+      }
+    });
+  }
+
+  void handleOptionDeselection(String option) {
+    setState(() {
+      // Remove prescription for this option
+
+      eyeSelections.remove(option);
+
+      prescriptionsList.removeWhere((p) => p['action'] == option.toLowerCase());
+      selectedMainOptions.remove(option);
+
+      // Clear associated data based on the option type
+      switch (option) {
+        case 'Prescribe glasses':
+          IPDController.clear();
+          selectedGlassesType = null;
+          selectedGlassesValue = null;
+          break;
+
+        case 'Prescribe medications':
+          prescriptionController.clear();
+          break;
+
+        case 'Refer to investigations':
+          // Reset investigation checkboxes
+          investigationOptions.updateAll((key, value) => false);
+          cornealOptions.updateAll((key, value) => false);
+          biometryTypes.updateAll((key, value) => false);
+          biometryFeatures.updateAll((key, value) => false);
+          break;
+
+        case 'Refer to lasers':
+          selectedLaserOption = null;
+          break;
+
+        case 'Keratoconus':
+          selectedKeratoconusOption = null;
+          break;
+
+        case 'Refer to OR':
+          selectedOROption = null;
+          cataractSurgeryOptions.updateAll((key, value) => false);
+          injectionOptions.updateAll((key, value) => false);
+          selectedOption = null;
+          typeOfLens.clear();
+          break;
+
+        case 'Book next appointment':
+          selectedDate = null;
+          selectedTime = null;
+          selectedAppointmentType = null;
+          break;
+      }
+
+      // Clear eye selection if no options remain that need it
+      if (!selectedMainOptions.any((option) => option != 'Prescribe glasses' && option != 'Prescribe medications')) {
+        selectedeye = null;
+      }
+
+      // If this was the currently selected option, clear it
+      if (selectedMainOption == option) {
+        selectedMainOption = null;
+      }
+    });
+  }
+
+  void updatePrescriptionInList(String action) {
+    final prescriptionObject = generatePrescriptionObject(action);
+    final index = prescriptionsList.indexWhere((p) => p['action'] == action.toLowerCase());
+
+    if (index != -1) {
+      setState(() {
+        prescriptionsList[index] = prescriptionObject;
+      });
+    }
+  }
 
   // Investigation checkboxes
   final Map<String, bool> investigationOptions = {
@@ -129,16 +239,16 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   final List<String> glassesTypes = ['Near vision', 'Far vision', 'IPD', 'Remarks'];
   String? selectedGlassesValue;
 
-  Map<String, dynamic> generatePrescriptionObject() {
+  Map<String, dynamic> generatePrescriptionObject(String option) {
     Map<String, dynamic> prescription = {
-      'action': selectedMainOption?.toLowerCase() ?? '',
+      'action': option.toLowerCase(),
       'data': '',
-      'metaData': [],
+      'metaData': <String>[], // Initialize as empty list
       'diagnosis': unDiagnosedYet ? null : diagnosisController.text.toLowerCase(),
-      'eye': selectedeye?.toLowerCase()
+      'eye': eyeSelections[option]?.toLowerCase() // Get eye selection for this specific option
     };
 
-    switch (selectedMainOption) {
+    switch (option) {
       case 'Prescribe glasses':
         prescription['data'] = IPDController.text.toLowerCase();
         break;
@@ -148,49 +258,73 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         break;
 
       case 'Refer to investigations':
-        // Main investigation options
-        prescription['metaData'] = [
-          ...investigationOptions.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
+        List<String> metadata = [];
 
-          // Corneal sub-options
-          if (investigationOptions['Corneal'] == true)
-            ...cornealOptions.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
+        // Add main investigation options
+        investigationOptions.forEach((key, value) {
+          if (value) {
+            metadata.add(key.toLowerCase());
 
-          // Cataract sub-options
-          if (investigationOptions['Cataract'] == true) ...[
-            if (biometryFeatures['Biometry'] == true) 'biometry',
-            ...biometryTypes.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
-          ]
-        ];
+            // Add sub-options for Corneal
+            if (key == 'Corneal') {
+              cornealOptions.forEach((subKey, subValue) {
+                if (subValue) metadata.add(subKey.toLowerCase());
+              });
+            }
+
+            // Add sub-options for Cataract
+            if (key == 'Cataract') {
+              if (biometryFeatures['Biometry'] == true) {
+                metadata.add('biometry');
+                biometryTypes.forEach((subKey, subValue) {
+                  if (subValue) metadata.add(subKey.toLowerCase());
+                });
+              }
+            }
+          }
+        });
+
+        prescription['metaData'] = metadata;
         break;
 
       case 'Refer to lasers':
-        final selectedLaserOption = this.selectedLaserOption;
         if (selectedLaserOption != null) {
-          prescription['data'] = selectedLaserOption.toLowerCase();
+          prescription['data'] = selectedLaserOption!.toLowerCase();
         }
         break;
 
       case 'Keratoconus':
         if (selectedKeratoconusOption != null) {
-          prescription['data'] = selectedKeratoconusOption?.toLowerCase();
+          prescription['data'] = selectedKeratoconusOption!.toLowerCase();
         }
         break;
 
       case 'Refer to OR':
         if (selectedOROption != null) {
-          prescription['data'] = selectedOROption?.toLowerCase();
+          prescription['data'] = selectedOROption!.toLowerCase();
+          List<String> metadata = [];
+
+          if (selectedOROption == 'Cataract surgery') {
+            if (selectedOption != null) {
+              metadata.add(selectedOption!.toLowerCase());
+            }
+            if (typeOfLens.text.isNotEmpty) {
+              metadata.add(typeOfLens.text.toLowerCase());
+            }
+          }
+
+          if (selectedOROption == 'Intravitreal injection') {
+            injectionOptions.forEach((key, value) {
+              if (value) metadata.add(key.toLowerCase());
+            });
+          }
+
+          prescription['metaData'] = metadata;
         }
-        prescription['metaData'] = [
-          if (selectedOROption == 'Cataract surgery') selectedOption,
-          typeOfLens.text,
-          if (selectedOROption == 'Intravitreal injection')
-            ...injectionOptions.entries.where((entry) => entry.value).map((entry) => entry.key.toLowerCase()),
-        ];
         break;
 
       case 'Book next appointment':
-        if (selectedMainOption == 'Book next appointment' && selectedDate != null) {
+        if (selectedDate != null) {
           prescription['data'] = _formatAppointmentDateTime();
         }
         break;
@@ -236,17 +370,17 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                 icon: Icon(Icons.picture_as_pdf),
                 color: Colorz.primaryColor,
                 onPressed: () {
-                  generateAndPrintPrescription(
-                      ExaminationModel(
-                          examination: widget.examination,
-                          doctor: widget.doctor,
-                          finalization: Finalization(
-                              action: generatePrescriptionObject()['action'],
-                              eye: generatePrescriptionObject()['eye'],
-                              data: generatePrescriptionObject()['data'],
-                              diagnosis: generatePrescriptionObject()['diagnosis'],
-                              metaData: generatePrescriptionObject()['metaData'])),
-                      showPrescriptionTable: selectedMainOption == 'Prescribe glasses');
+                  //  generateAndPrintPrescription(
+                  // ExaminationModel(
+                  //     examination: widget.examination,
+                  //     doctor: widget.doctor,
+                  //     finalization: Finalization(
+                  //         action: generatePrescriptionObject()['action'],
+                  //         eye: generatePrescriptionObject()['eye'],
+                  //         data: generatePrescriptionObject()['data'],
+                  //         diagnosis: generatePrescriptionObject()['diagnosis'],
+                  //         metaData: generatePrescriptionObject()['metaData'])),
+                  //   showPrescriptionTable: selectedMainOption == 'Prescribe glasses');
                 }),
           ],
         ),
@@ -256,12 +390,15 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildFinalDiagnosisForm(),
-              _buildMainOptions(),
               SizedBox(height: 20.h),
-              if (selectedMainOption != null) _buildSelectedOptionContent(),
-              if (selectedMainOption != null && selectedMainOption != 'Prescribe glasses' && selectedMainOption != 'Prescribe medications') eyeForm(),
-              if (selectedMainOption != null) SizedBox(height: 20.h),
-              if (selectedMainOption != null) _buildSaveButton(context),
+              _buildMainOptions(),
+              if (selectedMainOptions.isNotEmpty)
+                Column(
+                  children: [
+                    SizedBox(height: 20.h),
+                    _buildSaveButton(context),
+                  ],
+                ),
             ],
           ),
         ),
@@ -301,62 +438,143 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   }
 
   Widget _buildMainOptions() {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: mainOptions.length,
-      itemBuilder: (context, index) {
-        final category = mainOptions[index];
-        final isSelected = selectedMainOption == category;
+    return Column(
+      children: mainOptions.map((category) {
+        final isSelected = isOptionSelected(category);
 
-        return Card(
-          margin: EdgeInsets.only(bottom: 10.h),
-          elevation: isSelected ? 2 : 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            side: BorderSide(
-              color: isSelected ? Colorz.primaryColor : Colors.transparent,
-              width: 2,
-            ),
-          ),
-          child: InkWell(
-            onTap: () async {
-              await _clearAllData();
-              setState(() => selectedMainOption = category);
-            },
-            child: Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Row(
-                children: [
-                  Icon(
-                    categoryIcons[category],
-                    size: 24.sp,
-                    color: isSelected ? Colorz.primaryColor : Colors.grey[600],
-                  ),
-                  SizedBox(width: 16.w),
-                  Expanded(
-                    child: Text(
-                      category,
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        color: isSelected ? Colorz.primaryColor : Colors.black87,
+        return Column(
+          children: [
+            // Main Option Card
+            Card(
+              margin: EdgeInsets.only(bottom: isSelected ? 0 : 10.h),
+              elevation: isSelected ? 2 : 1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8.r),
+                  topRight: Radius.circular(8.r),
+                  bottomLeft: Radius.circular(isSelected ? 0 : 8.r),
+                  bottomRight: Radius.circular(isSelected ? 0 : 8.r),
+                ),
+                side: BorderSide(
+                  color: isSelected ? Colorz.primaryColor : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+              child: InkWell(
+                onTap: () => toggleMainOption(category),
+                child: Padding(
+                  padding: EdgeInsets.all(16.w),
+                  child: Row(
+                    children: [
+                      Icon(
+                        categoryIcons[category],
+                        size: 24.sp,
+                        color: isSelected ? Colorz.primaryColor : Colors.grey[600],
                       ),
-                    ),
+                      SizedBox(width: 16.w),
+                      Expanded(
+                        child: Text(
+                          category,
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            color: isSelected ? Colorz.primaryColor : Colors.black87,
+                          ),
+                        ),
+                      ),
+                      if (isSelected)
+                        Icon(
+                          Icons.check_circle,
+                          color: Colorz.primaryColor,
+                          size: 20.sp,
+                        ),
+                    ],
                   ),
-                  if (isSelected)
-                    Icon(
-                      Icons.check_circle,
-                      color: Colorz.primaryColor,
-                      size: 20.sp,
-                    ),
-                ],
+                ),
               ),
             ),
-          ),
+
+            // Form Content for Selected Option
+            if (isSelected)
+              Card(
+                margin: EdgeInsets.only(bottom: 10.h),
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(8.r),
+                    bottomRight: Radius.circular(8.r),
+                  ),
+                  side: BorderSide(
+                    color: Colorz.primaryColor,
+                    width: 2,
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(16.w),
+                  child: _buildFormContent(category),
+                ),
+              ),
+          ],
         );
-      },
+      }).toList(),
     );
+  }
+
+  Widget _buildFormContent(String category) {
+    Widget formContent;
+    switch (category) {
+      case 'Prescribe glasses':
+        formContent = _buildGlassesPrescriptionForm();
+        break;
+      case 'Prescribe medications':
+        formContent = _buildMedicationForm();
+        break;
+      case 'Refer to investigations':
+        formContent = _buildInvestigationsForm();
+        break;
+      case 'Refer to lasers':
+        formContent = _buildLaserOptionsForm();
+        break;
+      case 'Keratoconus':
+        formContent = _buildKeratoconusForm();
+        break;
+      case 'Refer to OR':
+        formContent = _buildORForm();
+        break;
+      case 'Book next appointment':
+        formContent = _buildAppointmentForm();
+        break;
+      default:
+        formContent = const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        // Eye Selection for applicable options
+        if (category != 'Prescribe glasses' && category != 'Prescribe medications')
+          Column(
+            children: [
+              eyeForm(category), // Pass the current category
+              SizedBox(height: 16.h),
+            ],
+          ),
+        formContent,
+      ],
+    );
+  }
+
+  void updatePrescription() {
+    // Update prescription when form fields change
+    selectedMainOptions.forEach((option) {
+      final currentPrescription = generatePrescriptionObject(option);
+      final index = prescriptionsList.indexWhere((p) => p['action'] == option.toLowerCase());
+
+      if (index != -1) {
+        prescriptionsList[index] = currentPrescription;
+      } else {
+        prescriptionsList.add(currentPrescription);
+      }
+    });
   }
 
   Widget _buildFormContainer({required String title, required Widget child}) {
@@ -524,13 +742,25 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
 
   Widget _buildMedicationForm() {
     return _buildFormContainer(
-      title: 'Medication Prescription',
-      child: TextField(
-        controller: prescriptionController,
-        maxLines: 5,
-        decoration: _getInputDecoration('Enter prescription details...'),
-      ),
-    );
+        title: 'Medication Prescription',
+        child: TextField(
+          controller: prescriptionController,
+          maxLines: 5,
+          decoration: _getInputDecoration('Enter prescription details...'),
+          onChanged: (value) {
+            updatePrescription();
+          },
+        ));
+  }
+
+  void removePrescription(String action) {
+    setState(() {
+      prescriptionsList.removeWhere((p) => p['action'] == action.toLowerCase());
+      selectedMainOptions.remove(action);
+      if (selectedMainOption == action) {
+        selectedMainOption = null;
+      }
+    });
   }
 
   Widget _buildInvestigationsForm() {
@@ -555,6 +785,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                       biometryTypes['Ultrasound'] = false;
                       biometryTypes['Optical'] = false;
                     }
+                    // Update prescription after changing investigation options
+                    updatePrescriptionInList('Refer to investigations');
                   });
                 },
               ),
@@ -686,15 +918,18 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     );
   }
 
-  Widget eyeForm() {
+  final Map<String, String?> eyeSelections = {};
+
+  Widget eyeForm(String currentOption) {
     return _buildDropdown(
       items: eyes,
-      value: selectedeye,
+      value: eyeSelections[currentOption],
       onChanged: (value) async {
         await clearOrOptions();
-
         setState(() {
-          selectedeye = value;
+          eyeSelections[currentOption] = value;
+          // Update prescription when eye selection changes
+          updatePrescriptionInList(currentOption);
         });
       },
       hint: 'Select eye',
@@ -931,7 +1166,20 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              final prescriptionObject = generatePrescriptionObject();
+              // Generate prescription for current selection if not already in list
+              selectedMainOptions.forEach((option) {
+                final currentPrescription = generatePrescriptionObject(option);
+                final existingIndex = prescriptionsList.indexWhere((p) => p['action'] == option.toLowerCase());
+
+                if (existingIndex != -1) {
+                  prescriptionsList[existingIndex] = currentPrescription;
+                } else {
+                  prescriptionsList.add(currentPrescription);
+                }
+              });
+
+              log("Final prescriptions list: ${prescriptionsList.toString()}");
+
               showConfirmationDialog(
                 context: context,
                 title: "Visit Finalization",
@@ -947,7 +1195,10 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                     ));
                     return;
                   }
-                  ExaminationCubit.get(context).makeFinalization(context: context, id: widget.examination?.id ?? '', data: prescriptionObject);
+
+                  // Send the entire prescriptions list
+                  // ExaminationCubit.get(context)
+                  //     .makeFinalization(context: context, id: widget.examination?.id ?? '', data: {'prescriptions': prescriptionsList});
                 },
                 onCancel: () {
                   Navigator.pop(context);
