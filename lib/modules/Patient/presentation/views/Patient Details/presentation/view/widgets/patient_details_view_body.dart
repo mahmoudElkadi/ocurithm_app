@@ -347,21 +347,37 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                               color: Colors.white,
                             ),
                           ))
-                        : TextField2(
-                            controller: widget.cubit.nationalityController,
-                            required: false,
-                            readOnly: widget.cubit.readOnly,
-                            hintText: S.of(context).nationality,
-                            fillColor: Colorz.white,
-                            borderColor: Colorz.primaryColor,
+                        : DropdownItem(
                             radius: 30,
-                            suffixIcon: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
-                              child: SvgPicture.asset(
-                                "assets/icons/flag_icon.svg",
-                              ),
-                            ),
+                            color: Colorz.white,
                             isShadow: true,
+                            iconData: Icon(
+                              Icons.arrow_drop_down_circle,
+                              color: Colorz.primaryColor,
+                            ),
+                            readOnly: widget.cubit.readOnly,
+                            items: [
+                              "Saudi",
+                              "Egyptian",
+                              "Emirati",
+                              "Jordanian",
+                              "Lebanese",
+                              "Syrian",
+                              "Other",
+                            ],
+                            isValid: widget.cubit.nationality,
+                            validateText: 'Nationality must not be Empty',
+                            selectedValue: widget.cubit.selectedNationality,
+                            hintText: 'Select Nationality',
+                            itemAsString: (item) => item.toString(),
+                            onItemSelected: (item) {
+                              setState(() {
+                                if (item != "Not Found") {
+                                  widget.cubit.selectedNationality = item;
+                                }
+                              });
+                            },
+                            isLoading: widget.cubit.clinics == null,
                           ),
                     const HeightSpacer(size: 20),
                     isLoading

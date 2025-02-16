@@ -484,22 +484,16 @@ class Type {
 class Finalization {
   Finalization({
     this.examination,
-    this.action,
-    this.eye,
-    this.data,
     this.diagnosis,
-    required this.metaData,
+    required this.actions,
     this.createdAt,
     this.updatedAt,
     this.id,
   });
 
   final String? examination;
-  final String? action;
-  final String? eye;
-  final String? data;
   final String? diagnosis;
-  final List<dynamic> metaData;
+  final List<Action> actions;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? id;
@@ -507,26 +501,58 @@ class Finalization {
   factory Finalization.fromJson(Map<String, dynamic> json) {
     return Finalization(
       examination: json["examination"],
-      action: json["action"],
-      eye: json["eye"],
-      data: json["data"],
-      metaData: json["metaData"] == null ? [] : List<dynamic>.from(json["metaData"]!.map((x) => x)),
+      diagnosis: json["diagnosis"],
+      actions: json["actions"] == null ? [] : List<Action>.from(json["actions"]!.map((x) => Action.fromJson(x))),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
-      diagnosis: json["diagnosis"],
     );
   }
 
   Map<String, dynamic> toJson() => {
         "examination": examination,
-        "action": action,
-        "eye": eye,
-        "data": data,
         "diagnosis": diagnosis,
-        "metaData": metaData.map((x) => x).toList(),
+        "actions": actions.map((x) => x?.toJson()).toList(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,
+      };
+}
+
+class Action {
+  Action({
+    this.action,
+    this.eye,
+    this.data,
+    required this.metaData,
+    this.id,
+    this.actionId,
+  });
+
+  String? action;
+  String? eye;
+  String? data;
+  List<String> metaData;
+  String? id;
+  String? actionId;
+
+  factory Action.fromJson(Map<String, dynamic> json) {
+    return Action(
+      action: json["action"],
+      eye: json["eye"],
+      data: json["data"],
+      metaData: json["metaData"] == null ? [] : List<String>.from(json["metaData"]!.map((x) => x)),
+      id: json["_id"],
+      actionId: json["id"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        "action": action,
+        "eye": eye,
+        "data": data,
+        "metaData": metaData.map((x) => x).toList(),
+        "_id": id,
+        "id": actionId,
       };
 }

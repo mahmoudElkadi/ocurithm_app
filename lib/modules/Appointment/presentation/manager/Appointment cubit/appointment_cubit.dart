@@ -105,6 +105,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
         if (appointments?.error == null && appointments!.appointments.isNotEmpty) {
           // Group appointments by time slot
           groupedAppointments = AppointmentHelper.groupAppointmentsByTimeSlot(appointments!.appointments);
+
           emit(GetAppointmentSuccess());
         } else {
           emit(GetAppointmentError());

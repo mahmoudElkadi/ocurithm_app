@@ -348,21 +348,36 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       isShadow: _nationalIdShadow,
                     ),
                     const HeightSpacer(size: 20),
-                    TextField2(
-                      controller: widget.cubit.nationalityController,
-                      required: false,
-                      hintText: S.of(context).nationality,
-                      fillColor: Colorz.white,
-                      borderColor: Colorz.primaryColor,
+                    DropdownItem(
                       radius: 30,
-                      suffixIcon: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
-                        child: SvgPicture.asset(
-                          color: Colorz.primaryColor,
-                          "assets/icons/flag_icon.svg",
-                        ),
+                      color: Colorz.white,
+                      isShadow: true,
+                      iconData: Icon(
+                        Icons.arrow_drop_down_circle,
+                        color: Colorz.primaryColor,
                       ),
-                      isShadow: _nationlityShadow,
+                      items: [
+                        "Saudi",
+                        "Egyptian",
+                        "Emirati",
+                        "Jordanian",
+                        "Lebanese",
+                        "Syrian",
+                        "Other",
+                      ],
+                      isValid: widget.cubit.nationality,
+                      validateText: 'Nationality must not be Empty',
+                      selectedValue: widget.cubit.selectedNationality,
+                      hintText: 'Select Nationality',
+                      itemAsString: (item) => item.toString(),
+                      onItemSelected: (item) {
+                        setState(() {
+                          if (item != "Not Found") {
+                            widget.cubit.selectedNationality = item;
+                          }
+                        });
+                      },
+                      isLoading: widget.cubit.clinics == null,
                     ),
                     const HeightSpacer(size: 20),
                     Divider(

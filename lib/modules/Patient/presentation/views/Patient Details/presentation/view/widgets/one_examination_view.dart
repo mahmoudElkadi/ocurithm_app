@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Action;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/utils/format_helper.dart';
 import 'package:ocurithm/modules/Patient/data/repos/patient_repo_impl.dart';
@@ -634,8 +634,6 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
         }
 
         return _buildExpandableFinalizationCard(
-          title: _getActionTitle(finalization.action),
-          icon: _getActionIcon(finalization.action),
           finalization: finalization,
         );
       },
@@ -643,8 +641,6 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
   }
 
   Widget _buildExpandableFinalizationCard({
-    required String title,
-    required IconData icon,
     required Finalization finalization,
   }) {
     return Card(
@@ -660,7 +656,7 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
               color: Colorz.primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: Colorz.primaryColor),
+            child: Icon(Icons.medical_services, color: Colorz.primaryColor),
           ),
           title: Text(
             "Finalization",
@@ -670,51 +666,79 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
               color: Colorz.primaryColor,
             ),
           ),
-          subtitle: Text(
-            'Eye: ${finalization.eye?.toUpperCase() ?? ''}',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
           childrenPadding: const EdgeInsets.all(16),
           children: [
-            if (finalization.diagnosis != null)
+            if (finalization.diagnosis != null && finalization.diagnosis!.isNotEmpty)
               SizedBox(
                 width: double.infinity,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Diagnosis", style: TextStyle(fontSize: 14, color: Colorz.primaryColor, fontWeight: FontWeight.bold)),
+                    Text(
+                      "Diagnosis",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colorz.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    Text(finalization.diagnosis ?? 'N/A', style: const TextStyle(fontSize: 14)),
-                    const HeightSpacer(size: 10)
+                    Text(
+                      finalization.diagnosis ?? 'N/A',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const HeightSpacer(size: 10),
                   ],
                 ),
               ),
-            _buildFinalizationContent(finalization),
+            ...finalization.actions.map((action) => _buildActionContent(action)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFinalizationContent(Finalization finalization) {
-    switch (finalization.action?.toLowerCase()) {
+  Widget _buildActionContent(Action action) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildActionSpecificContent(action),
+        if (action.eye != null) ...[
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(left: 2),
+            child: Text(
+              "Eye: ${action.eye?.toUpperCase()}",
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        const Divider(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildActionSpecificContent(Action action) {
+    switch (action.action?.toLowerCase()) {
       case 'prescribe glasses':
-        return _buildGlassesContent(finalization);
+        return _buildGlassesContent(action);
       case 'prescribe medications':
-        return _buildMedicationContent(finalization);
+        return _buildMedicationContent(action);
       case 'refer to investigations':
-        return _buildInvestigationsContent(finalization);
+        return _buildInvestigationsContent(action);
       case 'refer to lasers':
-        return _buildLaserContent(finalization);
+        return _buildLaserContent(action);
       case 'keratoconus':
-        return _buildKeratoconusContent(finalization);
+        return _buildKeratoconusContent(action);
       case 'refer to or':
-        return _buildORContent(finalization);
+        return _buildORContent(action);
       case 'book next appointment':
-        return _buildAppointmentContent(finalization);
+        return _buildAppointmentContent(action);
       default:
         return const SizedBox.shrink();
     }
@@ -751,41 +775,40 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
     );
   }
 
-// Specific content builders based on action type
-  Widget _buildGlassesContent(Finalization finalization) {
+  Widget _buildGlassesContent(Action action) {
     return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(finalization.action ?? ""),
-      content: finalization.data ?? 'N/A',
+      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+      content: action.data ?? 'N/A',
     );
   }
 
-  Widget _buildMedicationContent(Finalization finalization) {
+  Widget _buildMedicationContent(Action action) {
     return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(finalization.action ?? ""),
-      content: finalization.data ?? 'No medication details available',
+      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+      content: action.data ?? 'No medication details available',
     );
   }
 
-  Widget _buildLaserContent(Finalization finalization) {
+  Widget _buildLaserContent(Action action) {
     return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(finalization.action ?? ""),
-      content: FormatHelper.capitalizeFirstLetter(finalization.data ?? ''),
+      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+      content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
     );
   }
 
-  Widget _buildKeratoconusContent(Finalization finalization) {
+  Widget _buildKeratoconusContent(Action action) {
     return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(finalization.action ?? ""),
-      content: FormatHelper.capitalizeFirstLetter(finalization.data ?? ''),
+      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+      content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
     );
   }
 
-  Widget _buildInvestigationsContent(Finalization finalization) {
+  Widget _buildInvestigationsContent(Action action) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          FormatHelper.capitalizeFirstLetter(finalization.action ?? ""),
+          FormatHelper.capitalizeFirstLetter(action.action ?? ""),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
@@ -793,28 +816,23 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
           ),
         ),
         const SizedBox(height: 8),
-        ...finalization.metaData.map((investigation) {
-          // Check if this is a main investigation option
+        ...action.metaData.map((investigation) {
           if (investigation == 'corneal') {
-            // Find related corneal options
-            final cornealSubOptions =
-                finalization.metaData.where((item) => ['topography', 'pentacam'].contains(item.toString().toLowerCase())).toList();
+            final cornealSubOptions = action.metaData.where((item) => ['topography', 'pentacam'].contains(item.toString().toLowerCase())).toList();
 
             return _buildNestedInvestigation(
               mainTitle: FormatHelper.capitalizeFirstLetter(investigation),
               subOptions: cornealSubOptions,
             );
           } else if (investigation == 'cataract') {
-            // Find biometry and its sub-options
-            final hasBiometry = finalization.metaData.contains('biometry');
-            final biometryTypes = finalization.metaData.where((item) => ['ultrasound', 'optical'].contains(item.toString().toLowerCase())).toList();
+            final hasBiometry = action.metaData.contains('biometry');
+            final biometryTypes = action.metaData.where((item) => ['ultrasound', 'optical'].contains(item.toString().toLowerCase())).toList();
 
             return _buildNestedInvestigation(
               mainTitle: FormatHelper.capitalizeFirstLetter(investigation),
               subOptions: hasBiometry ? ['Biometry', ...biometryTypes] : [],
             );
           } else if (!['topography', 'pentacam', 'biometry', 'ultrasound', 'optical'].contains(investigation.toString().toLowerCase())) {
-            // Show other main investigations that aren't sub-options
             return _buildInvestigationItem(investigation);
           }
           return const SizedBox.shrink();
@@ -859,15 +877,15 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
     );
   }
 
-  Widget _buildORContent(Finalization finalization) {
+  Widget _buildORContent(Action action) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildDetailItem(
           title: 'Surgery Type',
-          content: FormatHelper.capitalizeFirstLetter(finalization.data ?? ''),
+          content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
         ),
-        if (finalization.metaData.isNotEmpty) ...[
+        if (action.metaData.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
             'Additional Details',
@@ -878,18 +896,15 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
             ),
           ),
           const SizedBox(height: 8),
-          if (finalization.data?.toLowerCase() == 'cataract surgery') ...[
-            // Cataract surgery options
-            ...finalization.metaData.map((detail) => _buildORDetailItem(detail)),
-          ] else if (finalization.data?.toLowerCase() == 'intravitreal injection') ...[
-            // Injection options
-            ...finalization.metaData
+          if (action.data?.toLowerCase() == 'cataract surgery') ...[
+            ...action.metaData.map((detail) => _buildORDetailItem(detail)),
+          ] else if (action.data?.toLowerCase() == 'intravitreal injection') ...[
+            ...action.metaData
                 .where((detail) =>
                     ['eylea', 'lucentis', 'avastin', 'ziv-aflibercept', 'vabysmo', 'vsiqqoo', 'ozurdex'].contains(detail.toString().toLowerCase()))
                 .map((detail) => _buildORDetailItem(detail)),
           ] else ...[
-            // Other OR details
-            ...finalization.metaData.map((detail) => _buildORDetailItem(detail)),
+            ...action.metaData.map((detail) => _buildORDetailItem(detail)),
           ],
         ],
       ],
@@ -912,42 +927,11 @@ class _OneExaminationViewState extends State<OneExaminationView> with SingleTick
     );
   }
 
-  Widget _buildAppointmentContent(Finalization finalization) {
+  Widget _buildAppointmentContent(Action action) {
     return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(finalization.action ?? ""),
-      content: FormatHelper.capitalizeFirstLetter(finalization.data ?? ''),
+      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+      content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
     );
-  }
-
-  String _getActionTitle(String? action) {
-    if (action == null) return 'Finalization';
-    return action.split('_').map((word) => FormatHelper.capitalizeFirstLetter(word)).join(' ');
-  }
-
-  IconData _getActionIcon(String? action) {
-    switch (action?.toLowerCase()) {
-      case 'prescribe glasses':
-        return Icons.visibility;
-      case 'prescribe medications':
-        return Icons.medication;
-      case 'refer to investigations':
-        return Icons.science;
-      case 'refer to lasers':
-        return Icons.flash_on;
-      case 'keratoconus':
-        return Icons.remove_red_eye;
-      case 'refer to or':
-        return Icons.local_hospital;
-      case 'book next appointment':
-        return Icons.calendar_today;
-      default:
-        return Icons.medical_services;
-    }
-  }
-
-  String _formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) return 'N/A';
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _buildInfoItem({

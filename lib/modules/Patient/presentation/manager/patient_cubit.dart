@@ -1,13 +1,9 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/Services/whatsapp_confirmation.dart';
 import 'package:ocurithm/core/utils/colors.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../Services/services_api.dart';
 import '../../../Branch/data/model/branches_model.dart';
@@ -29,7 +25,6 @@ class PatientCubit extends Cubit<PatientState> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController addressController = TextEditingController();
-  TextEditingController nationalityController = TextEditingController();
   TextEditingController nationalIdController = TextEditingController();
   bool readOnly = true;
 
@@ -43,6 +38,9 @@ class PatientCubit extends Cubit<PatientState> {
     nameController.dispose();
     phoneNumberController.dispose();
     passwordController.dispose();
+    emailController.dispose();
+    addressController.dispose();
+    nationalIdController.dispose();
     return super.close();
   }
 
@@ -83,6 +81,8 @@ class PatientCubit extends Cubit<PatientState> {
 
   bool get obscureText => _obscureText;
 
+  String? selectedNationality;
+
   set obscureText(bool newState) {
     _obscureText = newState;
     emit(ObscureText());
@@ -94,6 +94,7 @@ class PatientCubit extends Cubit<PatientState> {
   bool chooseBranch = true;
   bool chooseClinic = true;
   bool gender = true;
+  bool nationality = true;
   bool isValidate = false;
 
   bool validateFirstPage() {
@@ -119,6 +120,12 @@ class PatientCubit extends Cubit<PatientState> {
       gender = false;
     } else {
       gender = true;
+    }
+
+    if (selectedNationality == null) {
+      nationality = false;
+    } else {
+      nationality = true;
     }
 
     if (picDate && chooseBranch && gender) {
@@ -147,7 +154,7 @@ class PatientCubit extends Cubit<PatientState> {
           gender: selectedGender,
           clinic: selectedClinic,
           nationalId: nationalIdController.text,
-          nationality: nationalityController.text,
+          nationality: selectedNationality,
           email: emailController.text,
           username: nameController.text,
         ),
@@ -308,7 +315,7 @@ class PatientCubit extends Cubit<PatientState> {
         selectedGender = patient?.gender;
         emailController.text = patient?.email ?? "";
         addressController.text = patient?.address ?? "";
-        nationalityController.text = patient?.nationality ?? "";
+        selectedNationality = patient?.nationality ?? "";
         nationalIdController.text = patient?.nationalId ?? "";
         selectedClinic = patient?.clinic;
         if (patient?.error == null) {
@@ -386,7 +393,7 @@ class PatientCubit extends Cubit<PatientState> {
           clinic: selectedClinic,
           gender: selectedGender,
           nationalId: nationalIdController.text,
-          nationality: nationalityController.text,
+          nationality: selectedNationality,
           email: emailController.text,
           username: nameController.text,
         ),
@@ -445,11 +452,11 @@ class PatientCubit extends Cubit<PatientState> {
     passwordController.clear();
     phoneNumberController.clear();
     nationalIdController.clear();
-    nationalityController.clear();
     emailController.clear();
     addressController.clear();
     selectedGender = null;
     selectedClinic = null;
+    selectedNationality = null;
     date = null;
     selectedBranch = null;
     picDate = true;

@@ -78,7 +78,7 @@ class Appointment {
         branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
         doctor: json["doctor"] == null ? null : Doctor.fromJson(json["doctor"]),
         examinationType: json["examinationType"] == null ? null : ExaminationType.fromJson(json["examinationType"]),
-        datetime: DateTime.tryParse(json["datetime"] ?? ""),
+        datetime: json["datetime"] == null ? null : DateTime.tryParse(json["datetime"])!.toLocal(),
         paymentMethod: json["paymentMethod"] == null ? null : PaymentMethod.fromJson(json["paymentMethod"]),
         status: json["status"],
         note: json["note"],
