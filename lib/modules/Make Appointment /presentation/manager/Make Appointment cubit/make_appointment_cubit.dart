@@ -350,11 +350,14 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   makeAppointment({required BuildContext context}) async {
     emit(MakeAppointmentLoading());
     try {
+      // log("local" + selectedTime!.toLocal().toString());
+      // log("local Utc" + selectedTime!.toUtc().toLocal().toString());
+      // log("utc" + selectedTime!.toUtc().toString());
       var result = await makeAppointmentRepo.makeAppointment(
           model: MakeAppointmentModel(
               doctor: selectedDoctor?.id,
               branch: selectedBranch?.id,
-              datetime: selectedTime,
+              datetime: selectedTime?.toUtc(),
               paymentMethod: selectedPaymentMethod?.id,
               examinationType: selectedExaminationType?.id,
               patient: selectedPatient?.id,

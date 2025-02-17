@@ -43,6 +43,10 @@ class ApiService {
         await CacheHelper.removeData(key: "domain");
         Get.offAll(() => const LoginView());
       }
+      // log("Response${response.data}");
+      // log("URL${response.realUri}");
+      // log("body $data");
+
       if (!showError) {
         if (response.data != null && response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
           if (fromJson != null) {

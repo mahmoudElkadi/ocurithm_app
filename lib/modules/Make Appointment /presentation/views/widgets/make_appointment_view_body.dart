@@ -148,12 +148,13 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       if (_disposed) return;
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = response.data;
-
-        // Remove appointments that are no longer present
-
-        // Add new appointments
-        appointments = response.data['appointments'];
+        // Convert appointments dateTime to local
+        appointments = (response.data['appointments'] as List).map((appointment) {
+          if (appointment['datetime'] != null) {
+            appointment['datetime'] = DateTime.parse(appointment['datetime']).toLocal().toString();
+          }
+          return appointment;
+        }).toList();
 
         _controller.add(appointments);
       } else {

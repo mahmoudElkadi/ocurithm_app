@@ -149,12 +149,12 @@ class _DelayAppointmentState extends State<DelayAppointment> {
       if (_disposed) return;
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = response.data;
-
-        // Remove appointments that are no longer present
-
-        // Add new appointments
-        appointments = response.data['appointments'];
+        appointments = (response.data['appointments'] as List).map((appointment) {
+          if (appointment['datetime'] != null) {
+            appointment['datetime'] = DateTime.parse(appointment['datetime']).toLocal().toString();
+          }
+          return appointment;
+        }).toList();
 
         _controller.add(appointments);
       } else {
@@ -351,7 +351,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
                                 context: context,
                                 id: widget.appointment.id.toString(),
                                 action: 'delay',
-                                date: widget.cubit.selectedTime!,
+                                date: widget.cubit.selectedTime!.toUtc(),
                                 doctor: widget.appointment.doctor?.id.toString());
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

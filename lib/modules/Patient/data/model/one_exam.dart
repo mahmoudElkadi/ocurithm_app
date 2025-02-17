@@ -62,8 +62,8 @@ class Examination {
       appointment: json["appointment"] == null ? null : Appointment.fromJson(json["appointment"]),
       type: json["type"] == null ? null : Type.fromJson(json["type"]),
       measurements: json["measurements"] == null ? [] : List<Measurement>.from(json["measurements"]!.map((x) => Measurement.fromJson(x))),
-      createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
-      updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
+      createdAt: DateTime.tryParse(json["createdAt"] ?? "")?.toLocal(),
+      updatedAt: DateTime.tryParse(json["updatedAt"] ?? "")?.toLocal(),
       history: json["history"] == null ? null : History.fromJson(json["history"]),
       complain: json["complain"] == null ? null : Complain.fromJson(json["complain"]),
       id: json["id"],
@@ -463,8 +463,8 @@ class Type {
       price: json["price"],
       duration: json["duration"],
       isActive: json["isActive"],
-      createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
-      updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
+      createdAt: json["createdAt"] == null ? null : DateTime.tryParse(json["createdAt"] ?? "")!.toLocal(),
+      updatedAt: json["updatedAt"] == null ? null : DateTime.tryParse(json["updatedAt"] ?? "")?.toLocal(),
       id: json["id"],
     );
   }
