@@ -76,7 +76,7 @@ class Examination {
       appointment: json["appointment"] == null ? null : Appointment.fromJson(json["appointment"]),
       type: json["type"] == null ? null : Type.fromJson(json["type"]),
       measurements: json["measurements"] == null ? [] : List<String?>.from(json["measurements"]!.map((x) => x)),
-      createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+      createdAt: DateTime.tryParse(json["createdAt"] ?? "")?.toLocal(),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       history: json["history"],
       complain: json["complain"],
