@@ -1,4 +1,0 @@
-#Tue Feb 04 09:43:34 EET 2025
-base.0=/Users/youssefhegazy/ocurithm/build/app/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-path.0=classes.dex
-renamed.0=classes.dex
