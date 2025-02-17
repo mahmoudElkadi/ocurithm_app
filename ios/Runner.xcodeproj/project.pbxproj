@@ -385,7 +385,8 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 9P5P45A2U7;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NUMBER = 5;
+				FLUTTER_BUILD_NAME = 1.0.4;
+				FLUTTER_BUILD_NUMBER = 10;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Ocurithm;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
@@ -522,7 +523,8 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 9P5P45A2U7;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NUMBER = 5;
+				FLUTTER_BUILD_NAME = 1.0.4;
+				FLUTTER_BUILD_NUMBER = 10;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Ocurithm;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
@@ -549,7 +551,8 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 9P5P45A2U7;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NUMBER = 5;
+				FLUTTER_BUILD_NAME = 1.0.4;
+				FLUTTER_BUILD_NUMBER = 10;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Ocurithm;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
