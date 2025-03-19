@@ -377,7 +377,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                           }
                         });
                       },
-                      isLoading: widget.cubit.clinics == null,
+                      isLoading: false,
                     ),
                     const HeightSpacer(size: 20),
                     Divider(
