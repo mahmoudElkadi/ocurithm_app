@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/manager/Make%20Appointment%20cubit/make_appointment_cubit.dart';
+import 'package:ocurithm/modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_cubit.dart';
 
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/colors.dart';

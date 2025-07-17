@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/appointment_form.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/make_appointment_view_body.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/preview_content_appointment.dart';
+import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/appointment_form.dart';
+import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/make_appointment_view_body.dart';
+import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/preview_content_appointment.dart';
 
 import '../../../../core/utils/app_style.dart';
 import '../../../../core/utils/colors.dart';

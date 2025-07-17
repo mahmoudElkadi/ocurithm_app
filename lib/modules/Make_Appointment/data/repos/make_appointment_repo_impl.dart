@@ -1,4 +1,4 @@
-import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
+import 'package:ocurithm/modules/Make_Appointment/data/models/make_appointment_model.dart';
 
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
@@ -9,7 +9,7 @@ import '../../../Doctor/data/model/doctor_model.dart';
 import '../../../Examination Type/data/model/examination_type_model.dart';
 import '../../../Patient/data/model/patients_model.dart';
 import '../../../Payment Methods/data/model/payment_method_model.dart';
-import 'make_appointment_repo.dart';
+import 'make_appointment_repo.dart'; 
 
 class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   @override

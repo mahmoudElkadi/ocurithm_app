@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/appointment_view_body.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/make_appointment_view.dart';
+import 'package:ocurithm/modules/Make_Appointment/presentation/views/make_appointment_view.dart';
 
 import '../../../../core/Network/shared.dart';
 import '../../../../core/utils/colors.dart';

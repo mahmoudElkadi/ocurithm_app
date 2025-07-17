@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -16,7 +19,8 @@ import '../../../../../manager/patient_cubit.dart';
 import '../../../../../manager/patient_state.dart';
 
 class CreatePatientViewBody extends StatefulWidget {
-  const CreatePatientViewBody({super.key, required this.cubit, required this.formKey});
+  const CreatePatientViewBody(
+      {super.key, required this.cubit, required this.formKey});
 
   final PatientCubit cubit;
   final GlobalKey<FormState> formKey;
@@ -44,7 +48,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
   @override
   void initState() {
     super.initState();
-    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+    if (CacheHelper.getStringList(key: "capabilities")
+        .contains("manageCapabilities")) {
       widget.cubit.branches = null;
 
       if (widget.cubit.clinics == null) {
@@ -67,7 +72,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+                    if (CacheHelper.getStringList(key: "capabilities")
+                        .contains("manageCapabilities"))
                       DropdownItem(
                         radius: 30,
                         color: Colorz.white,
@@ -128,7 +134,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 14.w, vertical: 5.h),
                         child: SvgPicture.asset(
                           color: Colorz.primaryColor,
                           "assets/icons/profile.svg",
@@ -154,7 +161,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       required: true,
                       validator: (value) {
                         if (value!.isNotEmpty) {
-                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value!)) {
+                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                              .hasMatch(value!)) {
                             setState(() {
                               _emailShadow = false;
                             });
@@ -169,7 +177,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.w, vertical: 5.h),
                         child: SvgPicture.asset(
                           color: Colorz.primaryColor,
                           "assets/icons/email.svg",
@@ -178,41 +187,87 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       isShadow: true,
                     ),
                     const HeightSpacer(size: 20),
-                    TextField2(
-                      // borderMain: widget.cubit.textField ==  true ? Colorz.primaryColor : null,
-                      controller: widget.cubit.phoneNumberController,
-                      type: TextInputType.phone,
-                      required: true,
-                      hintText: S.of(context).phone,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          setState(() {
-                            _isPhoneShadow = false;
-                          });
-                          return S.of(context).mustPhone;
-                        } else if (!RegExp(r'^01[0125][0-9]{8}$').hasMatch(value)) {
-                          setState(() {
-                            _isPhoneShadow = false;
-                          });
-                          return S.of(context).invalidPhoneNumber;
-                        }
-                        setState(() {
-                          _isPhoneShadow = true;
-                        });
-                        return null;
-                      },
-                      fillColor: Colorz.white,
-                      borderColor: Colorz.primaryColor,
-                      radius: 30,
-                      suffixIcon: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
-                        child: SvgPicture.asset(
-                          color: Colorz.primaryColor,
-                          "assets/icons/phone_number.svg",
+                    IntlPhoneField(
+                      initialValue: '',
+                      decoration: InputDecoration(
+                        hintText: 'Phone Number',
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                            vertical: 10.h, horizontal: 15.w),
+                        border: OutlineInputBorder(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(30)),
+                            borderSide:
+                                BorderSide(color: Colorz.grey100, width: 3)),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(30)),
+                            borderSide:
+                                BorderSide(color: Colorz.grey100, width: 3)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(30)),
+                            borderSide: BorderSide(
+                                color: Colorz.primaryColor, width: 1)),
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: SvgPicture.asset(
+                            color: Colorz.primaryColor,
+                            "assets/icons/phone_number.svg",
+                            height: 15,
+                            width: 15,
+                          ),
                         ),
                       ),
-                      isShadow: _isPhoneShadow,
+                      initialCountryCode: 'EG',
+                      dropdownIconPosition: IconPosition.leading,
+                      languageCode: "en",
+                      onChanged: (phone) {
+                        log(phone.completeNumber);
+                        widget.cubit.phoneNumber = phone.completeNumber;
+                        setState(() {});
+                      },
+                      onCountryChanged: (country) {
+                        log('Country changed to: ${country.name}');
+                      },
                     ),
+                    // TextField2(
+                    //   // borderMain: widget.cubit.textField ==  true ? Colorz.primaryColor : null,
+                    //   controller: widget.cubit.phoneNumberController,
+                    //   type: TextInputType.phone,
+                    //   required: true,
+                    //   hintText: S.of(context).phone,
+                    //   validator: (value) {
+                    //     if (value!.isEmpty) {
+                    //       setState(() {
+                    //         _isPhoneShadow = false;
+                    //       });
+                    //       return S.of(context).mustPhone;
+                    //     } else if (!RegExp(r'^01[0125][0-9]{8}$')
+                    //         .hasMatch(value)) {
+                    //       setState(() {
+                    //         _isPhoneShadow = false;
+                    //       });
+                    //       return S.of(context).invalidPhoneNumber;
+                    //     }
+                    //     setState(() {
+                    //       _isPhoneShadow = true;
+                    //     });
+                    //     return null;
+                    //   },
+                    //   fillColor: Colorz.white,
+                    //   borderColor: Colorz.primaryColor,
+                    //   radius: 30,
+                    //   suffixIcon: Container(
+                    //     padding: EdgeInsets.symmetric(
+                    //         horizontal: 8.w, vertical: 5.h),
+                    //     child: SvgPicture.asset(
+                    //       color: Colorz.primaryColor,
+                    //       "assets/icons/phone_number.svg",
+                    //     ),
+                    //   ),
+                    //   isShadow: _isPhoneShadow,
+                    // ),
                     const HeightSpacer(size: 20),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,16 +286,18 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                             suffixIcon: widget.cubit.obscureText == false
                                 ? IconButton(
                                     onPressed: () {
-                                      widget.cubit.obscureText = !widget.cubit.obscureText;
+                                      widget.cubit.obscureText =
+                                          !widget.cubit.obscureText;
                                     },
-                                    icon: Icon(Icons.visibility),
+                                    icon: const Icon(Icons.visibility),
                                     color: Colorz.primaryColor,
                                   )
                                 : IconButton(
                                     onPressed: () {
-                                      widget.cubit.obscureText = !widget.cubit.obscureText;
+                                      widget.cubit.obscureText =
+                                          !widget.cubit.obscureText;
                                     },
-                                    icon: Icon(Icons.visibility_off),
+                                    icon: const Icon(Icons.visibility_off),
                                     color: Colorz.primaryColor,
                                   ),
                             isShadow: _isPassShadow,
@@ -265,31 +322,46 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: Colorz.white,
-                                boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 2, blurRadius: 3, offset: const Offset(0, 0))],
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.grey.shade200,
+                                      spreadRadius: 2,
+                                      blurRadius: 3,
+                                      offset: const Offset(0, 0))
+                                ],
                               ),
                               child: IconButton(
                                 onPressed: () {
-                                  final String generatedPassword = passwordControllerGenerator.generatePassword();
-                                  final double entropy = generatedPassword.checkStrength();
+                                  final String generatedPassword =
+                                      passwordControllerGenerator
+                                          .generatePassword();
+                                  final double entropy =
+                                      generatedPassword.checkStrength();
                                   if (entropy >= 128) {
                                     setState(() {
-                                      widget.cubit.passwordController.text = generatedPassword;
+                                      widget.cubit.passwordController.text =
+                                          generatedPassword;
                                     });
                                   } else if (entropy >= 60) {
                                     setState(() {
-                                      widget.cubit.passwordController.text = generatedPassword;
+                                      widget.cubit.passwordController.text =
+                                          generatedPassword;
                                     });
                                   } else if (entropy >= 36) {
                                     setState(() {
-                                      widget.cubit.passwordController.text = generatedPassword;
+                                      widget.cubit.passwordController.text =
+                                          generatedPassword;
                                     });
                                   } else if (entropy >= 28) {
                                     setState(() {
-                                      widget.cubit.passwordController.text = generatedPassword;
+                                      widget.cubit.passwordController.text =
+                                          generatedPassword;
                                     });
                                   }
                                 },
-                                icon: SvgPicture.asset(color: Colorz.primaryColor, "assets/icons/password.svg"),
+                                icon: SvgPicture.asset(
+                                    color: Colorz.primaryColor,
+                                    "assets/icons/password.svg"),
                               ),
                             ),
                           ),
@@ -305,7 +377,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         borderColor: Colorz.primaryColor,
                         radius: 30,
                         suffixIcon: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 14.w, vertical: 5.h),
                           child: SvgPicture.asset(
                             color: Colorz.primaryColor,
                             "assets/icons/home.svg",
@@ -322,7 +395,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.w, vertical: 5.h),
                         child: SvgPicture.asset(
                           color: Colorz.primaryColor,
                           "assets/icons/national_id.svg",
@@ -385,7 +459,11 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       color: Colorz.grey,
                     ),
                     const HeightSpacer(size: 20),
-                    Text(S.of(context).dateOfBirth, style: TextStyle(color: Colorz.black, fontWeight: FontWeight.w600, fontSize: 18)),
+                    Text(S.of(context).dateOfBirth,
+                        style: TextStyle(
+                            color: Colorz.black,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18)),
                     const HeightSpacer(size: 10),
                     InkWell(
                       onTap: () async {
@@ -425,11 +503,16 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       },
                       child: Ink(
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 10.w, vertical: 10.h),
                           decoration: BoxDecoration(
                             color: HexColor("#E7EDEF"),
                             borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: widget.cubit.picDate == false ? Colors.redAccent : Colors.transparent, width: 1),
+                            border: Border.all(
+                                color: widget.cubit.picDate == false
+                                    ? Colors.redAccent
+                                    : Colors.transparent,
+                                width: 1),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -437,34 +520,47 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    widget.cubit.date != null ? "${widget.cubit.date!.day}" : S.of(context).dd,
-                                    style: appStyle(context, 18, Colorz.black, FontWeight.w600),
+                                    widget.cubit.date != null
+                                        ? "${widget.cubit.date!.day}"
+                                        : S.of(context).dd,
+                                    style: appStyle(context, 18, Colorz.black,
+                                        FontWeight.w600),
                                   ),
                                 ),
                               ),
                               Container(
                                 width: 2,
                                 height: 30,
-                                decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30)),
+                                decoration: BoxDecoration(
+                                    color: Colorz.white,
+                                    borderRadius: BorderRadius.circular(30)),
                               ),
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    widget.cubit.date != null ? "${widget.cubit.date!.month}" : S.of(context).mm,
-                                    style: appStyle(context, 18, Colorz.black, FontWeight.w600),
+                                    widget.cubit.date != null
+                                        ? "${widget.cubit.date!.month}"
+                                        : S.of(context).mm,
+                                    style: appStyle(context, 18, Colorz.black,
+                                        FontWeight.w600),
                                   ),
                                 ),
                               ),
                               Container(
                                 width: 2,
                                 height: 30,
-                                decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30)),
+                                decoration: BoxDecoration(
+                                    color: Colorz.white,
+                                    borderRadius: BorderRadius.circular(30)),
                               ),
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    widget.cubit.date != null ? "${widget.cubit.date!.year}" : S.of(context).yy,
-                                    style: appStyle(context, 18, Colorz.black, FontWeight.w600),
+                                    widget.cubit.date != null
+                                        ? "${widget.cubit.date!.year}"
+                                        : S.of(context).yy,
+                                    style: appStyle(context, 18, Colorz.black,
+                                        FontWeight.w600),
                                   ),
                                 ),
                               ),
@@ -484,13 +580,18 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                             ),
                             Text(
                               S.of(context).mustBirth,
-                              style: TextStyle(fontSize: 12, color: Colors.red.shade700, fontWeight: FontWeight.w400),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red.shade700,
+                                  fontWeight: FontWeight.w400),
                             ),
                           ],
                         ),
                       ),
                     const HeightSpacer(size: 20),
-                    Text(S.of(context).gender, style: appStyle(context, 18, Colorz.black, FontWeight.w600)),
+                    Text(S.of(context).gender,
+                        style: appStyle(
+                            context, 18, Colorz.black, FontWeight.w600)),
                     const HeightSpacer(size: 0),
                     GestureDetector(
                       onTap: () {
@@ -502,7 +603,10 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         contentPadding: EdgeInsets.zero,
                         title: Text(S.of(context).male),
                         leading: Radio<String>(
-                          fillColor: MaterialStateColor.resolveWith((states) => widget.cubit.gender == false ? Colors.red : Colors.black),
+                          fillColor: MaterialStateColor.resolveWith((states) =>
+                              widget.cubit.gender == false
+                                  ? Colors.red
+                                  : Colors.black),
                           value: 'Male',
                           groupValue: widget.cubit.selectedGender,
                           onChanged: (String? value) {
@@ -523,7 +627,10 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         contentPadding: EdgeInsets.zero,
                         title: Text(S.of(context).female),
                         leading: Radio<String>(
-                          fillColor: MaterialStateColor.resolveWith((states) => widget.cubit.gender == false ? Colors.red : Colors.black),
+                          fillColor: MaterialStateColor.resolveWith((states) =>
+                              widget.cubit.gender == false
+                                  ? Colors.red
+                                  : Colors.black),
                           value: 'Female',
                           groupValue: widget.cubit.selectedGender,
                           onChanged: (String? value) {
@@ -545,7 +652,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                             ),
                             Text(
                               S.of(context).mustNotEmpty,
-                              style: appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
+                              style: appStyle(context, 14, Colors.red.shade900,
+                                  FontWeight.w400),
                             ),
                           ],
                         ),

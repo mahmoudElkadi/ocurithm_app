@@ -32,6 +32,12 @@ class AdminClinicError extends PatientState {}
 
 class AdminClinicSuccess extends PatientState {}
 
+class UpdatePatientLoading extends PatientState {}
+
+class UpdatePatientError extends PatientState {}
+
+class UpdatePatientSuccess extends PatientState {}
+
 class GetPatientExaminationsLoading extends PatientState {}
 
 class GetPatientExaminationsError extends PatientState {}

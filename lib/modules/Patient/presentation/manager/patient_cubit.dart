@@ -22,6 +22,7 @@ class PatientCubit extends Cubit<PatientState> {
 
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
+  String phoneNumber = "";
   TextEditingController passwordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController addressController = TextEditingController();
@@ -47,6 +48,7 @@ class PatientCubit extends Cubit<PatientState> {
   bool isConfirm = false;
   Branch? selectedBranch;
   var selectedGender;
+
   chooseBranchId(selected) {
     selectedBranch = selected;
     emit(ChooseBranch());
@@ -55,6 +57,7 @@ class PatientCubit extends Cubit<PatientState> {
   PatientModel? patients;
   int page = 1;
   TextEditingController searchController = TextEditingController();
+
   getPatients() async {
     patients = null;
     emit(AdminBranchLoading());
@@ -65,7 +68,8 @@ class PatientCubit extends Cubit<PatientState> {
       if (connection == false) {
         emit(AdminBranchError());
       } else {
-        patients = await patientRepo.getAllPatients(page: page, search: searchController.text);
+        patients = await patientRepo.getAllPatients(
+            page: page, search: searchController.text);
         if (patients!.patients!.isNotEmpty) {
           emit(AdminBranchSuccess());
         } else {
@@ -147,7 +151,7 @@ class PatientCubit extends Cubit<PatientState> {
         patient: Patient(
           name: nameController.text,
           password: passwordController.text,
-          phone: phoneNumberController.text,
+          phone: phoneNumber,
           address: addressController.text,
           birthDate: date,
           branch: selectedBranch,
@@ -167,7 +171,8 @@ class PatientCubit extends Cubit<PatientState> {
           colorText: Colorz.white,
           icon: Icon(Icons.check, color: Colorz.white),
         );
-        await WhatsAppConfirmation().sendWhatsAppMessage(phoneNumberController.text,
+        await WhatsAppConfirmation().sendWhatsAppMessage(
+            phoneNumberController.text,
             "Welcome to our clinics ❤️ .\n You can now check your appointments, by downloading Ocurithm application. \n Your credentials: \n username: ${phoneNumberController.text} \n password: ${passwordController.text} \n Thank you.");
 
         Navigator.pop(context);
@@ -206,6 +211,7 @@ class PatientCubit extends Cubit<PatientState> {
   Clinic? selectedClinic;
 
   ClinicsModel? clinics;
+
   getClinics() async {
     clinics = null;
     emit(AdminClinicLoading());
@@ -231,6 +237,7 @@ class PatientCubit extends Cubit<PatientState> {
   bool? connection;
   BranchesModel? branches;
   bool loading = false;
+
   getBranches() async {
     branches = null;
     loading = true;
@@ -243,7 +250,8 @@ class PatientCubit extends Cubit<PatientState> {
         loading = false;
         emit(AdminBranchError());
       } else {
-        branches = await ServicesApi().getAllBranches(clinic: selectedClinic?.id);
+        branches =
+            await ServicesApi().getAllBranches(clinic: selectedClinic?.id);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
           loading = false;
           emit(AdminBranchSuccess());
@@ -298,6 +306,7 @@ class PatientCubit extends Cubit<PatientState> {
   }
 
   Patient? patient;
+
   Future getPatient({required String id}) async {
     patient = null;
     emit(AdminBranchLoading());
@@ -330,6 +339,7 @@ class PatientCubit extends Cubit<PatientState> {
   }
 
   PatientExaminationModel? patientExamination;
+
   Future getPatientExamination({required String id}) async {
     patientExamination = null;
     emit(GetPatientExaminationsLoading());
@@ -352,6 +362,7 @@ class PatientCubit extends Cubit<PatientState> {
   }
 
   ExaminationModel? oneExamination;
+
   Future getOneExamination({required String id}) async {
     oneExamination = null;
     emit(GetOneExaminationsLoading());
@@ -380,13 +391,15 @@ class PatientCubit extends Cubit<PatientState> {
     }
   }
 
+  Patient? updatedPatient;
+
   updatePatient({required String id, context}) async {
-    emit(AdminBranchLoading());
+    emit(UpdatePatientLoading());
     try {
-      final result = await patientRepo.updatePatient(
+      updatedPatient = await patientRepo.updatePatient(
         patient: Patient(
           name: nameController.text,
-          phone: phoneNumberController.text,
+          phone: phoneNumber,
           address: addressController.text,
           birthDate: date,
           branch: selectedBranch,
@@ -399,7 +412,8 @@ class PatientCubit extends Cubit<PatientState> {
         ),
         id: id,
       );
-      if (result.error == null && (result.name != null || result.id != null)) {
+      if (updatedPatient?.error == null &&
+          (updatedPatient?.name != null || updatedPatient?.id != null)) {
         Get.snackbar(
           "Success",
           "Patient Updated Successfully",
@@ -407,42 +421,34 @@ class PatientCubit extends Cubit<PatientState> {
           colorText: Colorz.white,
           icon: Icon(Icons.check, color: Colorz.white),
         );
-        Navigator.pop(context);
-        Navigator.pop(context);
+        Navigator.pop(context, true);
+        Navigator.pop(context, true);
         readOnly = true;
 
-        final index = patients?.patients.indexWhere((patient) => patient.id == id);
-        if (index != -1) {
-          patients?.patients[index!].name = result.name;
-          patients?.patients[index!].password = result.password;
-          patients?.patients[index!].phone = result.phone;
-          patients?.patients[index!].birthDate = result.birthDate;
-          patients?.patients[index!].nationalId = result.nationalId;
-          patients?.patients[index!].nationality = result.nationality;
-          patients?.patients[index!].email = result.email;
-          patients?.patients[index!].address = result.address;
-          patients?.patients[index!].gender = result.gender;
-          patients?.patients[index!].username = result.username;
-          patients?.patients[index!].branch = result.branch;
-        }
-
-        emit(AdminBranchSuccess());
+        emit(UpdatePatientSuccess());
       } else {
         Get.snackbar(
           "Error",
-          result.error!,
+          updatedPatient?.error ?? "Failed to Update Patient",
           backgroundColor: Colorz.errorColor,
           colorText: Colorz.white,
           icon: Icon(Icons.error, color: Colorz.white),
         );
         Navigator.pop(context);
 
-        emit(AdminBranchError());
+        emit(UpdatePatientError());
       }
     } catch (e) {
+      Get.snackbar(
+        "Error",
+        e.toString(),
+        backgroundColor: Colorz.errorColor,
+        colorText: Colorz.white,
+        icon: Icon(Icons.error, color: Colorz.white),
+      );
       Navigator.pop(context);
 
-      emit(AdminBranchError());
+      emit(UpdatePatientError());
     }
   }
 

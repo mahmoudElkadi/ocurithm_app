@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/presentation/views/widgets/select_doctor_branch.dart';
+import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/select_doctor_branch.dart';
 
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/booking_calendar/booking_calendar.dart';

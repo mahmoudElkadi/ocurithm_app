@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -18,7 +21,12 @@ import '../../../../../manager/patient_state.dart';
 import 'examinations_view.dart';
 
 class EditPatientViewBody extends StatefulWidget {
-  const EditPatientViewBody({super.key, required this.cubit, required this.formKey, required this.id});
+  const EditPatientViewBody(
+      {super.key,
+      required this.cubit,
+      required this.formKey,
+      required this.id});
+
   final PatientCubit cubit;
   final GlobalKey<FormState> formKey;
   final String id;
@@ -91,7 +99,11 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             ),
                             items: widget.cubit.clinics?.clinics,
                             isValid: widget.cubit.chooseClinic,
-                            readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities") ? widget.cubit.readOnly : true,
+                            readOnly:
+                                CacheHelper.getStringList(key: "capabilities")
+                                        .contains("manageCapabilities")
+                                    ? widget.cubit.readOnly
+                                    : true,
                             validateText: 'Clinic must not be Empty',
                             selectedValue: widget.cubit.selectedClinic?.name,
                             hintText: 'Select Clinic',
@@ -162,7 +174,8 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             readOnly: widget.cubit.readOnly,
                             radius: 30,
                             suffixIcon: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 14.w, vertical: 5.h),
                               child: SvgPicture.asset(
                                 "assets/icons/profile.svg",
                               ),
@@ -197,7 +210,8 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             readOnly: widget.cubit.readOnly,
                             validator: (value) {
                               if (value!.isNotEmpty) {
-                                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value!)) {
+                                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                    .hasMatch(value!)) {
                                   setState(() {
                                     _emailShadow = false;
                                   });
@@ -215,7 +229,8 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             borderColor: Colorz.primaryColor,
                             radius: 30,
                             suffixIcon: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w, vertical: 5.h),
                               child: SvgPicture.asset(
                                 "assets/icons/email.svg",
                               ),
@@ -232,41 +247,51 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                               color: Colors.white,
                             ),
                           ))
-                        : TextField2(
-                            // borderMain: widget.cubit.textField == true ? Colorz.primaryColor : null,
-                            controller: widget.cubit.phoneNumberController,
-                            type: TextInputType.phone,
-                            required: true,
-                            hintText: S.of(context).phone,
+                        : IntlPhoneField(
+                            initialValue: widget.cubit.patient?.phone ?? '',
                             readOnly: widget.cubit.readOnly,
-
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                setState(() {
-                                  _isPhoneShadow = false;
-                                });
-                                return S.of(context).mustPhone;
-                              } else if (!RegExp(r'^01[0125][0-9]{8}$').hasMatch(value)) {
-                                setState(() {
-                                  _isPhoneShadow = false;
-                                });
-                                return S.of(context).invalidPhoneNumber;
-                              }
-                              setState(() {
-                                _isPhoneShadow = true;
-                              });
-                              return null;
-                            },
-                            fillColor: Colorz.white,
-                            borderColor: Colorz.primaryColor,
-                            radius: 30,
-                            suffixIcon: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
-                              child: SvgPicture.asset(
-                                "assets/icons/phone_number.svg",
+                            decoration: InputDecoration(
+                              hintText: 'Phone Number',
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 10.h, horizontal: 15.w),
+                              border: OutlineInputBorder(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(30)),
+                                  borderSide: BorderSide(
+                                      color: Colorz.grey100, width: 3)),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(30)),
+                                  borderSide: BorderSide(
+                                      color: Colorz.grey100, width: 3)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(30)),
+                                  borderSide: BorderSide(
+                                      color: Colorz.primaryColor, width: 1)),
+                              suffixIcon: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: SvgPicture.asset(
+                                  color: Colorz.primaryColor,
+                                  "assets/icons/phone_number.svg",
+                                  height: 15,
+                                  width: 15,
+                                ),
                               ),
                             ),
-                            isShadow: _isPhoneShadow,
+                            initialCountryCode: 'EG',
+                            dropdownIconPosition: IconPosition.leading,
+                            languageCode: "en",
+                            onChanged: (phone) {
+                              log(phone.completeNumber);
+                              widget.cubit.phoneNumber = phone.completeNumber;
+                              setState(() {});
+                            },
+                            onCountryChanged: (country) {
+                              log('Country changed to: ${country.name}');
+                            },
                           ),
                     const HeightSpacer(size: 20),
                     isLoading
@@ -287,7 +312,8 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             borderColor: Colorz.primaryColor,
                             radius: 30,
                             suffixIcon: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 14.w, vertical: 5.h),
                               child: SvgPicture.asset(
                                 "assets/icons/home.svg",
                               ),
@@ -313,7 +339,8 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             borderColor: Colorz.primaryColor,
                             radius: 30,
                             suffixIcon: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w, vertical: 5.h),
                               child: SvgPicture.asset(
                                 "assets/icons/national_id.svg",
                               ),
@@ -391,7 +418,8 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                           ))
                         : Container(
                             width: MediaQuery.sizeOf(context).width,
-                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16.w, vertical: 8.h),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(30),
                               color: Colorz.white,
@@ -406,8 +434,12 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(widget.cubit.patient?.serialNumber ?? "N/A",
-                                    style: TextStyle(color: Colorz.black, fontWeight: FontWeight.w400, fontSize: 16)),
+                                Text(
+                                    widget.cubit.patient?.serialNumber ?? "N/A",
+                                    style: TextStyle(
+                                        color: Colorz.black,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16)),
                                 SvgPicture.asset("assets/icons/password.svg"),
                               ],
                             )),
@@ -417,7 +449,11 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                       color: Colorz.grey,
                     ),
                     const HeightSpacer(size: 20),
-                    Text(S.of(context).dateOfBirth, style: TextStyle(color: Colorz.black, fontWeight: FontWeight.w600, fontSize: 18)),
+                    Text(S.of(context).dateOfBirth,
+                        style: TextStyle(
+                            color: Colorz.black,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18)),
                     const HeightSpacer(size: 10),
                     isLoading
                         ? _buildShimmer(Container(
@@ -442,7 +478,8 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                                         ),
                                         textButtonTheme: TextButtonThemeData(
                                           style: TextButton.styleFrom(
-                                            foregroundColor: Colorz.primaryColor,
+                                            foregroundColor:
+                                                Colorz.primaryColor,
                                           ),
                                         ),
                                       ),
@@ -468,46 +505,67 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             },
                             child: Ink(
                               child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10.w, vertical: 10.h),
                                 decoration: BoxDecoration(
                                   color: HexColor("#E7EDEF"),
                                   borderRadius: BorderRadius.circular(30),
-                                  border: Border.all(color: widget.cubit.picDate == false ? Colors.redAccent : Colors.transparent, width: 1),
+                                  border: Border.all(
+                                      color: widget.cubit.picDate == false
+                                          ? Colors.redAccent
+                                          : Colors.transparent,
+                                      width: 1),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
                                       child: Center(
                                         child: Text(
-                                          widget.cubit.date != null ? "${widget.cubit.date!.day}" : S.of(context).dd,
-                                          style: appStyle(context, 18, Colorz.black, FontWeight.w600),
+                                          widget.cubit.date != null
+                                              ? "${widget.cubit.date!.day}"
+                                              : S.of(context).dd,
+                                          style: appStyle(context, 18,
+                                              Colorz.black, FontWeight.w600),
                                         ),
                                       ),
                                     ),
                                     Container(
                                       width: 2,
                                       height: 30,
-                                      decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30)),
+                                      decoration: BoxDecoration(
+                                          color: Colorz.white,
+                                          borderRadius:
+                                              BorderRadius.circular(30)),
                                     ),
                                     Expanded(
                                       child: Center(
                                         child: Text(
-                                          widget.cubit.date != null ? "${widget.cubit.date!.month}" : S.of(context).mm,
-                                          style: appStyle(context, 18, Colorz.black, FontWeight.w600),
+                                          widget.cubit.date != null
+                                              ? "${widget.cubit.date!.month}"
+                                              : S.of(context).mm,
+                                          style: appStyle(context, 18,
+                                              Colorz.black, FontWeight.w600),
                                         ),
                                       ),
                                     ),
                                     Container(
                                       width: 2,
                                       height: 30,
-                                      decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30)),
+                                      decoration: BoxDecoration(
+                                          color: Colorz.white,
+                                          borderRadius:
+                                              BorderRadius.circular(30)),
                                     ),
                                     Expanded(
                                       child: Center(
                                         child: Text(
-                                          widget.cubit.date != null ? "${widget.cubit.date!.year}" : S.of(context).yy,
-                                          style: appStyle(context, 18, Colorz.black, FontWeight.w600),
+                                          widget.cubit.date != null
+                                              ? "${widget.cubit.date!.year}"
+                                              : S.of(context).yy,
+                                          style: appStyle(context, 18,
+                                              Colorz.black, FontWeight.w600),
                                         ),
                                       ),
                                     ),
@@ -527,7 +585,10 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             ),
                             Text(
                               S.of(context).mustBirth,
-                              style: TextStyle(fontSize: 12, color: Colors.red.shade700, fontWeight: FontWeight.w400),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red.shade700,
+                                  fontWeight: FontWeight.w400),
                             ),
                           ],
                         ),
@@ -545,7 +606,9 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(S.of(context).gender, style: appStyle(context, 18, Colorz.black, FontWeight.w600)),
+                              Text(S.of(context).gender,
+                                  style: appStyle(context, 18, Colorz.black,
+                                      FontWeight.w600)),
                               const HeightSpacer(size: 0),
                               GestureDetector(
                                 onTap: widget.cubit.readOnly == false
@@ -559,13 +622,17 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(S.of(context).male),
                                   leading: Radio<String>(
-                                    fillColor: MaterialStateColor.resolveWith((states) => widget.cubit.gender == false ? Colors.red : Colors.black),
+                                    fillColor: MaterialStateColor.resolveWith(
+                                        (states) => widget.cubit.gender == false
+                                            ? Colors.red
+                                            : Colors.black),
                                     value: 'Male',
                                     groupValue: widget.cubit.selectedGender,
                                     onChanged: widget.cubit.readOnly == false
                                         ? (String? value) {
                                             setState(() {
-                                              widget.cubit.selectedGender = value!;
+                                              widget.cubit.selectedGender =
+                                                  value!;
                                             });
                                           }
                                         : null,
@@ -576,7 +643,8 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                                 onTap: widget.cubit.readOnly == false
                                     ? () {
                                         setState(() {
-                                          widget.cubit.selectedGender = 'Female';
+                                          widget.cubit.selectedGender =
+                                              'Female';
                                         });
                                       }
                                     : null,
@@ -584,13 +652,17 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(S.of(context).female),
                                   leading: Radio<String>(
-                                    fillColor: MaterialStateColor.resolveWith((states) => widget.cubit.gender == false ? Colors.red : Colors.black),
+                                    fillColor: MaterialStateColor.resolveWith(
+                                        (states) => widget.cubit.gender == false
+                                            ? Colors.red
+                                            : Colors.black),
                                     value: 'Female',
                                     groupValue: widget.cubit.selectedGender,
                                     onChanged: widget.cubit.readOnly == false
                                         ? (String? value) {
                                             setState(() {
-                                              widget.cubit.selectedGender = value!;
+                                              widget.cubit.selectedGender =
+                                                  value!;
                                             });
                                           }
                                         : null,
@@ -599,16 +671,22 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                               ),
                               if (widget.cubit.gender == false)
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const HeightSpacer(
                                         size: 10,
                                       ),
                                       Text(
                                         S.of(context).mustNotEmpty,
-                                        style: appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
+                                        style: appStyle(
+                                            context,
+                                            14,
+                                            Colors.red.shade900,
+                                            FontWeight.w400),
                                       ),
                                     ],
                                   ),
@@ -627,7 +705,12 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                                       ),
                                     ))
                                   : ExaminationListView(
-                                      examinations: widget.cubit.patientExamination?.examinations?.examinations ?? [],
+                                      examinations: widget
+                                              .cubit
+                                              .patientExamination
+                                              ?.examinations
+                                              ?.examinations ??
+                                          [],
                                       cubit: widget.cubit,
                                     )
                             ],

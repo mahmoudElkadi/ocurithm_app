@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:ocurithm/modules/Make%20Appointment%20/data/models/make_appointment_model.dart';
+import 'package:ocurithm/modules/Make_Appointment/data/models/make_appointment_model.dart';
 
 import '../../../../../Services/services_api.dart';
 import '../../../../../core/Network/shared.dart';
