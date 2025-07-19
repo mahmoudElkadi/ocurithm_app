@@ -65,15 +65,21 @@ class AppointmentRepoImpl implements AppointmentRepo {
   }
 
   @override
-  Future<AppointmentModel> getAllAppointment({DateTime? date, String? branch, String? doctor}) async {
+  Future<AppointmentModel> getAllAppointment(
+      {DateTime? date, String? branch, String? doctor, String? search}) async {
     final url = "${Config.baseUrl}${Config.appointments}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> quary = {
-      if (date != null) "startDate": DateTime(date.year, date.month, date.day, 0, 0, 0).toString(),
-      if (date != null) "endDate": DateTime(date.year, date.month, date.day, 23, 59, 59).toString(),
+      if (date != null)
+        "startDate":
+            DateTime(date.year, date.month, date.day, 0, 0, 0).toString(),
+      if (date != null)
+        "endDate":
+            DateTime(date.year, date.month, date.day, 23, 59, 59).toString(),
       if (doctor != null) "doctor": doctor,
-      if (branch != null) "branch": branch
+      if (branch != null) "branch": branch,
+      if (search != null) "search": search
     };
 
     final result = await ApiService.request<AppointmentModel>(
@@ -96,10 +102,18 @@ class AppointmentRepoImpl implements AppointmentRepo {
   }
 
   @override
-  Future<Appointment> editAppointment({required String id, required String action, DateTime? date, String? doctor}) async {
+  Future<Appointment> editAppointment(
+      {required String id,
+      required String action,
+      DateTime? date,
+      String? doctor}) async {
     final url = "${Config.baseUrl}${Config.appointments}/$id";
     final String? token = CacheHelper.getData(key: "token");
-    Map<String, dynamic> data = {"action": action, if (doctor != null) "doctor": doctor, if (date != null) "datetime": date.toString()};
+    Map<String, dynamic> data = {
+      "action": action,
+      if (doctor != null) "doctor": doctor,
+      if (date != null) "datetime": date.toString()
+    };
     final result = await ApiService.request<Appointment>(
       url: url,
       method: 'PUT',

@@ -22,6 +22,7 @@ import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../core/widgets/height_spacer.dart';
+import '../../../../../core/widgets/search_and_filter.dart';
 import '../../../../Examination/presentaion/views/examination_view.dart';
 import '../../../../Patient/presentation/views/Patient Details/presentation/view/patient_details_view.dart';
 import '../../../data/models/appointment_model.dart';
@@ -65,6 +66,18 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SearchAndFilter(
+                controller: cubit.searchController,
+                backgroundColor: Colorz.white,
+                withShadow: true,
+                onChanged: () {
+                  cubit.getAppointments();
+                },
+                onTap: () => filterAppointment(context, cubit),
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -96,18 +109,18 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
                     ),
                   ),
                 ),
-                InkWell(
-                  onTap: () => filterAppointment(context, cubit),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                        color: Colors.transparent, shape: BoxShape.circle),
-                    child: Icon(
-                      Icons.filter_alt_rounded,
-                      color: Colorz.primaryColor,
-                    ),
-                  ),
-                )
+                // InkWell(
+                //   onTap: () => filterAppointment(context, cubit),
+                //   child: Container(
+                //     padding: const EdgeInsets.all(10),
+                //     decoration: const BoxDecoration(
+                //         color: Colors.transparent, shape: BoxShape.circle),
+                //     child: Icon(
+                //       Icons.filter_alt_rounded,
+                //       color: Colorz.primaryColor,
+                //     ),
+                //   ),
+                // )
               ],
             ),
             const HeightSpacer(size: 2),

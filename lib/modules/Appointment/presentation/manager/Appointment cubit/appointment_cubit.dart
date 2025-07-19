@@ -22,6 +22,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
   bool? connection;
   AppointmentRepo appointmentRepo;
   DoctorModel? doctors;
+
   getDoctors() async {
     doctors = null;
     emit(AdminDoctorLoading());
@@ -52,8 +53,17 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     }
   }
 
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  Future<void> close() {
+    searchController.dispose();
+    return super.close();
+  }
+
   branch.BranchesModel? branches;
   bool loading = false;
+
   getBranches() async {
     branches = null;
     loading = true;
@@ -94,6 +104,7 @@ class AppointmentCubit extends Cubit<AppointmentState> {
 
   Map<String, List<model.Appointment>>? groupedAppointments;
   model.AppointmentModel? appointments;
+
   getAppointments() async {
     appointments = null;
     emit(GetAppointmentLoading());
@@ -101,10 +112,16 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     emit(GetAppointmentLoading());
     try {
       if (connection == true) {
-        appointments = await appointmentRepo.getAllAppointment(date: selectedDate, branch: selectedBranch?.id, doctor: selectedDoctor?.id);
-        if (appointments?.error == null && appointments!.appointments.isNotEmpty) {
+        appointments = await appointmentRepo.getAllAppointment(
+            date: selectedDate,
+            branch: selectedBranch?.id,
+            doctor: selectedDoctor?.id,
+            search: searchController.text);
+        if (appointments?.error == null &&
+            appointments!.appointments.isNotEmpty) {
           // Group appointments by time slot
-          groupedAppointments = AppointmentHelper.groupAppointmentsByTimeSlot(appointments!.appointments);
+          groupedAppointments = AppointmentHelper.groupAppointmentsByTimeSlot(
+              appointments!.appointments);
 
           emit(GetAppointmentSuccess());
         } else {
@@ -118,10 +135,16 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     }
   }
 
-  editAppointment({required BuildContext context, required String id, required String action, DateTime? date, String? doctor}) async {
+  editAppointment(
+      {required BuildContext context,
+      required String id,
+      required String action,
+      DateTime? date,
+      String? doctor}) async {
     emit(EditAppointmentLoading());
     try {
-      var result = await appointmentRepo.editAppointment(id: id, action: action, date: date, doctor: doctor);
+      var result = await appointmentRepo.editAppointment(
+          id: id, action: action, date: date, doctor: doctor);
       if (result != null && result.error == null) {
         Get.snackbar(
           "Success",
@@ -166,18 +189,23 @@ class AppointmentCubit extends Cubit<AppointmentState> {
 
   DateTime? selectedTime;
 
-  List<model.Appointment> get morningAppointments => groupedAppointments?['morning'] ?? [];
+  List<model.Appointment> get morningAppointments =>
+      groupedAppointments?['morning'] ?? [];
 
-  List<model.Appointment> get afternoonAppointments => groupedAppointments?['afternoon'] ?? [];
+  List<model.Appointment> get afternoonAppointments =>
+      groupedAppointments?['afternoon'] ?? [];
 
-  List<model.Appointment> get eveningAppointments => groupedAppointments?['evening'] ?? [];
+  List<model.Appointment> get eveningAppointments =>
+      groupedAppointments?['evening'] ?? [];
 
   // Get count of appointments in a time slot
-  int getAppointmentCount(String timeSlot) => groupedAppointments?[timeSlot]?.length ?? 0;
+  int getAppointmentCount(String timeSlot) =>
+      groupedAppointments?[timeSlot]?.length ?? 0;
 }
 
 class AppointmentHelper {
-  static Map<String, List<model.Appointment>> groupAppointmentsByTimeSlot(List<model.Appointment> appointments) {
+  static Map<String, List<model.Appointment>> groupAppointmentsByTimeSlot(
+      List<model.Appointment> appointments) {
     // Initialize empty lists for each time slot
     final Map<String, List<model.Appointment>> groupedAppointments = {
       'morning': [], // 00:00 - 11:59
@@ -201,7 +229,8 @@ class AppointmentHelper {
 
     // Sort appointments within each time slot
     groupedAppointments.forEach((_, appointments) {
-      appointments.sort((a, b) => (a.datetime ?? DateTime.now()).compareTo(b.datetime ?? DateTime.now()));
+      appointments.sort((a, b) => (a.datetime ?? DateTime.now())
+          .compareTo(b.datetime ?? DateTime.now()));
     });
 
     return groupedAppointments;

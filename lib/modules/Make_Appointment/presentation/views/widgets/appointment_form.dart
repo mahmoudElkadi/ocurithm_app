@@ -11,10 +11,13 @@ import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../generated/l10n.dart';
+import '../../../../Patient/data/model/patients_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
 class FormDataAppointment extends StatefulWidget {
-  const FormDataAppointment({super.key});
+  const FormDataAppointment({super.key, this.patient});
+
+  final Patient? patient;
 
   @override
   State<FormDataAppointment> createState() => _FormDataAppointmentState();
@@ -29,7 +32,8 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
     cubit.validateField('patient', cubit.selectedPatient != null);
     cubit.validateField('clinic', cubit.selectedClinic != null);
     cubit.validateField('branch', cubit.selectedBranch != null);
-    cubit.validateField('examinationType', cubit.selectedExaminationType != null);
+    cubit.validateField(
+        'examinationType', cubit.selectedExaminationType != null);
     cubit.validateField('paymentMethod', cubit.selectedPaymentMethod != null);
 
     if (cubit.isFormValid) {
@@ -230,7 +234,9 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) _buildClinicDropdown(cubit),
+                        if (CacheHelper.getStringList(key: "capabilities")
+                            .contains("manageCapabilities"))
+                          _buildClinicDropdown(cubit),
                         const HeightSpacer(size: 15),
                         _buildBranchDropdown(cubit),
                         const HeightSpacer(size: 15),

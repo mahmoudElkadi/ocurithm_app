@@ -53,14 +53,17 @@ class FormatHelper {
     dynamic formattedTotal = number != null
         ? (number % 1 == 0)
             ? NumberFormat('#,##0').format(num.tryParse(number.toString()) ?? 0)
-            : NumberFormat('#,##0.00').format(num.tryParse(number.toString()) ?? 0)
+            : NumberFormat('#,##0.00')
+                .format(num.tryParse(number.toString()) ?? 0)
         : '0';
 
     return formattedTotal;
   }
 
   static String formatAmount(number) {
-    dynamic formattedTotal = number != null ? NumberFormat('#,##0.00').format(num.tryParse(number.toString()) ?? 0) : '0';
+    dynamic formattedTotal = number != null
+        ? NumberFormat('#,##0.00').format(num.tryParse(number.toString()) ?? 0)
+        : '0';
 
     return formattedTotal;
   }

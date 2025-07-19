@@ -21,9 +21,11 @@ import 'main_state.dart';
 
 class MainCubit extends Cubit<MainState> {
   MainCubit() : super(MainInitial());
+
   static MainCubit get(context) => BlocProvider.of(context);
 
   bool isBackEnabled = false;
+
   void enableBack() {
     Timer(const Duration(seconds: 2), () {
       isBackEnabled = true;
@@ -32,6 +34,7 @@ class MainCubit extends Cubit<MainState> {
   }
 
   List<DrawerItem> drawerItems = [];
+  List<DrawerGroup> drawerGroups = [];
   List<Widget> pages = [];
   int selectedIndex = 0;
   Widget? currentView;
@@ -71,36 +74,107 @@ class MainCubit extends Cubit<MainState> {
 
   int notificationIndex = -1;
 
-  Future<List<DrawerItem>> getStatusList({context}) async {
+  Future<List<DrawerGroup>> getStatusList({context}) async {
     List capabilities = CacheHelper.getStringList(key: "capabilities") ?? [];
     capabilities.add("dashboard");
+
     Map<String, List<dynamic>> statusMappings = {
-      "dashboard": ["Dashboard", const DashboardView(), "assets/icons/dashboard.svg"],
-      "manageClinics": ["Clinics", const ClinicView(), "assets/icons/clinic.svg"],
-      "showBranches": ["Branches", const AdminBranchView(), "assets/icons/branch.svg"],
-      "showDoctors": ["Doctors", const AdminDoctorView(), "assets/icons/doctor.svg"],
-      "manageReciptionists": ["Receptionists", const ReceptionistView(), "assets/icons/receptionist.svg"],
-      "showPatients": ["Patients", const AdminPatientView(), "assets/icons/patient.svg"],
-      "showAppointments": ["Appointments", const AppointmentView(), "assets/icons/appointment.svg"],
-      "manageExaminationTypes": ["Examination Types", const ExaminationTypeView(), "assets/icons/exam_type.svg"],
-      "managePaymentMethods": ["Payment Methods", const PaymentMethodView(), "assets/icons/payment.svg"],
+      "dashboard": [
+        "Dashboard",
+        const DashboardView(),
+        "assets/icons/dashboard.svg"
+      ],
+      "showPatients": [
+        "Patients",
+        const AdminPatientView(),
+        "assets/icons/patient.svg"
+      ],
+      "showAppointments": [
+        "Appointments",
+        const AppointmentView(),
+        "assets/icons/appointment.svg"
+      ],
+      "manageClinics": [
+        "Clinics",
+        const ClinicView(),
+        "assets/icons/clinic.svg"
+      ],
+      "showBranches": [
+        "Branches",
+        const AdminBranchView(),
+        "assets/icons/branch.svg"
+      ],
+      "showDoctors": [
+        "Doctors",
+        const AdminDoctorView(),
+        "assets/icons/doctor.svg"
+      ],
+      "manageReciptionists": [
+        "Receptionists",
+        const ReceptionistView(),
+        "assets/icons/receptionist.svg"
+      ],
+      "manageExaminationTypes": [
+        "Examination Types",
+        const ExaminationTypeView(),
+        "assets/icons/exam_type.svg"
+      ],
+      "managePaymentMethods": [
+        "Payment Methods",
+        const PaymentMethodView(),
+        "assets/icons/payment.svg"
+      ],
+    };
+
+    // Define groups structure
+    Map<String, List<String>> groupStructure = {
+      "dashboard": ["dashboard"],
+      "Patient Management": ["showPatients", "showAppointments"],
+      "Management": [
+        "manageClinics",
+        "showBranches",
+        "showDoctors",
+        "manageReciptionists"
+      ],
+      "Configuration": ["manageExaminationTypes", "managePaymentMethods"],
     };
 
     drawerItems = [];
+    drawerGroups = [];
     pages = [];
     int pageIndex = 0;
 
     if (capabilities.isNotEmpty) {
-      for (var entry in statusMappings.entries) {
-        String capability = entry.key;
-        if (capabilities.contains(capability)) {
-          drawerItems.add(DrawerItem(
-            icon: entry.value[2],
-            title: entry.value[0],
-            index: pageIndex,
+      for (var groupEntry in groupStructure.entries) {
+        String groupName = groupEntry.key;
+        List<String> groupCapabilities = groupEntry.value;
+        List<DrawerItem> groupItems = [];
+
+        for (String capability in groupCapabilities) {
+          if (capabilities.contains(capability) &&
+              statusMappings.containsKey(capability)) {
+            var mappingData = statusMappings[capability]!;
+
+            DrawerItem item = DrawerItem(
+              icon: mappingData[2],
+              title: mappingData[0],
+              index: pageIndex,
+              capability: capability,
+            );
+
+            groupItems.add(item);
+            drawerItems.add(item);
+            pages.add(mappingData[1]);
+            pageIndex++;
+          }
+        }
+
+        if (groupItems.isNotEmpty) {
+          drawerGroups.add(DrawerGroup(
+            title: groupName == "dashboard" ? null : groupName,
+            // No title for dashboard
+            items: groupItems,
           ));
-          pages.add(entry.value[1]);
-          pageIndex++;
         }
       }
 
@@ -116,7 +190,8 @@ class MainCubit extends Cubit<MainState> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text("Login Failed"),
-            content: const Text("You don't have permission to access this application"),
+            content: const Text(
+                "You don't have permission to access this application"),
             actions: [
               TextButton(
                 child: Text(
@@ -135,7 +210,7 @@ class MainCubit extends Cubit<MainState> {
     }
 
     emit(DrawerItemsLoaded()); // Emit a new state when drawer items are loaded
-    return drawerItems;
+    return drawerGroups;
   }
 
   void changeView(int index) {
@@ -161,10 +236,22 @@ class DrawerItem {
   final String icon;
   final String title;
   final int index;
+  final String capability;
 
   DrawerItem({
     required this.icon,
     required this.title,
     required this.index,
+    required this.capability,
+  });
+}
+
+class DrawerGroup {
+  final String? title; // Null for dashboard (no group header)
+  final List<DrawerItem> items;
+
+  DrawerGroup({
+    this.title,
+    required this.items,
   });
 }

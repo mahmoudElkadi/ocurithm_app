@@ -231,43 +231,6 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         log('Country changed to: ${country.name}');
                       },
                     ),
-                    // TextField2(
-                    //   // borderMain: widget.cubit.textField ==  true ? Colorz.primaryColor : null,
-                    //   controller: widget.cubit.phoneNumberController,
-                    //   type: TextInputType.phone,
-                    //   required: true,
-                    //   hintText: S.of(context).phone,
-                    //   validator: (value) {
-                    //     if (value!.isEmpty) {
-                    //       setState(() {
-                    //         _isPhoneShadow = false;
-                    //       });
-                    //       return S.of(context).mustPhone;
-                    //     } else if (!RegExp(r'^01[0125][0-9]{8}$')
-                    //         .hasMatch(value)) {
-                    //       setState(() {
-                    //         _isPhoneShadow = false;
-                    //       });
-                    //       return S.of(context).invalidPhoneNumber;
-                    //     }
-                    //     setState(() {
-                    //       _isPhoneShadow = true;
-                    //     });
-                    //     return null;
-                    //   },
-                    //   fillColor: Colorz.white,
-                    //   borderColor: Colorz.primaryColor,
-                    //   radius: 30,
-                    //   suffixIcon: Container(
-                    //     padding: EdgeInsets.symmetric(
-                    //         horizontal: 8.w, vertical: 5.h),
-                    //     child: SvgPicture.asset(
-                    //       color: Colorz.primaryColor,
-                    //       "assets/icons/phone_number.svg",
-                    //     ),
-                    //   ),
-                    //   isShadow: _isPhoneShadow,
-                    // ),
                     const HeightSpacer(size: 20),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,11 +371,6 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                             _nationalIdShadow = false;
                           });
                           return S.of(context).mustNotEmpty;
-                        } else if (value.length != 14) {
-                          setState(() {
-                            _nationalIdShadow = false;
-                          });
-                          return S.of(context).invalidNationalId;
                         }
                         setState(() {
                           _nationalIdShadow = true;

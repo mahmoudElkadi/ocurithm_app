@@ -5,6 +5,7 @@ import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/core/widgets/width_spacer.dart';
 
 import '../manger/main_cubit.dart';
 import '../manger/main_state.dart';
@@ -17,7 +18,7 @@ class CustomDrawer extends StatelessWidget {
     return BlocBuilder<MainCubit, MainState>(
       builder: (context, state) {
         final mainCubit = MainCubit.get(context);
-        final drawerItems = mainCubit.drawerItems;
+        final drawerGroups = mainCubit.drawerGroups;
 
         return Drawer(
           child: Column(
@@ -26,32 +27,97 @@ class CustomDrawer extends StatelessWidget {
               Expanded(
                 child: ListView.builder(
                   padding: EdgeInsets.zero,
-                  itemCount: drawerItems.length,
-                  itemBuilder: (context, index) {
-                    final item = drawerItems[index];
-                    final bool isSelected = index == mainCubit.currentIndex;
+                  itemCount: drawerGroups.length,
+                  itemBuilder: (context, groupIndex) {
+                    final group = drawerGroups[groupIndex];
 
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      child: ListTile(
-                        leading: SvgPicture.asset(
-                          item.icon,
-                          color: isSelected ? Colorz.primaryColor : Colorz.black,
-                        ),
-                        title: Text(
-                          item.title,
-                          style: appStyle(
-                            context,
-                            16,
-                            isSelected ? Colorz.primaryColor : Colorz.black,
-                            isSelected ? FontWeight.w700 : FontWeight.w600,
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Group header (only if title exists - not for dashboard)
+                        if (group.title != null) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            child: Text(
+                              group.title!,
+                              style: appStyle(
+                                context,
+                                14,
+                                Colorz.primaryColor,
+                                FontWeight.w700,
+                              ),
+                            ),
                           ),
-                        ),
-                        onTap: () {
-                          mainCubit.currentIndex = index;
-                          Navigator.pop(context);
-                        },
-                      ),
+                        ],
+
+                        // Group items
+                        ...group.items.map((item) {
+                          final bool isSelected =
+                              item.index == mainCubit.currentIndex;
+
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: group.title != null
+                                ? const EdgeInsets.symmetric(horizontal: 8)
+                                : EdgeInsets.zero,
+                            decoration: group.title != null && isSelected
+                                ? BoxDecoration(
+                                    color: Colorz.primaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  )
+                                : null,
+                            child: ListTile(
+                              leading: SvgPicture.asset(
+                                item.icon,
+                                color: isSelected
+                                    ? Colorz.primaryColor
+                                    : Colorz.black,
+                                width: 24,
+                                height: 24,
+                              ),
+                              title: Text(
+                                item.title,
+                                style: appStyle(
+                                  context,
+                                  16,
+                                  isSelected
+                                      ? Colorz.primaryColor
+                                      : Colorz.black,
+                                  isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w600,
+                                ),
+                              ),
+                              onTap: () {
+                                mainCubit.currentIndex = item.index;
+                                Navigator.pop(context);
+                              },
+                              dense: group.title !=
+                                  null, // Make grouped items more compact
+                            ),
+                          );
+                        }).toList(),
+
+                        // Add spacing between groups (except after dashboard and last group)
+                        if (group.title != null &&
+                            groupIndex < drawerGroups.length - 1)
+                          const Divider(
+                            height: 16,
+                            thickness: 1,
+                            indent: 16,
+                            endIndent: 16,
+                          ),
+
+                        // Add spacing after dashboard
+                        if (group.title == null &&
+                            groupIndex < drawerGroups.length - 1)
+                          const Divider(
+                            height: 20,
+                            thickness: 1,
+                            indent: 16,
+                            endIndent: 16,
+                          ),
+                      ],
                     );
                   },
                 ),
@@ -68,13 +134,14 @@ class CustomDrawer extends StatelessWidget {
     return Container(
       color: Colorz.primaryColor.withOpacity(0.1),
       child: Padding(
-        padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.07),
+        padding: EdgeInsets.only(
+            top: MediaQuery.of(context).size.height * 0.07, bottom: 20),
         child: Row(
           children: [
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Column(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     CacheHelper.getUser("user")?.image != null
@@ -85,7 +152,9 @@ class CustomDrawer extends StatelessWidget {
                               shape: BoxShape.circle,
                               color: Colors.white,
                               image: DecorationImage(
-                                  image: NetworkImage(CacheHelper.getUser("user")?.image ?? "https://via.placeholder.com/150"),
+                                  image: NetworkImage(
+                                      CacheHelper.getUser("user")?.image ??
+                                          "https://via.placeholder.com/150"),
                                   fit: BoxFit.cover,
                                   alignment: Alignment.center),
                             ),
@@ -96,29 +165,49 @@ class CustomDrawer extends StatelessWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: Colors.white,
-                              boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 0))],
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.grey.shade200,
+                                    spreadRadius: 1,
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 0))
+                              ],
                             ),
                             child: CacheHelper.getUser("user")?.name != null
                                 ? Center(
-                                    child: Text(CacheHelper.getUser("user")?.name?.split("")[0].toUpperCase() as String,
-                                        style: appStyle(context, 50, Colors.grey.shade700, FontWeight.bold)))
+                                    child: Text(
+                                        CacheHelper.getUser("user")
+                                            ?.name
+                                            ?.split("")[0]
+                                            .toUpperCase() as String,
+                                        style: appStyle(
+                                            context,
+                                            50,
+                                            Colors.grey.shade700,
+                                            FontWeight.bold)))
                                 : null,
                           ),
-                    const HeightSpacer(size: 10),
-                    Text(
-                      CacheHelper.getUser("user")?.name ?? "Unknown",
-                      style: appStyle(context, 18, Colors.black, FontWeight.w600),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    const WidthSpacer(size: 10),
+                    Column(
+                      children: [
+                        Text(
+                          CacheHelper.getUser("user")?.name ?? "Unknown",
+                          style: appStyle(
+                              context, 18, Colors.black, FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const HeightSpacer(size: 5),
+                        Text(
+                          CacheHelper.getUser("user")?.clinic?.name ?? "Clinic",
+                          style: appStyle(
+                              context, 16, Colors.grey, FontWeight.w500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const HeightSpacer(size: 5),
+                      ],
                     ),
-                    const HeightSpacer(size: 5),
-                    Text(
-                      CacheHelper.getUser("user")?.clinic?.name ?? "Clinic",
-                      style: appStyle(context, 16, Colors.grey, FontWeight.w500),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const HeightSpacer(size: 5),
                   ],
                 ),
               ),
@@ -133,14 +222,16 @@ class CustomDrawer extends StatelessWidget {
     return InkWell(
       onTap: () => cubit.logOut(),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20).copyWith(bottom: 30),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20)
+            .copyWith(bottom: 30),
         child: Row(
           children: [
             Icon(Icons.logout, color: Colorz.primaryColor),
             const SizedBox(width: 10),
             Text(
               "Log Out",
-              style: appStyle(context, 16, Colorz.primaryColor, FontWeight.w600),
+              style:
+                  appStyle(context, 16, Colorz.primaryColor, FontWeight.w600),
             ),
           ],
         ),

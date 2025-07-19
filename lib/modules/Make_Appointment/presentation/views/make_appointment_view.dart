@@ -5,6 +5,7 @@ import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/appointment_form.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/make_appointment_view_body.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/preview_content_appointment.dart';
+import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 
 import '../../../../core/utils/app_style.dart';
 import '../../../../core/utils/colors.dart';
@@ -25,7 +26,8 @@ class HorizontalStepper extends StatelessWidget {
   }) : super(key: key);
 
   // Helper method to determine divider color
-  Color getDividerColor(BuildContext context, int dividerIndex, int currentStep) {
+  Color getDividerColor(
+      BuildContext context, int dividerIndex, int currentStep) {
     // Calculate which steps this divider is between (dividerIndex is always odd)
     final leftStepIndex = (dividerIndex - 1) ~/ 2; // Step before divider
     final rightStepIndex = (dividerIndex + 1) ~/ 2; // Step after divider
@@ -97,9 +99,13 @@ class HorizontalStepper extends StatelessWidget {
                         height: 35,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isCompleted || isCurrent ? Colorz.primaryColor : Colors.white,
+                          color: isCompleted || isCurrent
+                              ? Colorz.primaryColor
+                              : Colors.white,
                           border: Border.all(
-                            color: isCompleted || isCurrent ? Colorz.primaryColor : Colors.grey.shade300,
+                            color: isCompleted || isCurrent
+                                ? Colorz.primaryColor
+                                : Colors.grey.shade300,
                             width: 2,
                           ),
                           boxShadow: isCurrent
@@ -115,8 +121,10 @@ class HorizontalStepper extends StatelessWidget {
                         child: Center(
                           child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (Widget child, Animation<double> animation) {
-                              return ScaleTransition(scale: animation, child: child);
+                            transitionBuilder:
+                                (Widget child, Animation<double> animation) {
+                              return ScaleTransition(
+                                  scale: animation, child: child);
                             },
                             child: isCompleted
                                 ? Icon(
@@ -128,7 +136,9 @@ class HorizontalStepper extends StatelessWidget {
                                 : Text(
                                     '${stepIndex + 1}',
                                     style: TextStyle(
-                                      color: isCurrent ? Colors.white : Colors.grey.shade600,
+                                      color: isCurrent
+                                          ? Colors.white
+                                          : Colors.grey.shade600,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 16,
                                     ),
@@ -150,7 +160,8 @@ class HorizontalStepper extends StatelessWidget {
                               ? Colors.grey.shade700
                               : Colors.grey.shade500,
                       fontSize: 12,
-                      fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight:
+                          isCurrent ? FontWeight.w600 : FontWeight.normal,
                     ),
                     child: Text(
                       steps[stepIndex],
@@ -170,13 +181,16 @@ class HorizontalStepper extends StatelessWidget {
 }
 
 class MakeAppointmentView extends StatefulWidget {
-  const MakeAppointmentView({super.key});
+  const MakeAppointmentView({super.key, this.patient});
+
+  final Patient? patient;
 
   @override
   State<MakeAppointmentView> createState() => _MakeAppointmentViewState();
 }
 
-class _MakeAppointmentViewState extends State<MakeAppointmentView> with SingleTickerProviderStateMixin {
+class _MakeAppointmentViewState extends State<MakeAppointmentView>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -242,7 +256,9 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView> with SingleTi
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MakeAppointmentCubit(MakeAppointmentRepoImpl())..getAllData(),
+      create: (context) => MakeAppointmentCubit(MakeAppointmentRepoImpl())
+        ..setPatient(widget.patient)
+        ..getAllData(),
       child: BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
         builder: (context, state) {
           final cubit = MakeAppointmentCubit.get(context);
@@ -252,7 +268,8 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView> with SingleTi
             appBar: AppBar(
               backgroundColor: Colorz.white,
               elevation: 0,
-              title: Text("Appointments", style: appStyle(context, 20, Colorz.black, FontWeight.w600)),
+              title: Text("Appointments",
+                  style: appStyle(context, 20, Colorz.black, FontWeight.w600)),
               centerTitle: true,
               leading: IconButton(
                 onPressed: () {

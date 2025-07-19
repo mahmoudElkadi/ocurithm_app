@@ -7,11 +7,13 @@ import '../core/utils/colors.dart';
 class WhatsAppConfirmation {
   Future<void> sendWhatsAppMessage(String phone, String message) async {
     // Ensure the phone number is formatted correctly for Egypt
-    final formattedPhone = "20" + phone.replaceFirst(RegExp(r'^0'), '');
+    final formattedPhone = phone.replaceFirst(RegExp(r'^0'), '');
 
     // Create both regular and business WhatsApp URLs
-    final whatsappUrl = Uri.parse("whatsapp://send?phone=$formattedPhone&text=${Uri.encodeComponent(message)}");
-    final whatsappUrlAlternative = Uri.parse("https://wa.me/$formattedPhone?text=${Uri.encodeComponent(message)}");
+    final whatsappUrl = Uri.parse(
+        "whatsapp://send?phone=$formattedPhone&text=${Uri.encodeComponent(message)}");
+    final whatsappUrlAlternative = Uri.parse(
+        "https://wa.me/$formattedPhone?text=${Uri.encodeComponent(message)}");
 
     try {
       // Try launching with whatsapp:// scheme first
@@ -20,7 +22,8 @@ class WhatsAppConfirmation {
       }
       // If that fails, try the https://wa.me link
       else if (await canLaunchUrl(whatsappUrlAlternative)) {
-        await launchUrl(whatsappUrlAlternative, mode: LaunchMode.externalApplication);
+        await launchUrl(whatsappUrlAlternative,
+            mode: LaunchMode.externalApplication);
       } else {
         Get.snackbar(
           "WhatsApp not installed",

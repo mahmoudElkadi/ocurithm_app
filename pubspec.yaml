@@ -73,6 +73,7 @@ dependencies:
   flutter_keyboard_size: ^1.0.1
   async: ^2.11.0
   flutter_intl_phone_field: ^0.0.7
+  phone_numbers_parser: ^9.0.3
 
   flutter_localizations:
     sdk: flutter

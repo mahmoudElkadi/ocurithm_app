@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -8,10 +10,12 @@ import 'package:ocurithm/core/utils/colors.dart';
 import '../../../../Services/services_api.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Clinics/data/model/clinics_model.dart';
+import '../../../Make_Appointment/presentation/views/make_appointment_view.dart';
 import '../../data/model/one_exam.dart';
 import '../../data/model/patient_examination.dart';
 import '../../data/model/patients_model.dart';
 import '../../data/repos/patient_repo.dart';
+import '../views/Add Patient/presentation/view/widgets/dialog_add_patient.dart';
 import 'patient_state.dart';
 
 class PatientCubit extends Cubit<PatientState> {
@@ -70,7 +74,7 @@ class PatientCubit extends Cubit<PatientState> {
       } else {
         patients = await patientRepo.getAllPatients(
             page: page, search: searchController.text);
-        if (patients!.patients!.isNotEmpty) {
+        if (patients!.patients.isNotEmpty) {
           emit(AdminBranchSuccess());
         } else {
           emit(AdminBranchError());
@@ -163,21 +167,11 @@ class PatientCubit extends Cubit<PatientState> {
           username: nameController.text,
         ),
       );
+
       if (result.error == null && (result.name != null || result.id != null)) {
-        Get.snackbar(
-          "Success",
-          "Patient Added Successfully",
-          backgroundColor: Colorz.primaryColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.check, color: Colorz.white),
-        );
-        await WhatsAppConfirmation().sendWhatsAppMessage(
-            phoneNumberController.text,
-            "Welcome to our clinics ❤️ .\n You can now check your appointments, by downloading Ocurithm application. \n Your credentials: \n username: ${phoneNumberController.text} \n password: ${passwordController.text} \n Thank you.");
-
+        // Show modern success popup instead of snackbar
         Navigator.pop(context);
         Navigator.pop(context);
-
         patients?.patients.add(Patient(
           id: result.id,
           name: result.name,
@@ -186,6 +180,27 @@ class PatientCubit extends Cubit<PatientState> {
           email: result.email,
           username: result.username,
         ));
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return SuccessPopupDialog(
+              patientName: nameController.text,
+              password: passwordController.text,
+              onSendMessage: () async {
+                // Send WhatsApp message
+                log(phoneNumber.toString());
+                await WhatsAppConfirmation().sendWhatsAppMessage(phoneNumber,
+                    "Welcome to our clinics ❤️ .\n You can now check your appointments, by downloading Ocurithm application. \n Your credentials: \n username: ${result.phone} \n password: ${passwordController.text} \n Thank you.");
+              },
+              onNavigateToPage: () async {
+                await Get.to(() => MakeAppointmentView(patient: result));
+              },
+            );
+          },
+        );
+
+        // Update patients list
 
         clearData();
         emit(AddPatientSuccess());
@@ -198,12 +213,10 @@ class PatientCubit extends Cubit<PatientState> {
           icon: Icon(Icons.error, color: Colorz.white),
         );
         Navigator.pop(context);
-
         emit(AddPatientError());
       }
     } catch (e) {
       Navigator.pop(context);
-
       emit(AddPatientError());
     }
   }
@@ -283,7 +296,7 @@ class PatientCubit extends Cubit<PatientState> {
         Navigator.pop(context);
         Navigator.pop(context);
 
-        patients?.patients?.removeWhere((Patient) => Patient.id == id);
+        patients?.patients.removeWhere((patient) => patient.id == id);
 
         emit(AdminBranchSuccess());
       } else {

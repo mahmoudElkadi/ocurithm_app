@@ -8,6 +8,7 @@ import '../manager/examination_cubit.dart';
 
 class MultiStepFormPage extends StatelessWidget {
   const MultiStepFormPage({super.key, required this.appointment});
+
   final Appointment appointment;
 
   @override
@@ -18,7 +19,9 @@ class MultiStepFormPage extends StatelessWidget {
         create: (_) => ExaminationCubit(ExaminationRepoImpl())
           ..readJson()
           ..setAppointment(appointment),
-        child: const MultiStepFormView(),
+        child: MultiStepFormView(
+          appointment: appointment,
+        ),
       ),
     );
   }

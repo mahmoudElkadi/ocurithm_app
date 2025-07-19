@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,17 +16,22 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   ExaminationCubit(this.examinationRepo) : super(ExaminationInitial()) {}
 
   ExaminationRepo examinationRepo;
+
   static ExaminationCubit get(context) => BlocProvider.of(context);
   final TextEditingController familyHistoryController = TextEditingController();
-  final TextEditingController presentIllnessController = TextEditingController();
+  final TextEditingController presentIllnessController =
+      TextEditingController();
   final TextEditingController pastHistoryController = TextEditingController();
-  final TextEditingController medicationHistoryController = TextEditingController();
+  final TextEditingController medicationHistoryController =
+      TextEditingController();
   final TextEditingController oneComplaintController = TextEditingController();
   final TextEditingController twoComplaintController = TextEditingController();
-  final TextEditingController threeComplaintController = TextEditingController();
+  final TextEditingController threeComplaintController =
+      TextEditingController();
   final int totalSteps = 4;
 
   int _currentStep = 0;
+
   int get currentStep => _currentStep;
 
   void nextStep() {
@@ -41,6 +47,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   Appointment? appointmentData;
 
   void setAppointment(Appointment appointment) {
+    log(appointment.toJson().toString());
     appointmentData = appointment;
     emit(ExaminationStepChanged());
   }
@@ -195,6 +202,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   List rightFundusMacula = [];
   List rightFundusVessels = [];
   List rightFundusPeriphery = [];
+
   @override
   Future<void> close() {
     // Dispose all controllers
@@ -554,7 +562,9 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         "iop": leftIOP,
         "meansOfMeasurement": leftMeansOfMeasurement,
         "acquireAnotherIOPMeasurement": leftAcquireAnotherIOPMeasurement,
-        "pupilsShape": leftPupilsShape == "others" ? leftShapeController.text : leftPupilsShape,
+        "pupilsShape": leftPupilsShape == "others"
+            ? leftShapeController.text
+            : leftPupilsShape,
         "pupilsLightReflexTest": leftPupilsLightReflexTest,
         "pupilsNearReflexTest": leftPupilsNearReflexTest,
         "pupilsSwingingFlashLightTest": leftPupilsSwingingFlashLightTest,
@@ -596,7 +606,9 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         "iop": rightIOP,
         "meansOfMeasurement": rightMeansOfMeasurement,
         "acquireAnotherIOPMeasurement": rightAcquireAnotherIOPMeasurement,
-        "pupilsShape": rightPupilsShape == "others" ? rightShapeController.text : rightPupilsShape,
+        "pupilsShape": rightPupilsShape == "others"
+            ? rightShapeController.text
+            : rightPupilsShape,
         "pupilsLightReflexTest": rightPupilsLightReflexTest,
         "pupilsNearReflexTest": rightPupilsNearReflexTest,
         "pupilsSwingingFlashLightTest": rightPupilsSwingingFlashLightTest,
@@ -630,10 +642,26 @@ class ExaminationCubit extends Cubit<ExaminationState> {
     return data;
   }
 
+  mergeRefinedWithAuto() {
+    leftRefinedRefractionSpherical = leftAurorefSpherical;
+
+    leftRefinedRefractionCylindrical = leftAurorefCylindrical;
+
+    leftRefinedRefractionAxis = leftAurorefAxis;
+
+    rightRefinedRefractionSpherical = rightAurorefSpherical;
+
+    rightRefinedRefractionCylindrical = rightAurorefCylindrical;
+
+    rightRefinedRefractionAxis = rightAurorefAxis;
+    emit(MergeRefinedWithAuto());
+  }
+
   makeExamination({required BuildContext context}) async {
     emit(MakeExaminationLoading());
     try {
-      var result = await examinationRepo.makeExamination(data: examinationData());
+      var result =
+          await examinationRepo.makeExamination(data: examinationData());
       if (result.message != null && result.error == null) {
         Get.snackbar(
           "Success",
@@ -684,7 +712,10 @@ class ExaminationCubit extends Cubit<ExaminationState> {
     }
   }
 
-  makeFinalization({required BuildContext context, required String id, required Map<String, dynamic> data}) async {
+  makeFinalization(
+      {required BuildContext context,
+      required String id,
+      required Map<String, dynamic> data}) async {
     emit(MakeFinalizationLoading());
     try {
       var result = await examinationRepo.makeFinalization(id: id, data: data);

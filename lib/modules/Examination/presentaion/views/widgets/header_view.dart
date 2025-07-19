@@ -1,5 +1,6 @@
 // lib/features/examination/presentation/widgets/step_header.dart
 import 'package:flutter/material.dart';
+import 'package:ocurithm/core/widgets/width_spacer.dart';
 
 import '../../../../../core/utils/colors.dart';
 
@@ -19,7 +20,8 @@ class CustomHeaderClipper extends CustomClipper<Path> {
       firstEndPoint.dy,
     );
 
-    var secondControlPoint = Offset(size.width - (size.width / 4), size.height - 15);
+    var secondControlPoint =
+        Offset(size.width - (size.width / 4), size.height - 15);
     var secondEndPoint = Offset(size.width, size.height - 5);
     path.quadraticBezierTo(
       secondControlPoint.dx,
@@ -43,18 +45,21 @@ class StepHeader extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
   final VoidCallback onPop;
+  final Widget? suffix;
 
   const StepHeader({
     Key? key,
     required this.currentStep,
     required this.totalSteps,
     required this.onPop,
+    this.suffix,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final singleStepWidth = (screenWidth - 40 - (8 * (totalSteps - 1))) / totalSteps;
+    final singleStepWidth =
+        (screenWidth - 40 - (8 * (totalSteps - 1))) / totalSteps;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -89,32 +94,29 @@ class StepHeader extends StatelessWidget {
                   constraints: const BoxConstraints(),
                 );
               }),
-              Text(
-                _getStepTitle(currentStep),
-                style: TextStyle(
-                  color: Colorz.primaryColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${currentStep + 1}/$totalSteps',
-                  style: TextStyle(
-                    color: Colorz.primaryColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+              Row(
+                children: [
+                  const WidthSpacer(size: 20),
+                  Text(
+                    _getStepTitle(currentStep),
+                    style: TextStyle(
+                      color: Colorz.primaryColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
+                  const WidthSpacer(size: 10),
+                  Text(
+                    '${currentStep + 1}/$totalSteps',
+                    style: TextStyle(
+                      color: Colorz.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
+              suffix ?? const SizedBox.shrink(),
             ],
           ),
           const SizedBox(height: 20),
@@ -142,7 +144,8 @@ class StepHeader extends StatelessWidget {
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             height: 3,
-                            width: index <= currentStep ? constraints.maxWidth : 0,
+                            width:
+                                index <= currentStep ? constraints.maxWidth : 0,
                             decoration: BoxDecoration(
                               color: Colorz.primaryColor,
                               borderRadius: BorderRadius.circular(1.5),
@@ -184,12 +187,14 @@ class ModernStepHeader extends StatelessWidget {
   final int totalSteps;
 
   final VoidCallback onPop;
+  final Widget? suffix;
 
   const ModernStepHeader({
     Key? key,
     required this.currentStep,
     required this.totalSteps,
     required this.onPop,
+    this.suffix,
   }) : super(key: key);
 
   @override
@@ -198,6 +203,7 @@ class ModernStepHeader extends StatelessWidget {
       currentStep: currentStep,
       totalSteps: totalSteps,
       onPop: onPop,
+      suffix: suffix,
     );
   }
 }
