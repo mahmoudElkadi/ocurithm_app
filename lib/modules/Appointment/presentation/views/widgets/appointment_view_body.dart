@@ -24,6 +24,7 @@ import '../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/search_and_filter.dart';
 import '../../../../Examination/presentaion/views/examination_view.dart';
+import '../../../../Make_Appointment/presentation/views/make_appointment_view.dart';
 import '../../../../Patient/presentation/views/Patient Details/presentation/view/patient_details_view.dart';
 import '../../../data/models/appointment_model.dart';
 import '../../manager/Appointment cubit/appointment_cubit.dart';
@@ -533,14 +534,33 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      setState(() {
-                        expandedIndex = null;
-                      });
-                    },
-                  ),
+                  Row(
+                    children: [
+                      if (appointment.status != 'Completed' &&
+                          appointment.status != 'Cancelled' &&
+                          CacheHelper.getStringList(key: "capabilities")
+                              .contains("editAppointmentsReciptionist"))
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () async {
+                            bool? isResult = await Get.to(() =>
+                                MakeAppointmentView(
+                                    appointment: appointment, isUpdated: true));
+                            if (isResult == true) {
+                              cubit.getAppointments();
+                            }
+                          },
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          setState(() {
+                            expandedIndex = null;
+                          });
+                        },
+                      ),
+                    ],
+                  )
                 ],
               ),
               const Divider(),
@@ -653,6 +673,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
               if (appointment.status != 'Completed' &&
                   appointment.status != 'Cancelled')
                 appointment.status != 'Examining' &&
+                        appointment.status != 'Saved' &&
                         CacheHelper.getStringList(key: "capabilities")
                             .contains("editAppointmentsReciptionist")
                     ? Row(
@@ -846,7 +867,8 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                           ),
                         ],
                       )
-                    : appointment.status == 'Examining' &&
+                    : (appointment.status == 'Examining' ||
+                                appointment.status == 'Saved') &&
                             CacheHelper.getStringList(key: "capabilities")
                                 .contains("editAppointmentsDoctor")
                         ? Row(spacing: 10, children: [
@@ -870,13 +892,14 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                                       bool? isChanged = await Get.to(
                                           () => MultiStepFormPage(
                                                 appointment: appointment,
+                                                isSaved: appointment.status ==
+                                                    'Saved',
                                               ),
                                           transition: Transition.rightToLeft,
                                           duration: const Duration(
                                               milliseconds: 500));
                                       if (isChanged == true) {
-                                        appointment.status = 'Completed';
-                                        setState(() {});
+                                        cubit.getAppointments();
                                       }
                                     } else {
                                       ScaffoldMessenger.of(context)

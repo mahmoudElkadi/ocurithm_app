@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart';
@@ -7,18 +9,31 @@ import 'package:ocurithm/modules/Examination/presentaion/views/widgets/examinati
 import '../manager/examination_cubit.dart';
 
 class MultiStepFormPage extends StatelessWidget {
-  const MultiStepFormPage({super.key, required this.appointment});
+  const MultiStepFormPage(
+      {super.key, required this.appointment, this.isSaved = false});
 
   final Appointment appointment;
+  final bool isSaved;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: BlocProvider(
-        create: (_) => ExaminationCubit(ExaminationRepoImpl())
-          ..readJson()
-          ..setAppointment(appointment),
+        create: (_) {
+          if (isSaved) {
+            log('isSaved: $isSaved');
+            return ExaminationCubit(ExaminationRepoImpl())
+              ..getOneExamination(id: appointment.id.toString())
+              ..readJson()
+              ..setAppointment(appointment);
+          } else {
+            log('Not isSaved: $isSaved');
+            return ExaminationCubit(ExaminationRepoImpl())
+              ..readJson()
+              ..setAppointment(appointment);
+          }
+        },
         child: MultiStepFormView(
           appointment: appointment,
         ),

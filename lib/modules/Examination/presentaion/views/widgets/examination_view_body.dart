@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -5,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/modules/Examination/presentaion/views/widgets/review_examination.dart';
 
 import '../../../../../core/utils/app_style.dart';
@@ -27,36 +30,55 @@ class MultiStepFormView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ExaminationCubit, ExaminationState>(
-      builder: (context, state) {
-        final cubit = context.read<ExaminationCubit>();
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: BlocBuilder<ExaminationCubit, ExaminationState>(
+          builder: (context, state) {
+        final cubit = ExaminationCubit.get(context);
+        log('state: ' + state.toString());
+        if (cubit.isLoading) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: Colorz.primaryColor,
+            ),
+          );
+        }
 
-        return Scaffold(
-          resizeToAvoidBottomInset: true,
-          body: Column(
-            children: [
-              ModernStepHeader(
-                currentStep: cubit.currentStep,
-                totalSteps: cubit.totalSteps,
-                onPop: () => cubit.previousStep(),
-                suffix: IconButton(
-                    onPressed: () async {
-                      if (appointment.patient != null) {
-                        bool? result = await Get.to(() => PatientDetailsView(
-                            patient: appointment.patient!,
-                            id: appointment.patient!.id.toString()));
-                      }
-                    },
-                    icon: SvgPicture.asset("assets/icons/patient.svg")),
-              ),
-              Expanded(
-                // Wrapped with Expanded
-                child: _buildStepContent(cubit.currentStep),
-              ),
-            ],
-          ),
+        if (cubit.connection == false) {
+          return NoInternet(
+            onPressed: () async {
+              if (appointment.status == 'Saved') {
+                log('here again');
+                cubit.getOneExamination(id: appointment.id.toString());
+              }
+              cubit.readJson();
+              cubit.setAppointment(appointment);
+            },
+          );
+        }
+        return Column(
+          children: [
+            ModernStepHeader(
+              currentStep: cubit.currentStep,
+              totalSteps: cubit.totalSteps,
+              onPop: () => cubit.previousStep(),
+              suffix: IconButton(
+                  onPressed: () async {
+                    if (appointment.patient != null) {
+                      bool? result = await Get.to(() => PatientDetailsView(
+                          patient: appointment.patient!,
+                          id: appointment.patient!.id.toString()));
+                    }
+                  },
+                  icon: SvgPicture.asset("assets/icons/patient.svg")),
+            ),
+            Expanded(
+              // Wrapped with Expanded
+              child: _buildStepContent(cubit.currentStep),
+            ),
+          ],
         );
-      },
+      }),
     );
   }
 
@@ -278,12 +300,31 @@ class _HistoryDetails extends StatelessWidget {
                   isLastStep: cubit.currentStep == cubit.totalSteps - 1,
                   canGoBack: cubit.currentStep > 0,
                   canContinue: cubit.currentStep < cubit.totalSteps - 1,
+                  onSave: () async {
+                    if (cubit.appointmentData != null) {
+                      customLoading(context, "");
+                      bool connection =
+                          await InternetConnection().hasInternetAccess;
+                      if (connection) {
+                        cubit.action = "save";
+                        cubit.makeExamination(context: context);
+                      } else {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: const Text('No Internet Connection',
+                              style: TextStyle(color: Colors.white)),
+                          backgroundColor: Colorz.redColor,
+                        ));
+                      }
+                    }
+                  },
                   onConfirm: () async {
                     if (cubit.appointmentData != null) {
                       customLoading(context, "");
                       bool connection =
                           await InternetConnection().hasInternetAccess;
                       if (connection) {
+                        cubit.action = "create";
                         cubit.makeExamination(context: context);
                       } else {
                         Navigator.pop(context);
@@ -461,12 +502,32 @@ class _StepTwoContent extends StatelessWidget {
                 isLastStep: cubit.currentStep == cubit.totalSteps - 1,
                 canGoBack: cubit.currentStep > 0,
                 canContinue: cubit.currentStep < cubit.totalSteps - 1,
+                onSave: () async {
+                  if (cubit.appointmentData != null) {
+                    customLoading(context, "");
+                    bool connection =
+                        await InternetConnection().hasInternetAccess;
+                    if (connection) {
+                      cubit.action = "save";
+                      cubit.makeExamination(context: context);
+                    } else {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: const Text('No Internet Connection',
+                            style: TextStyle(color: Colors.white)),
+                        backgroundColor: Colorz.redColor,
+                      ));
+                    }
+                  }
+                },
                 onConfirm: () async {
                   if (cubit.appointmentData != null) {
                     customLoading(context, "");
                     bool connection =
                         await InternetConnection().hasInternetAccess;
                     if (connection) {
+                      cubit.action = "create";
+
                       cubit.makeExamination(context: context);
                     } else {
                       Navigator.pop(context);
@@ -607,6 +668,16 @@ class EyeExaminationView extends StatelessWidget {
             ),
             const HeightSpacer(size: 10),
             Text(
+              "Old Glasses",
+              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+            ),
+            const HeightSpacer(size: 4),
+            const Row(
+              spacing: 10,
+              children: [RightOldGlasses(), LeftOldGlasses()],
+            ),
+            const HeightSpacer(size: 8),
+            Text(
               "Auto-refraction",
               style: appStyle(context, 18, Colorz.black, FontWeight.bold),
             ),
@@ -726,12 +797,32 @@ class EyeExaminationView extends StatelessWidget {
               isLastStep: cubit.currentStep == cubit.totalSteps - 1,
               canGoBack: cubit.currentStep > 0,
               canContinue: cubit.currentStep < cubit.totalSteps - 1,
+              onSave: () async {
+                if (cubit.appointmentData != null) {
+                  customLoading(context, "");
+                  bool connection =
+                      await InternetConnection().hasInternetAccess;
+                  if (connection) {
+                    cubit.action = "save";
+                    cubit.makeExamination(context: context);
+                  } else {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: const Text('No Internet Connection',
+                          style: TextStyle(color: Colors.white)),
+                      backgroundColor: Colorz.redColor,
+                    ));
+                  }
+                }
+              },
               onConfirm: () async {
                 if (cubit.appointmentData != null) {
                   customLoading(context, "");
                   bool connection =
                       await InternetConnection().hasInternetAccess;
                   if (connection) {
+                    cubit.action = "create";
+
                     cubit.makeExamination(context: context);
                   } else {
                     Navigator.pop(context);
@@ -861,6 +952,120 @@ class LeftAutorefContent extends StatelessWidget {
                 selectedValue: cubit.leftAurorefAxis,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField('aurorefAxis', selected);
+                },
+              ),
+              // Add other Autoref fields...
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RightOldGlasses extends StatelessWidget {
+  const RightOldGlasses({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Text("Right eye",
+                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Spherical :",
+                selectedValue: cubit.rightOldSpherical,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('oldSpherical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Cylindrical :",
+                hintText: '',
+                selectedValue: cubit.rightOldCylindrical,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('oldCylindrical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefAxis'] ?? [],
+                textRow: "Axis :",
+                hintText: '',
+                selectedValue: cubit.rightOldAxis,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('oldAxis', selected);
+                },
+              ),
+              // Add other Autoref fields...
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LeftOldGlasses extends StatelessWidget {
+  const LeftOldGlasses({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationCubit>();
+
+    return BlocBuilder<ExaminationCubit, ExaminationState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colorz.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Text("Left eye",
+                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Spherical :",
+                selectedValue: cubit.leftOldSpherical,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('oldSpherical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Cylindrical :",
+                hintText: '',
+                selectedValue: cubit.leftOldCylindrical,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('oldCylindrical', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomColumnDropdown(
+                items: cubit.data['AurorefAxis'] ?? [],
+                textRow: "Axis :",
+                hintText: '',
+                selectedValue: cubit.leftOldAxis,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('oldAxis', selected);
                 },
               ),
               // Add other Autoref fields...

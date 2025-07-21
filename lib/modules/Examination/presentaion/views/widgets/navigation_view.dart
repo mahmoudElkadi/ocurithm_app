@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ocurithm/core/widgets/width_spacer.dart';
 
 import '../../../../../core/utils/colors.dart';
 
@@ -6,6 +7,7 @@ class StepNavigation extends StatelessWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
   final VoidCallback? onConfirm;
+  final VoidCallback? onSave;
   final bool canGoBack;
   final bool canContinue;
   final bool isLastStep;
@@ -18,6 +20,7 @@ class StepNavigation extends StatelessWidget {
     required this.canGoBack,
     required this.canContinue,
     required this.isLastStep,
+    required this.onSave,
   }) : super(key: key);
 
   @override
@@ -35,6 +38,20 @@ class StepNavigation extends StatelessWidget {
             Expanded(
               child: _buildNextButton(context),
             ),
+            WidthSpacer(size: 8),
+            ElevatedButton(
+              onPressed: onSave,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colorz.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child: Text(
+                "Save",
+                style: TextStyle(color: Colorz.white),
+              ),
+            )
           ],
         ),
       ),

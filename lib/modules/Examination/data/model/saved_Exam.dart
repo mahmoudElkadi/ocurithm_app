@@ -1,19 +1,17 @@
-import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
-
-class PatientExaminationModel {
-  PatientExaminationModel({
-    required this.examinations,
-    required this.error,
-    required this.message,
+class SavedExaminationModel {
+  SavedExaminationModel({
+    required this.examination,
+    this.error,
+    this.message,
   });
 
-  final Examinations? examinations;
+  final Examinations? examination;
   final String? error;
   final String? message;
 
-  factory PatientExaminationModel.fromJson(Map<String, dynamic> json) {
-    return PatientExaminationModel(
-      examinations: json["examinations"] == null
+  factory SavedExaminationModel.fromJson(Map<String, dynamic> json) {
+    return SavedExaminationModel(
+      examination: json["examinations"] == null
           ? null
           : Examinations.fromJson(json["examinations"]),
       error: json["error"],
@@ -22,24 +20,26 @@ class PatientExaminationModel {
   }
 
   Map<String, dynamic> toJson() => {
-        "examinations": examinations?.toJson(),
+        "examinations": examination?.toJson(),
+        "error": error,
+        "message": message,
       };
 }
 
 class Examinations {
   Examinations({
-    required this.examinations,
+    required this.examination,
     required this.total,
     required this.totalPages,
   });
 
-  final List<Examination> examinations;
+  final List<Examination> examination;
   final int? total;
   final dynamic totalPages;
 
   factory Examinations.fromJson(Map<String, dynamic> json) {
     return Examinations(
-      examinations: json["examinations"] == null
+      examination: json["examinations"] == null
           ? []
           : List<Examination>.from(
               json["examinations"]!.map((x) => Examination.fromJson(x))),
@@ -49,7 +49,7 @@ class Examinations {
   }
 
   Map<String, dynamic> toJson() => {
-        "examinations": examinations.map((x) => x?.toJson()).toList(),
+        "examinations": examination.map((x) => x?.toJson()).toList(),
         "total": total,
         "totalPages": totalPages,
       };
@@ -283,38 +283,38 @@ class Measurement {
   final String? examination;
   final String? oldSpherical;
   final String? oldCylindrical;
-  final String? oldAxis;
+  final dynamic oldAxis;
   final String? autorefSpherical;
   final String? autorefCylindrical;
-  final String? autorefAxis;
-  final String? nearVisionAddition;
-  final String? ucva;
-  final String? bcva;
-  final String? refinedRefractionSpherical;
-  final String? refinedRefractionCylindrical;
-  final String? refinedRefractionAxis;
-  final String? iop;
-  final String? meansOfMeasurement;
-  final String? acquireAnotherIopMeasurement;
-  final String? pupilsShape;
-  final String? pupilsLightReflexTest;
-  final String? pupilsNearReflexTest;
-  final String? pupilsSwingingFlashLightTest;
-  final String? pupilsOtherDisorders;
-  final String? eyelidPtosis;
-  final String? eyelidLagophthalmos;
-  final String? palpableLymphNodes;
-  final String? palpableTemporalArtery;
-  final String? exophthalmometry;
-  final List<String> cornea;
-  final List<String> anteriorChamber;
-  final List<String> iris;
-  final List<String> lens;
-  final List<String> anteriorVitreous;
-  final List<String> fundusOpticDisc;
-  final List<String> fundusMacula;
-  final List<String> fundusVessels;
-  final List<String> fundusPeriphery;
+  final dynamic autorefAxis;
+  final dynamic nearVisionAddition;
+  final dynamic ucva;
+  final dynamic bcva;
+  final dynamic refinedRefractionSpherical;
+  final dynamic refinedRefractionCylindrical;
+  final dynamic refinedRefractionAxis;
+  final dynamic iop;
+  final dynamic meansOfMeasurement;
+  final dynamic acquireAnotherIopMeasurement;
+  final dynamic pupilsShape;
+  final dynamic pupilsLightReflexTest;
+  final dynamic pupilsNearReflexTest;
+  final dynamic pupilsSwingingFlashLightTest;
+  final dynamic pupilsOtherDisorders;
+  final dynamic eyelidPtosis;
+  final dynamic eyelidLagophthalmos;
+  final dynamic palpableLymphNodes;
+  final dynamic palpableTemporalArtery;
+  final dynamic exophthalmometry;
+  final List<dynamic> cornea;
+  final List<dynamic> anteriorChamber;
+  final List<dynamic> iris;
+  final List<dynamic> lens;
+  final List<dynamic> anteriorVitreous;
+  final List<dynamic> fundusOpticDisc;
+  final List<dynamic> fundusMacula;
+  final List<dynamic> fundusVessels;
+  final List<dynamic> fundusPeriphery;
   final String? lids;
   final String? lashes;
   final String? sclera;
@@ -359,31 +359,31 @@ class Measurement {
       exophthalmometry: json["exophthalmometry"],
       cornea: json["cornea"] == null
           ? []
-          : List<String>.from(json["cornea"]!.map((x) => x)),
+          : List<dynamic>.from(json["cornea"]!.map((x) => x)),
       anteriorChamber: json["anteriorChamber"] == null
           ? []
-          : List<String>.from(json["anteriorChamber"]!.map((x) => x)),
+          : List<dynamic>.from(json["anteriorChamber"]!.map((x) => x)),
       iris: json["iris"] == null
           ? []
-          : List<String>.from(json["iris"]!.map((x) => x)),
+          : List<dynamic>.from(json["iris"]!.map((x) => x)),
       lens: json["lens"] == null
           ? []
-          : List<String>.from(json["lens"]!.map((x) => x)),
+          : List<dynamic>.from(json["lens"]!.map((x) => x)),
       anteriorVitreous: json["anteriorVitreous"] == null
           ? []
-          : List<String>.from(json["anteriorVitreous"]!.map((x) => x)),
+          : List<dynamic>.from(json["anteriorVitreous"]!.map((x) => x)),
       fundusOpticDisc: json["fundusOpticDisc"] == null
           ? []
-          : List<String>.from(json["fundusOpticDisc"]!.map((x) => x)),
+          : List<dynamic>.from(json["fundusOpticDisc"]!.map((x) => x)),
       fundusMacula: json["fundusMacula"] == null
           ? []
-          : List<String>.from(json["fundusMacula"]!.map((x) => x)),
+          : List<dynamic>.from(json["fundusMacula"]!.map((x) => x)),
       fundusVessels: json["fundusVessels"] == null
           ? []
-          : List<String>.from(json["fundusVessels"]!.map((x) => x)),
+          : List<dynamic>.from(json["fundusVessels"]!.map((x) => x)),
       fundusPeriphery: json["fundusPeriphery"] == null
           ? []
-          : List<String>.from(json["fundusPeriphery"]!.map((x) => x)),
+          : List<dynamic>.from(json["fundusPeriphery"]!.map((x) => x)),
       lids: json["lids"],
       lashes: json["lashes"],
       sclera: json["sclera"],
@@ -447,6 +447,24 @@ class Measurement {
         "bottomRight": bottomRight,
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
+        "id": id,
+      };
+}
+
+class Patient {
+  Patient({
+    required this.id,
+  });
+
+  final String? id;
+
+  factory Patient.fromJson(Map<String, dynamic> json) {
+    return Patient(
+      id: json["id"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
         "id": id,
       };
 }

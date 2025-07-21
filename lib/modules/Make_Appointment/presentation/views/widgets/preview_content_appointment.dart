@@ -4,18 +4,26 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart';
 
 import '../../../../../core/utils/colors.dart';
+import '../../../data/models/make_appointment_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
 import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
 class AppointmentPreviewContent extends StatefulWidget {
+  final bool isUpdated;
+  final Appointment? appointment;
+
   const AppointmentPreviewContent({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+    this.isUpdated = false,
+    this.appointment,
+  });
 
   @override
-  State<AppointmentPreviewContent> createState() => _AppointmentPreviewContentState();
+  State<AppointmentPreviewContent> createState() =>
+      _AppointmentPreviewContentState();
 }
 
 class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
@@ -180,7 +188,9 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           _buildDetailItem(
             icon: Icons.date_range,
             title: 'Date',
-            value: cubit.selectedTime != null ? DateFormat('yyyy-MM-dd HH:mm a').format(cubit.selectedTime!) : "N/A",
+            value: cubit.selectedTime != null
+                ? DateFormat('yyyy-MM-dd HH:mm a').format(cubit.selectedTime!)
+                : "N/A",
             iconColor: Colorz.primaryColor,
           ),
         ],
@@ -358,7 +368,23 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
                     ),
                   );
                 } else {
-                  cubit.makeAppointment(context: context);
+                  if (widget.isUpdated == true) {
+                    cubit.editAppointment(
+                        context: context,
+                        model: MakeAppointmentModel(
+                            id: widget.appointment?.id,
+                            doctor: cubit.selectedDoctor?.id,
+                            branch: cubit.selectedBranch?.id,
+                            datetime: cubit.selectedTime?.toUtc(),
+                            paymentMethod: cubit.selectedPaymentMethod?.id,
+                            examinationType: cubit.selectedExaminationType?.id,
+                            patient: cubit.selectedPatient?.id,
+                            status: "Scheduled",
+                            clinic: cubit.selectedClinic?.id,
+                            note: cubit.noteController.text));
+                  } else {
+                    cubit.makeAppointment(context: context);
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -370,7 +396,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
                 ),
               ),
               child: Text(
-                'Submit',
+                widget.isUpdated == true ? 'Update' : 'Submit',
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,

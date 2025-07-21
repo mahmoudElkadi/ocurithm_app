@@ -294,6 +294,12 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     }
   }
 
+  setAllData(Appointment? appointment) {
+    if (appointment != null) {
+      setData(appointment);
+    }
+  }
+
   Timer? _debounceTimer;
 
   Timer? _searchDebounceTimer;
@@ -330,6 +336,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   String? appointmentId;
 
   setData(Appointment appointment) async {
+    selectedClinic = appointment.clinic;
     selectedTime = appointment.datetime;
     selectedExaminationType = appointment.examinationType;
     selectedPaymentMethod = appointment.paymentMethod;
@@ -337,6 +344,10 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     selectedDoctor = appointment.doctor;
     selectedPatient = appointment.patient;
     appointmentId = appointment.id;
+    getBranches();
+    getDoctors(branch: selectedBranch?.id);
+    getExaminationTypes();
+    getPaymentMethods();
     emit(DataChanged());
   }
 

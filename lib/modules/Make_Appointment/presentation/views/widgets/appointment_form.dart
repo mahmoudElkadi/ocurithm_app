@@ -15,8 +15,9 @@ import '../../../../Patient/data/model/patients_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
 class FormDataAppointment extends StatefulWidget {
-  const FormDataAppointment({super.key, this.patient});
+  const FormDataAppointment({super.key, this.patient, this.isUpdate = false});
 
+  final bool isUpdate;
   final Patient? patient;
 
   @override
@@ -61,6 +62,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
       onItemSelected: (item) {
         setState(() {
           cubit.selectedDoctor = item;
+          cubit.selectedTime = null;
         });
       },
       isLoading: cubit.doctors == null,
@@ -74,7 +76,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
       isShadow: true,
       iconData: Icon(Icons.arrow_drop_down_circle, color: Colorz.primaryColor),
       items: cubit.clinics?.clinics,
-      isValid: cubit.validationState['doctor']!,
+      isValid: cubit.validationState['clinic']!,
       validateText: "Must Select Clinic",
       selectedValue: cubit.selectedClinic?.name,
       hintText: 'Select Clinic',
@@ -85,6 +87,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
           cubit.selectedBranch = null;
           cubit.selectedExaminationType = null;
           cubit.selectedPaymentMethod = null;
+          cubit.selectedTime = null;
         });
         await cubit.getBranches();
         await cubit.getExaminationTypes();
@@ -115,6 +118,8 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
       onItemSelected: (item) {
         setState(() {
           cubit.selectedPatient = item;
+          cubit.selectedTime = null;
+
           //   validateField('patient', true);
         });
       },
@@ -140,6 +145,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
           cubit.selectedBranch = item;
           cubit.selectedDoctor?.name = "";
           cubit.selectedDoctor = null;
+          cubit.selectedTime = null;
         });
         cubit.getDoctors(branch: cubit.selectedBranch!.id!);
       },

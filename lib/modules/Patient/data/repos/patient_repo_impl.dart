@@ -31,7 +31,8 @@ class PatientRepoImpl implements PatientRepo {
         "nationality": patient.nationality?.trim(),
         "nationalID": patient.nationalId?.trim().toString(),
         "serialNumber": patient.nationalId?.trim().toString(),
-        if (patient.birthDate != null) "birthDate": patient.birthDate.toString(),
+        if (patient.birthDate != null)
+          "birthDate": patient.birthDate.toString(),
       };
 
       final result = await ApiService.request<Patient>(
@@ -60,7 +61,9 @@ class PatientRepoImpl implements PatientRepo {
             throw Exception("Connection timeout. Please try again.");
           case DioExceptionType.badResponse:
             final responseData = e.response?.data;
-            final errorMessage = responseData is Map ? responseData['error'] ?? 'Unknown error' : 'Unknown error';
+            final errorMessage = responseData is Map
+                ? responseData['error'] ?? 'Unknown error'
+                : 'Unknown error';
             throw Exception("Server error: $errorMessage");
           case DioExceptionType.cancel:
             throw Exception("Request cancelled");
@@ -133,7 +136,8 @@ class PatientRepoImpl implements PatientRepo {
   }
 
   @override
-  Future<Patient> updatePatient({required String id, required Patient patient}) async {
+  Future<Patient> updatePatient(
+      {required String id, required Patient patient}) async {
     final url = "${Config.baseUrl}${Config.patients}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
@@ -218,7 +222,8 @@ class PatientRepoImpl implements PatientRepo {
   }
 
   @override
-  Future<PatientExaminationModel> getPatientExaminations({required String id}) async {
+  Future<PatientExaminationModel> getPatientExaminations(
+      {required String id}) async {
     final url = "${Config.baseUrl}${Config.examination}";
     final String? token = CacheHelper.getData(key: "token");
 

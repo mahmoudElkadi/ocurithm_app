@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 import '../../../../core/utils/colors.dart';
 import '../../../Appointment/data/models/appointment_model.dart';
+import '../../data/model/saved_Exam.dart' hide Appointment;
 import '../../data/repos/examination_repo.dart';
 import '../views/widgets/prescription.dart';
 import 'examination_state.dart';
@@ -80,6 +82,11 @@ class ExaminationCubit extends Cubit<ExaminationState> {
     }
   }
 
+  //old glasses
+  dynamic leftOldSpherical;
+  dynamic leftOldCylindrical;
+  dynamic leftOldAxis;
+
   dynamic leftAurorefSpherical;
   dynamic leftAurorefCylindrical;
   dynamic leftAurorefAxis;
@@ -137,12 +144,17 @@ class ExaminationCubit extends Cubit<ExaminationState> {
 
   //circle data
 
-  int leftTopRightTapCount = 0;
-  int leftTopLeftTapCount = 0;
-  int leftBottomRightTapCount = 0;
-  int leftBottomLeftTapCount = 0;
+  num leftTopRightTapCount = 0;
+  num leftTopLeftTapCount = 0;
+  num leftBottomRightTapCount = 0;
+  num leftBottomLeftTapCount = 0;
 
   // Right Eye Fields
+  //old glasses
+  dynamic rightOldSpherical;
+  dynamic rightOldCylindrical;
+  dynamic rightOldAxis;
+
   // Autoref
   dynamic rightAurorefSpherical;
   dynamic rightAurorefCylindrical;
@@ -192,10 +204,10 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   List rightAnteriorVitreous = [];
 
   // circle data
-  int rightTopRightTapCount = 0;
-  int rightTopLeftTapCount = 0;
-  int rightBottomRightTapCount = 0;
-  int rightBottomLeftTapCount = 0;
+  num rightTopRightTapCount = 0;
+  num rightTopLeftTapCount = 0;
+  num rightBottomRightTapCount = 0;
+  num rightBottomLeftTapCount = 0;
 
   // Fundus Examination
   List rightFundusOpticDisc = [];
@@ -232,6 +244,18 @@ class ExaminationCubit extends Cubit<ExaminationState> {
 
   void updateLeftEyeField(String field, dynamic value) {
     switch (field) {
+      case 'oldSpherical':
+        leftOldSpherical = value;
+        emit(ChooseData());
+        break;
+      case 'oldCylindrical':
+        leftOldCylindrical = value;
+        emit(ChooseData());
+        break;
+      case 'oldAxis':
+        leftOldAxis = value;
+        emit(ChooseData());
+        break;
       case 'aurorefSpherical':
         leftAurorefSpherical = value;
         emit(ChooseData());
@@ -361,6 +385,18 @@ class ExaminationCubit extends Cubit<ExaminationState> {
 
   void updateRightEyeField(String field, dynamic value, {List? values}) {
     switch (field) {
+      case 'oldSpherical':
+        rightOldSpherical = value;
+        emit(ChooseData());
+        break;
+      case 'oldCylindrical':
+        rightOldCylindrical = value;
+        emit(ChooseData());
+        break;
+      case 'oldAxis':
+        rightOldAxis = value;
+        emit(ChooseData());
+        break;
       case 'aurorefSpherical':
         rightAurorefSpherical = value;
         emit(ChooseData());
@@ -529,13 +565,16 @@ class ExaminationCubit extends Cubit<ExaminationState> {
     emit(CircleDateChanged());
   }
 
+  String? action;
+
   Map<String, dynamic> examinationData() {
     data = {
       "examinationMainData": {
         "clinic": appointmentData?.clinic?.id,
         "patient": appointmentData?.patient?.id,
         "appointment": appointmentData?.id,
-        "type": appointmentData?.examinationType?.id
+        "type": appointmentData?.examinationType?.id,
+        "action": action
       },
       "examinationHistory": {
         "familyHistory": familyHistoryController.text,
@@ -550,6 +589,9 @@ class ExaminationCubit extends Cubit<ExaminationState> {
       },
       "leftEyeMeasurement": {
         "eye": "Left",
+        'oldSpherical': leftOldSpherical,
+        'oldCylindrical': leftOldCylindrical,
+        'oldAxis': leftOldAxis,
         "autorefSpherical": leftAurorefSpherical,
         "autorefCylindrical": leftAurorefCylindrical,
         "autorefAxis": leftAurorefAxis,
@@ -595,6 +637,9 @@ class ExaminationCubit extends Cubit<ExaminationState> {
       },
       "rightEyeMeasurement": {
         "eye": "Right",
+        'oldSpherical': rightOldSpherical,
+        'oldCylindrical': rightOldCylindrical,
+        'oldAxis': rightOldAxis,
         "autorefSpherical": rightAurorefSpherical,
         "autorefCylindrical": rightAurorefCylindrical,
         "autorefAxis": rightAurorefAxis,
@@ -672,10 +717,15 @@ class ExaminationCubit extends Cubit<ExaminationState> {
         );
 
         Navigator.pop(context);
-        Get.to(() => MedicalTreeForm(
-              examination: result.examination,
-              doctor: result.doctor,
-            ));
+        if (action == "save") {
+          Navigator.pop(context, true);
+        } else {
+          Get.to(() => MedicalTreeForm(
+                examination: result.examination,
+                doctor: result.doctor,
+              ));
+        }
+
         emit(MakeExaminationSuccess());
       } else if (result != null && result.error != null) {
         Get.snackbar(
@@ -709,6 +759,277 @@ class ExaminationCubit extends Cubit<ExaminationState> {
       );
       Navigator.pop(context);
       emit(MakeExaminationError());
+    }
+  }
+
+  SavedExaminationModel? oneExamination;
+  bool? connection;
+  bool isLoading = false;
+
+  Future getOneExamination({required String id}) async {
+    oneExamination = null;
+    isLoading = true;
+    emit(GetOneExaminationsLoading());
+    connection = await InternetConnection().hasInternetAccess;
+    emit(GetOneExaminationsLoading());
+    try {
+      if (connection == false) {
+        Get.snackbar(
+          "Error",
+          "No Internet Connection",
+          backgroundColor: Colorz.errorColor,
+          colorText: Colorz.white,
+          icon: Icon(Icons.error, color: Colorz.white),
+        );
+        isLoading = false;
+        emit(GetOneExaminationsError());
+      } else {
+        oneExamination =
+            await examinationRepo.getOneExamination(appointmentId: id);
+
+        log('Examination: ${oneExamination?.toJson()}');
+        if (oneExamination?.error == null) {
+          log("iam here");
+          leftOldSpherical = oneExamination
+              ?.examination?.examination[0].measurements[0].oldSpherical;
+          leftOldCylindrical = oneExamination
+              ?.examination?.examination[0].measurements[0].oldCylindrical;
+          leftOldAxis = oneExamination
+              ?.examination?.examination[0].measurements[0].oldAxis;
+          rightOldSpherical = oneExamination
+              ?.examination?.examination[0].measurements[1].oldSpherical;
+          rightOldCylindrical = oneExamination
+              ?.examination?.examination[0].measurements[1].oldCylindrical;
+          rightOldAxis = oneExamination
+              ?.examination?.examination[0].measurements[1].oldAxis;
+          leftAurorefSpherical = oneExamination
+              ?.examination?.examination[0].measurements[0].autorefSpherical;
+          leftAurorefCylindrical = oneExamination
+              ?.examination?.examination[0].measurements[0].autorefCylindrical;
+          leftAurorefAxis = oneExamination
+              ?.examination?.examination[0].measurements[0].autorefAxis;
+          rightAurorefSpherical = oneExamination
+              ?.examination?.examination[0].measurements[1].autorefSpherical;
+          rightAurorefCylindrical = oneExamination
+              ?.examination?.examination[0].measurements[1].autorefCylindrical;
+          rightAurorefAxis = oneExamination
+              ?.examination?.examination[0].measurements[1].autorefAxis;
+          leftRefinedRefractionSpherical = oneExamination?.examination
+              ?.examination[0].measurements[0].refinedRefractionSpherical;
+          leftRefinedRefractionCylindrical = oneExamination?.examination
+              ?.examination[0].measurements[0].refinedRefractionCylindrical;
+          leftRefinedRefractionAxis = oneExamination?.examination
+              ?.examination[0].measurements[0].refinedRefractionAxis;
+          leftNearVisionAddition = oneExamination
+              ?.examination?.examination[0].measurements[0].nearVisionAddition;
+          rightRefinedRefractionSpherical = oneExamination?.examination
+              ?.examination[0].measurements[1].refinedRefractionSpherical;
+          rightRefinedRefractionCylindrical = oneExamination?.examination
+              ?.examination[0].measurements[1].refinedRefractionCylindrical;
+          rightRefinedRefractionAxis = oneExamination?.examination
+              ?.examination[0].measurements[1].refinedRefractionAxis;
+          rightNearVisionAddition = oneExamination
+              ?.examination?.examination[0].measurements[1].nearVisionAddition;
+          leftUCVA =
+              oneExamination?.examination?.examination[0].measurements[0].ucva;
+          rightUCVA =
+              oneExamination?.examination?.examination[0].measurements[1].ucva;
+          leftBCVA =
+              oneExamination?.examination?.examination[0].measurements[0].bcva;
+          rightBCVA =
+              oneExamination?.examination?.examination[0].measurements[1].bcva;
+          leftIOP =
+              oneExamination?.examination?.examination[0].measurements[0].iop;
+          rightIOP =
+              oneExamination?.examination?.examination[0].measurements[1].iop;
+          leftMeansOfMeasurement = oneExamination
+              ?.examination?.examination[0].measurements[0].meansOfMeasurement;
+          rightMeansOfMeasurement = oneExamination
+              ?.examination?.examination[0].measurements[1].meansOfMeasurement;
+          leftAcquireAnotherIOPMeasurement = oneExamination?.examination
+              ?.examination[0].measurements[0].acquireAnotherIopMeasurement;
+          rightAcquireAnotherIOPMeasurement = oneExamination?.examination
+              ?.examination[0].measurements[1].acquireAnotherIopMeasurement;
+          leftPupilsShape = oneExamination
+              ?.examination?.examination[0].measurements[0].pupilsShape;
+          rightPupilsShape = oneExamination
+              ?.examination?.examination[0].measurements[1].pupilsShape;
+          leftPupilsLightReflexTest = oneExamination?.examination
+              ?.examination[0].measurements[0].pupilsLightReflexTest;
+          rightPupilsLightReflexTest = oneExamination?.examination
+              ?.examination[0].measurements[1].pupilsLightReflexTest;
+          leftPupilsNearReflexTest = oneExamination?.examination?.examination[0]
+              .measurements[0].pupilsNearReflexTest;
+          rightPupilsNearReflexTest = oneExamination?.examination
+              ?.examination[0].measurements[1].pupilsNearReflexTest;
+          leftPupilsSwingingFlashLightTest = oneExamination?.examination
+              ?.examination[0].measurements[0].pupilsSwingingFlashLightTest;
+          rightPupilsSwingingFlashLightTest = oneExamination?.examination
+              ?.examination[0].measurements[1].pupilsSwingingFlashLightTest;
+          leftPupilsOtherDisorders = oneExamination?.examination?.examination[0]
+              .measurements[0].pupilsOtherDisorders;
+          rightPupilsOtherDisorders = oneExamination?.examination
+              ?.examination[0].measurements[1].pupilsOtherDisorders;
+          leftEyelidPtosis = oneExamination
+              ?.examination?.examination[0].measurements[0].eyelidPtosis;
+          rightEyelidPtosis = oneExamination
+              ?.examination?.examination[0].measurements[1].eyelidPtosis;
+          leftEyelidLagophthalmos = oneExamination
+              ?.examination?.examination[0].measurements[0].eyelidLagophthalmos;
+          rightEyelidLagophthalmos = oneExamination
+              ?.examination?.examination[0].measurements[1].eyelidLagophthalmos;
+          leftPalpableLymphNodes = oneExamination
+              ?.examination?.examination[0].measurements[0].palpableLymphNodes;
+          rightPalpableLymphNodes = oneExamination
+              ?.examination?.examination[0].measurements[1].palpableLymphNodes;
+          leftPapableTemporalArtery = oneExamination?.examination
+              ?.examination[0].measurements[0].palpableTemporalArtery;
+          rightPapableTemporalArtery = oneExamination?.examination
+              ?.examination[0].measurements[1].palpableTemporalArtery;
+          leftExophthalmometry = oneExamination
+              ?.examination?.examination[0].measurements[0].exophthalmometry;
+          rightExophthalmometry = oneExamination
+              ?.examination?.examination[0].measurements[1].exophthalmometry;
+          leftCornea = oneExamination
+                  ?.examination?.examination[0].measurements[0].cornea ??
+              [];
+          rightCornea = oneExamination
+                  ?.examination?.examination[0].measurements[1].cornea ??
+              [];
+          leftAnteriorChambre = oneExamination?.examination?.examination[0]
+                  .measurements[0].anteriorChamber ??
+              [];
+          rightAnteriorChambre = oneExamination?.examination?.examination[0]
+                  .measurements[1].anteriorChamber ??
+              [];
+          leftIris = oneExamination
+                  ?.examination?.examination[0].measurements[0].iris ??
+              [];
+          rightIris = oneExamination
+                  ?.examination?.examination[0].measurements[1].iris ??
+              [];
+          leftLens = oneExamination
+                  ?.examination?.examination[0].measurements[0].lens ??
+              [];
+          rightLens = oneExamination
+                  ?.examination?.examination[0].measurements[1].lens ??
+              [];
+          leftAnteriorVitreous = oneExamination?.examination?.examination[0]
+                  .measurements[0].anteriorVitreous ??
+              [];
+          rightAnteriorVitreous = oneExamination?.examination?.examination[0]
+                  .measurements[1].anteriorVitreous ??
+              [];
+          leftFundusOpticDisc = oneExamination?.examination?.examination[0]
+                  .measurements[0].fundusOpticDisc ??
+              [];
+          rightFundusOpticDisc = oneExamination?.examination?.examination[0]
+                  .measurements[1].fundusOpticDisc ??
+              [];
+          leftFundusMacula = oneExamination
+                  ?.examination?.examination[0].measurements[0].fundusMacula ??
+              [];
+          rightFundusMacula = oneExamination
+                  ?.examination?.examination[0].measurements[1].fundusMacula ??
+              [];
+          leftFundusVessels = oneExamination
+                  ?.examination?.examination[0].measurements[0].fundusVessels ??
+              [];
+          rightFundusVessels = oneExamination
+                  ?.examination?.examination[0].measurements[1].fundusVessels ??
+              [];
+          leftFundusPeriphery = oneExamination?.examination?.examination[0]
+                  .measurements[0].fundusPeriphery ??
+              [];
+          rightFundusPeriphery = oneExamination?.examination?.examination[0]
+                  .measurements[1].fundusPeriphery ??
+              [];
+          leftLidsController.text = oneExamination
+                  ?.examination?.examination[0].measurements[0].lids ??
+              '';
+          rightLidsController.text = oneExamination
+                  ?.examination?.examination[0].measurements[1].lids ??
+              '';
+          leftLashesController.text = oneExamination
+                  ?.examination?.examination[0].measurements[0].lashes ??
+              '';
+          rightLashesController.text = oneExamination
+                  ?.examination?.examination[0].measurements[1].lashes ??
+              '';
+          leftLacrimalController.text = oneExamination?.examination
+                  ?.examination[0].measurements[0].lacrimalSystem ??
+              '';
+          rightLacrimalController.text = oneExamination?.examination
+                  ?.examination[0].measurements[1].lacrimalSystem ??
+              '';
+          leftConjunctivaController.text = oneExamination
+                  ?.examination?.examination[0].measurements[0].conjunctiva ??
+              '';
+          rightConjunctivaController.text = oneExamination
+                  ?.examination?.examination[0].measurements[1].conjunctiva ??
+              '';
+          leftScleraController.text = oneExamination
+                  ?.examination?.examination[0].measurements[0].sclera ??
+              '';
+          rightScleraController.text = oneExamination
+                  ?.examination?.examination[0].measurements[1].sclera ??
+              '';
+          leftTopRightTapCount = oneExamination
+                  ?.examination?.examination[0].measurements[0].topRight ??
+              0;
+          rightTopRightTapCount = oneExamination
+                  ?.examination?.examination[0].measurements[1].topRight ??
+              0;
+          leftTopLeftTapCount = oneExamination
+                  ?.examination?.examination[0].measurements[0].topLeft ??
+              0;
+          rightTopLeftTapCount = oneExamination
+                  ?.examination?.examination[0].measurements[1].topLeft ??
+              0;
+          leftBottomLeftTapCount = oneExamination
+                  ?.examination?.examination[0].measurements[0].bottomLeft ??
+              0;
+          rightBottomLeftTapCount = oneExamination
+                  ?.examination?.examination[0].measurements[1].bottomLeft ??
+              0;
+          leftBottomRightTapCount = oneExamination
+                  ?.examination?.examination[0].measurements[0].bottomRight ??
+              0;
+          rightBottomRightTapCount = oneExamination
+                  ?.examination?.examination[0].measurements[1].bottomRight ??
+              0;
+          presentIllnessController.text = oneExamination
+                  ?.examination?.examination[0].history?.presentIllness ??
+              '';
+          pastHistoryController.text = oneExamination
+                  ?.examination?.examination[0].history?.pastHistory ??
+              '';
+          medicationHistoryController.text = oneExamination
+                  ?.examination?.examination[0].history?.medicationHistory ??
+              '';
+          familyHistoryController.text = oneExamination
+                  ?.examination?.examination[0].history?.familyHistory ??
+              '';
+          oneComplaintController.text = oneExamination
+                  ?.examination?.examination[0].complain?.complainOne ??
+              '';
+          twoComplaintController.text = oneExamination
+                  ?.examination?.examination[0].complain?.complainTwo ??
+              '';
+          threeComplaintController.text = oneExamination
+                  ?.examination?.examination[0].complain?.complainThree ??
+              '';
+          isLoading = false;
+          emit(GetOneExaminationsSuccess());
+        } else {
+          isLoading = false;
+          emit(GetOneExaminationsError());
+        }
+      }
+    } catch (e) {
+      isLoading = false;
+      log(e.toString());
+      emit(GetOneExaminationsError());
     }
   }
 

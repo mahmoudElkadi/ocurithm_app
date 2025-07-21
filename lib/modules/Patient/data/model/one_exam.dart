@@ -3,7 +3,12 @@ import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import '../../../Doctor/data/model/doctor_model.dart';
 
 class ExaminationModel {
-  ExaminationModel({this.error, this.message, this.examination, this.finalization, this.doctor});
+  ExaminationModel(
+      {this.error,
+      this.message,
+      this.examination,
+      this.finalization,
+      this.doctor});
 
   final String? error;
   final String? message;
@@ -15,8 +20,12 @@ class ExaminationModel {
     return ExaminationModel(
       error: json["error"],
       message: json["message"],
-      examination: json["examination"] == null ? null : Examination.fromJson(json["examination"]),
-      finalization: json["finalization"] == null ? null : Finalization.fromJson(json["finalization"]),
+      examination: json["examination"] == null
+          ? null
+          : Examination.fromJson(json["examination"]),
+      finalization: json["finalization"] == null
+          ? null
+          : Finalization.fromJson(json["finalization"]),
       doctor: json["doctor"] == null ? null : Doctor.fromJson(json["doctor"]),
     );
   }
@@ -58,14 +67,22 @@ class Examination {
   factory Examination.fromJson(Map<String, dynamic> json) {
     return Examination(
       clinic: json["clinic"],
-      patient: json["patient"] == null ? null : Patient.fromJson(json["patient"]),
-      appointment: json["appointment"] == null ? null : Appointment.fromJson(json["appointment"]),
+      patient:
+          json["patient"] == null ? null : Patient.fromJson(json["patient"]),
+      appointment: json["appointment"] == null
+          ? null
+          : Appointment.fromJson(json["appointment"]),
       type: json["type"] == null ? null : Type.fromJson(json["type"]),
-      measurements: json["measurements"] == null ? [] : List<Measurement>.from(json["measurements"]!.map((x) => Measurement.fromJson(x))),
+      measurements: json["measurements"] == null
+          ? []
+          : List<Measurement>.from(
+              json["measurements"]!.map((x) => Measurement.fromJson(x))),
       createdAt: DateTime.tryParse(json["createdAt"] ?? "")?.toLocal(),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? "")?.toLocal(),
-      history: json["history"] == null ? null : History.fromJson(json["history"]),
-      complain: json["complain"] == null ? null : Complain.fromJson(json["complain"]),
+      history:
+          json["history"] == null ? null : History.fromJson(json["history"]),
+      complain:
+          json["complain"] == null ? null : Complain.fromJson(json["complain"]),
       id: json["id"],
     );
   }
@@ -289,10 +306,16 @@ class Measurement {
     this.updatedAt,
     this.id,
     this.nearVisionAddition,
+    this.oldSpherical,
+    this.oldCylindrical,
+    this.oldAxis,
   });
 
   final String? eye;
   final String? examination;
+  final dynamic oldSpherical;
+  final dynamic oldCylindrical;
+  final dynamic oldAxis;
   final dynamic autorefSpherical;
   final dynamic autorefCylindrical;
   final dynamic autorefAxis;
@@ -341,6 +364,9 @@ class Measurement {
     return Measurement(
       eye: json["eye"],
       examination: json["examination"],
+      oldSpherical: json["oldSpherical"],
+      oldCylindrical: json["oldCylindrical"],
+      oldAxis: json["oldAxis"],
       autorefSpherical: json["autorefSpherical"],
       autorefCylindrical: json["autorefCylindrical"],
       nearVisionAddition: json["nearVisionAddition"],
@@ -463,8 +489,12 @@ class Type {
       price: json["price"],
       duration: json["duration"],
       isActive: json["isActive"],
-      createdAt: json["createdAt"] == null ? null : DateTime.tryParse(json["createdAt"] ?? "")!.toLocal(),
-      updatedAt: json["updatedAt"] == null ? null : DateTime.tryParse(json["updatedAt"] ?? "")?.toLocal(),
+      createdAt: json["createdAt"] == null
+          ? null
+          : DateTime.tryParse(json["createdAt"] ?? "")!.toLocal(),
+      updatedAt: json["updatedAt"] == null
+          ? null
+          : DateTime.tryParse(json["updatedAt"] ?? "")?.toLocal(),
       id: json["id"],
     );
   }
@@ -502,7 +532,9 @@ class Finalization {
     return Finalization(
       examination: json["examination"],
       diagnosis: json["diagnosis"],
-      actions: json["actions"] == null ? [] : List<Action>.from(json["actions"]!.map((x) => Action.fromJson(x))),
+      actions: json["actions"] == null
+          ? []
+          : List<Action>.from(json["actions"]!.map((x) => Action.fromJson(x))),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
@@ -541,7 +573,9 @@ class Action {
       action: json["action"],
       eye: json["eye"],
       data: json["data"],
-      metaData: json["metaData"] == null ? [] : List<String>.from(json["metaData"]!.map((x) => x)),
+      metaData: json["metaData"] == null
+          ? []
+          : List<String>.from(json["metaData"]!.map((x) => x)),
       id: json["_id"],
       actionId: json["id"],
     );

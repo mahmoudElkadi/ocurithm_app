@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
+import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/appointment_form.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/make_appointment_view_body.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/preview_content_appointment.dart';
@@ -181,8 +182,11 @@ class HorizontalStepper extends StatelessWidget {
 }
 
 class MakeAppointmentView extends StatefulWidget {
-  const MakeAppointmentView({super.key, this.patient});
+  const MakeAppointmentView(
+      {super.key, this.patient, this.appointment, this.isUpdated = false});
 
+  final bool isUpdated;
+  final Appointment? appointment;
   final Patient? patient;
 
   @override
@@ -246,6 +250,8 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView>
       case 2:
         return AppointmentPreviewContent(
           key: ValueKey('preview'),
+          isUpdated: widget.isUpdated,
+          appointment: widget.appointment,
         );
 
       default:
@@ -258,7 +264,8 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView>
     return BlocProvider(
       create: (context) => MakeAppointmentCubit(MakeAppointmentRepoImpl())
         ..setPatient(widget.patient)
-        ..getAllData(),
+        ..getAllData()
+        ..setAllData(widget.appointment),
       child: BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
         builder: (context, state) {
           final cubit = MakeAppointmentCubit.get(context);

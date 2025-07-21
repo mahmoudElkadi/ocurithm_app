@@ -14,10 +14,12 @@ class ExaminationReviewScreen extends StatefulWidget {
   const ExaminationReviewScreen({Key? key}) : super(key: key);
 
   @override
-  State<ExaminationReviewScreen> createState() => _ExaminationReviewScreenState();
+  State<ExaminationReviewScreen> createState() =>
+      _ExaminationReviewScreenState();
 }
 
-class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with SingleTickerProviderStateMixin {
+class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
+    with SingleTickerProviderStateMixin {
   late PageController _pageController;
   int _selectedTab = 0;
 
@@ -131,16 +133,37 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 isLastStep: cubit.currentStep == cubit.totalSteps - 1,
                 canGoBack: cubit.currentStep > 0,
                 canContinue: cubit.currentStep < cubit.totalSteps - 1,
-                onConfirm: () async {
+                onSave: () async {
                   if (cubit.appointmentData != null) {
                     customLoading(context, "");
-                    bool connection = await InternetConnection().hasInternetAccess;
+                    bool connection =
+                        await InternetConnection().hasInternetAccess;
                     if (connection) {
+                      cubit.action = "save";
                       cubit.makeExamination(context: context);
                     } else {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                        content: const Text('No Internet Connection',
+                            style: TextStyle(color: Colors.white)),
+                        backgroundColor: Colorz.redColor,
+                      ));
+                    }
+                  }
+                },
+                onConfirm: () async {
+                  if (cubit.appointmentData != null) {
+                    customLoading(context, "");
+                    bool connection =
+                        await InternetConnection().hasInternetAccess;
+                    if (connection) {
+                      cubit.action = "create";
+                      cubit.makeExamination(context: context);
+                    } else {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('No Internet Connection',
+                            style: TextStyle(color: Colors.white)),
                         backgroundColor: Colorz.redColor,
                       ));
                     }
@@ -230,13 +253,31 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
               HeightSpacer(size: 10),
               _buildQuadrantSection(isLeft: isLeft),
               _buildExaminationSection(
+                title: 'Old-Glasses',
+                isLeft: isLeft,
+                sectionIndex: 0,
+                data: {
+                  'Spherical':
+                      isLeft ? cubit.leftOldSpherical : cubit.rightOldSpherical,
+                  'Cylindrical': isLeft
+                      ? cubit.leftOldCylindrical
+                      : cubit.rightOldCylindrical,
+                  'Axis': isLeft ? cubit.leftOldAxis : cubit.rightOldAxis,
+                },
+              ),
+              _buildExaminationSection(
                 title: 'Auto-refraction',
                 isLeft: isLeft,
                 sectionIndex: 0,
                 data: {
-                  'Spherical': isLeft ? cubit.leftAurorefSpherical : cubit.rightAurorefSpherical,
-                  'Cylindrical': isLeft ? cubit.leftAurorefCylindrical : cubit.rightAurorefCylindrical,
-                  'Axis': isLeft ? cubit.leftAurorefAxis : cubit.rightAurorefAxis,
+                  'Spherical': isLeft
+                      ? cubit.leftAurorefSpherical
+                      : cubit.rightAurorefSpherical,
+                  'Cylindrical': isLeft
+                      ? cubit.leftAurorefCylindrical
+                      : cubit.rightAurorefCylindrical,
+                  'Axis':
+                      isLeft ? cubit.leftAurorefAxis : cubit.rightAurorefAxis,
                 },
               ),
               _buildExaminationSection(
@@ -244,10 +285,18 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 isLeft: isLeft,
                 sectionIndex: 2,
                 data: {
-                  'Spherical': isLeft ? cubit.leftRefinedRefractionSpherical : cubit.rightRefinedRefractionSpherical,
-                  'Cylindrical': isLeft ? cubit.leftRefinedRefractionCylindrical : cubit.rightRefinedRefractionCylindrical,
-                  'Axis': isLeft ? cubit.leftRefinedRefractionAxis : cubit.rightRefinedRefractionAxis,
-                  'NearVision': isLeft ? cubit.leftNearVisionAddition : cubit.rightNearVisionAddition,
+                  'Spherical': isLeft
+                      ? cubit.leftRefinedRefractionSpherical
+                      : cubit.rightRefinedRefractionSpherical,
+                  'Cylindrical': isLeft
+                      ? cubit.leftRefinedRefractionCylindrical
+                      : cubit.rightRefinedRefractionCylindrical,
+                  'Axis': isLeft
+                      ? cubit.leftRefinedRefractionAxis
+                      : cubit.rightRefinedRefractionAxis,
+                  'NearVision': isLeft
+                      ? cubit.leftNearVisionAddition
+                      : cubit.rightNearVisionAddition,
                 },
               ),
               _buildExaminationSection(
@@ -266,8 +315,12 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 sectionIndex: 3,
                 data: {
                   'IOP Value': isLeft ? cubit.leftIOP : cubit.rightIOP,
-                  'Measurement Method': isLeft ? cubit.leftMeansOfMeasurement : cubit.rightMeansOfMeasurement,
-                  'Additional Measurement': isLeft ? cubit.leftAcquireAnotherIOPMeasurement : cubit.rightAcquireAnotherIOPMeasurement,
+                  'Measurement Method': isLeft
+                      ? cubit.leftMeansOfMeasurement
+                      : cubit.rightMeansOfMeasurement,
+                  'Additional Measurement': isLeft
+                      ? cubit.leftAcquireAnotherIOPMeasurement
+                      : cubit.rightAcquireAnotherIOPMeasurement,
                 },
               ),
               _buildExaminationSection(
@@ -275,11 +328,20 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 isLeft: isLeft,
                 sectionIndex: 4,
                 data: {
-                  'Shape': isLeft ? cubit.leftPupilsShape : cubit.rightPupilsShape,
-                  'Light Reflex': isLeft ? cubit.leftPupilsLightReflexTest : cubit.rightPupilsLightReflexTest,
-                  'Near Reflex': isLeft ? cubit.leftPupilsNearReflexTest : cubit.rightPupilsNearReflexTest,
-                  'Swinging Flashlight': isLeft ? cubit.leftPupilsSwingingFlashLightTest : cubit.rightPupilsSwingingFlashLightTest,
-                  'Other Disorders': isLeft ? cubit.leftPupilsOtherDisorders : cubit.rightPupilsOtherDisorders,
+                  'Shape':
+                      isLeft ? cubit.leftPupilsShape : cubit.rightPupilsShape,
+                  'Light Reflex': isLeft
+                      ? cubit.leftPupilsLightReflexTest
+                      : cubit.rightPupilsLightReflexTest,
+                  'Near Reflex': isLeft
+                      ? cubit.leftPupilsNearReflexTest
+                      : cubit.rightPupilsNearReflexTest,
+                  'Swinging Flashlight': isLeft
+                      ? cubit.leftPupilsSwingingFlashLightTest
+                      : cubit.rightPupilsSwingingFlashLightTest,
+                  'Other Disorders': isLeft
+                      ? cubit.leftPupilsOtherDisorders
+                      : cubit.rightPupilsOtherDisorders,
                 },
               ),
               _buildExaminationSection(
@@ -287,10 +349,17 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 isLeft: isLeft,
                 sectionIndex: 5,
                 data: {
-                  'Eyelid Ptosis': isLeft ? cubit.leftEyelidPtosis : cubit.rightEyelidPtosis,
-                  'Lagophthalmos': isLeft ? cubit.leftEyelidLagophthalmos : cubit.rightEyelidLagophthalmos,
-                  'Palpable Lymph Nodes': isLeft ? cubit.leftPalpableLymphNodes : cubit.rightPalpableLymphNodes,
-                  'Papable Temporal Artery': isLeft ? cubit.leftPapableTemporalArtery : cubit.rightPapableTemporalArtery,
+                  'Eyelid Ptosis':
+                      isLeft ? cubit.leftEyelidPtosis : cubit.rightEyelidPtosis,
+                  'Lagophthalmos': isLeft
+                      ? cubit.leftEyelidLagophthalmos
+                      : cubit.rightEyelidLagophthalmos,
+                  'Palpable Lymph Nodes': isLeft
+                      ? cubit.leftPalpableLymphNodes
+                      : cubit.rightPalpableLymphNodes,
+                  'Papable Temporal Artery': isLeft
+                      ? cubit.leftPapableTemporalArtery
+                      : cubit.rightPapableTemporalArtery,
                 },
               ),
 
@@ -299,11 +368,20 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 isLeft: isLeft,
                 sectionIndex: 7,
                 data: {
-                  'Cornea': (isLeft ? cubit.leftCornea : cubit.rightCornea).join(', '),
-                  'Anterior Chambre': (isLeft ? cubit.leftAnteriorChambre : cubit.rightAnteriorChambre).join(', '),
-                  'Iris': (isLeft ? cubit.leftIris : cubit.rightIris).join(', '),
-                  'Lens': (isLeft ? cubit.leftLens : cubit.rightLens).join(', '),
-                  'Anterior Vitreous': (isLeft ? cubit.leftAnteriorVitreous : cubit.rightAnteriorVitreous).join(', '),
+                  'Cornea': (isLeft ? cubit.leftCornea : cubit.rightCornea)
+                      .join(', '),
+                  'Anterior Chambre': (isLeft
+                          ? cubit.leftAnteriorChambre
+                          : cubit.rightAnteriorChambre)
+                      .join(', '),
+                  'Iris':
+                      (isLeft ? cubit.leftIris : cubit.rightIris).join(', '),
+                  'Lens':
+                      (isLeft ? cubit.leftLens : cubit.rightLens).join(', '),
+                  'Anterior Vitreous': (isLeft
+                          ? cubit.leftAnteriorVitreous
+                          : cubit.rightAnteriorVitreous)
+                      .join(', '),
                 },
               ),
               _buildExaminationSection(
@@ -311,10 +389,22 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 isLeft: isLeft,
                 sectionIndex: 8,
                 data: {
-                  'Optic Disc': (isLeft ? cubit.leftFundusOpticDisc : cubit.rightFundusOpticDisc).join(', '),
-                  'Macula': (isLeft ? cubit.leftFundusMacula : cubit.rightFundusMacula).join(', '),
-                  'Vessels': (isLeft ? cubit.leftFundusVessels : cubit.rightFundusVessels).join(', '),
-                  'Periphery': (isLeft ? cubit.leftFundusPeriphery : cubit.rightFundusPeriphery).join(', '),
+                  'Optic Disc': (isLeft
+                          ? cubit.leftFundusOpticDisc
+                          : cubit.rightFundusOpticDisc)
+                      .join(', '),
+                  'Macula': (isLeft
+                          ? cubit.leftFundusMacula
+                          : cubit.rightFundusMacula)
+                      .join(', '),
+                  'Vessels': (isLeft
+                          ? cubit.leftFundusVessels
+                          : cubit.rightFundusVessels)
+                      .join(', '),
+                  'Periphery': (isLeft
+                          ? cubit.leftFundusPeriphery
+                          : cubit.rightFundusPeriphery)
+                      .join(', '),
                 },
               ),
               _buildExaminationSection(
@@ -322,11 +412,21 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 isLeft: isLeft,
                 sectionIndex: 6,
                 data: {
-                  'Lids': isLeft ? cubit.leftLidsController.text : cubit.rightLidsController.text,
-                  'Lashes': isLeft ? cubit.leftLashesController.text : cubit.rightLashesController.text,
-                  'Lacrimal': isLeft ? cubit.leftLacrimalController.text : cubit.rightLacrimalController.text,
-                  'Conjunctiva': isLeft ? cubit.leftConjunctivaController.text : cubit.rightConjunctivaController.text,
-                  'Sclera': isLeft ? cubit.leftScleraController.text : cubit.rightScleraController.text,
+                  'Lids': isLeft
+                      ? cubit.leftLidsController.text
+                      : cubit.rightLidsController.text,
+                  'Lashes': isLeft
+                      ? cubit.leftLashesController.text
+                      : cubit.rightLashesController.text,
+                  'Lacrimal': isLeft
+                      ? cubit.leftLacrimalController.text
+                      : cubit.rightLacrimalController.text,
+                  'Conjunctiva': isLeft
+                      ? cubit.leftConjunctivaController.text
+                      : cubit.rightConjunctivaController.text,
+                  'Sclera': isLeft
+                      ? cubit.leftScleraController.text
+                      : cubit.rightScleraController.text,
                 },
               ),
 
@@ -352,12 +452,17 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          maintainState: false, // Add this
+          maintainState: false,
+          // Add this
           initiallyExpanded: true,
-          enabled: false, // Ad d this
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16), // Optional for better spacing
-          expandedCrossAxisAlignment: CrossAxisAlignment.start, // Add this for better alignment
-          childrenPadding: const EdgeInsets.all(16), // Add this for better padding
+          enabled: false,
+          // Ad d this
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          // Optional for better spacing
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          // Add this for better alignment
+          childrenPadding: const EdgeInsets.all(16),
+          // Add this for better padding
 
           title: Text(
             title,
@@ -371,7 +476,9 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
             Column(
               spacing: 8,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: data.entries.map((entry) => _buildDataRow(entry.key, entry.value)).toList(),
+              children: data.entries
+                  .map((entry) => _buildDataRow(entry.key, entry.value))
+                  .toList(),
             ),
           ],
         ),
@@ -427,7 +534,9 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
       int age = currentDate.year - birthDate.year;
 
       // Adjust if the birthday has not occurred yet this year
-      if (currentDate.month < birthDate.month || (currentDate.month == birthDate.month && currentDate.day < birthDate.day)) {
+      if (currentDate.month < birthDate.month ||
+          (currentDate.month == birthDate.month &&
+              currentDate.day < birthDate.day)) {
         age--;
       }
 
@@ -447,7 +556,8 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: Colorz.white),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16), color: Colorz.white),
         child: Column(
           children: [
             Row(
@@ -488,7 +598,8 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 _buildInfoItem(
                   icon: Icons.calendar_today,
                   label: 'Age',
-                  value: '${calculateAge(cubit.appointmentData?.patient?.birthDate)}',
+                  value:
+                      '${calculateAge(cubit.appointmentData?.patient?.birthDate)}',
                 ),
                 _buildInfoItem(
                   icon: Icons.person,
@@ -637,7 +748,9 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                             bottom: 16,
                           ),
                           child: Text(
-                            entry.value.isEmpty ? 'No data available' : entry.value,
+                            entry.value.isEmpty
+                                ? 'No data available'
+                                : entry.value,
                             style: TextStyle(
                               fontSize: 15,
                               color: Colorz.black,

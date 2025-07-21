@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import '../../../Branch/data/model/branches_model.dart';
+import '../../../Clinics/data/model/clinics_model.dart';
 import '../../../Doctor/data/model/doctor_model.dart';
 import '../../../Examination Type/data/model/examination_type_model.dart';
 import '../../../Patient/data/model/patients_model.dart';
@@ -21,7 +22,10 @@ class AppointmentModel {
 
   factory AppointmentModel.fromJson(Map<String, dynamic> json) {
     return AppointmentModel(
-      appointments: json["appointments"] == null ? [] : List<Appointment>.from(json["appointments"]!.map((x) => Appointment.fromJson(x))),
+      appointments: json["appointments"] == null
+          ? []
+          : List<Appointment>.from(
+              json["appointments"]!.map((x) => Appointment.fromJson(x))),
       total: json["total"],
       totalPages: json["totalPages"],
       error: json["error"],
@@ -54,7 +58,7 @@ class Appointment {
     this.error,
   });
 
-  AppointmentClinic? clinic;
+  Clinic? clinic;
   Patient? patient;
   Branch? branch;
   Doctor? doctor;
@@ -73,13 +77,20 @@ class Appointment {
   factory Appointment.fromJson(Map<String, dynamic> json) {
     try {
       return Appointment(
-        clinic: json["clinic"] == null ? null : AppointmentClinic.fromJson(json["clinic"]),
-        patient: json["patient"] == null ? null : Patient.fromJson(json["patient"]),
+        clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
+        patient:
+            json["patient"] == null ? null : Patient.fromJson(json["patient"]),
         branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
         doctor: json["doctor"] == null ? null : Doctor.fromJson(json["doctor"]),
-        examinationType: json["examinationType"] == null ? null : ExaminationType.fromJson(json["examinationType"]),
-        datetime: json["datetime"] == null ? null : DateTime.tryParse(json["datetime"])!.toLocal(),
-        paymentMethod: json["paymentMethod"] == null ? null : PaymentMethod.fromJson(json["paymentMethod"]),
+        examinationType: json["examinationType"] == null
+            ? null
+            : ExaminationType.fromJson(json["examinationType"]),
+        datetime: json["datetime"] == null
+            ? null
+            : DateTime.tryParse(json["datetime"])!.toLocal(),
+        paymentMethod: json["paymentMethod"] == null
+            ? null
+            : PaymentMethod.fromJson(json["paymentMethod"]),
         status: json["status"],
         note: json["note"],
         error: json["error"],
@@ -154,10 +165,13 @@ class BranchElement {
 
   factory BranchElement.fromJson(Map<String, dynamic> json) {
     return BranchElement(
-      branch: json["branch"] == null ? null : BranchBranch.fromJson(json["branch"]),
+      branch:
+          json["branch"] == null ? null : BranchBranch.fromJson(json["branch"]),
       availableFrom: json["availableFrom"],
       availableTo: json["availableTo"],
-      availableDays: json["availableDays"] == null ? [] : List<String>.from(json["availableDays"]!.map((x) => x)),
+      availableDays: json["availableDays"] == null
+          ? []
+          : List<String>.from(json["availableDays"]!.map((x) => x)),
       id: json["_id"],
       branchId: json["id"],
     );
@@ -209,7 +223,9 @@ class BranchBranch {
       phone: json["phone"],
       openTime: json["openTime"],
       closeTime: json["closeTime"],
-      workDays: json["workDays"] == null ? [] : List<String>.from(json["workDays"]!.map((x) => x)),
+      workDays: json["workDays"] == null
+          ? []
+          : List<String>.from(json["workDays"]!.map((x) => x)),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
