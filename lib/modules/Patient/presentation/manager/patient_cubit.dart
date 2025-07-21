@@ -6,8 +6,10 @@ import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/Services/whatsapp_confirmation.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/modules/Patient/data/model/nationality_model.dart';
 
 import '../../../../Services/services_api.dart';
+import '../../../../core/utils/constant.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Clinics/data/model/clinics_model.dart';
 import '../../../Make_Appointment/presentation/views/make_appointment_view.dart';
@@ -72,8 +74,7 @@ class PatientCubit extends Cubit<PatientState> {
       if (connection == false) {
         emit(AdminBranchError());
       } else {
-        patients = await patientRepo.getAllPatients(
-            page: page, search: searchController.text);
+        patients = await patientRepo.getAllPatients(page: page, search: searchController.text);
         if (patients!.patients.isNotEmpty) {
           emit(AdminBranchSuccess());
         } else {
@@ -89,7 +90,7 @@ class PatientCubit extends Cubit<PatientState> {
 
   bool get obscureText => _obscureText;
 
-  String? selectedNationality;
+  Nationality? selectedNationality;
 
   set obscureText(bool newState) {
     _obscureText = newState;
@@ -162,7 +163,7 @@ class PatientCubit extends Cubit<PatientState> {
           gender: selectedGender,
           clinic: selectedClinic,
           nationalId: nationalIdController.text,
-          nationality: selectedNationality,
+          nationality: selectedNationality?.value,
           email: emailController.text,
           username: nameController.text,
         ),
@@ -263,8 +264,7 @@ class PatientCubit extends Cubit<PatientState> {
         loading = false;
         emit(AdminBranchError());
       } else {
-        branches =
-            await ServicesApi().getAllBranches(clinic: selectedClinic?.id);
+        branches = await ServicesApi().getAllBranches(clinic: selectedClinic?.id);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
           loading = false;
           emit(AdminBranchSuccess());
@@ -318,6 +318,15 @@ class PatientCubit extends Cubit<PatientState> {
     }
   }
 
+  Nationality? findNationalityByValue(String? value) {
+    if (value == null) return null;
+    try {
+      return nationalities.firstWhere((nationality) => nationality.value == value);
+    } catch (e) {
+      return null; // Return null if not found
+    }
+  }
+
   Patient? patient;
 
   Future getPatient({required String id}) async {
@@ -337,7 +346,7 @@ class PatientCubit extends Cubit<PatientState> {
         selectedGender = patient?.gender;
         emailController.text = patient?.email ?? "";
         addressController.text = patient?.address ?? "";
-        selectedNationality = patient?.nationality ?? "";
+        selectedNationality = findNationalityByValue(patient?.nationality);
         nationalIdController.text = patient?.nationalId ?? "";
         selectedClinic = patient?.clinic;
         if (patient?.error == null) {
@@ -419,14 +428,13 @@ class PatientCubit extends Cubit<PatientState> {
           clinic: selectedClinic,
           gender: selectedGender,
           nationalId: nationalIdController.text,
-          nationality: selectedNationality,
+          nationality: selectedNationality?.value,
           email: emailController.text,
           username: nameController.text,
         ),
         id: id,
       );
-      if (updatedPatient?.error == null &&
-          (updatedPatient?.name != null || updatedPatient?.id != null)) {
+      if (updatedPatient?.error == null && (updatedPatient?.name != null || updatedPatient?.id != null)) {
         Get.snackbar(
           "Success",
           "Patient Updated Successfully",

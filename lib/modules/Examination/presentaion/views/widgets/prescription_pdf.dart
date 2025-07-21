@@ -6,8 +6,35 @@ import 'package:printing/printing.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../Patient/data/model/one_exam.dart';
 
+import 'package:flutter/services.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+
+import '../../../../../core/utils/format_helper.dart';
+import '../../../../Patient/data/model/one_exam.dart';
+
+List<Map<String, String>> parseMedicationsData(String data) {
+  if (data.isEmpty) return [];
+
+  return data.split('\n').map((line) {
+    final parts = line.split(' - ');
+    if (parts.length >= 3) {
+      return {
+        'name': parts[0].trim(),
+        'dosage': parts[1].trim(),
+        'duration': parts[2].trim(),
+      };
+    }
+    return {'name': line.trim(), 'dosage': '', 'duration': ''};
+  }).toList();
+}
+
 Future<void> generateAndPrintPrescription(
-    {required ExaminationModel examination, required Action action, String? diagnosis, bool showPrescriptionTable = false}) async {
+    {required ExaminationModel examination,
+    required Action action,
+    String? diagnosis,
+    bool showPrescriptionTable = false}) async {
   final pdf = pw.Document();
   final regularFont = await rootBundle.load("assets/fonts/Cairo-Regular.ttf");
   final bold = await rootBundle.load("assets/fonts/Cairo-Bold.ttf");
@@ -42,8 +69,9 @@ Future<void> generateAndPrintPrescription(
                       fontSize: 24,
                       color: PdfColors.blue900,
                     ),
-                    textDirection:
-                        isPredominantlyArabic(examination.examination?.patient?.clinic?.name ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+                    textDirection: isPredominantlyArabic(examination.examination?.patient?.clinic?.name ?? "N/A")
+                        ? pw.TextDirection.rtl
+                        : pw.TextDirection.ltr,
                   ),
                   pw.SizedBox(height: 5),
                   pw.Text(
@@ -53,7 +81,9 @@ Future<void> generateAndPrintPrescription(
                       fontSize: 16,
                       color: PdfColors.blue800,
                     ),
-                    textDirection: isPredominantlyArabic(examination.doctor?.name ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+                    textDirection: isPredominantlyArabic(examination.doctor?.name ?? "N/A")
+                        ? pw.TextDirection.rtl
+                        : pw.TextDirection.ltr,
                   ),
                   pw.SizedBox(height: 3),
                   pw.Text(
@@ -103,8 +133,9 @@ Future<void> generateAndPrintPrescription(
                   pw.Text(
                     'Name: ${examination.examination?.patient?.name ?? ""}',
                     style: pw.TextStyle(font: font, fontSize: 12),
-                    textDirection:
-                        isPredominantlyArabic(examination.examination?.patient?.name ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+                    textDirection: isPredominantlyArabic(examination.examination?.patient?.name ?? "N/A")
+                        ? pw.TextDirection.rtl
+                        : pw.TextDirection.ltr,
                   ),
                   pw.Text(
                     'ID: ${examination.examination?.patient?.serialNumber ?? ""}',
@@ -176,7 +207,9 @@ Future<void> generateAndPrintPrescription(
                 pw.Text(
                   diagnosis ?? "",
                   style: pw.TextStyle(font: font, fontSize: 14),
-                  textDirection: isPredominantlyArabic(examination.finalization?.diagnosis ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+                  textDirection: isPredominantlyArabic(examination.finalization?.diagnosis ?? "N/A")
+                      ? pw.TextDirection.rtl
+                      : pw.TextDirection.ltr,
                 ),
                 pw.SizedBox(height: 10),
                 pw.Text(
@@ -190,9 +223,12 @@ Future<void> generateAndPrintPrescription(
                 pw.Text(
                   action.action ?? "",
                   style: pw.TextStyle(font: font, fontSize: 16),
-                  textDirection: isPredominantlyArabic(action.action ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+                  textDirection:
+                      isPredominantlyArabic(action.action ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
                 ),
-                if (action.data != null && action.data!.isNotEmpty)
+                if (action.data != null &&
+                    action.data!.isNotEmpty &&
+                    action.action?.toLowerCase() != 'prescribe medications')
                   pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                     pw.Text(
                       'Information:',
@@ -207,7 +243,9 @@ Future<void> generateAndPrintPrescription(
                       child: pw.Text(
                         action.data ?? '',
                         style: pw.TextStyle(font: font, fontSize: 14),
-                        textDirection: isPredominantlyArabic("examination.finalization?.data" ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+                        textDirection: isPredominantlyArabic("examination.finalization?.data" ?? "N/A")
+                            ? pw.TextDirection.rtl
+                            : pw.TextDirection.ltr,
                       ),
                     ),
                   ]),
@@ -299,19 +337,22 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(examination.examination?.measurements[1].refinedRefractionSpherical ?? '-'),
+                                      child: pw.Text(
+                                          examination.examination?.measurements[1].refinedRefractionSpherical ?? '-'),
                                     ),
                                   ),
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(examination.examination?.measurements[1].refinedRefractionCylindrical ?? '-'),
+                                      child: pw.Text(
+                                          examination.examination?.measurements[1].refinedRefractionCylindrical ?? '-'),
                                     ),
                                   ),
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(examination.examination?.measurements[1].refinedRefractionAxis ?? '-'),
+                                      child: pw.Text(
+                                          examination.examination?.measurements[1].refinedRefractionAxis ?? '-'),
                                     ),
                                   ),
                                 ],
@@ -325,7 +366,8 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(examination.examination?.measurements[1].nearVisionAddition ?? '-'),
+                                      child:
+                                          pw.Text(examination.examination?.measurements[1].nearVisionAddition ?? '-'),
                                     ),
                                   ),
                                 ],
@@ -390,19 +432,22 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(examination.examination?.measurements[0].refinedRefractionSpherical ?? '-'),
+                                      child: pw.Text(
+                                          examination.examination?.measurements[0].refinedRefractionSpherical ?? '-'),
                                     ),
                                   ),
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(examination.examination?.measurements[0].refinedRefractionCylindrical ?? '-'),
+                                      child: pw.Text(
+                                          examination.examination?.measurements[0].refinedRefractionCylindrical ?? '-'),
                                     ),
                                   ),
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(examination.examination?.measurements[0].refinedRefractionAxis ?? '-'),
+                                      child: pw.Text(
+                                          examination.examination?.measurements[0].refinedRefractionAxis ?? '-'),
                                     ),
                                   ),
                                 ],
@@ -416,7 +461,8 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(examination.examination?.measurements[0].nearVisionAddition ?? '-'),
+                                      child:
+                                          pw.Text(examination.examination?.measurements[0].nearVisionAddition ?? '-'),
                                     ),
                                   ),
                                 ],
@@ -426,6 +472,117 @@ Future<void> generateAndPrintPrescription(
                         ],
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ),
+          if (action.action?.toLowerCase() == 'prescribe medications' && action.data != null && action.data!.isNotEmpty)
+            pw.Container(
+              margin: const pw.EdgeInsets.symmetric(vertical: 15),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.blue900),
+                borderRadius: pw.BorderRadius.circular(8),
+              ),
+              child: pw.Column(
+                children: [
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(10),
+                    decoration: const pw.BoxDecoration(
+                      color: PdfColors.blue100,
+                      borderRadius: pw.BorderRadius.vertical(top: pw.Radius.circular(7)),
+                    ),
+                    child: pw.Center(
+                      child: pw.Text(
+                        'Medications:',
+                        style: pw.TextStyle(
+                          font: boldFont,
+                          fontSize: 16,
+                          color: PdfColors.blue900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  pw.Table(
+                    border: pw.TableBorder.all(color: PdfColors.blue900),
+                    columnWidths: {
+                      0: const pw.FlexColumnWidth(2),
+                      1: const pw.FlexColumnWidth(1.5),
+                      2: const pw.FlexColumnWidth(1.5),
+                    },
+                    children: [
+                      // Header row
+                      pw.TableRow(
+                        decoration: const pw.BoxDecoration(color: PdfColors.blue50),
+                        children: [
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              'Name',
+                              style: pw.TextStyle(font: boldFont, fontSize: 14),
+                              textAlign: pw.TextAlign.center,
+                            ),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              'Dosage',
+                              style: pw.TextStyle(font: boldFont, fontSize: 14),
+                              textAlign: pw.TextAlign.center,
+                            ),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              'Duration',
+                              style: pw.TextStyle(font: boldFont, fontSize: 14),
+                              textAlign: pw.TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Data rows
+                      ...parseMedicationsData(action.data!)
+                          .map(
+                            (medication) => pw.TableRow(
+                              children: [
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(8),
+                                  child: pw.Text(
+                                    FormatHelper.capitalizeFirstLetter(medication['name'] ?? ''),
+                                    style: pw.TextStyle(font: font, fontSize: 12),
+                                    textAlign: pw.TextAlign.center,
+                                    textDirection: isPredominantlyArabic(medication['name'] ?? '')
+                                        ? pw.TextDirection.rtl
+                                        : pw.TextDirection.ltr,
+                                  ),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(8),
+                                  child: pw.Text(
+                                    FormatHelper.capitalizeFirstLetter(medication['dosage'] ?? ''),
+                                    style: pw.TextStyle(font: font, fontSize: 12),
+                                    textAlign: pw.TextAlign.center,
+                                    textDirection: isPredominantlyArabic(medication['dosage'] ?? '')
+                                        ? pw.TextDirection.rtl
+                                        : pw.TextDirection.ltr,
+                                  ),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(8),
+                                  child: pw.Text(
+                                    FormatHelper.capitalizeFirstLetter(medication['duration'] ?? ''),
+                                    style: pw.TextStyle(font: font, fontSize: 12),
+                                    textAlign: pw.TextAlign.center,
+                                    textDirection: isPredominantlyArabic(medication['duration'] ?? '')
+                                        ? pw.TextDirection.rtl
+                                        : pw.TextDirection.ltr,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                          .toList(),
+                    ],
                   ),
                 ],
               ),

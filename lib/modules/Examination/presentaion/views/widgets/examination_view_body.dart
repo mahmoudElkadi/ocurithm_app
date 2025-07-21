@@ -32,8 +32,7 @@ class MultiStepFormView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: BlocBuilder<ExaminationCubit, ExaminationState>(
-          builder: (context, state) {
+      body: BlocBuilder<ExaminationCubit, ExaminationState>(builder: (context, state) {
         final cubit = ExaminationCubit.get(context);
         log('state: ' + state.toString());
         if (cubit.isLoading) {
@@ -65,9 +64,8 @@ class MultiStepFormView extends StatelessWidget {
               suffix: IconButton(
                   onPressed: () async {
                     if (appointment.patient != null) {
-                      bool? result = await Get.to(() => PatientDetailsView(
-                          patient: appointment.patient!,
-                          id: appointment.patient!.id.toString()));
+                      bool? result = await Get.to(() =>
+                          PatientDetailsView(patient: appointment.patient!, id: appointment.patient!.id.toString()));
                     }
                   },
                   icon: SvgPicture.asset("assets/icons/patient.svg")),
@@ -91,7 +89,9 @@ class MultiStepFormView extends StatelessWidget {
       case 2:
         return const StepThreeContent();
       case 3:
-        return const ExaminationReviewScreen();
+        return ExaminationReviewScreen(
+          appointment: appointment,
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -108,8 +108,7 @@ class _HistoryDetails extends StatelessWidget {
     return BlocBuilder<ExaminationCubit, ExaminationState>(
       builder: (context, state) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
-              .copyWith(bottom: 0),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16).copyWith(bottom: 0),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,16 +302,14 @@ class _HistoryDetails extends StatelessWidget {
                   onSave: () async {
                     if (cubit.appointmentData != null) {
                       customLoading(context, "");
-                      bool connection =
-                          await InternetConnection().hasInternetAccess;
+                      bool connection = await InternetConnection().hasInternetAccess;
                       if (connection) {
                         cubit.action = "save";
                         cubit.makeExamination(context: context);
                       } else {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: const Text('No Internet Connection',
-                              style: TextStyle(color: Colors.white)),
+                          content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                           backgroundColor: Colorz.redColor,
                         ));
                       }
@@ -321,16 +318,14 @@ class _HistoryDetails extends StatelessWidget {
                   onConfirm: () async {
                     if (cubit.appointmentData != null) {
                       customLoading(context, "");
-                      bool connection =
-                          await InternetConnection().hasInternetAccess;
+                      bool connection = await InternetConnection().hasInternetAccess;
                       if (connection) {
                         cubit.action = "create";
                         cubit.makeExamination(context: context);
                       } else {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: const Text('No Internet Connection',
-                              style: TextStyle(color: Colors.white)),
+                          content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                           backgroundColor: Colorz.redColor,
                         ));
                       }
@@ -505,16 +500,14 @@ class _StepTwoContent extends StatelessWidget {
                 onSave: () async {
                   if (cubit.appointmentData != null) {
                     customLoading(context, "");
-                    bool connection =
-                        await InternetConnection().hasInternetAccess;
+                    bool connection = await InternetConnection().hasInternetAccess;
                     if (connection) {
                       cubit.action = "save";
                       cubit.makeExamination(context: context);
                     } else {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: const Text('No Internet Connection',
-                            style: TextStyle(color: Colors.white)),
+                        content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                         backgroundColor: Colorz.redColor,
                       ));
                     }
@@ -523,8 +516,7 @@ class _StepTwoContent extends StatelessWidget {
                 onConfirm: () async {
                   if (cubit.appointmentData != null) {
                     customLoading(context, "");
-                    bool connection =
-                        await InternetConnection().hasInternetAccess;
+                    bool connection = await InternetConnection().hasInternetAccess;
                     if (connection) {
                       cubit.action = "create";
 
@@ -532,8 +524,7 @@ class _StepTwoContent extends StatelessWidget {
                     } else {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: const Text('No Internet Connection',
-                            style: TextStyle(color: Colors.white)),
+                        content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                         backgroundColor: Colorz.redColor,
                       ));
                     }
@@ -698,17 +689,13 @@ class EyeExaminationView extends StatelessWidget {
                   },
                   child: Text(
                     "Merge",
-                    style: appStyle(
-                        context, 18, Colorz.primaryColor, FontWeight.bold),
+                    style: appStyle(context, 18, Colorz.primaryColor, FontWeight.bold),
                   )),
             ]),
             const HeightSpacer(size: 4),
             const Row(
               spacing: 10,
-              children: [
-                RightRefinedRefractionContent(),
-                LeftRefinedRefractionContent()
-              ],
+              children: [RightRefinedRefractionContent(), LeftRefinedRefractionContent()],
             ),
             const HeightSpacer(size: 8),
             Text(
@@ -759,10 +746,7 @@ class EyeExaminationView extends StatelessWidget {
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 10,
-              children: [
-                RightAdditionalExaminationContent(),
-                LeftAdditionalExaminationContent()
-              ],
+              children: [RightAdditionalExaminationContent(), LeftAdditionalExaminationContent()],
             ),
             const HeightSpacer(size: 8),
             Text(
@@ -773,10 +757,7 @@ class EyeExaminationView extends StatelessWidget {
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 10,
-              children: [
-                FundusExaminationContent(isLeftEye: false),
-                FundusExaminationContent(isLeftEye: true)
-              ],
+              children: [FundusExaminationContent(isLeftEye: false), FundusExaminationContent(isLeftEye: true)],
             ),
             const HeightSpacer(size: 8),
             Text(
@@ -786,10 +767,7 @@ class EyeExaminationView extends StatelessWidget {
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 10,
-              children: [
-                SlitLampExaminationContent(isLeftEye: false),
-                SlitLampExaminationContent(isLeftEye: true)
-              ],
+              children: [SlitLampExaminationContent(isLeftEye: false), SlitLampExaminationContent(isLeftEye: true)],
             ),
             StepNavigation(
               onPrevious: () => cubit.previousStep(),
@@ -800,16 +778,14 @@ class EyeExaminationView extends StatelessWidget {
               onSave: () async {
                 if (cubit.appointmentData != null) {
                   customLoading(context, "");
-                  bool connection =
-                      await InternetConnection().hasInternetAccess;
+                  bool connection = await InternetConnection().hasInternetAccess;
                   if (connection) {
                     cubit.action = "save";
                     cubit.makeExamination(context: context);
                   } else {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: const Text('No Internet Connection',
-                          style: TextStyle(color: Colors.white)),
+                      content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                       backgroundColor: Colorz.redColor,
                     ));
                   }
@@ -818,8 +794,7 @@ class EyeExaminationView extends StatelessWidget {
               onConfirm: () async {
                 if (cubit.appointmentData != null) {
                   customLoading(context, "");
-                  bool connection =
-                      await InternetConnection().hasInternetAccess;
+                  bool connection = await InternetConnection().hasInternetAccess;
                   if (connection) {
                     cubit.action = "create";
 
@@ -827,8 +802,7 @@ class EyeExaminationView extends StatelessWidget {
                   } else {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: const Text('No Internet Connection',
-                          style: TextStyle(color: Colors.white)),
+                      content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                       backgroundColor: Colorz.redColor,
                     ));
                   }
@@ -866,8 +840,7 @@ class RightAutorefContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Right eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['AurorefSpherical'] ?? [],
@@ -923,8 +896,7 @@ class LeftAutorefContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Left eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['AurorefSpherical'] ?? [],
@@ -980,8 +952,7 @@ class RightOldGlasses extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Right eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['AurorefSpherical'] ?? [],
@@ -1037,8 +1008,7 @@ class LeftOldGlasses extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Left eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['AurorefSpherical'] ?? [],
@@ -1088,12 +1058,10 @@ class ModifiedExpandableContainer extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<ModifiedExpandableContainer> createState() =>
-      _ModifiedExpandableContainerState();
+  State<ModifiedExpandableContainer> createState() => _ModifiedExpandableContainerState();
 }
 
-class _ModifiedExpandableContainerState
-    extends State<ModifiedExpandableContainer> {
+class _ModifiedExpandableContainerState extends State<ModifiedExpandableContainer> {
   bool isExpanded = true;
 
   @override
@@ -1118,8 +1086,7 @@ class _ModifiedExpandableContainerState
             InkWell(
               onTap: () => setState(() => isExpanded = !isExpanded),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1153,8 +1120,7 @@ class RightVisualAcuityContent extends StatefulWidget {
   const RightVisualAcuityContent({Key? key}) : super(key: key);
 
   @override
-  State<RightVisualAcuityContent> createState() =>
-      _RightVisualAcuityContentState();
+  State<RightVisualAcuityContent> createState() => _RightVisualAcuityContentState();
 }
 
 class _RightVisualAcuityContentState extends State<RightVisualAcuityContent> {
@@ -1172,8 +1138,7 @@ class _RightVisualAcuityContentState extends State<RightVisualAcuityContent> {
           ),
           child: Column(
             children: [
-              Text("Right eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['UCVA'] ?? [],
@@ -1210,8 +1175,7 @@ class LeftVisualAcuityContent extends StatefulWidget {
   const LeftVisualAcuityContent({Key? key}) : super(key: key);
 
   @override
-  State<LeftVisualAcuityContent> createState() =>
-      _LeftVisualAcuityContentState();
+  State<LeftVisualAcuityContent> createState() => _LeftVisualAcuityContentState();
 }
 
 class _LeftVisualAcuityContentState extends State<LeftVisualAcuityContent> {
@@ -1229,8 +1193,7 @@ class _LeftVisualAcuityContentState extends State<LeftVisualAcuityContent> {
           ),
           child: Column(
             children: [
-              Text("Left eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['UCVA'] ?? [],
@@ -1280,8 +1243,7 @@ class RightPupilsContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Right eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['PupilsShape'] ?? [],
@@ -1333,8 +1295,7 @@ class RightPupilsContent extends StatelessWidget {
                 hintText: "Swinging Flash:",
                 selectedValue: cubit.rightPupilsSwingingFlashLightTest,
                 onChanged: (selected) {
-                  cubit.updateRightEyeField(
-                      'pupilsSwingingFlashLightTest', selected);
+                  cubit.updateRightEyeField('pupilsSwingingFlashLightTest', selected);
                 },
               ),
               const SizedBox(height: 8),
@@ -1371,8 +1332,7 @@ class LeftPupilsContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Left eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['PupilsShape'] ?? [],
@@ -1424,8 +1384,7 @@ class LeftPupilsContent extends StatelessWidget {
                 hintText: "Swinging Flash:",
                 selectedValue: cubit.leftPupilsSwingingFlashLightTest,
                 onChanged: (selected) {
-                  cubit.updateLeftEyeField(
-                      'pupilsSwingingFlashLightTest', selected);
+                  cubit.updateLeftEyeField('pupilsSwingingFlashLightTest', selected);
                 },
               ),
               const SizedBox(height: 8),
@@ -1462,16 +1421,14 @@ class RightRefinedRefractionContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Right eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.rightRefinedRefractionSpherical,
                 onChanged: (selected) {
-                  cubit.updateRightEyeField(
-                      'refinedRefractionSpherical', selected);
+                  cubit.updateRightEyeField('refinedRefractionSpherical', selected);
                 },
               ),
               const SizedBox(height: 8),
@@ -1481,8 +1438,7 @@ class RightRefinedRefractionContent extends StatelessWidget {
                 hintText: '',
                 selectedValue: cubit.rightRefinedRefractionCylindrical,
                 onChanged: (selected) {
-                  cubit.updateRightEyeField(
-                      'refinedRefractionCylindrical', selected);
+                  cubit.updateRightEyeField('refinedRefractionCylindrical', selected);
                 },
               ),
               const SizedBox(height: 8),
@@ -1529,16 +1485,14 @@ class LeftRefinedRefractionContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Left eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.leftRefinedRefractionSpherical,
                 onChanged: (selected) {
-                  cubit.updateLeftEyeField(
-                      'refinedRefractionSpherical', selected);
+                  cubit.updateLeftEyeField('refinedRefractionSpherical', selected);
                 },
               ),
               const SizedBox(height: 8),
@@ -1548,8 +1502,7 @@ class LeftRefinedRefractionContent extends StatelessWidget {
                 hintText: '',
                 selectedValue: cubit.leftRefinedRefractionCylindrical,
                 onChanged: (selected) {
-                  cubit.updateLeftEyeField(
-                      'refinedRefractionCylindrical', selected);
+                  cubit.updateLeftEyeField('refinedRefractionCylindrical', selected);
                 },
               ),
               const SizedBox(height: 8),
@@ -1595,8 +1548,7 @@ class RightIOPContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Right eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['IOP'] ?? [],
@@ -1624,8 +1576,7 @@ class RightIOPContent extends StatelessWidget {
                 textRow: "Another IOP:",
                 selectedValue: cubit.rightAcquireAnotherIOPMeasurement,
                 onChanged: (selected) {
-                  cubit.updateRightEyeField(
-                      'acquireAnotherIOPMeasurement', selected);
+                  cubit.updateRightEyeField('acquireAnotherIOPMeasurement', selected);
                 },
               ),
             ],
@@ -1653,8 +1604,7 @@ class LeftIOPContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Left eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomColumnDropdown(
                 items: cubit.data['IOP'] ?? [],
@@ -1682,8 +1632,7 @@ class LeftIOPContent extends StatelessWidget {
                 textRow: "Another IOP:",
                 selectedValue: cubit.leftAcquireAnotherIOPMeasurement,
                 onChanged: (selected) {
-                  cubit.updateLeftEyeField(
-                      'acquireAnotherIOPMeasurement', selected);
+                  cubit.updateLeftEyeField('acquireAnotherIOPMeasurement', selected);
                 },
               ),
             ],
@@ -1697,8 +1646,7 @@ class LeftIOPContent extends StatelessWidget {
 class SlitLampExaminationContent extends StatelessWidget {
   final bool isLeftEye;
 
-  const SlitLampExaminationContent({Key? key, required this.isLeftEye})
-      : super(key: key);
+  const SlitLampExaminationContent({Key? key, required this.isLeftEye}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1715,13 +1663,10 @@ class SlitLampExaminationContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("${isLeftEye ? 'Left' : 'Right'} eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("${isLeftEye ? 'Left' : 'Right'} eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               TextField2(
-                controller: isLeftEye
-                    ? cubit.leftLidsController
-                    : cubit.rightLidsController,
+                controller: isLeftEye ? cubit.leftLidsController : cubit.rightLidsController,
                 hintText: 'Lids',
                 required: false,
                 onTextFieldChanged: (value) {
@@ -1733,9 +1678,7 @@ class SlitLampExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               TextField2(
-                controller: isLeftEye
-                    ? cubit.leftLashesController
-                    : cubit.rightLashesController,
+                controller: isLeftEye ? cubit.leftLashesController : cubit.rightLashesController,
                 hintText: 'Lashes',
                 required: false,
                 onTextFieldChanged: (value) {
@@ -1747,9 +1690,7 @@ class SlitLampExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               TextField2(
-                controller: isLeftEye
-                    ? cubit.leftLacrimalController
-                    : cubit.rightLacrimalController,
+                controller: isLeftEye ? cubit.leftLacrimalController : cubit.rightLacrimalController,
                 hintText: 'Lacrimal System',
                 required: false,
                 onTextFieldChanged: (value) {
@@ -1761,9 +1702,7 @@ class SlitLampExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               TextField2(
-                controller: isLeftEye
-                    ? cubit.leftConjunctivaController
-                    : cubit.rightConjunctivaController,
+                controller: isLeftEye ? cubit.leftConjunctivaController : cubit.rightConjunctivaController,
                 hintText: 'Conjunctiva',
                 required: false,
                 onTextFieldChanged: (value) {
@@ -1775,9 +1714,7 @@ class SlitLampExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               TextField2(
-                controller: isLeftEye
-                    ? cubit.leftScleraController
-                    : cubit.rightScleraController,
+                controller: isLeftEye ? cubit.leftScleraController : cubit.rightScleraController,
                 hintText: 'Sclera',
                 required: false,
                 onTextFieldChanged: (value) {
@@ -1812,8 +1749,7 @@ class RightAdditionalExaminationContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Right eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomMultiSelectDropdown(
                 items: cubit.data['Cornea'] ?? [],
@@ -1887,8 +1823,7 @@ class LeftAdditionalExaminationContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Left eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomMultiSelectDropdown(
                 items: cubit.data['Cornea'] ?? [],
@@ -1948,8 +1883,7 @@ class LeftAdditionalExaminationContent extends StatelessWidget {
 class FundusExaminationContent extends StatelessWidget {
   final bool isLeftEye;
 
-  const FundusExaminationContent({Key? key, required this.isLeftEye})
-      : super(key: key);
+  const FundusExaminationContent({Key? key, required this.isLeftEye}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1965,16 +1899,13 @@ class FundusExaminationContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("${isLeftEye ? 'Left' : 'Right'} eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("${isLeftEye ? 'Left' : 'Right'} eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const SizedBox(height: 8),
               CustomMultiSelectDropdown(
                 items: cubit.data['FundusOpticDisc'] ?? [],
                 textRow: "Optic Disc :",
                 hintText: "Optic Disc :",
-                selectedValues: isLeftEye
-                    ? cubit.leftFundusOpticDisc
-                    : cubit.rightFundusOpticDisc,
+                selectedValues: isLeftEye ? cubit.leftFundusOpticDisc : cubit.rightFundusOpticDisc,
                 onChanged: (selected) {
                   if (isLeftEye) {
                     cubit.leftFundusOpticDisc = selected;
@@ -1988,9 +1919,7 @@ class FundusExaminationContent extends StatelessWidget {
                 items: cubit.data['FundusMacula'] ?? [],
                 textRow: "Macula :",
                 hintText: "Macula :",
-                selectedValues: isLeftEye
-                    ? cubit.leftFundusMacula
-                    : cubit.rightFundusMacula,
+                selectedValues: isLeftEye ? cubit.leftFundusMacula : cubit.rightFundusMacula,
                 onChanged: (selected) {
                   if (isLeftEye) {
                     cubit.leftFundusMacula = selected;
@@ -2004,9 +1933,7 @@ class FundusExaminationContent extends StatelessWidget {
                 items: cubit.data['FundusVessels'] ?? [],
                 textRow: "Vessels :",
                 hintText: "Vessels :",
-                selectedValues: isLeftEye
-                    ? cubit.leftFundusVessels
-                    : cubit.rightFundusVessels,
+                selectedValues: isLeftEye ? cubit.leftFundusVessels : cubit.rightFundusVessels,
                 onChanged: (selected) {
                   if (isLeftEye) {
                     cubit.leftFundusVessels = selected;
@@ -2020,9 +1947,7 @@ class FundusExaminationContent extends StatelessWidget {
                 items: cubit.data['FundusPeriphery'] ?? [],
                 textRow: "Fundus Periphery :",
                 hintText: "Fundus Periphery :",
-                selectedValues: isLeftEye
-                    ? cubit.leftFundusPeriphery
-                    : cubit.rightFundusPeriphery,
+                selectedValues: isLeftEye ? cubit.leftFundusPeriphery : cubit.rightFundusPeriphery,
                 onChanged: (selected) {
                   if (isLeftEye) {
                     cubit.leftFundusPeriphery = selected;
@@ -2057,8 +1982,7 @@ class RightEyeLid extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Right eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Right eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const HeightSpacer(size: 10),
               CustomColumnDropdown(
                 items: cubit.data['EyelidPtosis'] ?? [],
@@ -2135,8 +2059,7 @@ class LeftEyeLid extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Left eye",
-                  style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
+              Text("Left eye", style: appStyle(context, 16, Colorz.black, FontWeight.bold)),
               const HeightSpacer(size: 10),
               CustomColumnDropdown(
                 items: cubit.data['EyelidPtosis'] ?? [],

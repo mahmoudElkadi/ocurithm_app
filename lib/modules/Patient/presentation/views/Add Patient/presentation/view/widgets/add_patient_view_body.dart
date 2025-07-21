@@ -15,12 +15,13 @@ import 'package:password_generator/password_generator.dart';
 import '../../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../../generated/l10n.dart';
 import '../../../../../../../../core/Network/shared.dart';
+import '../../../../../../../../core/utils/constant.dart';
+import '../../../../../../data/model/nationality_model.dart';
 import '../../../../../manager/patient_cubit.dart';
 import '../../../../../manager/patient_state.dart';
 
 class CreatePatientViewBody extends StatefulWidget {
-  const CreatePatientViewBody(
-      {super.key, required this.cubit, required this.formKey});
+  const CreatePatientViewBody({super.key, required this.cubit, required this.formKey});
 
   final PatientCubit cubit;
   final GlobalKey<FormState> formKey;
@@ -48,8 +49,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
   @override
   void initState() {
     super.initState();
-    if (CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapabilities")) {
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
       widget.cubit.branches = null;
 
       if (widget.cubit.clinics == null) {
@@ -72,8 +72,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (CacheHelper.getStringList(key: "capabilities")
-                        .contains("manageCapabilities"))
+                    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
                       DropdownItem(
                         radius: 30,
                         color: Colorz.white,
@@ -134,8 +133,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 14.w, vertical: 5.h),
+                        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
                         child: SvgPicture.asset(
                           color: Colorz.primaryColor,
                           "assets/icons/profile.svg",
@@ -161,8 +159,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       required: true,
                       validator: (value) {
                         if (value!.isNotEmpty) {
-                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
-                              .hasMatch(value!)) {
+                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value!)) {
                             setState(() {
                               _emailShadow = false;
                             });
@@ -177,8 +174,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 12.w, vertical: 5.h),
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                         child: SvgPicture.asset(
                           color: Colorz.primaryColor,
                           "assets/icons/email.svg",
@@ -192,23 +188,16 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       decoration: InputDecoration(
                         hintText: 'Phone Number',
                         isDense: true,
-                        contentPadding: EdgeInsets.symmetric(
-                            vertical: 10.h, horizontal: 15.w),
+                        contentPadding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 15.w),
                         border: OutlineInputBorder(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(30)),
-                            borderSide:
-                                BorderSide(color: Colorz.grey100, width: 3)),
+                            borderRadius: const BorderRadius.all(Radius.circular(30)),
+                            borderSide: BorderSide(color: Colorz.grey100, width: 3)),
                         enabledBorder: OutlineInputBorder(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(30)),
-                            borderSide:
-                                BorderSide(color: Colorz.grey100, width: 3)),
+                            borderRadius: const BorderRadius.all(Radius.circular(30)),
+                            borderSide: BorderSide(color: Colorz.grey100, width: 3)),
                         focusedBorder: OutlineInputBorder(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(30)),
-                            borderSide: BorderSide(
-                                color: Colorz.primaryColor, width: 1)),
+                            borderRadius: const BorderRadius.all(Radius.circular(30)),
+                            borderSide: BorderSide(color: Colorz.primaryColor, width: 1)),
                         suffixIcon: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: SvgPicture.asset(
@@ -249,16 +238,14 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                             suffixIcon: widget.cubit.obscureText == false
                                 ? IconButton(
                                     onPressed: () {
-                                      widget.cubit.obscureText =
-                                          !widget.cubit.obscureText;
+                                      widget.cubit.obscureText = !widget.cubit.obscureText;
                                     },
                                     icon: const Icon(Icons.visibility),
                                     color: Colorz.primaryColor,
                                   )
                                 : IconButton(
                                     onPressed: () {
-                                      widget.cubit.obscureText =
-                                          !widget.cubit.obscureText;
+                                      widget.cubit.obscureText = !widget.cubit.obscureText;
                                     },
                                     icon: const Icon(Icons.visibility_off),
                                     color: Colorz.primaryColor,
@@ -295,36 +282,27 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                               ),
                               child: IconButton(
                                 onPressed: () {
-                                  final String generatedPassword =
-                                      passwordControllerGenerator
-                                          .generatePassword();
-                                  final double entropy =
-                                      generatedPassword.checkStrength();
+                                  final String generatedPassword = passwordControllerGenerator.generatePassword();
+                                  final double entropy = generatedPassword.checkStrength();
                                   if (entropy >= 128) {
                                     setState(() {
-                                      widget.cubit.passwordController.text =
-                                          generatedPassword;
+                                      widget.cubit.passwordController.text = generatedPassword;
                                     });
                                   } else if (entropy >= 60) {
                                     setState(() {
-                                      widget.cubit.passwordController.text =
-                                          generatedPassword;
+                                      widget.cubit.passwordController.text = generatedPassword;
                                     });
                                   } else if (entropy >= 36) {
                                     setState(() {
-                                      widget.cubit.passwordController.text =
-                                          generatedPassword;
+                                      widget.cubit.passwordController.text = generatedPassword;
                                     });
                                   } else if (entropy >= 28) {
                                     setState(() {
-                                      widget.cubit.passwordController.text =
-                                          generatedPassword;
+                                      widget.cubit.passwordController.text = generatedPassword;
                                     });
                                   }
                                 },
-                                icon: SvgPicture.asset(
-                                    color: Colorz.primaryColor,
-                                    "assets/icons/password.svg"),
+                                icon: SvgPicture.asset(color: Colorz.primaryColor, "assets/icons/password.svg"),
                               ),
                             ),
                           ),
@@ -340,8 +318,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         borderColor: Colorz.primaryColor,
                         radius: 30,
                         suffixIcon: Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 14.w, vertical: 5.h),
+                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
                           child: SvgPicture.asset(
                             color: Colorz.primaryColor,
                             "assets/icons/home.svg",
@@ -358,8 +335,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       borderColor: Colorz.primaryColor,
                       radius: 30,
                       suffixIcon: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 8.w, vertical: 5.h),
+                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
                         child: SvgPicture.asset(
                           color: Colorz.primaryColor,
                           "assets/icons/national_id.svg",
@@ -380,7 +356,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       isShadow: _nationalIdShadow,
                     ),
                     const HeightSpacer(size: 20),
-                    DropdownItem(
+                    DropdownItem<Nationality>(
                       radius: 30,
                       color: Colorz.white,
                       isShadow: true,
@@ -388,211 +364,18 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         Icons.arrow_drop_down_circle,
                         color: Colorz.primaryColor,
                       ),
-                      items: [
-                        "🇦🇫 Afghan",
-                        "🇦🇱 Albanian",
-                        "🇩🇿 Algerian",
-                        "🇺🇸 American",
-                        "🇦🇩 Andorran",
-                        "🇦🇴 Angolan",
-                        "🇦🇷 Argentine",
-                        "🇦🇲 Armenian",
-                        "🇦🇺 Australian",
-                        "🇦🇹 Austrian",
-                        "🇦🇿 Azerbaijani",
-                        "🇧🇭 Bahraini",
-                        "🇧🇩 Bangladeshi",
-                        "🇧🇾 Belarusian",
-                        "🇧🇪 Belgian",
-                        "🇧🇯 Beninese",
-                        "🇧🇹 Bhutanese",
-                        "🇧🇴 Bolivian",
-                        "🇧🇦 Bosnian",
-                        "🇧🇼 Botswanan",
-                        "🇧🇷 Brazilian",
-                        "🇬🇧 British",
-                        "🇧🇳 Bruneian",
-                        "🇧🇬 Bulgarian",
-                        "🇧🇫 Burkinabe",
-                        "🇲🇲 Burmese",
-                        "🇧🇮 Burundian",
-                        "🇰🇭 Cambodian",
-                        "🇨🇲 Cameroonian",
-                        "🇨🇦 Canadian",
-                        "🇨🇻 Cape Verdean",
-                        "🇨🇫 Central African",
-                        "🇹🇩 Chadian",
-                        "🇨🇱 Chilean",
-                        "🇨🇳 Chinese",
-                        "🇨🇴 Colombian",
-                        "🇰🇲 Comorian",
-                        "🇨🇩 Congolese (DRC)",
-                        "🇨🇬 Congolese (Republic)",
-                        "🇨🇷 Costa Rican",
-                        "🇭🇷 Croatian",
-                        "🇨🇺 Cuban",
-                        "🇨🇾 Cypriot",
-                        "🇨🇿 Czech",
-                        "🇩🇰 Danish",
-                        "🇩🇯 Djiboutian",
-                        "🇩🇴 Dominican",
-                        "🇳🇱 Dutch",
-                        "🇪🇨 Ecuadorian",
-                        "🇪🇬 Egyptian",
-                        "🇦🇪 Emirati",
-                        "🏴󠁧󠁢󠁥󠁮󠁧󠁿 English",
-                        "🇬🇶 Equatorial Guinean",
-                        "🇪🇷 Eritrean",
-                        "🇪🇪 Estonian",
-                        "🇪🇹 Ethiopian",
-                        "🇫🇯 Fijian",
-                        "🇫🇮 Finnish",
-                        "🇫🇷 French",
-                        "🇬🇦 Gabonese",
-                        "🇬🇲 Gambian",
-                        "🇬🇪 Georgian",
-                        "🇩🇪 German",
-                        "🇬🇭 Ghanaian",
-                        "🇬🇷 Greek",
-                        "🇬🇩 Grenadian",
-                        "🇬🇹 Guatemalan",
-                        "🇬🇳 Guinean",
-                        "🇬🇼 Guinea-Bissauan",
-                        "🇬🇾 Guyanese",
-                        "🇭🇹 Haitian",
-                        "🇭🇳 Honduran",
-                        "🇭🇺 Hungarian",
-                        "🇮🇸 Icelandic",
-                        "🇮🇳 Indian",
-                        "🇮🇩 Indonesian",
-                        "🇮🇷 Iranian",
-                        "🇮🇶 Iraqi",
-                        "🇮🇪 Irish",
-                        "🇮🇱 Israeli",
-                        "🇮🇹 Italian",
-                        "🇨🇮 Ivorian",
-                        "🇯🇲 Jamaican",
-                        "🇯🇵 Japanese",
-                        "🇯🇴 Jordanian",
-                        "🇰🇿 Kazakh",
-                        "🇰🇪 Kenyan",
-                        "🇰🇮 Kiribati",
-                        "🇰🇼 Kuwaiti",
-                        "🇰🇬 Kyrgyz",
-                        "🇱🇦 Lao",
-                        "🇱🇻 Latvian",
-                        "🇱🇧 Lebanese",
-                        "🇱🇸 Lesotho",
-                        "🇱🇷 Liberian",
-                        "🇱🇾 Libyan",
-                        "🇱🇮 Liechtenstein",
-                        "🇱🇹 Lithuanian",
-                        "🇱🇺 Luxembourgish",
-                        "🇲🇰 Macedonian",
-                        "🇲🇬 Malagasy",
-                        "🇲🇼 Malawian",
-                        "🇲🇾 Malaysian",
-                        "🇲🇻 Maldivian",
-                        "🇲🇱 Malian",
-                        "🇲🇹 Maltese",
-                        "🇲🇭 Marshallese",
-                        "🇲🇷 Mauritanian",
-                        "🇲🇺 Mauritian",
-                        "🇲🇽 Mexican",
-                        "🇫🇲 Micronesian",
-                        "🇲🇩 Moldovan",
-                        "🇲🇨 Monegasque",
-                        "🇲🇳 Mongolian",
-                        "🇲🇪 Montenegrin",
-                        "🇲🇦 Moroccan",
-                        "🇲🇿 Mozambican",
-                        "🇳🇦 Namibian",
-                        "🇳🇷 Nauruan",
-                        "🇳🇵 Nepalese",
-                        "🇳🇿 New Zealander",
-                        "🇳🇮 Nicaraguan",
-                        "🇳🇪 Nigerien",
-                        "🇳🇬 Nigerian",
-                        "🇰🇵 North Korean",
-                        "🇳🇴 Norwegian",
-                        "🇴🇲 Omani",
-                        "🇵🇰 Pakistani",
-                        "🇵🇼 Palauan",
-                        "🇵🇸 Palestinian",
-                        "🇵🇦 Panamanian",
-                        "🇵🇬 Papua New Guinean",
-                        "🇵🇾 Paraguayan",
-                        "🇵🇪 Peruvian",
-                        "🇵🇭 Philippine",
-                        "🇵🇱 Polish",
-                        "🇵🇹 Portuguese",
-                        "🇶🇦 Qatari",
-                        "🇷🇴 Romanian",
-                        "🇷🇺 Russian",
-                        "🇷🇼 Rwandan",
-                        "🇰🇳 Kittitian and Nevisian",
-                        "🇱🇨 Saint Lucian",
-                        "🇻🇨 Saint Vincentian",
-                        "🇼🇸 Samoan",
-                        "🇸🇲 San Marinese",
-                        "🇸🇹 Sao Tomean",
-                        "🇸🇦 Saudi",
-                        "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scottish",
-                        "🇸🇳 Senegalese",
-                        "🇷🇸 Serbian",
-                        "🇸🇨 Seychellois",
-                        "🇸🇱 Sierra Leonean",
-                        "🇸🇬 Singaporean",
-                        "🇸🇰 Slovak",
-                        "🇸🇮 Slovenian",
-                        "🇸🇧 Solomon Islander",
-                        "🇸🇴 Somali",
-                        "🇿🇦 South African",
-                        "🇰🇷 South Korean",
-                        "🇸🇸 South Sudanese",
-                        "🇪🇸 Spanish",
-                        "🇱🇰 Sri Lankan",
-                        "🇸🇩 Sudanese",
-                        "🇸🇷 Surinamese",
-                        "🇸🇿 Swazi",
-                        "🇸🇪 Swedish",
-                        "🇨🇭 Swiss",
-                        "🇸🇾 Syrian",
-                        "🇹🇼 Taiwanese",
-                        "🇹🇯 Tajik",
-                        "🇹🇿 Tanzanian",
-                        "🇹🇭 Thai",
-                        "🇹🇱 Timorese",
-                        "🇹🇬 Togolese",
-                        "🇹🇴 Tongan",
-                        "🇹🇹 Trinidadian",
-                        "🇹🇳 Tunisian",
-                        "🇹🇷 Turkish",
-                        "🇹🇲 Turkmen",
-                        "🇹🇻 Tuvaluan",
-                        "🇺🇬 Ugandan",
-                        "🇺🇦 Ukrainian",
-                        "🇺🇾 Uruguayan",
-                        "🇺🇿 Uzbek",
-                        "🇻🇺 Vanuatuan",
-                        "🇻🇦 Vatican",
-                        "🇻🇪 Venezuelan",
-                        "🇻🇳 Vietnamese",
-                        "🏴󠁧󠁢󠁷󠁬󠁳󠁿 Welsh",
-                        "🇾🇪 Yemeni",
-                        "🇿🇲 Zambian",
-                        "🇿🇼 Zimbabwean",
-                        "🌍 Other",
-                      ],
+                      items: nationalities,
                       isValid: widget.cubit.nationality,
                       validateText: 'Nationality must not be Empty',
-                      selectedValue: widget.cubit.selectedNationality,
+                      selectedValue: widget.cubit.selectedNationality?.name,
                       hintText: 'Select Nationality',
-                      itemAsString: (item) => item.toString(),
+                      itemAsString: (item) => item?.name ?? '',
                       onItemSelected: (item) {
                         setState(() {
-                          if (item != "Not Found") {
+                          if (item != null) {
                             widget.cubit.selectedNationality = item;
+                            // Now you can access both item.name and item.value
+                            print('Selected: ${item.name} with code: ${item.value}');
                           }
                         });
                       },
@@ -605,10 +388,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                     ),
                     const HeightSpacer(size: 20),
                     Text(S.of(context).dateOfBirth,
-                        style: TextStyle(
-                            color: Colorz.black,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18)),
+                        style: TextStyle(color: Colorz.black, fontWeight: FontWeight.w600, fontSize: 18)),
                     const HeightSpacer(size: 10),
                     InkWell(
                       onTap: () async {
@@ -648,16 +428,12 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                       },
                       child: Ink(
                         child: Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 10.w, vertical: 10.h),
+                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
                           decoration: BoxDecoration(
                             color: HexColor("#E7EDEF"),
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(
-                                color: widget.cubit.picDate == false
-                                    ? Colors.redAccent
-                                    : Colors.transparent,
-                                width: 1),
+                                color: widget.cubit.picDate == false ? Colors.redAccent : Colors.transparent, width: 1),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -665,47 +441,34 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    widget.cubit.date != null
-                                        ? "${widget.cubit.date!.day}"
-                                        : S.of(context).dd,
-                                    style: appStyle(context, 18, Colorz.black,
-                                        FontWeight.w600),
+                                    widget.cubit.date != null ? "${widget.cubit.date!.day}" : S.of(context).dd,
+                                    style: appStyle(context, 18, Colorz.black, FontWeight.w600),
                                   ),
                                 ),
                               ),
                               Container(
                                 width: 2,
                                 height: 30,
-                                decoration: BoxDecoration(
-                                    color: Colorz.white,
-                                    borderRadius: BorderRadius.circular(30)),
+                                decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30)),
                               ),
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    widget.cubit.date != null
-                                        ? "${widget.cubit.date!.month}"
-                                        : S.of(context).mm,
-                                    style: appStyle(context, 18, Colorz.black,
-                                        FontWeight.w600),
+                                    widget.cubit.date != null ? "${widget.cubit.date!.month}" : S.of(context).mm,
+                                    style: appStyle(context, 18, Colorz.black, FontWeight.w600),
                                   ),
                                 ),
                               ),
                               Container(
                                 width: 2,
                                 height: 30,
-                                decoration: BoxDecoration(
-                                    color: Colorz.white,
-                                    borderRadius: BorderRadius.circular(30)),
+                                decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30)),
                               ),
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    widget.cubit.date != null
-                                        ? "${widget.cubit.date!.year}"
-                                        : S.of(context).yy,
-                                    style: appStyle(context, 18, Colorz.black,
-                                        FontWeight.w600),
+                                    widget.cubit.date != null ? "${widget.cubit.date!.year}" : S.of(context).yy,
+                                    style: appStyle(context, 18, Colorz.black, FontWeight.w600),
                                   ),
                                 ),
                               ),
@@ -725,18 +488,13 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                             ),
                             Text(
                               S.of(context).mustBirth,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.red.shade700,
-                                  fontWeight: FontWeight.w400),
+                              style: TextStyle(fontSize: 12, color: Colors.red.shade700, fontWeight: FontWeight.w400),
                             ),
                           ],
                         ),
                       ),
                     const HeightSpacer(size: 20),
-                    Text(S.of(context).gender,
-                        style: appStyle(
-                            context, 18, Colorz.black, FontWeight.w600)),
+                    Text(S.of(context).gender, style: appStyle(context, 18, Colorz.black, FontWeight.w600)),
                     const HeightSpacer(size: 0),
                     GestureDetector(
                       onTap: () {
@@ -748,10 +506,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         contentPadding: EdgeInsets.zero,
                         title: Text(S.of(context).male),
                         leading: Radio<String>(
-                          fillColor: MaterialStateColor.resolveWith((states) =>
-                              widget.cubit.gender == false
-                                  ? Colors.red
-                                  : Colors.black),
+                          fillColor: MaterialStateColor.resolveWith(
+                              (states) => widget.cubit.gender == false ? Colors.red : Colors.black),
                           value: 'Male',
                           groupValue: widget.cubit.selectedGender,
                           onChanged: (String? value) {
@@ -772,10 +528,8 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                         contentPadding: EdgeInsets.zero,
                         title: Text(S.of(context).female),
                         leading: Radio<String>(
-                          fillColor: MaterialStateColor.resolveWith((states) =>
-                              widget.cubit.gender == false
-                                  ? Colors.red
-                                  : Colors.black),
+                          fillColor: MaterialStateColor.resolveWith(
+                              (states) => widget.cubit.gender == false ? Colors.red : Colors.black),
                           value: 'Female',
                           groupValue: widget.cubit.selectedGender,
                           onChanged: (String? value) {
@@ -797,8 +551,7 @@ class _CreatePatientViewBodyState extends State<CreatePatientViewBody> {
                             ),
                             Text(
                               S.of(context).mustNotEmpty,
-                              style: appStyle(context, 14, Colors.red.shade900,
-                                  FontWeight.w400),
+                              style: appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
                             ),
                           ],
                         ),

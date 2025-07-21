@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/modules/Examination/presentaion/views/widgets/prescription_pdf.dart';
-import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
+import 'package:ocurithm/modules/Make_Appointment/presentation/views/make_appointment_view.dart';
+import 'package:ocurithm/modules/Patient/data/model/one_exam.dart' hide Appointment;
 
 import '../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../core/widgets/custom_column_section.dart';
 import '../../../../../core/widgets/custom_freeze_loading.dart';
+import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Doctor/data/model/doctor_model.dart';
 import '../../../data/repos/examination_repo_impl.dart';
 import '../../manager/examination_cubit.dart';
 import '../../manager/examination_state.dart';
 
 class MedicalTreeForm extends StatefulWidget {
-  const MedicalTreeForm({super.key, required this.examination, this.doctor});
+  const MedicalTreeForm({super.key, required this.examination, this.doctor, this.appointment});
 
+  final Appointment? appointment;
   final Examination? examination;
   final Doctor? doctor;
 
@@ -28,7 +32,6 @@ class MedicalTreeForm extends StatefulWidget {
 class _MedicalTreeFormState extends State<MedicalTreeForm> {
   String? selectedMainOption;
   String? selectedGlassesType;
-  final TextEditingController prescriptionController = TextEditingController();
   final TextEditingController IPDController = TextEditingController();
   final TextEditingController typeOfLens = TextEditingController();
   final TextEditingController diagnosisController = TextEditingController();
@@ -84,7 +87,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           break;
 
         case 'Prescribe medications':
-          prescriptionController.clear();
+          medicationsList.clear();
           break;
 
         case 'Refer to investigations':
@@ -179,7 +182,13 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   final List<String> keratoconusOptions = ['CXL', 'Athens protocol', 'Intacs'];
 
   // OR options
-  final List<String> orOptions = ['Cataract surgery', 'Intravitreal injection', 'Retinal surgery', 'Glaucoma surgery', 'Other surgery'];
+  final List<String> orOptions = [
+    'Cataract surgery',
+    'Intravitreal injection',
+    'Retinal surgery',
+    'Glaucoma surgery',
+    'Other surgery'
+  ];
   final List<String> eyes = ['OD', 'OS', 'BL'];
 
   // Cataract surgery options
@@ -246,6 +255,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                 'data': action.data,
                 'metaData': action.metaData,
                 'eye': action.eye,
+                'medications': action.medicine
               })
           .toList(),
     };
@@ -273,7 +283,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   }
 
   Action generatePrescriptionObject(String option) {
-    Action prescription = Action(action: option.toLowerCase(), data: '', metaData: [], eye: eyeSelections[option]?.toLowerCase());
+    Action prescription =
+        Action(action: option.toLowerCase(), data: '', metaData: [], eye: eyeSelections[option]?.toLowerCase());
 
     switch (option) {
       case 'Prescribe glasses':
@@ -281,7 +292,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         break;
 
       case 'Prescribe medications':
-        prescription.data = prescriptionController.text.toLowerCase();
+        prescription.medicine = medicationsList;
         break;
 
       case 'Refer to investigations':
@@ -360,12 +371,19 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     return prescription;
   }
 
+  final List<Map<String, String>> medicationsList = [];
+  final TextEditingController medicationNameController = TextEditingController();
+  final TextEditingController medicationDosageController = TextEditingController();
+  final TextEditingController medicationDurationController = TextEditingController();
+
   @override
   void dispose() {
-    prescriptionController.dispose();
     IPDController.dispose();
     diagnosisController.dispose();
     typeOfLens.dispose();
+    medicationNameController.dispose();
+    medicationDosageController.dispose();
+    medicationDurationController.dispose();
     super.dispose();
   }
 
@@ -433,7 +451,6 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
 
   Future<void> _clearAllData() async {
     // Clear text controllers
-    prescriptionController.clear();
     IPDController.clear();
     typeOfLens.clear();
 
@@ -793,36 +810,236 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     return Column(
       children: [
         _buildFormContainer(
-            title: 'Medication Prescription',
-            child: TextField(
-              controller: prescriptionController,
-              maxLines: 5,
-              decoration: _getInputDecoration('Enter prescription details...'),
-              onChanged: (value) {
-                updatePrescription();
-              },
-            )),
-        ElevatedButton.icon(
-            label: const Text("Print", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Colorz.primaryColor,
-            ),
-            icon: const Icon(Icons.print, color: Colors.white),
-            onPressed: () {
-              final currentAction = getActionByOption('prescribe medications');
-              if (currentAction != null) {
-                generateAndPrintPrescription(
-                    examination: ExaminationModel(
-                      examination: widget.examination,
-                      doctor: widget.doctor,
+          title: 'Medication Prescription',
+          child: Column(
+            children: [
+              // Display added medications
+              if (medicationsList.isNotEmpty)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Medications List
+                      Container(
+                        height: 200,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: medicationsList.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final medication = medicationsList[index];
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.grey[200]!),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    spreadRadius: 1,
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Medication Details
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Name
+                                          _buildMedicationField(
+                                            'Name',
+                                            medication['name'] ?? '',
+                                            Colors.blue,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Dosage
+                                          _buildMedicationField(
+                                            'Dosage',
+                                            medication['dosage'] ?? '',
+                                            Colors.green,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Duration
+                                          _buildMedicationField(
+                                            'Duration',
+                                            medication['duration'] ?? '',
+                                            Colors.orange,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Delete Button
+                                    InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          medicationsList.removeAt(index);
+                                          updatePrescription();
+                                        });
+                                      },
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red[50],
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.red[600],
+                                          size: 18,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      label: const Text("Add Row", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.green,
+                      ),
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      onPressed: () => _showMedicationPopup(),
                     ),
-                    showPrescriptionTable: false,
-                    action: currentAction,
-                    diagnosis: unDiagnosedYet ? null : diagnosisController.text);
-              }
-            }),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      label: const Text("Print", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colorz.primaryColor,
+                      ),
+                      icon: const Icon(Icons.print, color: Colors.white),
+                      onPressed: () {
+                        final currentAction = getActionByOption('prescribe medications');
+                        if (currentAction != null) {
+                          generateAndPrintPrescription(
+                              examination: ExaminationModel(
+                                examination: widget.examination,
+                                doctor: widget.doctor,
+                              ),
+                              showPrescriptionTable: false,
+                              action: currentAction,
+                              diagnosis: unDiagnosedYet ? null : diagnosisController.text);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildMedicationField(String title, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$title:',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  void _showMedicationPopup() {
+    // Clear the controllers
+    medicationNameController.clear();
+    medicationDosageController.clear();
+    medicationDurationController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Add Medication'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: medicationNameController,
+              decoration: _getInputDecoration('Name'),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: medicationDosageController,
+              decoration: _getInputDecoration('Dosage'),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: medicationDurationController,
+              decoration: _getInputDecoration('Duration'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (medicationNameController.text.isNotEmpty &&
+                  medicationDosageController.text.isNotEmpty &&
+                  medicationDurationController.text.isNotEmpty) {
+                setState(() {
+                  medicationsList.add({
+                    'name': medicationNameController.text,
+                    'dosage': medicationDosageController.text,
+                    'duration': medicationDurationController.text,
+                  });
+                  updatePrescription();
+                });
+                Navigator.pop(context);
+              }
+            },
+            child: Text('Confirm'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -983,8 +1200,10 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           color: title == groupValue ? Colorz.primaryColor : Colors.black87,
         ),
       ),
-      value: title, // Use the title as the value
-      groupValue: groupValue, // Compare with groupValue
+      value: title,
+      // Use the title as the value
+      groupValue: groupValue,
+      // Compare with groupValue
       activeColor: Colorz.primaryColor,
       controlAffinity: ListTileControlAffinity.leading,
       onChanged: onChanged,
@@ -1182,7 +1401,12 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           child: Column(
             children: [
               InkWell(
-                onTap: () => _showDateTimePicker(),
+                onTap: () {
+                  widget.appointment?.datetime = null;
+                  Get.to(() => MakeAppointmentView(
+                        appointment: widget.appointment,
+                      ));
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
@@ -1391,7 +1615,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                   }
 
                   // Send the entire prescriptions list
-                  ExaminationCubit.get(context).makeFinalization(context: context, id: widget.examination?.id ?? '', data: finalizationData);
+                  ExaminationCubit.get(context)
+                      .makeFinalization(context: context, id: widget.examination?.id ?? '', data: finalizationData);
                 },
                 onCancel: () {
                   Navigator.pop(context);
