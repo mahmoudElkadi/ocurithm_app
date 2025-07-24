@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,10 +50,8 @@ class _PatientCardState extends State<PatientCard> {
       builder: (context, state) => GestureDetector(
         onTap: () async {
           if (widget.patient?.id != null) {
-            bool? result = await Get.to(() => PatientDetailsView(
-                patient: widget.patient, id: widget.patient!.id!));
+            bool? result = await Get.to(() => PatientDetailsView(patient: widget.patient, id: widget.patient!.id!));
             if (result == true) {
-              log("message Here");
               setState(() {});
             }
           }
@@ -65,16 +61,13 @@ class _PatientCardState extends State<PatientCard> {
           child: Container(
             width: MediaQuery.sizeOf(context).width,
             padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 15.w),
-            decoration: BoxDecoration(
-                color: Colorz.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                  ),
-                ]),
+            decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(20), boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 2,
+                blurRadius: 5,
+              ),
+            ]),
             child: Row(children: [
               widget.isLoading
                   ? _buildShimmer(Container(
@@ -98,20 +91,13 @@ class _PatientCardState extends State<PatientCard> {
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.grey.shade200,
-                                spreadRadius: 1,
-                                blurRadius: 3,
-                                offset: const Offset(0, 0))
+                                color: Colors.grey.shade200, spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 0))
                           ],
                         ),
                         child: widget.patient?.name != null
                             ? Center(
-                                child: Text(
-                                    widget.patient?.name
-                                        ?.split("")[0]
-                                        .toUpperCase() as String,
-                                    style: appStyle(context, 30,
-                                        Colors.grey.shade700, FontWeight.bold)))
+                                child: Text(widget.patient?.name?.split("")[0].toUpperCase() as String,
+                                    style: appStyle(context, 30, Colors.grey.shade700, FontWeight.bold)))
                             : null,
                       ),
                     ),
@@ -135,8 +121,7 @@ class _PatientCardState extends State<PatientCard> {
                             widget.patient?.name ?? "N/A",
                             maxLines: 2,
                             style: GoogleFonts.inter(
-                                textStyle: appStyle(context, 16,
-                                        HexColor("#2A282F"), FontWeight.w600)
+                                textStyle: appStyle(context, 16, HexColor("#2A282F"), FontWeight.w600)
                                     .copyWith(overflow: TextOverflow.ellipsis)),
                           ),
                     const HeightSpacer(size: 5),
@@ -145,8 +130,7 @@ class _PatientCardState extends State<PatientCard> {
                       children: [
                         GestureDetector(
                           onLongPress: () async {
-                            await Clipboard.setData(ClipboardData(
-                                text: widget.patient?.phone ?? "N/A"));
+                            await Clipboard.setData(ClipboardData(text: widget.patient?.phone ?? "N/A"));
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text("Copied"),
@@ -158,15 +142,13 @@ class _PatientCardState extends State<PatientCard> {
                                   width: 100,
                                   height: 20,
                                   decoration: const BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(20)),
+                                    borderRadius: BorderRadius.all(Radius.circular(20)),
                                     color: Colors.white,
                                   ),
                                 ))
                               : Text(
                                   widget.patient?.phone ?? "N/A",
-                                  style: appStyle(context, 18, Colorz.grey,
-                                      FontWeight.w400),
+                                  style: appStyle(context, 18, Colorz.grey, FontWeight.w400),
                                 ),
                         ),
                       ],
@@ -174,8 +156,7 @@ class _PatientCardState extends State<PatientCard> {
                   ],
                 ),
               ),
-              if (CacheHelper.getStringList(key: "capabilities")
-                  .contains("managePatients"))
+              if (CacheHelper.getStringList(key: "capabilities").contains("managePatients"))
                 widget.isLoading
                     ? _buildShimmer(Container(
                         width: 30,
@@ -190,16 +171,13 @@ class _PatientCardState extends State<PatientCard> {
                           showConfirmationDialog(
                             context: context,
                             title: "Delete Patient",
-                            message:
-                                "Do you want to Delete ${widget.patient?.name ?? "this Patient"}?",
+                            message: "Do you want to Delete ${widget.patient?.name ?? "this Patient"}?",
                             onConfirm: () async {
                               customLoading(context, "");
-                              bool connection =
-                                  await InternetConnection().hasInternetAccess;
+                              bool connection = await InternetConnection().hasInternetAccess;
                               if (!connection) {
                                 Navigator.pop(context);
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                   content: Text(
                                     "No Internet Connection",
                                     style: TextStyle(color: Colors.white),
@@ -207,9 +185,8 @@ class _PatientCardState extends State<PatientCard> {
                                   backgroundColor: Colors.red,
                                 ));
                               } else {
-                                await PatientCubit.get(context).deletePatient(
-                                    id: widget.patient!.id.toString(),
-                                    context: context);
+                                await PatientCubit.get(context)
+                                    .deletePatient(id: widget.patient!.id.toString(), context: context);
                               }
                             },
                             onCancel: () {
@@ -243,8 +220,7 @@ class _PatientListViewState extends State<PatientListView> {
       builder: (context, state) {
         final cubit = context.read<PatientCubit>();
         bool isLoading = PatientCubit.get(context).patients == null;
-        bool isEmpty =
-            PatientCubit.get(context).patients?.patients?.isEmpty ?? true;
+        bool isEmpty = PatientCubit.get(context).patients?.patients?.isEmpty ?? true;
         if (isLoading) {
           return _buildLoadingList();
         } else if (isEmpty) {
@@ -278,15 +254,12 @@ class _PatientListViewState extends State<PatientListView> {
           ),
           cubit.patients!.patients.length != index + 1
               ? const SizedBox.shrink()
-              : cubit.patients?.totalPages != null &&
-                      cubit.patients!.totalPages! > 1
+              : cubit.patients?.totalPages != null && cubit.patients!.totalPages! > 1
                   ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20)
-                          .copyWith(bottom: 20),
+                      padding: const EdgeInsets.symmetric(vertical: 20).copyWith(bottom: 20),
                       child: CustomPagination(
                           currentPage: cubit.page,
-                          totalPages:
-                              int.parse('${cubit.patients?.totalPages ?? 0}'),
+                          totalPages: int.parse('${cubit.patients?.totalPages ?? 0}'),
                           onPageChanged: (int newPage) {
                             cubit.page = newPage;
                             cubit.getPatients();
@@ -311,18 +284,12 @@ class _PatientListViewState extends State<PatientListView> {
           const SizedBox(height: 16),
           Text(
             'No Patient found',
-            style: TextStyle(
-                fontSize: 22,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 22, color: Colors.grey[600], fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
             'Patient will appear here',
-            style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[400],
-                fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 18, color: Colors.grey[400], fontWeight: FontWeight.w600),
           ),
         ],
       ),

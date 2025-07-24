@@ -46,7 +46,6 @@ class ExaminationCubit extends Cubit<ExaminationState> {
   Appointment? appointmentData;
 
   void setAppointment(Appointment appointment) {
-    log(appointment.toJson().toString());
     appointmentData = appointment;
     emit(ExaminationStepChanged());
   }
@@ -779,9 +778,7 @@ class ExaminationCubit extends Cubit<ExaminationState> {
       } else {
         oneExamination = await examinationRepo.getOneExamination(appointmentId: id);
 
-        log('Examination: ${oneExamination?.toJson()}');
         if (oneExamination?.error == null) {
-          log("iam here");
           leftOldSpherical = oneExamination?.examination?.examination[0].measurements[0].oldSpherical;
           leftOldCylindrical = oneExamination?.examination?.examination[0].measurements[0].oldCylindrical;
           leftOldAxis = oneExamination?.examination?.examination[0].measurements[0].oldAxis;

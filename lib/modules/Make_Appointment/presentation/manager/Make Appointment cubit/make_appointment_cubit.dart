@@ -136,8 +136,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         loading = false;
         emit(GetBranchError());
       } else {
-        branches = await ServicesApi()
-            .getAllBranches(clinic: selectedClinic?.id, haveDoctors: true);
+        branches = await ServicesApi().getAllBranches(clinic: selectedClinic?.id, haveDoctors: true);
         if (branches?.error == null && branches!.branches.isNotEmpty) {
           loading = false;
           emit(GetBranchSuccess());
@@ -178,8 +177,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         loadPatients = false;
         emit(AdminPatientError());
       } else {
-        patients = await makeAppointmentRepo.getAllPatients(
-            search: patientController.text);
+        patients = await makeAppointmentRepo.getAllPatients(search: patientController.text);
         if (patients!.patients.isNotEmpty) {
           loadPatients = false;
           emit(AdminPatientSuccess());
@@ -214,10 +212,8 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         );
         emit(PaymentMethodError());
       } else {
-        paymentMethods = await makeAppointmentRepo.getAllPaymentMethods(
-            clinic: selectedClinic?.id);
-        if (paymentMethods?.error == null &&
-            paymentMethods!.paymentMethods!.isNotEmpty) {
+        paymentMethods = await makeAppointmentRepo.getAllPaymentMethods(clinic: selectedClinic?.id);
+        if (paymentMethods?.error == null && paymentMethods!.paymentMethods!.isNotEmpty) {
           emit(PaymentMethodSuccess());
         } else {
           emit(PaymentMethodError());
@@ -247,10 +243,8 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
         );
         emit(ExaminationTypeError());
       } else {
-        examinationTypes = await makeAppointmentRepo.getAllExaminationTypes(
-            clinic: selectedClinic?.id);
-        if (examinationTypes?.error == null &&
-            examinationTypes!.examinationTypes!.isNotEmpty) {
+        examinationTypes = await makeAppointmentRepo.getAllExaminationTypes(clinic: selectedClinic?.id);
+        if (examinationTypes?.error == null && examinationTypes!.examinationTypes!.isNotEmpty) {
           emit(ExaminationTypeSuccess());
         } else {
           emit(ExaminationTypeError());
@@ -279,8 +273,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   }
 
   getAllData() async {
-    if (CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapabilities")) {
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
       await Future.wait([
         getClinics(),
       ]);
@@ -366,11 +359,8 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     try {
       if (connection == true) {
         appointments = await makeAppointmentRepo.getAllAppointment(
-            date: selectedDate,
-            branch: selectedBranch?.id,
-            doctor: selectedDoctor?.id);
-        if (appointments?.error == null &&
-            appointments!.appointments.isNotEmpty) {
+            date: selectedDate, branch: selectedBranch?.id, doctor: selectedDoctor?.id);
+        if (appointments?.error == null && appointments!.appointments.isNotEmpty) {
           // Group appointments by time slot
           emit(GetBranchSuccess());
         } else {
@@ -386,9 +376,6 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   makeAppointment({required BuildContext context}) async {
     emit(MakeAppointmentLoading());
     try {
-      // log("local" + selectedTime!.toLocal().toString());
-      // log("local Utc" + selectedTime!.toUtc().toLocal().toString());
-      // log("utc" + selectedTime!.toUtc().toString());
       var result = await makeAppointmentRepo.makeAppointment(
           model: MakeAppointmentModel(
               doctor: selectedDoctor?.id,
@@ -441,13 +428,10 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     }
   }
 
-  editAppointment(
-      {required BuildContext context,
-      required MakeAppointmentModel model}) async {
+  editAppointment({required BuildContext context, required MakeAppointmentModel model}) async {
     emit(MakeAppointmentLoading());
     try {
-      var result = await makeAppointmentRepo.editAppointment(
-          model: model, id: model.id.toString());
+      var result = await makeAppointmentRepo.editAppointment(model: model, id: model.id.toString());
       if (result != null && result.error == null) {
         Get.snackbar(
           "Success",
@@ -519,8 +503,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
       selectedPaymentMethod != null &&
       selectedDoctor != null;
 
-  bool get isFormValid =>
-      validationState.values.every((isValid) => isValid) && areAllFieldsFilled;
+  bool get isFormValid => validationState.values.every((isValid) => isValid) && areAllFieldsFilled;
 
   void validateField(String field, bool isValid) {
     validationState[field] = isValid;

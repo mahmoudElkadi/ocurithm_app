@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -191,7 +189,6 @@ class PatientCubit extends Cubit<PatientState> {
               password: passwordController.text,
               onSendMessage: () async {
                 // Send WhatsApp message
-                log(phoneNumber.toString());
                 await WhatsAppConfirmation().sendWhatsAppMessage(phoneNumber,
                     "Welcome to our clinics ❤️ .\n You can now check your appointments, by downloading Ocurithm application. \n Your credentials: \n username: ${result.phone} \n password: ${passwordController.text} \n Thank you.");
               },

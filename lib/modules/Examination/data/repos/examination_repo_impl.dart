@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:ocurithm/modules/Examination/data/repos/examination_repo.dart';
 
 import '../../../../../core/Network/dio_handler.dart';
@@ -37,7 +35,6 @@ class ExaminationRepoImpl implements ExaminationRepo {
   Future<DataModel> makeFinalization({required String id, required Map<String, dynamic> data}) async {
     final url = "${Config.baseUrl}${Config.examination}/$id/finalization";
     final String? token = CacheHelper.getData(key: "token");
-    log(data.toString());
     final result = await ApiService.request<DataModel>(
       url: url,
       method: 'POST',
@@ -75,7 +72,6 @@ class ExaminationRepoImpl implements ExaminationRepo {
     );
 
     if (result != null) {
-      log('result' + result.toJson().toString());
       return result;
     } else {
       throw Exception("Failed fetch branches");

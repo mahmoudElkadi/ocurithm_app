@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
@@ -271,13 +269,10 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             dropdownIconPosition: IconPosition.leading,
                             languageCode: "en",
                             onChanged: (phone) {
-                              log(phone.completeNumber);
                               widget.cubit.phoneNumber = phone.completeNumber;
                               setState(() {});
                             },
-                            onCountryChanged: (country) {
-                              log('Country changed to: ${country.name}');
-                            },
+                            onCountryChanged: (country) {},
                           ),
                     const HeightSpacer(size: 20),
                     isLoading
