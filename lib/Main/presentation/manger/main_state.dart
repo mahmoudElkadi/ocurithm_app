@@ -18,13 +18,21 @@ class NavigateToPageState extends MainState {}
 
 class DrawerItemsLoaded extends MainState {}
 
+class GroupExpansionChanged extends MainState {
+  final int? expandedGroupIndex;
+
+  GroupExpansionChanged(this.expandedGroupIndex);
+}
+
 class PageTransitionStarted extends MainState {
   final int newIndex;
+
   PageTransitionStarted(this.newIndex);
 }
 
 class PageTransitionCompleted extends MainState {
   final int newIndex;
+
   PageTransitionCompleted(this.newIndex);
 }
 

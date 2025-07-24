@@ -39,6 +39,26 @@ class MainCubit extends Cubit<MainState> {
   int selectedIndex = 0;
   Widget? currentView;
 
+  // Add expansion state management
+  int? _expandedGroupIndex;
+
+  int? get expandedGroupIndex => _expandedGroupIndex;
+
+  void toggleGroupExpansion(int groupIndex) {
+    if (_expandedGroupIndex == groupIndex) {
+      // Collapse the current group - allow all to be closed
+      _expandedGroupIndex = null;
+    } else {
+      // Expand the new group (automatically collapses others)
+      _expandedGroupIndex = groupIndex;
+    }
+    emit(GroupExpansionChanged(_expandedGroupIndex));
+  }
+
+  bool isGroupExpanded(int groupIndex) {
+    return _expandedGroupIndex == groupIndex;
+  }
+
   Widget currentScreen(int index) {
     if (index < 0 || index >= pages.length) {
       return pages[0];
@@ -79,63 +99,22 @@ class MainCubit extends Cubit<MainState> {
     capabilities.add("dashboard");
 
     Map<String, List<dynamic>> statusMappings = {
-      "dashboard": [
-        "Dashboard",
-        const DashboardView(),
-        "assets/icons/dashboard.svg"
-      ],
-      "showPatients": [
-        "Patients",
-        const AdminPatientView(),
-        "assets/icons/patient.svg"
-      ],
-      "showAppointments": [
-        "Appointments",
-        const AppointmentView(),
-        "assets/icons/appointment.svg"
-      ],
-      "manageClinics": [
-        "Clinics",
-        const ClinicView(),
-        "assets/icons/clinic.svg"
-      ],
-      "showBranches": [
-        "Branches",
-        const AdminBranchView(),
-        "assets/icons/branch.svg"
-      ],
-      "showDoctors": [
-        "Doctors",
-        const AdminDoctorView(),
-        "assets/icons/doctor.svg"
-      ],
-      "manageReciptionists": [
-        "Receptionists",
-        const ReceptionistView(),
-        "assets/icons/receptionist.svg"
-      ],
-      "manageExaminationTypes": [
-        "Examination Types",
-        const ExaminationTypeView(),
-        "assets/icons/exam_type.svg"
-      ],
-      "managePaymentMethods": [
-        "Payment Methods",
-        const PaymentMethodView(),
-        "assets/icons/payment.svg"
-      ],
+      "dashboard": ["Dashboard", const DashboardView(), "assets/icons/dashboard.svg"],
+      "showPatients": ["Patients", const AdminPatientView(), "assets/icons/patient.svg"],
+      "showAppointments": ["Appointments", const AppointmentView(), "assets/icons/appointment.svg"],
+      "manageClinics": ["Clinics", const ClinicView(), "assets/icons/clinic.svg"],
+      "showBranches": ["Branches", const AdminBranchView(), "assets/icons/branch.svg"],
+      "showDoctors": ["Doctors", const AdminDoctorView(), "assets/icons/doctor.svg"],
+      "manageReciptionists": ["Receptionists", const ReceptionistView(), "assets/icons/receptionist.svg"],
+      "manageExaminationTypes": ["Examination Types", const ExaminationTypeView(), "assets/icons/exam_type.svg"],
+      "managePaymentMethods": ["Payment Methods", const PaymentMethodView(), "assets/icons/payment.svg"],
     };
 
     // Define groups structure
     Map<String, List<String>> groupStructure = {
       "dashboard": ["dashboard"],
       "Patient Management": ["showPatients", "showAppointments"],
-      "Management": [
-        "manageClinics",
-        "showBranches",
-        "showDoctors",
-        "manageReciptionists"
-      ],
+      "Management": ["manageClinics", "showBranches", "showDoctors", "manageReciptionists"],
       "Configuration": ["manageExaminationTypes", "managePaymentMethods"],
     };
 
@@ -145,14 +124,14 @@ class MainCubit extends Cubit<MainState> {
     int pageIndex = 0;
 
     if (capabilities.isNotEmpty) {
+      int groupIndex = 0;
       for (var groupEntry in groupStructure.entries) {
         String groupName = groupEntry.key;
         List<String> groupCapabilities = groupEntry.value;
         List<DrawerItem> groupItems = [];
 
         for (String capability in groupCapabilities) {
-          if (capabilities.contains(capability) &&
-              statusMappings.containsKey(capability)) {
+          if (capabilities.contains(capability) && statusMappings.containsKey(capability)) {
             var mappingData = statusMappings[capability]!;
 
             DrawerItem item = DrawerItem(
@@ -172,15 +151,20 @@ class MainCubit extends Cubit<MainState> {
         if (groupItems.isNotEmpty) {
           drawerGroups.add(DrawerGroup(
             title: groupName == "dashboard" ? null : groupName,
-            // No title for dashboard
             items: groupItems,
+            groupIndex: groupIndex,
+            isCollapsible: groupName != "dashboard", // Dashboard is not collapsible
           ));
+          groupIndex++;
         }
       }
 
       if (pages.isNotEmpty && currentView == null) {
         currentView = pages[selectedIndex];
       }
+
+      // Start with all groups collapsed
+      _expandedGroupIndex = null;
     }
 
     if (drawerItems.isEmpty || pages.isEmpty || capabilities == []) {
@@ -190,8 +174,7 @@ class MainCubit extends Cubit<MainState> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text("Login Failed"),
-            content: const Text(
-                "You don't have permission to access this application"),
+            content: const Text("You don't have permission to access this application"),
             actions: [
               TextButton(
                 child: Text(
@@ -249,9 +232,13 @@ class DrawerItem {
 class DrawerGroup {
   final String? title; // Null for dashboard (no group header)
   final List<DrawerItem> items;
+  final int groupIndex;
+  final bool isCollapsible;
 
   DrawerGroup({
     this.title,
     required this.items,
+    required this.groupIndex,
+    this.isCollapsible = true,
   });
 }
