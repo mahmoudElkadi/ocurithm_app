@@ -6,6 +6,7 @@ import 'package:ocurithm/modules/Patient/data/repos/patient_repo_impl.dart';
 import '../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../Examination/presentaion/views/widgets/circle_view.dart';
+import '../../../../../../../Examination/presentaion/views/widgets/prescription_pdf.dart';
 import '../../../../../../data/model/one_exam.dart';
 import '../../../../../manager/patient_cubit.dart';
 import '../../../../../manager/patient_state.dart';
@@ -19,8 +20,7 @@ class OneExaminationView extends StatefulWidget {
   State<OneExaminationView> createState() => _OneExaminationViewState();
 }
 
-class _OneExaminationViewState extends State<OneExaminationView>
-    with SingleTickerProviderStateMixin {
+class _OneExaminationViewState extends State<OneExaminationView> with SingleTickerProviderStateMixin {
   late PageController _pageController;
   int _selectedTab = 0;
 
@@ -46,8 +46,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (BuildContext context) =>
-          PatientCubit(PatientRepoImpl())..getOneExamination(id: widget.id),
+      create: (BuildContext context) => PatientCubit(PatientRepoImpl())..getOneExamination(id: widget.id),
       child: BlocBuilder<PatientCubit, PatientState>(
         builder: (BuildContext context, state) => Scaffold(
           appBar: AppBar(
@@ -77,64 +76,9 @@ class _OneExaminationViewState extends State<OneExaminationView>
 
                         Column(
                           children: [
-                            // Tab bar
-                            // Row(
-                            //   children: [
-                            //     Expanded(
-                            //       child: InkWell(
-                            //         onTap: () => setState(() => _selectedTab = 0),
-                            //         child: Container(
-                            //           padding: const EdgeInsets.symmetric(vertical: 12),
-                            //           decoration: BoxDecoration(
-                            //             border: Border(
-                            //               bottom: BorderSide(
-                            //                 color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey.shade300,
-                            //                 width: 2,
-                            //               ),
-                            //             ),
-                            //           ),
-                            //           child: Text(
-                            //             'Left Eye',
-                            //             textAlign: TextAlign.center,
-                            //             style: TextStyle(
-                            //               color: _selectedTab == 0 ? Colorz.primaryColor : Colors.grey,
-                            //               fontWeight: _selectedTab == 0 ? FontWeight.bold : FontWeight.normal,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ),
-                            //     ),
-                            //     Expanded(
-                            //       child: InkWell(
-                            //         onTap: () => setState(() => _selectedTab = 1),
-                            //         child: Container(
-                            //           padding: const EdgeInsets.symmetric(vertical: 12),
-                            //           decoration: BoxDecoration(
-                            //             border: Border(
-                            //               bottom: BorderSide(
-                            //                 color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey.shade300,
-                            //                 width: 2,
-                            //               ),
-                            //             ),
-                            //           ),
-                            //           child: Text(
-                            //             'Right Eye',
-                            //             textAlign: TextAlign.center,
-                            //             style: TextStyle(
-                            //               color: _selectedTab == 1 ? Colorz.primaryColor : Colors.grey,
-                            //               fontWeight: _selectedTab == 1 ? FontWeight.bold : FontWeight.normal,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
-
-                            // Content
-
                             Row(
                               spacing: 10,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildEyeExaminationContent(isLeft: false),
                                 _buildEyeExaminationContent(isLeft: true),
@@ -151,8 +95,441 @@ class _OneExaminationViewState extends State<OneExaminationView>
     );
   }
 
-  Widget _buildQuadrantSection(
-      {required bool isLeft, required PatientCubit cubit}) {
+  Widget _buildMedicationContent(Action action, List<Medicine>? medicines, PatientCubit cubit) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colorz.primaryColor,
+              ),
+            ),
+            IconButton(
+                onPressed: () {
+                  generateAndPrintPrescription(
+                    examination: ExaminationModel(
+                      examination: cubit.oneExamination?.examination,
+                      doctor: cubit.oneExamination?.doctor,
+                    ),
+                    showPrescriptionTable: false,
+                    action: action,
+                    prescriptionList: cubit.oneExamination?.finalization?.medicine ?? [],
+                    diagnosis: cubit.oneExamination?.finalization?.diagnosis,
+                  );
+                },
+                icon: Icon(Icons.print_outlined, color: Colorz.primaryColor)),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Check if medications exist in the action
+        if (medicines != null && medicines!.isNotEmpty) ...[
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colorz.primaryColor.withOpacity(0.1),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Name',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colorz.primaryColor,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Dosage',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colorz.primaryColor,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Duration',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colorz.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Medications List
+                ...medicines.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final medication = entry.value;
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: index == medicines.length - 1 ? Colors.transparent : Colors.grey[200]!,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            FormatHelper.capitalizeFirstLetter(medication.name?.toString() ?? ''),
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            FormatHelper.capitalizeFirstLetter(medication.dosage?.toString() ?? ''),
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            FormatHelper.capitalizeFirstLetter(medication.duration?.toString() ?? ''),
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+
+          // Print Button for Medications
+        ] else ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: const Text(
+              'No medications prescribed',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildGlassesContent(Action action, PatientCubit cubit) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDetailItem(
+          title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+          content: "IPD: ${action.data ?? 'N/A'}",
+          onTap: () {
+            generateAndPrintPrescription(
+              examination: ExaminationModel(
+                examination: cubit.oneExamination?.examination,
+                doctor: cubit.oneExamination?.doctor,
+              ),
+              showPrescriptionTable: true,
+              action: action,
+              diagnosis: cubit.oneExamination?.finalization?.diagnosis,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInvestigationsContent(Action action, PatientCubit cubit) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colorz.primaryColor,
+              ),
+            ),
+            IconButton(
+                onPressed: () {
+                  generateAndPrintPrescription(
+                    examination: ExaminationModel(
+                      examination: cubit.oneExamination?.examination,
+                      doctor: cubit.oneExamination?.doctor,
+                    ),
+                    showPrescriptionTable: false,
+                    action: action,
+                    diagnosis: cubit.oneExamination?.finalization?.diagnosis,
+                  );
+                },
+                icon: Icon(Icons.print_outlined, color: Colorz.primaryColor)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ...action.metaData.map((investigation) {
+          if (investigation == 'corneal') {
+            final cornealSubOptions = action.metaData
+                .where((item) => ['topography', 'pentacam'].contains(item.toString().toLowerCase()))
+                .toList();
+
+            return _buildNestedInvestigation(
+              mainTitle: FormatHelper.capitalizeFirstLetter(investigation),
+              subOptions: cornealSubOptions,
+            );
+          } else if (investigation == 'cataract') {
+            final hasBiometry = action.metaData.contains('biometry');
+            final biometryTypes = action.metaData
+                .where((item) => ['ultrasound', 'optical'].contains(item.toString().toLowerCase()))
+                .toList();
+
+            return _buildNestedInvestigation(
+              mainTitle: FormatHelper.capitalizeFirstLetter(investigation),
+              subOptions: hasBiometry ? ['Biometry', ...biometryTypes] : [],
+            );
+          } else if (!['topography', 'pentacam', 'biometry', 'ultrasound', 'optical']
+              .contains(investigation.toString().toLowerCase())) {
+            return _buildInvestigationItem(investigation);
+          }
+          return const SizedBox.shrink();
+        }),
+      ],
+    );
+  }
+
+  Widget _buildLaserContent(Action action, PatientCubit cubit) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDetailItem(
+          title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+          content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
+          onTap: () {
+            generateAndPrintPrescription(
+              examination: ExaminationModel(
+                examination: cubit.oneExamination?.examination,
+                doctor: cubit.oneExamination?.doctor,
+              ),
+              showPrescriptionTable: false,
+              action: action,
+              diagnosis: cubit.oneExamination?.finalization?.diagnosis,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKeratoconusContent(Action action, PatientCubit cubit) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDetailItem(
+            title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+            content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
+            onTap: () {
+              generateAndPrintPrescription(
+                examination: ExaminationModel(
+                  examination: cubit.oneExamination?.examination,
+                  doctor: cubit.oneExamination?.doctor,
+                ),
+                showPrescriptionTable: false,
+                action: action,
+                diagnosis: cubit.oneExamination?.finalization?.diagnosis,
+              );
+            }),
+      ],
+    );
+  }
+
+  Widget _buildORContent(Action action, PatientCubit cubit) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDetailItem(
+            title: 'Surgery Type',
+            content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
+            onTap: () {
+              generateAndPrintPrescription(
+                examination: ExaminationModel(
+                  examination: cubit.oneExamination?.examination,
+                  doctor: cubit.oneExamination?.doctor,
+                ),
+                showPrescriptionTable: false,
+                action: action,
+                diagnosis: cubit.oneExamination?.finalization?.diagnosis,
+              );
+            }),
+        if (action.metaData.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Additional Details',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colorz.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (action.data?.toLowerCase() == 'cataract surgery') ...[
+            ...action.metaData.map((detail) => _buildORDetailItem(detail)),
+          ] else if (action.data?.toLowerCase() == 'intravitreal injection') ...[
+            ...action.metaData
+                .where((detail) => ['eylea', 'lucentis', 'avastin', 'ziv-aflibercept', 'vabysmo', 'vsiqqoo', 'ozurdex']
+                    .contains(detail.toString().toLowerCase()))
+                .map((detail) => _buildORDetailItem(detail)),
+          ] else ...[
+            ...action.metaData.map((detail) => _buildORDetailItem(detail)),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAppointmentContent(Action action, PatientCubit cubit) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDetailItem(
+            title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
+            content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
+            onTap: () {
+              generateAndPrintPrescription(
+                examination: ExaminationModel(
+                  examination: cubit.oneExamination?.examination,
+                  doctor: cubit.oneExamination?.doctor,
+                ),
+                showPrescriptionTable: false,
+                action: action,
+                diagnosis: cubit.oneExamination?.finalization?.diagnosis,
+              );
+            }),
+      ],
+    );
+  }
+
+  // Keep all other methods exactly the same...
+  Widget _buildDetailItem({required String title, required String content, Function()? onTap}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colorz.primaryColor,
+                  ),
+                ),
+                IconButton(onPressed: onTap, icon: Icon(Icons.print_outlined, color: Colorz.primaryColor)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              content,
+              style: const TextStyle(
+                fontSize: 15,
+                color: Colors.black87,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNestedInvestigation({
+    required String mainTitle,
+    required List<dynamic> subOptions,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildInvestigationItem(mainTitle),
+        if (subOptions.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: subOptions.map((option) => _buildInvestigationItem(option)).toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildInvestigationItem(dynamic investigation) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, bottom: 4),
+      child: Row(
+        children: [
+          Icon(Icons.circle, size: 8, color: Colorz.primaryColor),
+          const SizedBox(width: 8),
+          Text(
+            FormatHelper.capitalizeFirstLetter(investigation),
+            style: const TextStyle(fontSize: 15),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildORDetailItem(dynamic detail) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, bottom: 4),
+      child: Row(
+        children: [
+          Icon(Icons.circle, size: 8, color: Colorz.primaryColor),
+          const SizedBox(width: 8),
+          Text(
+            FormatHelper.capitalizeFirstLetter(detail),
+            style: const TextStyle(fontSize: 15),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuadrantSection({required bool isLeft, required PatientCubit cubit}) {
     // Define color list matching your original implementation
     final List<Color> _colorList = [
       Colors.grey[400]!,
@@ -188,32 +565,16 @@ class _OneExaminationViewState extends State<OneExaminationView>
               colorList: _colorList,
               tapCounts: isLeft
                   ? [
-                      cubit.oneExamination?.examination?.measurements[0]
-                              .topLeft ??
-                          0,
-                      cubit.oneExamination?.examination?.measurements[0]
-                              .topRight ??
-                          0,
-                      cubit.oneExamination?.examination?.measurements[0]
-                              .bottomLeft ??
-                          0,
-                      cubit.oneExamination?.examination?.measurements[0]
-                              .bottomRight ??
-                          0,
+                      cubit.oneExamination?.examination?.measurements[0].topLeft ?? 0,
+                      cubit.oneExamination?.examination?.measurements[0].topRight ?? 0,
+                      cubit.oneExamination?.examination?.measurements[0].bottomLeft ?? 0,
+                      cubit.oneExamination?.examination?.measurements[0].bottomRight ?? 0,
                     ]
                   : [
-                      cubit.oneExamination?.examination?.measurements[1]
-                              .topLeft ??
-                          0,
-                      cubit.oneExamination?.examination?.measurements[1]
-                              .topRight ??
-                          0,
-                      cubit.oneExamination?.examination?.measurements[1]
-                              .bottomLeft ??
-                          0,
-                      cubit.oneExamination?.examination?.measurements[1]
-                              .bottomRight ??
-                          0,
+                      cubit.oneExamination?.examination?.measurements[1].topLeft ?? 0,
+                      cubit.oneExamination?.examination?.measurements[1].topRight ?? 0,
+                      cubit.oneExamination?.examination?.measurements[1].bottomLeft ?? 0,
+                      cubit.oneExamination?.examination?.measurements[1].bottomRight ?? 0,
                     ],
               side: isLeft ? 'left' : 'right',
             ),
@@ -274,10 +635,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
                   children: [
                     Text(
                       isLeft ? 'Left Eye' : 'Right Eye',
-                      style: TextStyle(
-                          color: Colorz.primaryColor,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16),
+                      style: TextStyle(color: Colorz.primaryColor, fontWeight: FontWeight.w500, fontSize: 16),
                     ),
                     const HeightSpacer(size: 12),
                     _buildQuadrantSection(isLeft: isLeft, cubit: cubit),
@@ -289,23 +647,21 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 0,
                       data: {
                         'Spherical': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                    .oldSpherical ??
+                            ? FormatHelper.formatPositiveValue(
+                                    cubit.oneExamination?.examination?.measurements[0].oldSpherical) ??
                                 '-'
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                    .oldSpherical ??
+                            : FormatHelper.formatPositiveValue(
+                                    cubit.oneExamination?.examination?.measurements[1].oldSpherical) ??
                                 '-',
                         'Cylindrical': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                    .oldCylindrical ??
+                            ? FormatHelper.formatPositiveValue(
+                                    cubit.oneExamination?.examination?.measurements[0].oldCylindrical) ??
                                 '-'
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .oldCylindrical,
+                            : FormatHelper.formatPositiveValue(
+                                cubit.oneExamination?.examination?.measurements[1].oldCylindrical),
                         'Axis': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .oldAxis
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .oldAxis,
+                            ? cubit.oneExamination?.examination?.measurements[0].oldAxis
+                            : cubit.oneExamination?.examination?.measurements[1].oldAxis,
                       },
                     ),
                     _buildExaminationSection(
@@ -315,23 +671,21 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 0,
                       data: {
                         'Spherical': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                    .autorefSpherical ??
+                            ? FormatHelper.formatPositiveValue(
+                                    cubit.oneExamination?.examination?.measurements[0].autorefSpherical) ??
                                 '-'
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                    .autorefSpherical ??
+                            : FormatHelper.formatPositiveValue(
+                                    cubit.oneExamination?.examination?.measurements[1].autorefSpherical) ??
                                 '-',
                         'Cylindrical': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                    .autorefCylindrical ??
+                            ? FormatHelper.formatPositiveValue(
+                                    cubit.oneExamination?.examination?.measurements[0].autorefCylindrical) ??
                                 '-'
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .autorefCylindrical,
+                            : FormatHelper.formatPositiveValue(
+                                cubit.oneExamination?.examination?.measurements[1].autorefCylindrical),
                         'Axis': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .autorefAxis
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .autorefAxis,
+                            ? cubit.oneExamination?.examination?.measurements[0].autorefAxis
+                            : cubit.oneExamination?.examination?.measurements[1].autorefAxis,
                       },
                     ),
                     _buildExaminationSection(
@@ -341,25 +695,23 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 2,
                       data: {
                         'Spherical': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .refinedRefractionSpherical
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .refinedRefractionSpherical,
+                            ? FormatHelper.formatPositiveValue(
+                                cubit.oneExamination?.examination?.measurements[0].refinedRefractionSpherical)
+                            : FormatHelper.formatPositiveValue(
+                                cubit.oneExamination?.examination?.measurements[1].refinedRefractionSpherical),
                         'Cylindrical': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .refinedRefractionCylindrical
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .refinedRefractionCylindrical,
+                            ? FormatHelper.formatPositiveValue(
+                                cubit.oneExamination?.examination?.measurements[0].refinedRefractionCylindrical)
+                            : FormatHelper.formatPositiveValue(
+                                cubit.oneExamination?.examination?.measurements[1].refinedRefractionCylindrical),
                         'Axis': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .refinedRefractionAxis
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .refinedRefractionAxis,
+                            ? cubit.oneExamination?.examination?.measurements[0].refinedRefractionAxis
+                            : cubit.oneExamination?.examination?.measurements[1].refinedRefractionAxis,
                         'Near Vision': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .nearVisionAddition
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .nearVisionAddition,
+                            ? FormatHelper.formatPositiveValue(
+                                cubit.oneExamination?.examination?.measurements[0].nearVisionAddition)
+                            : FormatHelper.formatPositiveValue(
+                                cubit.oneExamination?.examination?.measurements[1].nearVisionAddition),
                       },
                     ),
                     _buildExaminationSection(
@@ -369,15 +721,11 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 1,
                       data: {
                         'UCVA': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .ucva
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .ucva,
+                            ? cubit.oneExamination?.examination?.measurements[0].ucva
+                            : cubit.oneExamination?.examination?.measurements[1].ucva,
                         'BCVA': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .bcva
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .bcva,
+                            ? cubit.oneExamination?.examination?.measurements[0].bcva
+                            : cubit.oneExamination?.examination?.measurements[1].bcva,
                       },
                     ),
 
@@ -388,20 +736,14 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 3,
                       data: {
                         'IOP Value': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .iop
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .iop,
+                            ? cubit.oneExamination?.examination?.measurements[0].iop
+                            : cubit.oneExamination?.examination?.measurements[1].iop,
                         'Measurement Method': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .meansOfMeasurement
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .meansOfMeasurement,
+                            ? cubit.oneExamination?.examination?.measurements[0].meansOfMeasurement
+                            : cubit.oneExamination?.examination?.measurements[1].meansOfMeasurement,
                         'Acquire Another IOP Measurement': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .acquireAnotherIopMeasurement
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .acquireAnotherIopMeasurement,
+                            ? cubit.oneExamination?.examination?.measurements[0].acquireAnotherIopMeasurement
+                            : cubit.oneExamination?.examination?.measurements[1].acquireAnotherIopMeasurement,
                       },
                     ),
                     _buildExaminationSection(
@@ -411,30 +753,20 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 4,
                       data: {
                         'Shape': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .pupilsShape
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .pupilsShape,
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsShape
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsShape,
                         'Light Reflex': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .pupilsLightReflexTest
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .pupilsLightReflexTest,
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsLightReflexTest
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsLightReflexTest,
                         'Near Reflex': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .pupilsNearReflexTest
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .pupilsNearReflexTest,
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsNearReflexTest
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsNearReflexTest,
                         'Swinging Flashlight': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .pupilsSwingingFlashLightTest
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .pupilsSwingingFlashLightTest,
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsSwingingFlashLightTest
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsSwingingFlashLightTest,
                         'Other Disorders': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .pupilsOtherDisorders
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .pupilsOtherDisorders,
+                            ? cubit.oneExamination?.examination?.measurements[0].pupilsOtherDisorders
+                            : cubit.oneExamination?.examination?.measurements[1].pupilsOtherDisorders,
                       },
                     ),
                     _buildExaminationSection(
@@ -444,25 +776,17 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 5,
                       data: {
                         'Eyelid Ptosis': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .eyelidPtosis
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .eyelidPtosis,
+                            ? cubit.oneExamination?.examination?.measurements[0].eyelidPtosis
+                            : cubit.oneExamination?.examination?.measurements[1].eyelidPtosis,
                         'Lagophthalmos': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .eyelidLagophthalmos
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .eyelidLagophthalmos,
+                            ? cubit.oneExamination?.examination?.measurements[0].eyelidLagophthalmos
+                            : cubit.oneExamination?.examination?.measurements[1].eyelidLagophthalmos,
                         'Palpable Lymph Nodes': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .palpableLymphNodes
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .palpableLymphNodes,
+                            ? cubit.oneExamination?.examination?.measurements[0].palpableLymphNodes
+                            : cubit.oneExamination?.examination?.measurements[1].palpableLymphNodes,
                         'Papable Temporal Artery': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .palpableTemporalArtery
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .palpableTemporalArtery,
+                            ? cubit.oneExamination?.examination?.measurements[0].palpableTemporalArtery
+                            : cubit.oneExamination?.examination?.measurements[1].palpableTemporalArtery,
                       },
                     ),
 
@@ -473,34 +797,24 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 7,
                       data: {
                         'Cornea': (isLeft
-                                ? cubit.oneExamination?.examination
-                                    ?.measurements[0].cornea
-                                : cubit.oneExamination?.examination
-                                    ?.measurements[1].cornea)
+                                ? cubit.oneExamination?.examination?.measurements[0].cornea
+                                : cubit.oneExamination?.examination?.measurements[1].cornea)
                             .join(', '),
                         'Anterior Chambre': (isLeft
-                                ? cubit.oneExamination?.examination
-                                    ?.measurements[0].anteriorChamber
-                                : cubit.oneExamination?.examination
-                                    ?.measurements[1].anteriorChamber)
+                                ? cubit.oneExamination?.examination?.measurements[0].anteriorChamber
+                                : cubit.oneExamination?.examination?.measurements[1].anteriorChamber)
                             .join(', '),
                         'Iris': (isLeft
-                                ? cubit.oneExamination?.examination
-                                    ?.measurements[0].iris
-                                : cubit.oneExamination?.examination
-                                    ?.measurements[1].iris)
+                                ? cubit.oneExamination?.examination?.measurements[0].iris
+                                : cubit.oneExamination?.examination?.measurements[1].iris)
                             .join(', '),
                         'Lens': (isLeft
-                                ? cubit.oneExamination?.examination
-                                    ?.measurements[0].lens
-                                : cubit.oneExamination?.examination
-                                    ?.measurements[1].lens)
+                                ? cubit.oneExamination?.examination?.measurements[0].lens
+                                : cubit.oneExamination?.examination?.measurements[1].lens)
                             .join(', '),
                         'Anterior Vitreous': (isLeft
-                                ? cubit.oneExamination?.examination
-                                    ?.measurements[0].anteriorVitreous
-                                : cubit.oneExamination?.examination
-                                    ?.measurements[1].anteriorVitreous)
+                                ? cubit.oneExamination?.examination?.measurements[0].anteriorVitreous
+                                : cubit.oneExamination?.examination?.measurements[1].anteriorVitreous)
                             .join(', '),
                       },
                     ),
@@ -511,28 +825,20 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 8,
                       data: {
                         'Optic Disc': (isLeft
-                                ? cubit.oneExamination?.examination
-                                    ?.measurements[0].fundusOpticDisc
-                                : cubit.oneExamination?.examination
-                                    ?.measurements[1].fundusOpticDisc)
+                                ? cubit.oneExamination?.examination?.measurements[0].fundusOpticDisc
+                                : cubit.oneExamination?.examination?.measurements[1].fundusOpticDisc)
                             .join(', '),
                         'Macula': (isLeft
-                                ? cubit.oneExamination?.examination
-                                    ?.measurements[0].fundusMacula
-                                : cubit.oneExamination?.examination
-                                    ?.measurements[1].fundusMacula)
+                                ? cubit.oneExamination?.examination?.measurements[0].fundusMacula
+                                : cubit.oneExamination?.examination?.measurements[1].fundusMacula)
                             .join(', '),
                         'Vessels': (isLeft
-                                ? cubit.oneExamination?.examination
-                                    ?.measurements[0].fundusVessels
-                                : cubit.oneExamination?.examination
-                                    ?.measurements[1].fundusVessels)
+                                ? cubit.oneExamination?.examination?.measurements[0].fundusVessels
+                                : cubit.oneExamination?.examination?.measurements[1].fundusVessels)
                             .join(', '),
                         'Periphery': (isLeft
-                                ? cubit.oneExamination?.examination
-                                    ?.measurements[0].fundusPeriphery
-                                : cubit.oneExamination?.examination
-                                    ?.measurements[1].fundusPeriphery)
+                                ? cubit.oneExamination?.examination?.measurements[0].fundusPeriphery
+                                : cubit.oneExamination?.examination?.measurements[1].fundusPeriphery)
                             .join(', '),
                       },
                     ),
@@ -543,30 +849,20 @@ class _OneExaminationViewState extends State<OneExaminationView>
                       sectionIndex: 6,
                       data: {
                         'Lids': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .lids
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .lids,
+                            ? cubit.oneExamination?.examination?.measurements[0].lids
+                            : cubit.oneExamination?.examination?.measurements[1].lids,
                         'Lashes': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .lashes
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .lashes,
+                            ? cubit.oneExamination?.examination?.measurements[0].lashes
+                            : cubit.oneExamination?.examination?.measurements[1].lashes,
                         'Lacrimal': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .lacrimalSystem
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .lacrimalSystem,
+                            ? cubit.oneExamination?.examination?.measurements[0].lacrimalSystem
+                            : cubit.oneExamination?.examination?.measurements[1].lacrimalSystem,
                         'Conjunctiva': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .conjunctiva
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .conjunctiva,
+                            ? cubit.oneExamination?.examination?.measurements[0].conjunctiva
+                            : cubit.oneExamination?.examination?.measurements[1].conjunctiva,
                         'Sclera': isLeft
-                            ? cubit.oneExamination?.examination?.measurements[0]
-                                .sclera
-                            : cubit.oneExamination?.examination?.measurements[1]
-                                .sclera,
+                            ? cubit.oneExamination?.examination?.measurements[0].sclera
+                            : cubit.oneExamination?.examination?.measurements[1].sclera,
                       },
                     ),
                     const SizedBox(height: 16), // Bottom padding
@@ -616,9 +912,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
             Column(
               spacing: 8,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: data.entries
-                  .map((entry) => _buildDataRow(entry.key, entry.value))
-                  .toList(),
+              children: data.entries.map((entry) => _buildDataRow(entry.key, entry.value)).toList(),
             ),
           ],
         ),
@@ -675,8 +969,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
 
       // Adjust if the birthday has not occurred yet this year
       if (currentDate.month < birthDate.month ||
-          (currentDate.month == birthDate.month &&
-              currentDate.day < birthDate.day)) {
+          (currentDate.month == birthDate.month && currentDate.day < birthDate.day)) {
         age--;
       }
 
@@ -694,8 +987,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16), color: Colorz.white),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: Colorz.white),
         child: Column(
           children: [
             Row(
@@ -711,8 +1003,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        cubit.oneExamination?.examination?.patient?.name ??
-                            'Unknown',
+                        cubit.oneExamination?.examination?.patient?.name ?? 'Unknown',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -720,9 +1011,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
                         ),
                       ),
                       Text(
-                        cubit.oneExamination?.examination?.patient
-                                ?.nationalId ??
-                            'Unknown',
+                        cubit.oneExamination?.examination?.patient?.nationalId ?? 'Unknown',
                         style: TextStyle(
                           color: Colorz.primaryColor,
                         ),
@@ -739,20 +1028,17 @@ class _OneExaminationViewState extends State<OneExaminationView>
                 _buildInfoItem(
                   icon: Icons.calendar_today,
                   label: 'Age',
-                  value:
-                      '${calculateAge(cubit.oneExamination?.examination?.patient?.birthDate)}',
+                  value: '${calculateAge(cubit.oneExamination?.examination?.patient?.birthDate)}',
                 ),
                 _buildInfoItem(
                   icon: Icons.person,
                   label: 'Gender',
-                  value: cubit.oneExamination?.examination?.patient?.gender ??
-                      'N/A',
+                  value: cubit.oneExamination?.examination?.patient?.gender ?? 'N/A',
                 ),
                 _buildInfoItem(
                   icon: Icons.phone,
                   label: 'Contact',
-                  value: cubit.oneExamination?.examination?.patient?.phone ??
-                      'N/A',
+                  value: cubit.oneExamination?.examination?.patient?.phone ?? 'N/A',
                 ),
               ],
             ),
@@ -772,16 +1058,12 @@ class _OneExaminationViewState extends State<OneExaminationView>
           return const SizedBox.shrink();
         }
 
-        return _buildExpandableFinalizationCard(
-          finalization: finalization,
-        );
+        return _buildExpandableFinalizationCard(finalization: finalization, cubit: cubit);
       },
     );
   }
 
-  Widget _buildExpandableFinalizationCard({
-    required Finalization finalization,
-  }) {
+  Widget _buildExpandableFinalizationCard({required Finalization finalization, required PatientCubit cubit}) {
     return Card(
       elevation: 3,
       shadowColor: Colorz.primaryColor.withOpacity(0.3),
@@ -807,8 +1089,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
           ),
           childrenPadding: const EdgeInsets.all(16),
           children: [
-            if (finalization.diagnosis != null &&
-                finalization.diagnosis!.isNotEmpty)
+            if (finalization.diagnosis != null && finalization.diagnosis!.isNotEmpty)
               SizedBox(
                 width: double.infinity,
                 child: Column(
@@ -831,19 +1112,27 @@ class _OneExaminationViewState extends State<OneExaminationView>
                   ],
                 ),
               ),
-            ...finalization.actions
-                .map((action) => _buildActionContent(action)),
+            ...finalization.actions.map((action) => Column(
+                  children: [
+                    _buildActionContent(action, finalization.medicine, cubit),
+                    const HeightSpacer(size: 10),
+                    Divider(
+                      color: Colors.black,
+                    ),
+                    const HeightSpacer(size: 10),
+                  ],
+                )),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildActionContent(Action action) {
+  Widget _buildActionContent(Action action, List<Medicine>? medicines, PatientCubit cubit) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildActionSpecificContent(action),
+        _buildActionSpecificContent(action, medicines, cubit),
         if (action.eye != null) ...[
           const SizedBox(width: 8),
           Padding(
@@ -859,242 +1148,29 @@ class _OneExaminationViewState extends State<OneExaminationView>
           ),
           const SizedBox(height: 8),
         ],
-        const Divider(height: 24),
       ],
     );
   }
 
-  Widget _buildActionSpecificContent(Action action) {
+  Widget _buildActionSpecificContent(Action action, List<Medicine>? medicines, PatientCubit cubit) {
     switch (action.action?.toLowerCase()) {
       case 'prescribe glasses':
-        return _buildGlassesContent(action);
+        return _buildGlassesContent(action, cubit);
       case 'prescribe medications':
-        return _buildMedicationContent(action);
+        return _buildMedicationContent(action, medicines, cubit);
       case 'refer to investigations':
-        return _buildInvestigationsContent(action);
+        return _buildInvestigationsContent(action, cubit);
       case 'refer to lasers':
-        return _buildLaserContent(action);
+        return _buildLaserContent(action, cubit);
       case 'keratoconus':
-        return _buildKeratoconusContent(action);
+        return _buildKeratoconusContent(action, cubit);
       case 'refer to or':
-        return _buildORContent(action);
+        return _buildORContent(action, cubit);
       case 'book next appointment':
-        return _buildAppointmentContent(action);
+        return _buildAppointmentContent(action, cubit);
       default:
         return const SizedBox.shrink();
     }
-  }
-
-  Widget _buildDetailItem({required String title, required String content}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colorz.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              content,
-              style: const TextStyle(
-                fontSize: 15,
-                color: Colors.black87,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGlassesContent(Action action) {
-    return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
-      content: action.data ?? 'N/A',
-    );
-  }
-
-  Widget _buildMedicationContent(Action action) {
-    return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
-      content: action.data ?? 'No medication details available',
-    );
-  }
-
-  Widget _buildLaserContent(Action action) {
-    return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
-      content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
-    );
-  }
-
-  Widget _buildKeratoconusContent(Action action) {
-    return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
-      content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
-    );
-  }
-
-  Widget _buildInvestigationsContent(Action action) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          FormatHelper.capitalizeFirstLetter(action.action ?? ""),
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colorz.primaryColor,
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...action.metaData.map((investigation) {
-          if (investigation == 'corneal') {
-            final cornealSubOptions = action.metaData
-                .where((item) => ['topography', 'pentacam']
-                    .contains(item.toString().toLowerCase()))
-                .toList();
-
-            return _buildNestedInvestigation(
-              mainTitle: FormatHelper.capitalizeFirstLetter(investigation),
-              subOptions: cornealSubOptions,
-            );
-          } else if (investigation == 'cataract') {
-            final hasBiometry = action.metaData.contains('biometry');
-            final biometryTypes = action.metaData
-                .where((item) => ['ultrasound', 'optical']
-                    .contains(item.toString().toLowerCase()))
-                .toList();
-
-            return _buildNestedInvestigation(
-              mainTitle: FormatHelper.capitalizeFirstLetter(investigation),
-              subOptions: hasBiometry ? ['Biometry', ...biometryTypes] : [],
-            );
-          } else if (![
-            'topography',
-            'pentacam',
-            'biometry',
-            'ultrasound',
-            'optical'
-          ].contains(investigation.toString().toLowerCase())) {
-            return _buildInvestigationItem(investigation);
-          }
-          return const SizedBox.shrink();
-        }),
-      ],
-    );
-  }
-
-  Widget _buildNestedInvestigation({
-    required String mainTitle,
-    required List<dynamic> subOptions,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildInvestigationItem(mainTitle),
-        if (subOptions.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: subOptions
-                  .map((option) => _buildInvestigationItem(option))
-                  .toList(),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildInvestigationItem(dynamic investigation) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, bottom: 4),
-      child: Row(
-        children: [
-          Icon(Icons.circle, size: 8, color: Colorz.primaryColor),
-          const SizedBox(width: 8),
-          Text(
-            FormatHelper.capitalizeFirstLetter(investigation),
-            style: const TextStyle(fontSize: 15),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildORContent(Action action) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildDetailItem(
-          title: 'Surgery Type',
-          content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
-        ),
-        if (action.metaData.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            'Additional Details',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colorz.primaryColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (action.data?.toLowerCase() == 'cataract surgery') ...[
-            ...action.metaData.map((detail) => _buildORDetailItem(detail)),
-          ] else if (action.data?.toLowerCase() ==
-              'intravitreal injection') ...[
-            ...action.metaData
-                .where((detail) => [
-                      'eylea',
-                      'lucentis',
-                      'avastin',
-                      'ziv-aflibercept',
-                      'vabysmo',
-                      'vsiqqoo',
-                      'ozurdex'
-                    ].contains(detail.toString().toLowerCase()))
-                .map((detail) => _buildORDetailItem(detail)),
-          ] else ...[
-            ...action.metaData.map((detail) => _buildORDetailItem(detail)),
-          ],
-        ],
-      ],
-    );
-  }
-
-  Widget _buildORDetailItem(dynamic detail) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, bottom: 4),
-      child: Row(
-        children: [
-          Icon(Icons.circle, size: 8, color: Colorz.primaryColor),
-          const SizedBox(width: 8),
-          Text(
-            FormatHelper.capitalizeFirstLetter(detail),
-            style: const TextStyle(fontSize: 15),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppointmentContent(Action action) {
-    return _buildDetailItem(
-      title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
-      content: FormatHelper.capitalizeFirstLetter(action.data ?? ''),
-    );
   }
 
   Widget _buildInfoItem({
@@ -1139,8 +1215,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
         }
             .entries
             .where((entry) => entry.value != null && entry.value!.isNotEmpty)
-            .map((entry) => MapEntry(
-                entry.key, entry.value!))); // Convert String? to String
+            .map((entry) => MapEntry(entry.key, entry.value!))); // Convert String? to String
 
         // Create complaints data map and filter out empty/null values
         final complaintsData = Map<String, String>.fromEntries({
@@ -1150,8 +1225,7 @@ class _OneExaminationViewState extends State<OneExaminationView>
         }
             .entries
             .where((entry) => entry.value != null && entry.value!.isNotEmpty)
-            .map((entry) => MapEntry(
-                entry.key, entry.value!))); // Convert String? to String
+            .map((entry) => MapEntry(entry.key, entry.value!))); // Convert String? to String
 
         return Column(
           children: [

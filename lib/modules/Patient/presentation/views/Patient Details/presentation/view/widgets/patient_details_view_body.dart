@@ -8,7 +8,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/colors.dart';
-import 'package:ocurithm/core/utils/phone_number.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/text_field.dart';
 import 'package:password_generator/password_generator.dart';
@@ -69,9 +68,7 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
   @override
   Widget build(BuildContext context) {
     bool isLoading = widget.cubit.patient == null;
-    final phoneData = PhoneNumberService.parsePhone(widget.cubit.patient?.phone);
-    log('${widget.cubit.patient?.phone.toString()}');
-    log(phoneData.toString());
+
     return BlocBuilder<PatientCubit, PatientState>(
         bloc: widget.cubit,
         builder: (context, state) => Padding(
@@ -244,8 +241,8 @@ class _EditPatientViewBodyState extends State<EditPatientViewBody> {
                             ),
                           ))
                         : IntlPhoneField(
-                            initialValue: phoneData['phoneNumber']!,
-                            initialCountryCode: phoneData['countryCode']!,
+                            initialValue: widget.cubit.phoneData?['phoneNumber']!,
+                            initialCountryCode: widget.cubit.phoneData?['countryCode']!,
                             readOnly: widget.cubit.readOnly,
                             enabled: !widget.cubit.readOnly,
                             decoration: InputDecoration(

@@ -496,6 +496,7 @@ class Finalization {
   Finalization({
     this.examination,
     this.diagnosis,
+    required this.medicine,
     required this.actions,
     this.createdAt,
     this.updatedAt,
@@ -505,6 +506,7 @@ class Finalization {
   final String? examination;
   final String? diagnosis;
   final List<Action> actions;
+  final List<Medicine> medicine;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? id;
@@ -514,7 +516,8 @@ class Finalization {
       examination: json["examination"],
       diagnosis: json["diagnosis"],
       actions: json["actions"] == null ? [] : List<Action>.from(json["actions"]!.map((x) => Action.fromJson(x))),
-      createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+      medicine: json["medicine"] == null ? [] : List<Medicine>.from(json["medicine"]!.map((x) => Medicine.fromJson(x))),
+      createdAt: json["createdAt"] == null ? null : DateTime.tryParse(json["createdAt"] ?? "")?.toLocal(),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
     );
@@ -545,7 +548,7 @@ class Action {
   String? eye;
   String? data;
   List<String> metaData;
-  List<Map<String, dynamic>> medicine;
+  List<Medicine> medicine;
   String? id;
   String? actionId;
 
@@ -554,8 +557,8 @@ class Action {
       action: json["action"],
       eye: json["eye"],
       data: json["data"],
-      medicine: json["medicine"] == null ? [] : List<Map<String, dynamic>>.from(json["medicine"]!.map((x) => x)),
       metaData: json["metaData"] == null ? [] : List<String>.from(json["metaData"]!.map((x) => x)),
+      medicine: json["medicine"] == null ? [] : List<Medicine>.from(json["medicine"]!.map((x) => Medicine.fromJson(x))),
       id: json["_id"],
       actionId: json["id"],
     );
@@ -569,5 +572,39 @@ class Action {
         "metaData": metaData.map((x) => x).toList(),
         "_id": id,
         "id": actionId,
+      };
+}
+
+class Medicine {
+  Medicine({
+    this.name,
+    this.dosage,
+    this.duration,
+    this.id,
+    this.medicineId,
+  });
+
+  final String? name;
+  final String? dosage;
+  final String? duration;
+  final String? id;
+  final String? medicineId;
+
+  factory Medicine.fromJson(Map<String, dynamic> json) {
+    return Medicine(
+      name: json["name"],
+      dosage: json["dosage"],
+      duration: json["duration"],
+      id: json["_id"],
+      medicineId: json["id"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        "name": name,
+        "dosage": dosage,
+        "duration": duration,
+        "_id": id,
+        "id": medicineId,
       };
 }

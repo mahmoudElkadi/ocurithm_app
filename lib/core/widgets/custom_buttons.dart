@@ -4,7 +4,6 @@ import '../utils/colors.dart';
 
 class MyElevatedButton extends StatelessWidget {
   final BorderRadiusGeometry? borderRadius;
-
   final Gradient gradient;
   final VoidCallback? onPressed;
   final Widget child;
@@ -23,9 +22,12 @@ class MyElevatedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderRadius = this.borderRadius ?? BorderRadius.circular(0);
+    // Fix: Only set borderRadius when shape is not circle
+    final effectiveBorderRadius = shape == BoxShape.circle ? null : (borderRadius ?? BorderRadius.circular(0));
+
     return Container(
-      decoration: BoxDecoration(gradient: gradient, borderRadius: borderRadius, boxShadow: boxShadow, shape: shape!),
+      decoration:
+          BoxDecoration(gradient: gradient, borderRadius: effectiveBorderRadius, boxShadow: boxShadow, shape: shape!),
       padding: EdgeInsets.all(0),
       child: ElevatedButton(
         onPressed: onPressed,
@@ -33,7 +35,9 @@ class MyElevatedButton extends StatelessWidget {
           backgroundColor: Colors.transparent,
           padding: EdgeInsets.all(0),
           shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: borderRadius),
+          shape: shape == BoxShape.circle
+              ? const CircleBorder()
+              : RoundedRectangleBorder(borderRadius: effectiveBorderRadius ?? BorderRadius.circular(0)),
         ),
         child: child,
       ),

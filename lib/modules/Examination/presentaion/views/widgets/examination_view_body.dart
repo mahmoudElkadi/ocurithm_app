@@ -1,13 +1,11 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
+import 'package:ocurithm/modules/Examination/presentaion/views/widgets/patient_bottom_sheet.dart';
 import 'package:ocurithm/modules/Examination/presentaion/views/widgets/review_examination.dart';
 
 import '../../../../../core/utils/app_style.dart';
@@ -16,7 +14,6 @@ import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/multi_select.dart';
 import '../../../../../core/widgets/text_field.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
-import '../../../../Patient/presentation/views/Patient Details/presentation/view/patient_details_view.dart';
 import '../../manager/examination_cubit.dart';
 import '../../manager/examination_state.dart';
 import 'circle_view.dart';
@@ -34,7 +31,6 @@ class MultiStepFormView extends StatelessWidget {
       resizeToAvoidBottomInset: true,
       body: BlocBuilder<ExaminationCubit, ExaminationState>(builder: (context, state) {
         final cubit = ExaminationCubit.get(context);
-        log('state: ' + state.toString());
         if (cubit.isLoading) {
           return Center(
             child: CircularProgressIndicator(
@@ -47,7 +43,6 @@ class MultiStepFormView extends StatelessWidget {
           return NoInternet(
             onPressed: () async {
               if (appointment.status == 'Saved') {
-                log('here again');
                 cubit.getOneExamination(id: appointment.id.toString());
               }
               cubit.readJson();
@@ -63,10 +58,15 @@ class MultiStepFormView extends StatelessWidget {
               onPop: () => cubit.previousStep(),
               suffix: IconButton(
                   onPressed: () async {
-                    if (appointment.patient != null) {
-                      bool? result = await Get.to(() =>
-                          PatientDetailsView(patient: appointment.patient!, id: appointment.patient!.id.toString()));
-                    }
+                    WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      isScrollControlled: true,
+                      builder: (context) => PatientDetailsBottomSheet(
+                        patient: appointment.patient,
+                      ),
+                    );
                   },
                   icon: SvgPicture.asset("assets/icons/patient.svg")),
             ),

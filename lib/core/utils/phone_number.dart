@@ -10,8 +10,10 @@ class PhoneNumberService {
 
     try {
       final phoneNumber = PhoneNumber.fromCompleteNumber(completeNumber: fullPhoneNumber);
+      log(phoneNumber.toString());
       return {
         'countryCode': phoneNumber.countryISOCode,
+        'code': phoneNumber.countryCode,
         'phoneNumber': phoneNumber.number, // National significant number
       };
     } catch (e) {

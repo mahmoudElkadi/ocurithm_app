@@ -13,9 +13,7 @@ class PatientExaminationModel {
 
   factory PatientExaminationModel.fromJson(Map<String, dynamic> json) {
     return PatientExaminationModel(
-      examinations: json["examinations"] == null
-          ? null
-          : Examinations.fromJson(json["examinations"]),
+      examinations: json["examinations"] == null ? null : Examinations.fromJson(json["examinations"]),
       error: json["error"],
       message: json["message"],
     );
@@ -41,8 +39,7 @@ class Examinations {
     return Examinations(
       examinations: json["examinations"] == null
           ? []
-          : List<Examination>.from(
-              json["examinations"]!.map((x) => Examination.fromJson(x))),
+          : List<Examination>.from(json["examinations"]!.map((x) => Examination.fromJson(x))),
       total: json["total"],
       totalPages: json["totalPages"],
     );
@@ -83,22 +80,16 @@ class Examination {
   factory Examination.fromJson(Map<String, dynamic> json) {
     return Examination(
       clinic: json["clinic"],
-      patient:
-          json["patient"] == null ? null : Patient.fromJson(json["patient"]),
-      appointment: json["appointment"] == null
-          ? null
-          : Appointment.fromJson(json["appointment"]),
+      patient: json["patient"] == null ? null : Patient.fromJson(json["patient"]),
+      appointment: json["appointment"] == null ? null : Appointment.fromJson(json["appointment"]),
       type: json["type"] == null ? null : Type.fromJson(json["type"]),
       measurements: json["measurements"] == null
           ? []
-          : List<Measurement>.from(
-              json["measurements"]!.map((x) => Measurement.fromJson(x))),
-      createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+          : List<Measurement>.from(json["measurements"]!.map((x) => Measurement.fromJson(x))),
+      createdAt: json["createdAt"] == null ? null : DateTime.tryParse(json["createdAt"])?.toLocal(),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
-      history:
-          json["history"] == null ? null : History.fromJson(json["history"]),
-      complain:
-          json["complain"] == null ? null : Complain.fromJson(json["complain"]),
+      history: json["history"] == null ? null : History.fromJson(json["history"]),
+      complain: json["complain"] == null ? null : Complain.fromJson(json["complain"]),
       id: json["id"],
     );
   }
@@ -357,33 +348,16 @@ class Measurement {
       palpableLymphNodes: json["palpableLymphNodes"],
       palpableTemporalArtery: json["palpableTemporalArtery"],
       exophthalmometry: json["exophthalmometry"],
-      cornea: json["cornea"] == null
-          ? []
-          : List<String>.from(json["cornea"]!.map((x) => x)),
-      anteriorChamber: json["anteriorChamber"] == null
-          ? []
-          : List<String>.from(json["anteriorChamber"]!.map((x) => x)),
-      iris: json["iris"] == null
-          ? []
-          : List<String>.from(json["iris"]!.map((x) => x)),
-      lens: json["lens"] == null
-          ? []
-          : List<String>.from(json["lens"]!.map((x) => x)),
-      anteriorVitreous: json["anteriorVitreous"] == null
-          ? []
-          : List<String>.from(json["anteriorVitreous"]!.map((x) => x)),
-      fundusOpticDisc: json["fundusOpticDisc"] == null
-          ? []
-          : List<String>.from(json["fundusOpticDisc"]!.map((x) => x)),
-      fundusMacula: json["fundusMacula"] == null
-          ? []
-          : List<String>.from(json["fundusMacula"]!.map((x) => x)),
-      fundusVessels: json["fundusVessels"] == null
-          ? []
-          : List<String>.from(json["fundusVessels"]!.map((x) => x)),
-      fundusPeriphery: json["fundusPeriphery"] == null
-          ? []
-          : List<String>.from(json["fundusPeriphery"]!.map((x) => x)),
+      cornea: json["cornea"] == null ? [] : List<String>.from(json["cornea"]!.map((x) => x)),
+      anteriorChamber: json["anteriorChamber"] == null ? [] : List<String>.from(json["anteriorChamber"]!.map((x) => x)),
+      iris: json["iris"] == null ? [] : List<String>.from(json["iris"]!.map((x) => x)),
+      lens: json["lens"] == null ? [] : List<String>.from(json["lens"]!.map((x) => x)),
+      anteriorVitreous:
+          json["anteriorVitreous"] == null ? [] : List<String>.from(json["anteriorVitreous"]!.map((x) => x)),
+      fundusOpticDisc: json["fundusOpticDisc"] == null ? [] : List<String>.from(json["fundusOpticDisc"]!.map((x) => x)),
+      fundusMacula: json["fundusMacula"] == null ? [] : List<String>.from(json["fundusMacula"]!.map((x) => x)),
+      fundusVessels: json["fundusVessels"] == null ? [] : List<String>.from(json["fundusVessels"]!.map((x) => x)),
+      fundusPeriphery: json["fundusPeriphery"] == null ? [] : List<String>.from(json["fundusPeriphery"]!.map((x) => x)),
       lids: json["lids"],
       lashes: json["lashes"],
       sclera: json["sclera"],

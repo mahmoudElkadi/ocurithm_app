@@ -10,6 +10,7 @@ import 'package:ocurithm/modules/Patient/data/model/nationality_model.dart';
 
 import '../../../../Services/services_api.dart';
 import '../../../../core/utils/constant.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Clinics/data/model/clinics_model.dart';
 import '../../../Make_Appointment/presentation/views/make_appointment_view.dart';
@@ -349,6 +350,10 @@ class PatientCubit extends Cubit<PatientState> {
         selectedNationality = findNationalityByValue(patient?.nationality);
         nationalIdController.text = patient?.nationalId ?? "";
         selectedClinic = patient?.clinic;
+        phoneData = PhoneNumberService.parsePhone(patient?.phone);
+        if (phoneData?['code'] != null && phoneData?['phoneNumber'] != null) {
+          phoneNumber = phoneData?['code'] + phoneData?['phoneNumber'];
+        }
         if (patient?.error == null) {
           emit(AdminBranchSuccess());
         } else {
@@ -443,7 +448,6 @@ class PatientCubit extends Cubit<PatientState> {
           icon: Icon(Icons.check, color: Colorz.white),
         );
         Navigator.pop(context, true);
-        Navigator.pop(context, true);
         readOnly = true;
 
         emit(UpdatePatientSuccess());
@@ -491,6 +495,8 @@ class PatientCubit extends Cubit<PatientState> {
     isValidate = false;
     gender = true;
   }
+
+  Map<String, dynamic>? phoneData;
 
   Future getData({required String id}) async {
     Future.wait([getPatient(id: id), getPatientExamination(id: id)]);

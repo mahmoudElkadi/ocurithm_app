@@ -9,6 +9,7 @@ import 'package:ocurithm/modules/Examination/presentaion/views/widgets/prescript
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/make_appointment_view.dart';
 import 'package:ocurithm/modules/Patient/data/model/one_exam.dart' hide Appointment;
 
+import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../core/widgets/custom_column_section.dart';
 import '../../../../../core/widgets/custom_freeze_loading.dart';
@@ -249,13 +250,13 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   Map<String, dynamic> getFinalizationData() {
     return {
       'diagnosis': unDiagnosedYet ? null : diagnosisController.text.toLowerCase(),
+      'medicine': medicationsList,
       'actions': prescriptionsList
           .map((action) => {
                 'action': action.action,
                 'data': action.data,
                 'metaData': action.metaData,
                 'eye': action.eye,
-                'medications': action.medicine
               })
           .toList(),
     };
@@ -371,7 +372,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     return prescription;
   }
 
-  final List<Map<String, String>> medicationsList = [];
+  final List<Medicine> medicationsList = [];
   final TextEditingController medicationNameController = TextEditingController();
   final TextEditingController medicationDosageController = TextEditingController();
   final TextEditingController medicationDurationController = TextEditingController();
@@ -708,10 +709,13 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                             title: 'Right eye',
                             sectionIndex: 2,
                             data: {
-                              'Spherical': widget.examination?.measurements?[1].refinedRefractionSpherical ?? 'N/A',
-                              'Cylindrical': widget.examination?.measurements?[1].refinedRefractionCylindrical ?? 'N/A',
-                              'Axis': widget.examination?.measurements?[1].refinedRefractionAxis ?? 'N/A',
-                              'NearVision': widget.examination?.measurements?[1].nearVisionAddition ?? 'N/A',
+                              'Spherical': FormatHelper.formatPositiveValue(
+                                  widget.examination?.measurements[1].refinedRefractionSpherical ?? ''),
+                              'Cylindrical': FormatHelper.formatPositiveValue(
+                                  widget.examination?.measurements[1].refinedRefractionCylindrical ?? ''),
+                              'Axis': widget.examination?.measurements[1].refinedRefractionAxis ?? 'N/A',
+                              'NearVision': FormatHelper.formatPositiveValue(
+                                  widget.examination?.measurements[1].nearVisionAddition ?? 'N/A'),
                             },
                             isLeft: false,
                           ),
@@ -726,10 +730,13 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                             title: 'left eye',
                             sectionIndex: 2,
                             data: {
-                              'Spherical': widget.examination?.measurements?[0].refinedRefractionSpherical ?? 'N/A',
-                              'Cylindrical': widget.examination?.measurements?[0].refinedRefractionCylindrical ?? 'N/A',
-                              'Axis': widget.examination?.measurements?[0].refinedRefractionAxis ?? 'N/A',
-                              'NearVision': widget.examination?.measurements?[0].nearVisionAddition ?? 'N/A',
+                              'Spherical': FormatHelper.formatPositiveValue(
+                                  widget.examination?.measurements[0].refinedRefractionSpherical ?? '-'),
+                              'Cylindrical': FormatHelper.formatPositiveValue(
+                                  widget.examination?.measurements[0].refinedRefractionCylindrical ?? '-'),
+                              'Axis': widget.examination?.measurements[0].refinedRefractionAxis ?? '-',
+                              'NearVision': FormatHelper.formatPositiveValue(
+                                  widget.examination?.measurements[0].nearVisionAddition ?? '-'),
                             },
                             isLeft: true,
                           ),
@@ -860,22 +867,22 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                                           // Name
                                           _buildMedicationField(
                                             'Name',
-                                            medication['name'] ?? '',
-                                            Colors.blue,
+                                            medication.name ?? '',
+                                            Colors.black,
                                           ),
                                           const SizedBox(height: 8),
                                           // Dosage
                                           _buildMedicationField(
                                             'Dosage',
-                                            medication['dosage'] ?? '',
-                                            Colors.green,
+                                            medication.dosage ?? '',
+                                            Colors.black,
                                           ),
                                           const SizedBox(height: 8),
                                           // Duration
                                           _buildMedicationField(
                                             'Duration',
-                                            medication['duration'] ?? '',
-                                            Colors.orange,
+                                            medication.duration ?? '',
+                                            Colors.black,
                                           ),
                                         ],
                                       ),
@@ -944,6 +951,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                                 examination: widget.examination,
                                 doctor: widget.doctor,
                               ),
+                              prescriptionList: medicationsList,
                               showPrescriptionTable: false,
                               action: currentAction,
                               diagnosis: unDiagnosedYet ? null : diagnosisController.text);
@@ -977,7 +985,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           value,
           style: const TextStyle(
             fontSize: 14,
-            color: Colors.black87,
+            color: Colors.grey,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -1018,24 +1026,25 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colorz.black),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
-              if (medicationNameController.text.isNotEmpty &&
-                  medicationDosageController.text.isNotEmpty &&
-                  medicationDurationController.text.isNotEmpty) {
+              if (medicationNameController.text.isNotEmpty) {
                 setState(() {
-                  medicationsList.add({
-                    'name': medicationNameController.text,
-                    'dosage': medicationDosageController.text,
-                    'duration': medicationDurationController.text,
-                  });
+                  medicationsList.add(Medicine(
+                      name: medicationNameController.text,
+                      dosage: medicationDosageController.text,
+                      duration: medicationDurationController.text));
                   updatePrescription();
                 });
                 Navigator.pop(context);
               }
             },
+            style: ElevatedButton.styleFrom(backgroundColor: Colorz.primaryColor),
             child: Text('Confirm'),
           ),
         ],

@@ -4,6 +4,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 
 import '../../../../../core/utils/colors.dart';
+import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../manager/examination_cubit.dart';
@@ -41,14 +42,6 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-
-  String? formatPositiveValue(String? value) {
-    final parsed = num.tryParse(value ?? '');
-    if (parsed != null && parsed > 0) {
-      return '+$parsed';
-    }
-    return value;
   }
 
   @override
@@ -115,7 +108,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                     } else {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
+                        content: const Text('No Internet Connection', style: TextStyle(color: Colors.white)),
                         backgroundColor: Colorz.redColor,
                       ));
                     }
@@ -210,12 +203,12 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 sectionIndex: 0,
                 data: {
                   'Spherical': isLeft
-                      ? formatPositiveValue(cubit.leftOldSpherical)
-                      : formatPositiveValue(cubit.rightOldSpherical),
+                      ? FormatHelper.formatPositiveValue(cubit.leftOldSpherical)
+                      : FormatHelper.formatPositiveValue(cubit.rightOldSpherical),
                   'Cylindrical': isLeft
-                      ? formatPositiveValue(cubit.leftOldCylindrical)
-                      : formatPositiveValue(cubit.rightOldCylindrical),
-                  'Axis': isLeft ? formatPositiveValue(cubit.leftOldAxis) : formatPositiveValue(cubit.rightOldAxis),
+                      ? FormatHelper.formatPositiveValue(cubit.leftOldCylindrical)
+                      : FormatHelper.formatPositiveValue(cubit.rightOldCylindrical),
+                  'Axis': isLeft ? cubit.leftOldAxis : cubit.rightOldAxis,
                 },
               ),
               _buildExaminationSection(
@@ -224,13 +217,12 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 sectionIndex: 0,
                 data: {
                   'Spherical': isLeft
-                      ? formatPositiveValue(cubit.leftAurorefSpherical)
-                      : formatPositiveValue(cubit.rightAurorefSpherical),
+                      ? FormatHelper.formatPositiveValue(cubit.leftAurorefSpherical)
+                      : FormatHelper.formatPositiveValue(cubit.rightAurorefSpherical),
                   'Cylindrical': isLeft
-                      ? formatPositiveValue(cubit.leftAurorefCylindrical)
-                      : formatPositiveValue(cubit.rightAurorefCylindrical),
-                  'Axis':
-                      isLeft ? formatPositiveValue(cubit.leftAurorefAxis) : formatPositiveValue(cubit.rightAurorefAxis),
+                      ? FormatHelper.formatPositiveValue(cubit.leftAurorefCylindrical)
+                      : FormatHelper.formatPositiveValue(cubit.rightAurorefCylindrical),
+                  'Axis': isLeft ? cubit.leftAurorefAxis : cubit.rightAurorefAxis,
                 },
               ),
               _buildExaminationSection(
@@ -239,17 +231,15 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen> with 
                 sectionIndex: 2,
                 data: {
                   'Spherical': isLeft
-                      ? formatPositiveValue(cubit.leftRefinedRefractionSpherical)
-                      : formatPositiveValue(cubit.rightRefinedRefractionSpherical),
+                      ? FormatHelper.formatPositiveValue(cubit.leftRefinedRefractionSpherical)
+                      : FormatHelper.formatPositiveValue(cubit.rightRefinedRefractionSpherical),
                   'Cylindrical': isLeft
-                      ? formatPositiveValue(cubit.leftRefinedRefractionCylindrical)
-                      : formatPositiveValue(cubit.rightRefinedRefractionCylindrical),
-                  'Axis': isLeft
-                      ? formatPositiveValue(cubit.leftRefinedRefractionAxis)
-                      : formatPositiveValue(cubit.rightRefinedRefractionAxis),
+                      ? FormatHelper.formatPositiveValue(cubit.leftRefinedRefractionCylindrical)
+                      : FormatHelper.formatPositiveValue(cubit.rightRefinedRefractionCylindrical),
+                  'Axis': isLeft ? cubit.leftRefinedRefractionAxis : cubit.rightRefinedRefractionAxis,
                   'NearVision': isLeft
-                      ? formatPositiveValue(cubit.leftNearVisionAddition)
-                      : formatPositiveValue(cubit.rightNearVisionAddition),
+                      ? FormatHelper.formatPositiveValue(cubit.leftNearVisionAddition)
+                      : FormatHelper.formatPositiveValue(cubit.rightNearVisionAddition),
                 },
               ),
               _buildExaminationSection(

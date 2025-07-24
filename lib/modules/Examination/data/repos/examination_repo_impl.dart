@@ -11,8 +11,7 @@ import '../model/saved_Exam.dart';
 
 class ExaminationRepoImpl implements ExaminationRepo {
   @override
-  Future<ExaminationModel> makeExamination(
-      {required Map<String, dynamic> data}) async {
+  Future<ExaminationModel> makeExamination({required Map<String, dynamic> data}) async {
     final url = "${Config.baseUrl}${Config.examination}";
     final String? token = CacheHelper.getData(key: "token");
     final result = await ApiService.request<ExaminationModel>(
@@ -35,10 +34,10 @@ class ExaminationRepoImpl implements ExaminationRepo {
   }
 
   @override
-  Future<DataModel> makeFinalization(
-      {required String id, required Map<String, dynamic> data}) async {
+  Future<DataModel> makeFinalization({required String id, required Map<String, dynamic> data}) async {
     final url = "${Config.baseUrl}${Config.examination}/$id/finalization";
     final String? token = CacheHelper.getData(key: "token");
+    log(data.toString());
     final result = await ApiService.request<DataModel>(
       url: url,
       method: 'POST',
@@ -59,8 +58,7 @@ class ExaminationRepoImpl implements ExaminationRepo {
   }
 
   @override
-  Future<SavedExaminationModel> getOneExamination(
-      {required String appointmentId}) async {
+  Future<SavedExaminationModel> getOneExamination({required String appointmentId}) async {
     final url = "${Config.baseUrl}${Config.examination}";
     final String? token = CacheHelper.getData(key: "token");
 

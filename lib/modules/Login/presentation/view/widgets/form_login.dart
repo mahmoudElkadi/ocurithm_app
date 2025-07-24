@@ -57,7 +57,10 @@ class _LoginFormState extends State<LoginForm> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: Colorz.white,
-                      boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 2, blurRadius: 4, offset: const Offset(0, 1))],
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.grey.shade200, spreadRadius: 2, blurRadius: 4, offset: const Offset(0, 1))
+                      ],
                     ),
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
@@ -78,7 +81,10 @@ class _LoginFormState extends State<LoginForm> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: Colorz.white,
-                      boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 1.5, blurRadius: 1, offset: const Offset(0, 1))],
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.grey.shade200, spreadRadius: 1.5, blurRadius: 1, offset: const Offset(0, 1))
+                      ],
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
@@ -121,7 +127,8 @@ class _LoginFormState extends State<LoginForm> {
                   MyElevatedButton(
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
-                          LoginCubit.get(context).userLogin(context: context, username: email.text, password: password.text);
+                          LoginCubit.get(context)
+                              .userLogin(context: context, username: email.text, password: password.text);
                         }
                       },
                       boxShadow: [
@@ -132,7 +139,8 @@ class _LoginFormState extends State<LoginForm> {
                           offset: const Offset(0, 3),
                         ),
                       ],
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: LoginCubit.get(context).isLoading ? null : BorderRadius.circular(30),
+                      shape: LoginCubit.get(context).isLoading ? BoxShape.circle : BoxShape.rectangle,
                       gradient: LinearGradient(
                         begin: Alignment.centerRight,
                         end: Alignment.centerLeft,

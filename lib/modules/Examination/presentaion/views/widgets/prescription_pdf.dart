@@ -6,34 +6,11 @@ import 'package:printing/printing.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../Patient/data/model/one_exam.dart';
 
-import 'package:flutter/services.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-
-import '../../../../../core/utils/format_helper.dart';
-import '../../../../Patient/data/model/one_exam.dart';
-
-List<Map<String, String>> parseMedicationsData(String data) {
-  if (data.isEmpty) return [];
-
-  return data.split('\n').map((line) {
-    final parts = line.split(' - ');
-    if (parts.length >= 3) {
-      return {
-        'name': parts[0].trim(),
-        'dosage': parts[1].trim(),
-        'duration': parts[2].trim(),
-      };
-    }
-    return {'name': line.trim(), 'dosage': '', 'duration': ''};
-  }).toList();
-}
-
 Future<void> generateAndPrintPrescription(
     {required ExaminationModel examination,
     required Action action,
     String? diagnosis,
+    List<Medicine>? prescriptionList,
     bool showPrescriptionTable = false}) async {
   final pdf = pw.Document();
   final regularFont = await rootBundle.load("assets/fonts/Cairo-Regular.ttf");
@@ -337,15 +314,21 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(
-                                          examination.examination?.measurements[1].refinedRefractionSpherical ?? '-'),
+                                      child: pw.Text(examination
+                                                  .examination?.measurements[1].refinedRefractionSpherical !=
+                                              null
+                                          ? FormatHelper.formatPositiveValue(
+                                                  examination.examination?.measurements[1].refinedRefractionSpherical)
+                                              .toString()
+                                          : '-'),
                                     ),
                                   ),
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(
-                                          examination.examination?.measurements[1].refinedRefractionCylindrical ?? '-'),
+                                      child: pw.Text(FormatHelper.formatPositiveValue(
+                                              examination.examination?.measurements[1].refinedRefractionCylindrical) ??
+                                          '-'),
                                     ),
                                   ),
                                   pw.Container(
@@ -366,8 +349,9 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child:
-                                          pw.Text(examination.examination?.measurements[1].nearVisionAddition ?? '-'),
+                                      child: pw.Text(FormatHelper.formatPositiveValue(
+                                              examination.examination?.measurements[1].nearVisionAddition) ??
+                                          '-'),
                                     ),
                                   ),
                                 ],
@@ -432,15 +416,17 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(
-                                          examination.examination?.measurements[0].refinedRefractionSpherical ?? '-'),
+                                      child: pw.Text(FormatHelper.formatPositiveValue(
+                                              examination.examination?.measurements[0].refinedRefractionSpherical) ??
+                                          '-'),
                                     ),
                                   ),
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(
-                                          examination.examination?.measurements[0].refinedRefractionCylindrical ?? '-'),
+                                      child: pw.Text(FormatHelper.formatPositiveValue(
+                                              examination.examination?.measurements[0].refinedRefractionCylindrical) ??
+                                          '-'),
                                     ),
                                   ),
                                   pw.Container(
@@ -461,8 +447,9 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child:
-                                          pw.Text(examination.examination?.measurements[0].nearVisionAddition ?? '-'),
+                                      child: pw.Text(FormatHelper.formatPositiveValue(
+                                              examination.examination?.measurements[0].nearVisionAddition) ??
+                                          '-'),
                                     ),
                                   ),
                                 ],
@@ -476,7 +463,9 @@ Future<void> generateAndPrintPrescription(
                 ],
               ),
             ),
-          if (action.action?.toLowerCase() == 'prescribe medications' && action.data != null && action.data!.isNotEmpty)
+          if (action.action?.toLowerCase() == 'prescribe medications' &&
+              prescriptionList != null &&
+              prescriptionList.isNotEmpty)
             pw.Container(
               margin: const pw.EdgeInsets.symmetric(vertical: 15),
               decoration: pw.BoxDecoration(
@@ -541,17 +530,17 @@ Future<void> generateAndPrintPrescription(
                         ],
                       ),
                       // Data rows
-                      ...parseMedicationsData(action.data!)
+                      ...prescriptionList
                           .map(
                             (medication) => pw.TableRow(
                               children: [
                                 pw.Padding(
                                   padding: const pw.EdgeInsets.all(8),
                                   child: pw.Text(
-                                    FormatHelper.capitalizeFirstLetter(medication['name'] ?? ''),
+                                    FormatHelper.capitalizeFirstLetter(medication.name ?? ''),
                                     style: pw.TextStyle(font: font, fontSize: 12),
                                     textAlign: pw.TextAlign.center,
-                                    textDirection: isPredominantlyArabic(medication['name'] ?? '')
+                                    textDirection: isPredominantlyArabic(medication.name ?? '')
                                         ? pw.TextDirection.rtl
                                         : pw.TextDirection.ltr,
                                   ),
@@ -559,10 +548,10 @@ Future<void> generateAndPrintPrescription(
                                 pw.Padding(
                                   padding: const pw.EdgeInsets.all(8),
                                   child: pw.Text(
-                                    FormatHelper.capitalizeFirstLetter(medication['dosage'] ?? ''),
+                                    FormatHelper.capitalizeFirstLetter(medication.dosage ?? ''),
                                     style: pw.TextStyle(font: font, fontSize: 12),
                                     textAlign: pw.TextAlign.center,
-                                    textDirection: isPredominantlyArabic(medication['dosage'] ?? '')
+                                    textDirection: isPredominantlyArabic(medication.dosage ?? '')
                                         ? pw.TextDirection.rtl
                                         : pw.TextDirection.ltr,
                                   ),
@@ -570,10 +559,10 @@ Future<void> generateAndPrintPrescription(
                                 pw.Padding(
                                   padding: const pw.EdgeInsets.all(8),
                                   child: pw.Text(
-                                    FormatHelper.capitalizeFirstLetter(medication['duration'] ?? ''),
+                                    FormatHelper.capitalizeFirstLetter(medication.duration ?? ''),
                                     style: pw.TextStyle(font: font, fontSize: 12),
                                     textAlign: pw.TextAlign.center,
-                                    textDirection: isPredominantlyArabic(medication['duration'] ?? '')
+                                    textDirection: isPredominantlyArabic(medication.duration ?? '')
                                         ? pw.TextDirection.rtl
                                         : pw.TextDirection.ltr,
                                   ),

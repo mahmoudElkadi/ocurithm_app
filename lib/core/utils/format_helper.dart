@@ -53,17 +53,15 @@ class FormatHelper {
     dynamic formattedTotal = number != null
         ? (number % 1 == 0)
             ? NumberFormat('#,##0').format(num.tryParse(number.toString()) ?? 0)
-            : NumberFormat('#,##0.00')
-                .format(num.tryParse(number.toString()) ?? 0)
+            : NumberFormat('#,##0.00').format(num.tryParse(number.toString()) ?? 0)
         : '0';
 
     return formattedTotal;
   }
 
   static String formatAmount(number) {
-    dynamic formattedTotal = number != null
-        ? NumberFormat('#,##0.00').format(num.tryParse(number.toString()) ?? 0)
-        : '0';
+    dynamic formattedTotal =
+        number != null ? NumberFormat('#,##0.00').format(num.tryParse(number.toString()) ?? 0) : '0';
 
     return formattedTotal;
   }
@@ -79,5 +77,29 @@ class FormatHelper {
     if (cleanLastName.isEmpty) return cleanFirstName;
 
     return '$cleanFirstName $cleanLastName';
+  }
+
+  static String? formatPositiveValue(String? value) {
+    final parsed = num.tryParse(value ?? '');
+    if (parsed != null && parsed > 0) {
+      return '+$parsed';
+    }
+    return value;
+  }
+
+  static String calculateAge(DateTime? birthDate) {
+    if (birthDate == null) {
+      return 'N/A';
+    }
+    DateTime currentDate = DateTime.now();
+    int age = currentDate.year - birthDate.year;
+
+    // Check if birthday hasn't occurred this year yet
+    if (currentDate.month < birthDate.month ||
+        (currentDate.month == birthDate.month && currentDate.day < birthDate.day)) {
+      age--;
+    }
+
+    return age.toString();
   }
 }
