@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -321,7 +323,8 @@ class PatientCubit extends Cubit<PatientState> {
     try {
       return nationalities.firstWhere((nationality) => nationality.value == value);
     } catch (e) {
-      return null; // Return null if not found
+      log(value.toString());
+      return Nationality(name: value, value: value); // Return null if not found
     }
   }
 

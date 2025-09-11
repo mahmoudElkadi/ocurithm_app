@@ -22,8 +22,7 @@ class MakeAppointmentViewBody extends StatefulWidget {
   final bool isUpdate;
 
   @override
-  State<MakeAppointmentViewBody> createState() =>
-      _MakeAppointmentViewBodyState();
+  State<MakeAppointmentViewBody> createState() => _MakeAppointmentViewBodyState();
 }
 
 class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
@@ -48,24 +47,14 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     };
 
     // Define all days of the week
-    final List<String> allDays = [
-      'monday',
-      'tuesday',
-      'wednesday',
-      'thursday',
-      'friday',
-      'saturday',
-      'sunday'
-    ];
+    final List<String> allDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
     // Convert working days to full day names (if abbreviated) and lowercase
-    final List<String>? workingDaysFull = workingDays
-        ?.map((day) => dayMapping[day.toLowerCase()] ?? day.toLowerCase())
-        .toList();
+    final List<String>? workingDaysFull =
+        workingDays?.map((day) => dayMapping[day.toLowerCase()] ?? day.toLowerCase()).toList();
 
     // Get days that are not in working days list
-    final List<String> holidays =
-        allDays.where((day) => !workingDaysFull!.contains(day)).toList();
+    final List<String> holidays = allDays.where((day) => !workingDaysFull!.contains(day)).toList();
 
     return holidays;
   }
@@ -93,22 +82,18 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     // Get doctor's available hours
     final availableFrom = getTimeOfDay(
         cubit.selectedDoctor?.branches
-                ?.firstWhere(
-                    (branch) => branch.branch?.id == cubit.selectedBranch?.id)
+                ?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id)
                 .availableFrom ??
             "8:00",
         const TimeOfDay(hour: 8, minute: 0));
     final availableTo = getTimeOfDay(
         cubit.selectedDoctor?.branches
-                ?.firstWhere(
-                    (branch) => branch.branch?.id == cubit.selectedBranch?.id)
+                ?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id)
                 .availableTo ??
             "18:00",
         const TimeOfDay(hour: 18, minute: 0));
     // Set up examination duration
-    final duration = int.tryParse(
-            cubit.selectedExaminationType?.duration?.toString() ?? "10") ??
-        10;
+    final duration = int.tryParse(cubit.selectedExaminationType?.duration?.toString() ?? "10") ?? 10;
 
     // Create booking service with correct start and end times
     bookingService = BookingService(
@@ -147,14 +132,10 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     DateTime dateTime = DateTime.parse(date.toString());
 
     Map<String, dynamic> query = {
-      "startDate":
-          DateTime(dateTime.year, dateTime.month, dateTime.day, 0, 0, 0),
-      "endDate":
-          DateTime(dateTime.year, dateTime.month, dateTime.day, 23, 59, 59),
-      'doctor':
-          BlocProvider.of<MakeAppointmentCubit>(context).selectedDoctor?.id,
-      'branch':
-          BlocProvider.of<MakeAppointmentCubit>(context).selectedBranch?.id,
+      "startDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 0, 0, 0),
+      "endDate": DateTime(dateTime.year, dateTime.month, dateTime.day, 23, 59, 59),
+      'doctor': BlocProvider.of<MakeAppointmentCubit>(context).selectedDoctor?.id,
+      'branch': BlocProvider.of<MakeAppointmentCubit>(context).selectedBranch?.id,
       "reservation": true,
     };
 
@@ -181,11 +162,9 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
       if (response.statusCode == 200) {
         // Convert appointments dateTime to local
-        appointments =
-            (response.data['appointments'] as List).map((appointment) {
+        appointments = (response.data['appointments'] as List).map((appointment) {
           if (appointment['datetime'] != null) {
-            appointment['datetime'] =
-                DateTime.parse(appointment['datetime']).toLocal().toString();
+            appointment['datetime'] = DateTime.parse(appointment['datetime']).toLocal().toString();
           }
           return appointment;
         }).toList();
@@ -281,9 +260,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
       if (response.statusCode == 200) {
         return 'Booking uploaded successfully';
-      } else if (response.data
-          .toString()
-          .contains("Conflicting appointments found")) {
+      } else if (response.data.toString().contains("Conflicting appointments found")) {
         isFirst = true;
         // fetchInitialData(date: DateTime.now().toString(), branch: widget.branch);
         return 'Error uploading booking';
@@ -305,15 +282,14 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
         dateTimeRanges.add({
           "Time": DateTimeRange(
             start: DateTime.parse(item["datetime"]),
-            end: DateTime.parse(item["datetime"])
-                .add(Duration(minutes: item['examinationType']['duration'])),
+            end: DateTime.parse(item["datetime"]).add(Duration(minutes: item['examinationType']['duration'])),
           ),
-          //  "phoneNumber": item["patient"]["phone"],
-          //  "name": item["patient"]["name"],
-          // "manualId": item["id"],
-          // "examination_type": item["examinationType"]["name"],
-          // "branch": item["branch"]["name"],
-          // "status": item["status"],
+          "phoneNumber": item["patient"]["phone"],
+          "name": item["patient"]["name"],
+          "manualId": item["id"],
+          "examination_type": item["examinationType"]["name"],
+          "branch": item["branch"]["name"],
+          "status": item["status"],
         });
       }
     } else {
@@ -333,8 +309,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
           Expanded(
             child: BookingCalendar(
               bookingService: bookingService,
-              convertStreamResultToDateTimeRanges:
-                  convertStreamResultToDateTimeRanges,
+              convertStreamResultToDateTimeRanges: convertStreamResultToDateTimeRanges,
               getBookingStream: getBookingStream,
               uploadBooking: uploadBooking,
               hideBreakTime: false,
@@ -343,8 +318,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
               selectedDate: cubit.selectedTime,
               locale: 'en',
               startingDayOfWeek: StartingDayOfWeek.saturday,
-              wholeDayIsBookedWidget:
-                  const Text('Sorry, for this day everything is booked'),
+              wholeDayIsBookedWidget: const Text('Sorry, for this day everything is booked'),
               branch: cubit.selectedBranch,
               doctor: cubit.selectedDoctor,
               viewOnly: _viewOnly,
@@ -362,8 +336,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
               ),
               holidayWeekdays: getHolidayDays(
                   workingDays: cubit.selectedDoctor?.branches
-                      ?.firstWhere((branch) =>
-                          branch.branch?.id == cubit.selectedBranch?.id)
+                      ?.firstWhere((branch) => branch.branch?.id == cubit.selectedBranch?.id)
                       .availableDays),
               availableSlotColor: Colorz.primaryColor,
               onDateSelected: (DateTime date) {
@@ -412,8 +385,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                                   backgroundColor: Colors.red,
                                   content: Text(
                                     'Please select a valid date',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16),
+                                    style: TextStyle(color: Colors.white, fontSize: 16),
                                   ),
                                 ),
                               );
@@ -427,8 +399,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                                 backgroundColor: Colors.red,
                                 content: Text(
                                   'Please select date',
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16),
+                                  style: TextStyle(color: Colors.white, fontSize: 16),
                                 ),
                               ),
                             );

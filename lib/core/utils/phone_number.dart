@@ -10,7 +10,6 @@ class PhoneNumberService {
 
     try {
       final phoneNumber = PhoneNumber.fromCompleteNumber(completeNumber: fullPhoneNumber);
-      log(phoneNumber.toString());
       return {
         'countryCode': phoneNumber.countryISOCode,
         'code': phoneNumber.countryCode,
@@ -19,7 +18,14 @@ class PhoneNumberService {
     } catch (e) {
       // Fallback to manual parsing if package fails
       log(e.toString());
-      return {'countryCode': 'EG', 'phoneNumber': ''};
+      return {'countryCode': 'EG', 'phoneNumber': formatPhoneNumber(fullPhoneNumber)};
     }
   }
+}
+
+String formatPhoneNumber(String fullPhoneNumber) {
+  if (fullPhoneNumber.startsWith('0')) {
+    return fullPhoneNumber.substring(1);
+  }
+  return fullPhoneNumber;
 }

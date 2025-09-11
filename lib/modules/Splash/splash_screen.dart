@@ -23,6 +23,7 @@ import '../On boarding/presentation/onBoarding.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
+
   static const String id = 'LoadingScreen';
 
   @override
@@ -74,6 +75,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   bool? result;
+
   Future<void> checkAuthAndNavigate() async {
     try {
       // Get the stored token
