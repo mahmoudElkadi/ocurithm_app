@@ -131,3 +131,11 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
 flutter_intl:
   enabled: true
+
+workflows:
+  ios-workflow:
+    name: iOS Workflow
+    environment:
+      ios_signing:
+        distribution_type: app_store  # Instead of development
+        bundle_identifier: com.ocurithm.ocurithmapp
