@@ -14,7 +14,6 @@ if (localPropertiesFile.exists()) {
 }
 
 
-
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
@@ -34,7 +33,7 @@ if (flutterVersionName == null) {
 android {
     namespace = "com.ocurithm.ocurithmapp"
     compileSdk = 35
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "29.0.14033849"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

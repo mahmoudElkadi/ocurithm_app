@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
           supportedLocales: S.delegate.supportedLocales,
           debugShowCheckedModeBanner: false,
           title: 'Ocurithm',
-          home: LoadingScreen(),
+          home: const LoadingScreen(),
         ),
       ),
     );
