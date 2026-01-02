@@ -46,7 +46,7 @@ dependencies:
   cloudinary_public: ^0.23.1
   get: ^4.6.6
   flutter_keyboard_visibility: ^6.0.0
-  google_fonts: ^6.1.0
+  google_fonts: ^6.3.3
   flutter_svg: ^2.0.9
   shared_preferences: ^2.2.2
   http: ^1.2.0
@@ -56,7 +56,7 @@ dependencies:
   upgrader: ^11.3.1
   text_form_field_wrapper: ^1.0.0
   custom_refresh_indicator: ^3.1.0
-  intl: ^0.20.0
+  intl: ^0.20.2
   url_launcher: ^6.3.0
   password_generator: ^1.0.0
   printing: ^5.13.0
@@ -74,6 +74,8 @@ dependencies:
   async: ^2.11.0
   flutter_intl_phone_field: ^0.0.7
   phone_numbers_parser: ^9.0.3
+  get_it: ^9.1.1
+  rxdart: ^0.28.0
 
   flutter_localizations:
     sdk: flutter
@@ -88,6 +90,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
+  intl_utils: ^2.3.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

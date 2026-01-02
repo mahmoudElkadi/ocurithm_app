@@ -20,9 +20,9 @@ class CustomScaffold extends StatelessWidget {
         WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
       },
       child: Scaffold(
-          backgroundColor: HexColor("#F7FAFF"),
+          // backgroundColor: HexColor("#F7FAFF"),
           appBar: AppBar(
-            backgroundColor: Colorz.white,
+            // backgroundColor: Colorz.white,
             scrolledUnderElevation: 0,
             title: Text(
               title,

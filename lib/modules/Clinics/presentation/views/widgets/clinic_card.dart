@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/modules/Clinics/presentation/manager/clinic_actions_cubit/clinic_actions_cubit.dart';
+import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:shimmer/shimmer.dart';
-
 import '../../../../../../core/utils/app_style.dart';
 import '../../../../../../core/utils/colors.dart';
+import '../../../../../../core/utils/snackbar_service.dart';
 import '../../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../core/widgets/pagination.dart';
 import '../../../../../../core/widgets/width_spacer.dart';
 import '../../../data/model/clinics_model.dart';
-import '../../manager/clinic_cubit.dart';
-import '../../manager/clinic_state.dart';
-import 'edit_clinic_method.dart';
+import 'clinic_form_dialog.dart';
 
 class ClinicCard extends StatefulWidget {
   const ClinicCard({
@@ -33,33 +31,69 @@ class ClinicCard extends StatefulWidget {
 
 class _ClinicCardState extends State<ClinicCard> {
   Widget _buildShimmer(Widget child) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
       child: child,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final cubit = ClinicCubit.get(context);
-    return BlocBuilder<ClinicCubit, ClinicState>(
+    final cubit = ClinicActionsCubit.get(context);
+    return BlocConsumer<ClinicActionsCubit, ClinicActionsState>(
+      listener: (context, state) {
+        if (state.isDeleteSuccess) {
+          SnackbarService.showSuccess(
+            context,
+            message: state.successMessage ?? 'Clinic deleted successfully',
+          );
+          Navigator.pop(context);
+          Navigator.pop(context);
+        }
+        if (state.isDeleteError) {
+          SnackbarService.showError(
+            context,
+            message: state.errorMessage ?? 'Clinic deletion failed',
+          );
+          Navigator.pop(context);
+        }
+      },
       builder: (context, state) => GestureDetector(
         onTap: () {
-          editClinic(context, ClinicCubit.get(context), widget.clinic?.id ?? "");
+          // View clinic details
+          showClinicFormDialog(
+            context,
+            mode: ClinicFormMode.view,
+            actionsCubit: context.read<ClinicActionsCubit>(),
+            clinicId: widget.clinic?.id ?? "",
+          );
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Container(
             width: MediaQuery.sizeOf(context).width,
             padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 15.w),
-            decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(10), boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
-                spreadRadius: 2,
-                blurRadius: 5,
-              ),
-            ]),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(10),
+              // Add subtle border in dark mode for better definition
+              border: Theme.of(context).brightness == Brightness.dark
+                  ? Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 1,
+                    )
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).shadowColor.withOpacity(0.15),
+                  spreadRadius: 1,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Row(children: [
               const WidthSpacer(size: 10),
               Expanded(
@@ -74,14 +108,13 @@ class _ClinicCardState extends State<ClinicCard> {
                             height: 20,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
-                              color: Colors.white,
+                              color: Theme.of(context).cardColor,
                             ),
                           ))
                         : Text(
                             widget.clinic?.name ?? "N/A",
                             maxLines: 2,
-                            style: GoogleFonts.inter(
-                                textStyle: appStyle(context, 18, HexColor("#2A282F"), FontWeight.w700).copyWith(overflow: TextOverflow.ellipsis)),
+                            style:Theme.of(context).textTheme.titleMedium,
                           ),
                     const HeightSpacer(size: 5),
                     Row(
@@ -91,17 +124,19 @@ class _ClinicCardState extends State<ClinicCard> {
                             ? _buildShimmer(Container(
                                 width: 100,
                                 height: 20,
-                                decoration: const BoxDecoration(
-                                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                                  color: Colors.white,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(20)),
+                                  color: Theme.of(context).cardColor,
                                 ),
                               ))
                             : Expanded(
                                 child: Text(
                                   '${widget.clinic?.description ?? "N/A"} ',
                                   maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: appStyle(context, 18, Colorz.grey, FontWeight.w500),
+                                   overflow: TextOverflow.ellipsis,
+                                  style: appStyle(context, 18, Colorz.grey,
+                                      FontWeight.w500),
                                 ),
                               ),
                       ],
@@ -109,34 +144,52 @@ class _ClinicCardState extends State<ClinicCard> {
                   ],
                 ),
               ),
-              IconButton(
-                  onPressed: () async {
-                    showConfirmationDialog(
-                      context: context,
-                      title: "Delete Clinic",
-                      message: "Do you want to Delete ${widget.clinic?.name ?? "this Clinic"}?",
-                      onConfirm: () async {
-                        customLoading(context, "");
-                        bool connection = await InternetConnection().hasInternetAccess;
-                        if (!connection) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text(
-                              "No Internet Connection",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: Colors.red,
-                          ));
-                        } else {
-                          await cubit.deleteClinic(id: widget.clinic!.id.toString(), context: context);
-                        }
+              widget.isLoading
+                  ? _buildShimmer(Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).cardColor,
+                      ),
+                    ))
+                  : IconButton(
+                      onPressed: () async {
+                        showConfirmationDialog(
+                          context: context,
+                          title: "Delete Clinic",
+                          message:
+                              "Do you want to Delete ${widget.clinic?.name ?? "this Clinic"}?",
+                          onConfirm: () async {
+                            customLoading(context, "");
+                            bool connection =
+                                await InternetConnection().hasInternetAccess;
+                            if (!connection) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text(
+                                  "No Internet Connection",
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onError),
+                                ),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.error,
+                              ));
+                            } else {
+                              cubit.add(DeleteClinicEvent(
+                                  widget.clinic!.id.toString()));
+                            }
+                          },
+                          onCancel: () {
+                            Navigator.pop(context);
+                          },
+                        );
                       },
-                      onCancel: () {
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                  icon: Icon(Icons.delete_forever, color: Colorz.redColor, size: 30.w))
+                      icon: Icon(Icons.delete_forever,
+                          color: Colorz.redColor, size: 30.w))
             ]),
           ),
         ),
@@ -155,11 +208,11 @@ class ClinicListView extends StatefulWidget {
 class _ClinicListViewState extends State<ClinicListView> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ClinicCubit, ClinicState>(
+    return BlocBuilder<GetClinicsCubit, GetClinicsState>(
       builder: (context, state) {
-        final cubit = context.read<ClinicCubit>();
-        bool isLoading = cubit.clinics == null;
-        bool isEmpty = cubit.clinics?.clinics.isEmpty ?? true;
+        final cubit = context.read<GetClinicsCubit>();
+        bool isLoading = state.isLoading;
+        bool isEmpty = state.clinics?.clinics.isEmpty ?? true;
         if (isLoading) {
           return _buildLoadingList();
         } else if (isEmpty) {
@@ -181,35 +234,37 @@ class _ClinicListViewState extends State<ClinicListView> {
     );
   }
 
-  Widget _buildOrderList(ClinicCubit cubit) {
+  Widget _buildOrderList(GetClinicsCubit cubit) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) => Column(
         children: [
           ClinicCard(
-            clinic: cubit.clinics!.clinics[index],
+            clinic: cubit.state.clinics!.clinics[index],
             isLoading: false,
           ),
-          cubit.clinics!.clinics.length != index + 1
+          cubit.state.clinics!.clinics.length != index + 1
               ? const SizedBox.shrink()
-              : cubit.clinics?.totalPages != null && cubit.clinics!.totalPages! > 1
+              : cubit.state.clinics?.totalPages != null &&
+                      cubit.state.clinics!.totalPages! > 1
                   ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20).copyWith(bottom: 20),
+                      padding: const EdgeInsets.symmetric(vertical: 20)
+                          .copyWith(bottom: 20),
                       child: CustomPagination(
-                          currentPage: cubit.page,
-                          totalPages: int.parse('${cubit.clinics?.totalPages ?? 0}'),
+                          currentPage: cubit.state.page,
+                          totalPages: int.parse(
+                              '${cubit.state.clinics?.totalPages ?? 0}'),
                           onPageChanged: (int newPage) {
-                            cubit.page = newPage;
-                            cubit.getClinics();
-                            setState(() {});
+                            cubit.add(SetPageEvent(newPage));
+                            cubit.add(GetAllClinicsEvent());
                           }),
                     )
                   : const HeightSpacer(size: 10),
         ],
       ),
       separatorBuilder: (context, index) => const HeightSpacer(size: 20),
-      itemCount: cubit.clinics!.clinics.length,
+      itemCount: cubit.state.clinics!.clinics.length,
     );
   }
 
@@ -221,16 +276,32 @@ class _ClinicListViewState extends State<ClinicListView> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const HeightSpacer(size: 30),
-            Icon(Icons.inbox_outlined, size: 70, color: Colors.grey[400]),
+            Icon(Icons.inbox_outlined,
+                size: 70,
+                color: Theme.of(context).iconTheme.color?.withOpacity(0.4)),
             const SizedBox(height: 16),
             Text(
               'No Clinic found',
-              style: TextStyle(fontSize: 22, color: Colors.grey[600], fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  fontSize: 22,
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.color
+                      ?.withOpacity(0.7),
+                  fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
               'Clinic will appear here',
-              style: TextStyle(fontSize: 18, color: Colors.grey[400], fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color
+                      ?.withOpacity(0.5),
+                  fontWeight: FontWeight.w600),
             ),
           ],
         ),

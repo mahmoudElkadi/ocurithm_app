@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../utils/colors.dart';
 import 'height_spacer.dart';
 
 class BusinessHoursSelector extends StatefulWidget {
@@ -46,21 +45,26 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
   void initState() {
     super.initState();
     _openTime = widget.initialOpenTime ?? const TimeOfDay(hour: 8, minute: 0);
-    _closeTime = widget.initialCloseTime ?? const TimeOfDay(hour: 18, minute: 0);
+    _closeTime =
+        widget.initialCloseTime ?? const TimeOfDay(hour: 18, minute: 0);
   }
 
   bool _isTimeInRange(TimeOfDay time) {
-    if (widget.startEnabledTime == null || widget.endEnabledTime == null) return true;
+    if (widget.startEnabledTime == null || widget.endEnabledTime == null)
+      return true;
 
     int timeInMinutes = time.hour * 60 + time.minute;
-    int startInMinutes = widget.startEnabledTime!.hour * 60 + widget.startEnabledTime!.minute;
-    int endInMinutes = widget.endEnabledTime!.hour * 60 + widget.endEnabledTime!.minute;
+    int startInMinutes =
+        widget.startEnabledTime!.hour * 60 + widget.startEnabledTime!.minute;
+    int endInMinutes =
+        widget.endEnabledTime!.hour * 60 + widget.endEnabledTime!.minute;
 
     return timeInMinutes >= startInMinutes && timeInMinutes <= endInMinutes;
   }
 
   Future<void> _selectTime(BuildContext context, bool isOpenTime) async {
     final currentTime = isOpenTime ? _openTime : _closeTime;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -69,31 +73,35 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
         return Theme(
           data: Theme.of(context).copyWith(
             timePickerTheme: TimePickerThemeData(
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).cardColor,
               hourMinuteShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
-                side: BorderSide(color: Colorz.primaryColor, width: 1),
+                side:
+                    BorderSide(color: Theme.of(context).primaryColor, width: 1),
               ),
-              hourMinuteColor: Colorz.primaryColor.withOpacity(0.1),
+              hourMinuteColor: Theme.of(context).primaryColor.withOpacity(0.1),
               hourMinuteTextStyle: TextStyle(
-                color: Colorz.primaryColor,
+                color: Theme.of(context).primaryColor,
                 fontSize: 58,
                 fontWeight: FontWeight.w800,
               ),
-              timeSelectorSeparatorColor: WidgetStateProperty.all(Colors.black),
-              hourMinuteTextColor: Colorz.primaryColor,
-              dayPeriodColor: Colorz.primaryColor.withOpacity(0.1),
-              dialHandColor: Colorz.primaryColor,
-              dayPeriodTextColor: Colorz.primaryColor,
+              timeSelectorSeparatorColor: WidgetStateProperty.all(
+                isDark ? Colors.white : Colors.black,
+              ),
+              hourMinuteTextColor: Theme.of(context).primaryColor,
+              dayPeriodColor: Theme.of(context).primaryColor.withOpacity(0.1),
+              dialHandColor: Theme.of(context).primaryColor,
+              dayPeriodTextColor: Theme.of(context).primaryColor,
               cancelButtonStyle: TextButton.styleFrom(
-                foregroundColor: Colorz.primaryColor,
+                foregroundColor: Theme.of(context).primaryColor,
               ),
               confirmButtonStyle: TextButton.styleFrom(
-                foregroundColor: Colorz.primaryColor,
+                foregroundColor: Theme.of(context).primaryColor,
               ),
               dayPeriodShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
-                side: BorderSide(color: Colorz.primaryColor, width: 1),
+                side:
+                    BorderSide(color: Theme.of(context).primaryColor, width: 1),
               ),
             ),
           ),
@@ -179,19 +187,28 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(widget.radius ?? 8),
-            border: Border.all(color: widget.isValid == false ? Colors.red : widget.border ?? Colors.grey),
+            border: Border.all(
+              color: widget.isValid == false
+                  ? Colors.red
+                  : widget.border ??
+                      (isDark ? Colors.grey.shade700 : Colors.grey),
+            ),
             boxShadow: widget.isShadow == true
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: isDark
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.black.withOpacity(0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -202,14 +219,16 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
             mainAxisSize: MainAxisSize.min,
             children: [
               InkWell(
-                onTap: widget.readOnly == false ? () => setState(() => _isExpanded = !_isExpanded) : null,
+                onTap: widget.readOnly == false
+                    ? () => setState(() => _isExpanded = !_isExpanded)
+                    : null,
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Row(
                     children: [
                       Icon(
                         Icons.access_time_rounded,
-                        color: Colors.grey,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -217,11 +236,15 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Business Hours',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color,
                               ),
                             ),
                             if (!_isExpanded)
@@ -229,15 +252,20 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                                 _formatTimeRange(),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey.shade600,
+                                  color: isDark
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade600,
                                 ),
                               ),
-                            if (widget.startEnabledTime != null && widget.endEnabledTime != null)
+                            if (widget.startEnabledTime != null &&
+                                widget.endEnabledTime != null)
                               Text(
                                 'Allowed: ${_formatTime(widget.startEnabledTime!)} - ${_formatTime(widget.endEnabledTime!)}',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Colors.grey.shade500,
+                                  color: isDark
+                                      ? Colors.grey.shade500
+                                      : Colors.grey.shade500,
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
@@ -250,7 +278,9 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                         child: widget.icon ??
                             Icon(
                               Icons.keyboard_arrow_down,
-                              color: Colors.grey.shade600,
+                              color: isDark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
                             ),
                       ),
                     ],
@@ -269,14 +299,18 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                           _buildTimeSelector(
                             title: 'Opening Time',
                             time: _openTime,
-                            onTap: widget.readOnly ? null : () => _selectTime(context, true),
+                            onTap: widget.readOnly
+                                ? null
+                                : () => _selectTime(context, true),
                             icon: Icons.wb_sunny_outlined,
                           ),
                           const SizedBox(height: 12),
                           _buildTimeSelector(
                             title: 'Closing Time',
                             time: _closeTime,
-                            onTap: widget.readOnly ? null : () => _selectTime(context, false),
+                            onTap: widget.readOnly
+                                ? null
+                                : () => _selectTime(context, false),
                             icon: Icons.nightlight_outlined,
                           ),
                         ],
@@ -284,7 +318,9 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                     ),
                   ],
                 ),
-                crossFadeState: _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                crossFadeState: _isExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
                 duration: const Duration(milliseconds: 300),
               ),
             ],
@@ -301,7 +337,10 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                 ),
                 Text(
                   "Must Select Time Range",
-                  style: TextStyle(fontSize: 12, color: Colors.red.shade700, fontWeight: FontWeight.w400),
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w400),
                 ),
               ],
             ),
@@ -316,16 +355,18 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
     required VoidCallback? onTap,
     required IconData icon,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: isDark ? Colors.grey.shade800 : Colors.grey.shade50,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: Colors.grey.shade300,
+            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
           ),
         ),
         child: Row(
@@ -333,7 +374,7 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
             Icon(
               icon,
               size: 18,
-              color: Colorz.primaryColor,
+              color: Theme.of(context).primaryColor,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -344,15 +385,17 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                     title,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade600,
+                      color:
+                          isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     _formatTime(time),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                 ],
@@ -361,7 +404,7 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
             Icon(
               Icons.access_time_rounded,
               size: 16,
-              color: Colors.grey.shade400,
+              color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
             ),
           ],
         ),

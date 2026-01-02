@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/theme/theme_cubit.dart';
+import 'package:ocurithm/core/theme/theme_state.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
-import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 
@@ -55,12 +56,14 @@ class CustomDrawer extends StatelessWidget {
                         ),
 
                         // Add spacing between groups (except after last group)
-                        if (groupIndex < drawerGroups.length - 1) _buildGroupDivider(group),
+                        if (groupIndex < drawerGroups.length - 1)
+                          _buildGroupDivider(group),
                       ],
                     );
                   },
                 ),
               ),
+              _buildThemeToggle(context),
               _buildLogoutButton(context, mainCubit),
             ],
           ),
@@ -77,7 +80,9 @@ class CustomDrawer extends StatelessWidget {
     MainCubit mainCubit,
   ) {
     return InkWell(
-      onTap: group.isCollapsible ? () => mainCubit.toggleGroupExpansion(groupIndex) : null,
+      onTap: group.isCollapsible
+          ? () => mainCubit.toggleGroupExpansion(groupIndex)
+          : null,
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
         child: Row(
@@ -88,7 +93,7 @@ class CustomDrawer extends StatelessWidget {
                 style: appStyle(
                   context,
                   14,
-                  Colorz.primaryColor,
+                  Theme.of(context).primaryColor,
                   FontWeight.w700,
                 ),
               ),
@@ -99,7 +104,7 @@ class CustomDrawer extends StatelessWidget {
                 turns: isExpanded ? 0.5 : 0.0,
                 child: Icon(
                   Icons.keyboard_arrow_down,
-                  color: Colorz.primaryColor,
+                  color: Theme.of(context).primaryColor,
                   size: 20,
                 ),
               ),
@@ -145,20 +150,24 @@ class CustomDrawer extends StatelessWidget {
     DrawerGroup group,
   ) {
     final bool isSelected = item.index == mainCubit.currentIndex;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultColor = isDark ? Colors.white : Colors.black;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      margin: group.title != null ? const EdgeInsets.symmetric(horizontal: 8) : EdgeInsets.zero,
+      margin: group.title != null
+          ? const EdgeInsets.symmetric(horizontal: 8)
+          : EdgeInsets.zero,
       decoration: group.title != null && isSelected
           ? BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             )
           : null,
       child: ListTile(
         leading: SvgPicture.asset(
           item.icon,
-          color: isSelected ? Colorz.primaryColor : Colorz.black,
+          color: isSelected ? Theme.of(context).primaryColor : defaultColor,
           width: 24,
           height: 24,
         ),
@@ -167,7 +176,7 @@ class CustomDrawer extends StatelessWidget {
           style: appStyle(
             context,
             16,
-            isSelected ? Colorz.primaryColor : Colorz.black,
+            isSelected ? Theme.of(context).primaryColor : defaultColor,
             isSelected ? FontWeight.w700 : FontWeight.w600,
           ),
         ),
@@ -190,10 +199,13 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Widget _buildUserInfo(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      color: Colorz.primaryColor.withOpacity(0.1),
+      color: Theme.of(context).primaryColor.withOpacity(0.1),
       child: Padding(
-        padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.07, bottom: 20),
+        padding: EdgeInsets.only(
+            top: MediaQuery.of(context).size.height * 0.07, bottom: 20),
         child: Row(
           children: [
             Expanded(
@@ -211,7 +223,8 @@ class CustomDrawer extends StatelessWidget {
                               color: Colors.white,
                               image: DecorationImage(
                                   image: NetworkImage(
-                                      CacheHelper.getUser("user")?.image ?? "https://via.placeholder.com/150"),
+                                      CacheHelper.getUser("user")?.image ??
+                                          "https://via.placeholder.com/150"),
                                   fit: BoxFit.cover,
                                   alignment: Alignment.center),
                             ),
@@ -221,10 +234,13 @@ class CustomDrawer extends StatelessWidget {
                             width: 70,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white,
+                              color:
+                                  isDark ? Colors.grey.shade800 : Colors.white,
                               boxShadow: [
                                 BoxShadow(
-                                    color: Colors.grey.shade200,
+                                    color: isDark
+                                        ? Colors.black.withOpacity(0.3)
+                                        : Colors.grey.shade200,
                                     spreadRadius: 1,
                                     blurRadius: 3,
                                     offset: const Offset(0, 0))
@@ -232,8 +248,18 @@ class CustomDrawer extends StatelessWidget {
                             ),
                             child: CacheHelper.getUser("user")?.name != null
                                 ? Center(
-                                    child: Text(CacheHelper.getUser("user")?.name?.split("")[0].toUpperCase() as String,
-                                        style: appStyle(context, 50, Colors.grey.shade700, FontWeight.bold)))
+                                    child: Text(
+                                        CacheHelper.getUser("user")
+                                            ?.name
+                                            ?.split("")[0]
+                                            .toUpperCase() as String,
+                                        style: appStyle(
+                                            context,
+                                            50,
+                                            isDark
+                                                ? Colors.grey.shade300
+                                                : Colors.grey.shade700,
+                                            FontWeight.bold)))
                                 : null,
                           ),
                     const WidthSpacer(size: 10),
@@ -241,14 +267,22 @@ class CustomDrawer extends StatelessWidget {
                       children: [
                         Text(
                           CacheHelper.getUser("user")?.name ?? "Unknown",
-                          style: appStyle(context, 18, Colors.black, FontWeight.w600),
+                          style: appStyle(
+                              context,
+                              18,
+                              isDark ? Colors.white : Colors.black,
+                              FontWeight.w600),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const HeightSpacer(size: 5),
                         Text(
                           CacheHelper.getUser("user")?.clinic?.name ?? "Clinic",
-                          style: appStyle(context, 16, Colors.grey, FontWeight.w500),
+                          style: appStyle(
+                              context,
+                              16,
+                              isDark ? Colors.grey.shade400 : Colors.grey,
+                              FontWeight.w500),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -265,18 +299,52 @@ class CustomDrawer extends StatelessWidget {
     );
   }
 
+  Widget _buildThemeToggle(BuildContext context) {
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, themeState) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Row(
+            children: [
+              Icon(
+                themeState.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                color: Theme.of(context).primaryColor,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                themeState.isDarkMode ? "Dark Mode" : "Light Mode",
+                style: appStyle(context, 16, Theme.of(context).primaryColor,
+                    FontWeight.w600),
+              ),
+              const Spacer(),
+              Switch(
+                value: themeState.isDarkMode,
+                onChanged: (value) {
+                  context.read<ThemeCubit>().toggleTheme();
+                },
+                activeColor: Theme.of(context).primaryColor,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildLogoutButton(BuildContext context, MainCubit cubit) {
     return InkWell(
       onTap: () => cubit.logOut(),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20).copyWith(bottom: 30),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20)
+            .copyWith(bottom: 30),
         child: Row(
           children: [
-            Icon(Icons.logout, color: Colorz.primaryColor),
+            Icon(Icons.logout, color: Theme.of(context).primaryColor),
             const SizedBox(width: 10),
             Text(
               "Log Out",
-              style: appStyle(context, 16, Colorz.primaryColor, FontWeight.w600),
+              style: appStyle(
+                  context, 16, Theme.of(context).primaryColor, FontWeight.w600),
             ),
           ],
         ),

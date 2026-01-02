@@ -3,22 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hexcolor/hexcolor.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/app_style.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/confirmation_popuo.dart';
+import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/core/widgets/pagination.dart';
+import 'package:ocurithm/core/widgets/width_spacer.dart';
+import 'package:ocurithm/modules/Branch/data/model/branches_model.dart';
+import 'package:ocurithm/modules/Branch/presentation/manager/branch_actions_cubit/branch_actions_cubit.dart';
+import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
+import 'package:ocurithm/modules/Branch/presentation/views/widgets/branch_form_dialog.dart';
 import 'package:shimmer/shimmer.dart';
-
-import '../../../../../../core/utils/app_style.dart';
-import '../../../../../../core/utils/colors.dart';
-import '../../../../../../core/widgets/confirmation_popuo.dart';
-import '../../../../../../core/widgets/custom_freeze_loading.dart';
-import '../../../../../../core/widgets/height_spacer.dart';
-import '../../../../../../core/widgets/pagination.dart';
-import '../../../../../../core/widgets/width_spacer.dart';
-import '../../../../../core/Network/shared.dart';
-import '../../../data/model/branches_model.dart';
-import '../../manager/branch_cubit.dart';
-import '../../manager/branch_state.dart';
-import 'edit_branch.dart';
 
 class BranchCard extends StatefulWidget {
   const BranchCard({
@@ -35,34 +31,60 @@ class BranchCard extends StatefulWidget {
 
 class _BranchCardState extends State<BranchCard> {
   Widget _buildShimmer(Widget child) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
       child: child,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final cubit = AdminBranchCubit.get(context);
-    return BlocBuilder<AdminBranchCubit, AdminBranchState>(
-      builder: (context, state) => GestureDetector(
-        onTap: () {
-          editBranch(context, AdminBranchCubit.get(context), widget.branch?.id ?? "");
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Container(
-            width: MediaQuery.sizeOf(context).width,
-            padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 15.w),
-            decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(10), boxShadow: [
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final actionsCubit = context.read<BranchActionsCubit>();
+
+    return GestureDetector(
+      onTap: () {
+        if (!widget.isLoading && widget.branch?.id != null) {
+          final clinicsState = context.read<GetBranchesCubit>().state;
+
+          showBranchFormDialog(
+            context,
+            mode: BranchFormMode.edit,
+            actionsCubit: actionsCubit,
+            branchId: widget.branch!.id,
+            clinics: null, // Can pass clinics if needed
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Container(
+          width: MediaQuery.sizeOf(context).width,
+          padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 15.w),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(10),
+            // Add subtle border in dark mode for better definition
+            border: isDark
+                ? Border.all(
+                    color: Colors.white.withOpacity(0.1),
+                    width: 1,
+                  )
+                : null,
+            boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
+                color: isDark
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.2),
                 spreadRadius: 2,
                 blurRadius: 5,
               ),
-            ]),
-            child: Row(children: [
+            ],
+          ),
+          child: Row(
+            children: [
               widget.isLoading
                   ? _buildShimmer(Container(
                       width: 50,
@@ -72,34 +94,44 @@ class _BranchCardState extends State<BranchCard> {
                         color: Colors.white,
                       ),
                     ))
-                  :
-                  // : widget.item?.image != null
-                  //     ?
-                  Expanded(
+                  : Expanded(
                       flex: 1,
                       child: Container(
                         height: 50,
                         width: 50,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white,
-                          boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 0))],
+                          color: isDark ? Colors.grey.shade800 : Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDark
+                                  ? Colors.black.withOpacity(0.3)
+                                  : Colors.grey.shade200,
+                              spreadRadius: 1,
+                              blurRadius: 3,
+                              offset: const Offset(0, 0),
+                            )
+                          ],
                         ),
                         child: widget.branch?.name != null
                             ? Center(
-                                child: Text(widget.branch?.name?.split("")[0].toUpperCase() as String,
-                                    style: appStyle(context, 30, Colors.grey.shade700, FontWeight.bold)))
+                                child: Text(
+                                  widget.branch!.name!
+                                      .split("")[0]
+                                      .toUpperCase(),
+                                  style: appStyle(
+                                    context,
+                                    30,
+                                    isDark
+                                        ? Colors.grey.shade300
+                                        : Colors.grey.shade700,
+                                    FontWeight.bold,
+                                  ),
+                                ),
+                              )
                             : null,
                       ),
-                    )
-              // : Expanded(
-              //     flex: 1,
-              //     child: Image.asset(
-              //       "assets/icons/logo.png",
-              //       fit: BoxFit.contain,
-              //     ),
-              //   ),
-              ,
+                    ),
               const WidthSpacer(size: 10),
               Expanded(
                 flex: 5,
@@ -120,7 +152,13 @@ class _BranchCardState extends State<BranchCard> {
                             widget.branch?.name ?? "N/A",
                             maxLines: 2,
                             style: GoogleFonts.inter(
-                                textStyle: appStyle(context, 16, HexColor("#2A282F"), FontWeight.w600).copyWith(overflow: TextOverflow.ellipsis)),
+                              textStyle: appStyle(
+                                context,
+                                16,
+                                Theme.of(context).textTheme.bodyLarge!.color!,
+                                FontWeight.w600,
+                              ).copyWith(overflow: TextOverflow.ellipsis),
+                            ),
                           ),
                     const HeightSpacer(size: 5),
                     Row(
@@ -128,25 +166,33 @@ class _BranchCardState extends State<BranchCard> {
                       children: [
                         GestureDetector(
                           onLongPress: () async {
-                            await Clipboard.setData(ClipboardData(text: widget.branch?.phone ?? "N/A"));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Copied"),
-                              ),
-                            );
+                            await Clipboard.setData(ClipboardData(
+                                text: widget.branch?.phone ?? "N/A"));
+                            if (mounted) {
+                              SnackbarService.showSuccess(
+                                context,
+                                message: "Phone number copied",
+                              );
+                            }
                           },
                           child: widget.isLoading
                               ? _buildShimmer(Container(
                                   width: 100,
                                   height: 20,
                                   decoration: const BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20)),
                                     color: Colors.white,
                                   ),
                                 ))
                               : Text(
                                   widget.branch?.phone ?? "N/A",
-                                  style: appStyle(context, 18, Colorz.grey, FontWeight.w400),
+                                  style: appStyle(
+                                    context,
+                                    18,
+                                    isDark ? Colors.grey.shade400 : Colors.grey,
+                                    FontWeight.w400,
+                                  ),
                                 ),
                         ),
                       ],
@@ -154,36 +200,48 @@ class _BranchCardState extends State<BranchCard> {
                   ],
                 ),
               ),
-              if (CacheHelper.getStringList(key: "capabilities").contains("manageBranches"))
-                IconButton(
+              if (CacheHelper.getStringList(key: "capabilities")
+                  .contains("manageBranches"))
+                BlocListener<BranchActionsCubit, BranchActionsState>(
+                  listener: (context, state) {
+                    if (state.isDeleteSuccess) {
+                      SnackbarService.showSuccess(
+                        context,
+                        message: state.successMessage ??
+                            'Branch deleted successfully',
+                      );
+                    } else if (state.isDeleteError) {
+                      SnackbarService.showError(
+                        context,
+                        message:
+                            state.errorMessage ?? 'Failed to delete branch',
+                      );
+                    }
+                  },
+                  child: IconButton(
                     onPressed: () async {
                       showConfirmationDialog(
                         context: context,
                         title: "Delete Branch",
                         message: "Do you want to Delete this Branch?",
-                        onConfirm: () async {
-                          customLoading(context, "");
-                          bool connection = await InternetConnection().hasInternetAccess;
-                          if (!connection) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content: Text(
-                                "No Internet Connection",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              backgroundColor: Colors.red,
-                            ));
-                          } else {
-                            await cubit.deleteBranch(id: widget.branch!.id.toString(), context: context);
-                          }
+                        onConfirm: () {
+                          Navigator.pop(context); // Close confirmation dialog
+                          actionsCubit
+                              .add(DeleteBranchEvent(widget.branch!.id!));
                         },
                         onCancel: () {
                           Navigator.pop(context);
                         },
                       );
                     },
-                    icon: Icon(Icons.delete_forever, color: Colorz.redColor, size: 30.w))
-            ]),
+                    icon: Icon(
+                      Icons.delete_forever,
+                      color: Colors.red,
+                      size: 30.w,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -201,18 +259,21 @@ class BranchListView extends StatefulWidget {
 class _BranchListViewState extends State<BranchListView> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AdminBranchCubit, AdminBranchState>(
+    return BlocBuilder<GetBranchesCubit, GetBranchesState>(
       builder: (context, state) {
-        final cubit = context.read<AdminBranchCubit>();
-        bool isLoading = cubit.branches == null;
-        bool isEmpty = cubit.branches?.branches.isEmpty ?? true;
+        final cubit = context.read<GetBranchesCubit>();
+        bool isLoading = state.isLoading;
+        bool isEmpty = state.branches?.branches.isEmpty ?? true;
+
         if (isLoading) {
           return _buildLoadingList();
-        } else if (isEmpty) {
+        } else if (isEmpty && state.isSuccess) {
           return _buildEmptyState();
-        } else {
-          return _buildOrderList(cubit);
+        } else if (state.isSuccess) {
+          return _buildBranchList(cubit, state);
         }
+
+        return const SizedBox();
       },
     );
   }
@@ -227,39 +288,43 @@ class _BranchListViewState extends State<BranchListView> {
     );
   }
 
-  Widget _buildOrderList(AdminBranchCubit cubit) {
+  Widget _buildBranchList(GetBranchesCubit cubit, GetBranchesState state) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) => Column(
         children: [
           BranchCard(
-            branch: cubit.branches!.branches[index],
+            branch: state.branches!.branches[index],
             isLoading: false,
           ),
-          cubit.branches!.branches.length != index + 1
+          state.branches!.branches.length != index + 1
               ? const SizedBox.shrink()
-              : cubit.branches?.totalPages != null && cubit.branches!.totalPages! > 1
+              : state.branches?.totalPages != null &&
+                      state.branches!.totalPages! > 1
                   ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20).copyWith(bottom: 20),
+                      padding: const EdgeInsets.symmetric(vertical: 20)
+                          .copyWith(bottom: 20),
                       child: CustomPagination(
-                          currentPage: cubit.page,
-                          totalPages: int.parse('${cubit.branches?.totalPages ?? 0}'),
-                          onPageChanged: (int newPage) {
-                            cubit.page = newPage;
-                            cubit.getBranches();
-                            setState(() {});
-                          }),
+                        currentPage: state.page,
+                        totalPages:  0,
+                        onPageChanged: (int newPage) {
+                          cubit.add(SetPageEvent(newPage));
+                          cubit.add(GetAllBranchesEvent());
+                        },
+                      ),
                     )
                   : const HeightSpacer(size: 10),
         ],
       ),
       separatorBuilder: (context, index) => const HeightSpacer(size: 20),
-      itemCount: cubit.branches!.branches.length,
+      itemCount: state.branches!.branches.length,
     );
   }
 
   Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.only(top: 120),
       child: Center(
@@ -267,16 +332,28 @@ class _BranchListViewState extends State<BranchListView> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const HeightSpacer(size: 30),
-            Icon(Icons.inbox_outlined, size: 70, color: Colors.grey[400]),
+            Icon(
+              Icons.inbox_outlined,
+              size: 70,
+              color: isDark ? Colors.grey[600] : Colors.grey[400],
+            ),
             const SizedBox(height: 16),
             Text(
               'No Branch found',
-              style: TextStyle(fontSize: 22, color: Colors.grey[600], fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 22,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Branch will appear here',
-              style: TextStyle(fontSize: 18, color: Colors.grey[400], fontWeight: FontWeight.w600),
+              'Branches will appear here',
+              style: TextStyle(
+                fontSize: 18,
+                color: isDark ? Colors.grey[600] : Colors.grey[400],
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),

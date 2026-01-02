@@ -5,62 +5,93 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
-import 'package:ocurithm/modules/Branch/presentation/views/widgets/add_branch.dart';
+import 'package:ocurithm/modules/Branch/presentation/manager/branch_actions_cubit/branch_actions_cubit.dart';
+import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
+import 'package:ocurithm/modules/Branch/presentation/views/widgets/branch_form_dialog.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/widgets/branch_view_body.dart';
-
-import '../../../../../core/utils/colors.dart';
-import '../../data/repos/branch_repo_impl.dart';
-import '../manager/branch_cubit.dart';
-import '../manager/branch_state.dart';
 
 class AdminBranchView extends StatelessWidget {
   const AdminBranchView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AdminBranchCubit(BranchRepoImpl())..getBranches(),
-      child: BlocBuilder<AdminBranchCubit, AdminBranchState>(
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => sl<GetBranchesCubit>()..add(GetAllBranchesEvent()),
+        ),
+        BlocProvider(
+          create: (_) => sl<BranchActionsCubit>(),
+        ),
+      ],
+      child: BlocBuilder<GetBranchesCubit, GetBranchesState>(
         builder: (context, state) => CustomScaffold(
           title: "Branches",
           actions: [
-            if (CacheHelper.getStringList(key: "capabilities").contains("manageBranches"))
+            if (CacheHelper.getStringList(key: "capabilities")
+                .contains("manageBranches"))
               IconButton(
                 onPressed: () {
-                  showFormPopup(context, AdminBranchCubit.get(context));
+                  final actionsCubit = context.read<BranchActionsCubit>();
+
+                  showBranchFormDialog(
+                    context,
+                    mode: BranchFormMode.add,
+                    actionsCubit: actionsCubit,
+                    clinics: null, // Clinics will be loaded in the form dialog
+                  );
                 },
                 icon: SvgPicture.asset(
                   "assets/icons/add_branch.svg",
-                  color: Colorz.primaryColor,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
           ],
-          body: CustomMaterialIndicator(
+          body: MultiBlocListener(
+            listeners: [
+              // Listen to action results and refresh list
+              BlocListener<BranchActionsCubit, BranchActionsState>(
+                listener: (context, actionState) {
+                  if (actionState.isAddSuccess ||
+                      actionState.isUpdateSuccess ||
+                      actionState.isDeleteSuccess) {
+                    // Refresh the branches list
+                    context.read<GetBranchesCubit>().add(GetAllBranchesEvent());
+                  }
+                },
+              ),
+            ],
+            child: CustomMaterialIndicator(
               onRefresh: () async {
                 try {
-                  AdminBranchCubit.get(context).page = 1;
-                  AdminBranchCubit.get(context).searchController.clear();
-                  await AdminBranchCubit.get(context).getBranches();
+                  context.read<GetBranchesCubit>().add(ResetBranchFilters());
                 } catch (e) {
                   log(e.toString());
                 }
               },
-              indicatorBuilder: (BuildContext context, IndicatorController controller) {
-                return Image(image: AssetImage("assets/icons/logo.png"));
+              indicatorBuilder:
+                  (BuildContext context, IndicatorController controller) {
+                return const Image(image: AssetImage("assets/icons/logo.png"));
               },
               child: Scrollbar(
                 child: SingleChildScrollView(
-                    physics: AlwaysScrollableScrollPhysics(),
-                    child: AdminBranchCubit.get(context).connection != false
-                        ? BranchViewBody()
-                        : NoInternet(
-                            onPressed: () {
-                              AdminBranchCubit.get(context).getBranches();
-                            },
-                          )),
-              )),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: state.noConnection
+                      ? NoInternet(
+                          onPressed: () {
+                            context
+                                .read<GetBranchesCubit>()
+                                .add(GetAllBranchesEvent());
+                          },
+                        )
+                      : const BranchViewBody(),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

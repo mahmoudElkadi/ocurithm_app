@@ -7,11 +7,16 @@ import 'package:ocurithm/generated/l10n.dart';
 
 import 'Main/presentation/manger/main_cubit.dart';
 import 'core/Network/shared.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/theme_cubit.dart';
+import 'core/theme/theme_state.dart';
+import 'core/utils/services_locator.dart';
 import 'modules/Splash/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await CacheHelper.init();
+  ServiceLocator().init();
   runApp(const MyApp());
 }
 
@@ -20,30 +25,37 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => MainCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => MainCubit()),
+        BlocProvider(create: (_) => ThemeCubit()),
+      ],
       child: ScreenUtilInit(
-        designSize: Size(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
+        designSize: Size(MediaQuery.of(context).size.width,
+            MediaQuery.of(context).size.height),
         minTextAdapt: true,
         splitScreenMode: true,
-        builder: (context, child) => GetMaterialApp(
-          locale: CacheHelper.getData(key: "arabic") == true ? const Locale('ar') : const Locale('en'),
-          localizationsDelegates: const [
-            S.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          theme: ThemeData(
-            appBarTheme: const AppBarTheme(elevation: 0), // Custom white color
-            // Custom white color
-
-            useMaterial3: false,
-          ),
-          supportedLocales: S.delegate.supportedLocales,
-          debugShowCheckedModeBanner: false,
-          title: 'Ocurithm',
-          home: const LoadingScreen(),
+        builder: (context, child) => BlocBuilder<ThemeCubit, ThemeState>(
+          builder: (context, themeState) {
+            return GetMaterialApp(
+              locale: CacheHelper.getData(key: "arabic") == true
+                  ? const Locale('ar')
+                  : const Locale('en'),
+              localizationsDelegates: const [
+                S.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeState.themeMode,
+              supportedLocales: S.delegate.supportedLocales,
+              debugShowCheckedModeBanner: false,
+              title: 'Ocurithm',
+              home: const LoadingScreen(),
+            );
+          },
         ),
       ),
     );

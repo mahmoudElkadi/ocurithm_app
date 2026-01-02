@@ -87,10 +87,12 @@ class FlutterDropdownSearch<T> extends StatefulWidget {
   });
 
   @override
-  State<FlutterDropdownSearch> createState() => _FlutterDropdownSearchState<T>();
+  State<FlutterDropdownSearch> createState() =>
+      _FlutterDropdownSearchState<T>();
 }
 
-class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> with WidgetsBindingObserver {
+class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>>
+    with WidgetsBindingObserver {
   bool _isDropdownOpen = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchTerm = '';
@@ -213,7 +215,9 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     bool isInUpperThird = offset.dy < upperThirdThreshold;
 
     // Calculate preferred direction
-    bool openUpward = keyboardHeight > 0 || (spaceBelow < _dropdownMaxHeight && spaceAbove > spaceBelow) || isInUpperThird;
+    bool openUpward = keyboardHeight > 0 ||
+        (spaceBelow < _dropdownMaxHeight && spaceAbove > spaceBelow) ||
+        isInUpperThird;
 
     // Calculate actual dropdown height
     double dropdownHeight = widget.dropdownHeight ?? _dropdownMaxHeight;
@@ -241,13 +245,19 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                 child: GestureDetector(
                   onTap: _closeDropdown,
                   behavior: HitTestBehavior.opaque,
-                  child: Container(color: Colors.grey.withOpacity(0.4)),
+                  child: Container(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.black.withOpacity(0.6)
+                        : Colors.grey.withOpacity(0.4),
+                  ),
                 ),
               ),
               Positioned(
                 left: offset.dx,
                 width: size.width,
-                top: openUpward ? offset.dy - dropdownHeight : offset.dy + size.height,
+                top: openUpward
+                    ? offset.dy - dropdownHeight
+                    : offset.dy + size.height,
                 child: CompositedTransformFollower(
                   link: _layerLink,
                   showWhenUnlinked: false,
@@ -277,6 +287,8 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
 
 // Updated keyboard detection in search field
   Widget _buildSearchField(StateSetter setState) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: TextField(
@@ -312,24 +324,36 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
           _overlayEntry?.markNeedsBuild();
         },
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           hintText: 'Search...',
-          hintStyle: TextStyle(color: Colors.grey.shade600),
+          hintStyle: TextStyle(
+            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+          ),
           filled: true,
-          fillColor: Colors.grey.shade100,
+          fillColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey.shade300),
+            borderSide: BorderSide(
+              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+            ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey.shade300),
+            borderSide: BorderSide(
+              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey.shade400),
+            borderSide: BorderSide(
+              color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            ),
           ),
-          prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+          prefixIcon: Icon(
+            Icons.search,
+            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+          ),
         ),
       ),
     );
@@ -345,7 +369,8 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     required double keyboardHeight,
   }) {
     if (isInUpperThird) {
-      return size.height - validationHeight; // Show dropdown below when in upper third
+      return size.height -
+          validationHeight; // Show dropdown below when in upper third
     }
 
     if (isKeyboardVisible) {
@@ -366,16 +391,23 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
     return StatefulBuilder(
       builder: (context, setState) {
         final filteredList = _getFilteredList();
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
         return Container(
           constraints: BoxConstraints(
-            maxHeight: (filteredList.length > 1 ? double.parse((filteredList.length * 80.0).toString()) : double.parse("130")).clamp(15.0, 200.0),
+            maxHeight: (filteredList.length > 1
+                    ? double.parse((filteredList.length * 80.0).toString())
+                    : double.parse("130"))
+                .clamp(15.0, 200.0),
           ),
           decoration: BoxDecoration(
-            color: widget.dropdownBgColor ?? Colors.white,
+            color: widget.dropdownBgColor ?? Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.shade300,
+                color: isDark
+                    ? Colors.black.withOpacity(0.5)
+                    : Colors.grey.shade300,
                 spreadRadius: 1,
                 blurRadius: 3,
                 offset: const Offset(0, 1),
@@ -386,7 +418,10 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildSearchField(setState),
-              Divider(height: 1, color: Colors.grey.shade200),
+              Divider(
+                height: 1,
+                color: isDark ? Colors.grey.shade700 : Colors.grey.shade200,
+              ),
               _buildListView(filteredList),
             ],
           ),
@@ -396,10 +431,15 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
   }
 
   Widget _buildListView(List<T> filteredList) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Flexible(
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: (filteredList.length > 1 ? double.parse((filteredList.length * 80.0).toString()) : double.parse("120")).clamp(15.0, 200.0),
+          maxHeight: (filteredList.length > 1
+                  ? double.parse((filteredList.length * 80.0).toString())
+                  : double.parse("120"))
+              .clamp(15.0, 200.0),
         ),
         child: widget.isLoading
             ? Center(
@@ -409,7 +449,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                     width: 30,
                     height: 30,
                     child: CircularProgressIndicator(
-                      color: Colors.grey,
+                      color: Theme.of(context).primaryColor,
                       strokeWidth: 2,
                     ),
                   ),
@@ -417,13 +457,16 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
               )
             : filteredList.isEmpty
                 ? Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
                     alignment: Alignment.centerLeft,
                     child: Text(
                       "No Data",
                       textAlign: TextAlign.start,
                       style: TextStyle(
-                        color: Colors.grey.shade800,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade800,
                         fontSize: 16.0,
                       ).copyWith(),
                     ),
@@ -446,11 +489,17 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                             widget.itemAsString(item),
                             style: (widget.dropdownTextStyle ??
                                     TextStyle(
-                                      color: Colors.grey.shade800,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.grey.shade800,
                                       fontSize: 16.0,
                                     ))
                                 .copyWith(
-                              color: isDisabled ? Colors.grey.shade400 : null,
+                              color: isDisabled
+                                  ? (isDark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade400)
+                                  : null,
                             ),
                           ),
                         ),
@@ -474,7 +523,12 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
       // is handled by the parent
       return widget.items;
     }
-    return widget.items.where((item) => widget.itemAsString(item).toLowerCase().contains(_searchTerm.toLowerCase())).toList();
+    return widget.items
+        .where((item) => widget
+            .itemAsString(item)
+            .toLowerCase()
+            .contains(_searchTerm.toLowerCase()))
+        .toList();
   }
 
   void _selectItem(T item) {
@@ -490,6 +544,8 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return CompositedTransformTarget(
       link: _layerLink,
       child: Column(
@@ -499,24 +555,29 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
             onTap: widget.readOnly == true ? null : _toggleDropdown,
             child: Container(
               decoration: BoxDecoration(
-                color: widget.color ?? Colors.white,
+                color: widget.color ?? Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(widget.radius ?? 10),
                 boxShadow: widget.isShadow != false
                     ? [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
+                          color: isDark
+                              ? Colors.black.withOpacity(0.3)
+                              : Colors.grey.withOpacity(0.2),
                           spreadRadius: 2,
                           blurRadius: 5,
                         ),
                       ]
                     : null,
                 border: Border.all(
-                  color: widget.isValid == false ? Colors.red : widget.border ?? Colors.transparent,
+                  color: widget.isValid == false
+                      ? Colors.red
+                      : widget.border ?? Colors.transparent,
                   width: 1,
                 ),
               ),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: widget.height ?? 12),
+                padding: EdgeInsets.symmetric(
+                    horizontal: 12, vertical: widget.height ?? 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -529,16 +590,20 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                               child: widget.prefixIcon,
                             ),
                           Expanded(
-                            child: _selectedValue != null && _selectedValue!.isNotEmpty
+                            child: _selectedValue != null &&
+                                    _selectedValue!.isNotEmpty
                                 ? FittedBox(
                                     alignment: Alignment.centerLeft,
                                     fit: BoxFit.scaleDown,
                                     child: Text(
                                       _selectedValue!,
                                       style: widget.style ??
-                                          const TextStyle(
+                                          TextStyle(
                                             fontSize: 16,
-                                            color: Colors.black,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyLarge
+                                                ?.color,
                                             fontWeight: FontWeight.w400,
                                           ),
                                     ),
@@ -546,9 +611,11 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                                 : Text(
                                     widget.hintText ?? 'Select an item',
                                     style: widget.hintStyle ??
-                                        const TextStyle(
+                                        TextStyle(
                                           fontSize: 18,
-                                          color: Colors.grey,
+                                          color: isDark
+                                              ? Colors.grey.shade400
+                                              : Colors.grey,
                                           fontWeight: FontWeight.w600,
                                         ),
                                   ),
@@ -560,7 +627,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>> wit
                       widget.icon ??
                           Icon(
                             Icons.arrow_drop_down_circle,
-                            color: Colors.green.shade800,
+                            color: Theme.of(context).primaryColor,
                           ),
                   ],
                 ),
@@ -651,7 +718,8 @@ class DropdownItem<T> extends StatelessWidget {
                   const SizedBox(width: 10),
                   Text(
                     label!,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ],
               )
@@ -852,7 +920,12 @@ class _PopupDropdownSearchState<T> extends State<PopupDropdownSearch<T>> {
   }
 
   Widget _buildDropdownContent() {
-    final filteredItems = widget.items.where((item) => widget.itemAsString(item).toLowerCase().contains(_searchTerm.toLowerCase())).toList();
+    final filteredItems = widget.items
+        .where((item) => widget
+            .itemAsString(item)
+            .toLowerCase()
+            .contains(_searchTerm.toLowerCase()))
+        .toList();
 
     return Container(
       constraints: BoxConstraints(
@@ -895,7 +968,8 @@ class _PopupDropdownSearchState<T> extends State<PopupDropdownSearch<T>> {
           _overlayEntry?.markNeedsBuild();
         },
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           hintText: 'Search...',
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
@@ -950,7 +1024,9 @@ class _PopupDropdownSearchState<T> extends State<PopupDropdownSearch<T>> {
                 color: widget.color ?? Colors.white,
                 borderRadius: BorderRadius.circular(widget.radius ?? 8),
                 border: Border.all(
-                  color: widget.isValid == false ? Colors.red : widget.border ?? Colors.transparent,
+                  color: widget.isValid == false
+                      ? Colors.red
+                      : widget.border ?? Colors.transparent,
                 ),
                 boxShadow: widget.isShadow == true
                     ? [
@@ -962,7 +1038,8 @@ class _PopupDropdownSearchState<T> extends State<PopupDropdownSearch<T>> {
                       ]
                     : null,
               ),
-              padding: widget.contentPadding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: widget.contentPadding ??
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: [
                   if (widget.prefixIcon != null)
@@ -973,7 +1050,10 @@ class _PopupDropdownSearchState<T> extends State<PopupDropdownSearch<T>> {
                   Expanded(
                     child: Text(
                       _selectedValue ?? widget.hintText ?? 'Select an option',
-                      style: _selectedValue != null ? widget.style : widget.hintStyle ?? const TextStyle(color: Colors.grey),
+                      style: _selectedValue != null
+                          ? widget.style
+                          : widget.hintStyle ??
+                              const TextStyle(color: Colors.grey),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -1150,7 +1230,8 @@ class _DropValidateRowState extends State<DropValidateRow> {
     int searchIndex = 0;
 
     while (itemIndex < itemValue.length && searchIndex < searchValue.length) {
-      if (itemValue[itemIndex].toLowerCase() == searchValue[searchIndex].toLowerCase()) {
+      if (itemValue[itemIndex].toLowerCase() ==
+          searchValue[searchIndex].toLowerCase()) {
         searchIndex++;
       }
       itemIndex++;
@@ -1185,12 +1266,16 @@ class _DropValidateRowState extends State<DropValidateRow> {
         const HeightSpacer(size: 10),
         Center(
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 15.w).copyWith(right: 0),
+            padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 15.w)
+                .copyWith(right: 0),
             width: MediaQuery.sizeOf(context).width,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(widget.radius ?? 30),
-              border: Border.all(color: widget.validate == true ? Colors.red.shade900 : Colors.transparent),
+              border: Border.all(
+                  color: widget.validate == true
+                      ? Colors.red.shade900
+                      : Colors.transparent),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.shade200,
@@ -1246,7 +1331,9 @@ class _DropValidateRowState extends State<DropValidateRow> {
                       ),
                       items: widget.items,
                       value: widget.selectedValue,
-                      style: appStyle(context, 15, Colors.black, FontWeight.w600).copyWith(
+                      style:
+                          appStyle(context, 15, Colors.black, FontWeight.w600)
+                              .copyWith(
                         overflow: TextOverflow.ellipsis,
                       ),
                       onChanged: widget.onChanged,
@@ -1291,7 +1378,8 @@ class _DropValidateRowState extends State<DropValidateRow> {
                           ),
                         ),
                         searchMatchFn: (item, searchValue) {
-                          return customSearchMatch(item.value.toString(), searchValue);
+                          return customSearchMatch(
+                              item.value.toString(), searchValue);
                         },
                       ),
                       //This to clear the search value when you close the menu
@@ -1316,7 +1404,8 @@ class _DropValidateRowState extends State<DropValidateRow> {
               ),
               Text(
                 S.of(context).mustNotEmpty,
-                style: appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
+                style:
+                    appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
               ),
             ],
           ),
@@ -1368,7 +1457,8 @@ class _CustomColumnDropdownState extends State<CustomColumnDropdown> {
     int searchIndex = 0;
 
     while (itemIndex < itemValue.length && searchIndex < searchValue.length) {
-      if (itemValue[itemIndex].toLowerCase() == searchValue[searchIndex].toLowerCase()) {
+      if (itemValue[itemIndex].toLowerCase() ==
+          searchValue[searchIndex].toLowerCase()) {
         searchIndex++;
       }
       itemIndex++;
@@ -1434,7 +1524,8 @@ class _CustomColumnDropdownState extends State<CustomColumnDropdown> {
               ),
               Text(
                 S.of(context).mustNotEmpty,
-                style: appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
+                style:
+                    appStyle(context, 14, Colors.red.shade900, FontWeight.w400),
               ),
             ],
           ),

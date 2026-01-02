@@ -9,21 +9,21 @@ class BranchesModel {
   });
 
   List<Branch> branches;
-  num? total;
-  num? totalPages;
+  int? total;
+  int? totalPages;
   String? error;
 
   factory BranchesModel.fromJson(Map<String, dynamic> json) {
     return BranchesModel(
       branches: json["branches"] == null ? [] : List<Branch>.from(json["branches"]!.map((x) => Branch.fromJson(x))),
       total: json["total"],
-      totalPages: json["totalPages"],
+      totalPages: json["totalPages"], 
       error: json["error"],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        "branches": branches.map((x) => x?.toJson()).toList(),
+        "branches": branches.map((x) => x.toJson()).toList(),
         "total": total,
         "totalPages": totalPages,
         "error": error,
