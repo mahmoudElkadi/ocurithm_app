@@ -15,6 +15,11 @@ import '../../modules/Payment Methods/data/repos/payment_method_repo_impl.dart';
 import '../../modules/Payment Methods/presentation/manager/get_payment_methods_cubit/get_payment_methods_cubit.dart';
 import '../../modules/Payment Methods/presentation/manager/payment_method_actions_cubit/payment_method_actions_cubit.dart';
 import '../../modules/Payment Methods/presentation/manager/get_single_payment_method_cubit/get_single_payment_method_cubit.dart';
+import '../../modules/Examination Type/data/repos/examination_type_repo.dart';
+import '../../modules/Examination Type/data/repos/examination_type_repo_impl.dart';
+import '../../modules/Examination Type/presentation/manager/get_examination_types_cubit/get_examination_types_cubit.dart';
+import '../../modules/Examination Type/presentation/manager/examination_type_actions_cubit/examination_type_actions_cubit.dart';
+import '../../modules/Examination Type/presentation/manager/get_single_examination_type_cubit/get_single_examination_type_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -40,5 +45,15 @@ class ServiceLocator {
         () => PaymentMethodActionsCubit(sl.call<PaymentMethodRepo>()));
     sl.registerFactory(
         () => GetSinglePaymentMethodCubit(sl.call<PaymentMethodRepo>()));
+
+    ///Examination Types
+    sl.registerLazySingleton<ExaminationTypeRepo>(
+        () => ExaminationTypeRepoImpl());
+    sl.registerFactory(
+        () => GetExaminationTypesCubit(sl.call<ExaminationTypeRepo>()));
+    sl.registerFactory(
+        () => ExaminationTypeActionsCubit(sl.call<ExaminationTypeRepo>()));
+    sl.registerFactory(
+        () => GetSingleExaminationTypeCubit(sl.call<ExaminationTypeRepo>()));
   }
 }
