@@ -2,24 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shimmer/shimmer.dart';
-
-import '../../../../../../../../../core/utils/app_style.dart';
-import '../../../../../../../../../core/utils/colors.dart';
-import '../../../../../../../../../core/widgets/confirmation_popuo.dart';
-import '../../../../../../../../../core/widgets/custom_freeze_loading.dart';
-import '../../../../../../../../../core/widgets/height_spacer.dart';
-import '../../../../../../../../../core/widgets/pagination.dart';
-import '../../../../../../../../../core/widgets/width_spacer.dart';
-import '../../../../../../../../core/Network/shared.dart';
-import '../../../../../../data/models/receptionists_model.dart';
-import '../../../../../manger/Receptionist Details Cubit/receptionist_details_cubit.dart';
-import '../../../../../manger/Receptionist Details Cubit/receptionist_details_state.dart';
-import '../../../../Receptionist Details/presentation/view/receptionist_details_view.dart';
+import 'package:ocurithm/core/widgets/confirmation_popuo.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/core/widgets/pagination.dart';
+import 'package:ocurithm/core/widgets/width_spacer.dart';
+import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/modules/Receptionist/data/models/receptionists_model.dart';
+import 'package:ocurithm/modules/Receptionist/presentation/manager/get_receptionists_cubit/get_receptionists_cubit.dart';
+import 'package:ocurithm/modules/Receptionist/presentation/manager/receptionist_actions_cubit/receptionist_actions_cubit.dart';
+import 'package:ocurithm/modules/Receptionist/presentation/views/receptionist_form/receptionist_form_page.dart';
 
 class ReceptionistCard extends StatefulWidget {
   const ReceptionistCard({
@@ -27,6 +22,7 @@ class ReceptionistCard extends StatefulWidget {
     required this.isLoading,
     this.receptionist,
   });
+
   final bool isLoading;
   final Receptionist? receptionist;
 
@@ -45,24 +41,48 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ReceptionistCubit, ReceptionistState>(
-      builder: (context, state) => GestureDetector(
-        onTap: () {
-          Get.to(() => ReceptionistDetailsView(cubit: ReceptionistCubit.get(context), id: widget.receptionist!.id!));
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Container(
-            width: MediaQuery.sizeOf(context).width,
-            padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 15.w),
-            decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(20), boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
-                spreadRadius: 2,
-                blurRadius: 5,
-              ),
-            ]),
-            child: Row(children: [
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: widget.isLoading
+          ? null
+          : () async {
+              // Navigate to view mode
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ReceptionistFormPage(
+                    mode: ReceptionistFormMode.view,
+                    receptionistId: widget.receptionist!.id!,
+                  ),
+                ),
+              );
+            },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Container(
+          width: MediaQuery.sizeOf(context).width,
+          padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 15.w),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: isDark
+                ? Border.all(color: Colors.white.withOpacity(0.1))
+                : null,
+            boxShadow: isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                    ),
+                  ],
+          ),
+          child: Row(
+            children: [
+              // Profile Image
               widget.isLoading
                   ? _buildShimmer(Container(
                       width: 50,
@@ -72,10 +92,7 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                         color: Colors.white,
                       ),
                     ))
-                  :
-                  // : widget.item?.image != null
-                  //     ?
-                  Expanded(
+                  : Expanded(
                       flex: 1,
                       child: widget.receptionist?.image != null
                           ? AspectRatio(
@@ -85,37 +102,47 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                                 width: 50,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.white,
+                                  color: theme.cardColor,
                                   image: DecorationImage(
-                                      image: NetworkImage(widget.receptionist?.image ?? "https://via.placeholder.com/150"),
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center),
+                                    image: NetworkImage(
+                                      widget.receptionist?.image ??
+                                          "https://via.placeholder.com/150",
+                                    ),
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.center,
+                                  ),
                                 ),
-                              ))
+                              ),
+                            )
                           : Container(
                               height: 50,
                               width: 50,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [BoxShadow(color: Colors.grey.shade200, spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 0))],
+                                color: theme.cardColor,
+                                border: Border.all(
+                                  color: theme.dividerColor,
+                                  width: 1,
+                                ),
                               ),
                               child: widget.receptionist?.name != null
                                   ? Center(
-                                      child: Text(widget.receptionist?.name?.split("")[0].toUpperCase() as String,
-                                          style: appStyle(context, 30, Colors.grey.shade700, FontWeight.bold)))
+                                      child: Text(
+                                        widget.receptionist!.name!
+                                            .split("")[0]
+                                            .toUpperCase(),
+                                        style: theme.textTheme.headlineMedium
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
                                   : null,
                             ),
-                    )
-              // : Expanded(
-              //     flex: 1,
-              //     child: Image.asset(
-              //       "assets/icons/logo.png",
-              //       fit: BoxFit.contain,
-              //     ),
-              //   ),
-              ,
+                    ),
               const WidthSpacer(size: 10),
+
+              // Name and Phone
               Expanded(
                 flex: 5,
                 child: Column(
@@ -135,7 +162,11 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                             widget.receptionist?.name ?? "N/A",
                             maxLines: 2,
                             style: GoogleFonts.inter(
-                                textStyle: appStyle(context, 16, HexColor("#2A282F"), FontWeight.w600).copyWith(overflow: TextOverflow.ellipsis)),
+                              textStyle: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ),
                     const HeightSpacer(size: 5),
                     Row(
@@ -143,25 +174,31 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                       children: [
                         GestureDetector(
                           onLongPress: () async {
-                            await Clipboard.setData(ClipboardData(text: widget.receptionist?.phone ?? "N/A"));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Copied"),
-                              ),
+                            await Clipboard.setData(
+                              ClipboardData(
+                                  text: widget.receptionist?.phone ?? "N/A"),
                             );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Copied")),
+                              );
+                            }
                           },
                           child: widget.isLoading
                               ? _buildShimmer(Container(
                                   width: 100,
                                   height: 20,
                                   decoration: const BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20)),
                                     color: Colors.white,
                                   ),
                                 ))
                               : Text(
                                   widget.receptionist?.phone ?? "N/A",
-                                  style: appStyle(context, 18, Colorz.grey, FontWeight.w400),
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.textTheme.bodySmall?.color,
+                                  ),
                                 ),
                         ),
                       ],
@@ -169,40 +206,81 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                   ],
                 ),
               ),
-              if (CacheHelper.getStringList(key: "capabilities").contains("manageReciptionists"))
-                IconButton(
-                  onPressed: () async {
-                    showConfirmationDialog(
-                      context: context,
-                      title: "Delete Receptionist",
-                      message: "Do you want to Delete ${widget.receptionist?.name ?? "this Receptionist"}?",
-                      onConfirm: () async {
-                        customLoading(context, "");
-                        bool connection = await InternetConnection().hasInternetAccess;
-                        if (!connection) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text(
-                              "No Internet Connection",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: Colors.red,
-                          ));
-                        } else {
-                          await ReceptionistCubit.get(context).deleteReceptionist(id: widget.receptionist!.id.toString(), context: context);
-                        }
-                      },
-                      onCancel: () {
-                        Navigator.pop(context);
-                      },
-                    );
+
+              // Delete Button
+              if (CacheHelper.getStringList(key: "capabilities")
+                  .contains("manageReciptionists"))
+                BlocListener<ReceptionistActionsCubit,
+                    ReceptionistActionsState>(
+                  listener: (context, state) {
+                    if (state.isDeleteSuccess) {
+                      Navigator.pop(context); // Close loading
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              state.successMessage ?? 'Deleted successfully'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      // Refresh list
+                      context
+                          .read<GetReceptionistsCubit>()
+                          .add(GetAllReceptionistsEvent());
+                    } else if (state.isDeleteError) {
+                      Navigator.pop(context); // Close loading
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content:
+                              Text(state.errorMessage ?? 'Failed to delete'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   },
-                  icon: Icon(
-                    Icons.delete_forever,
-                    color: Colorz.redColor,
+                  child: IconButton(
+                    onPressed: () async {
+                      showConfirmationDialog(
+                        context: context,
+                        title: "Delete Receptionist",
+                        message:
+                            "Do you want to Delete ${widget.receptionist?.name ?? "this Receptionist"}?",
+                        onConfirm: () async {
+                          customLoading(context, "");
+                          bool connection =
+                              await InternetConnection().hasInternetAccess;
+                          if (!connection) {
+                            Navigator.pop(context);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "No Internet Connection",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          } else {
+                            // Dispatch delete event
+                            context.read<ReceptionistActionsCubit>().add(
+                                  DeleteReceptionistEvent(
+                                      widget.receptionist!.id!),
+                                );
+                          }
+                        },
+                        onCancel: () {
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                    icon: Icon(
+                      Icons.delete_forever,
+                      color: Colors.red,
+                    ),
                   ),
-                )
-            ]),
+                ),
+            ],
           ),
         ),
       ),
@@ -220,17 +298,15 @@ class ReceptionistListView extends StatefulWidget {
 class _ReceptionistListViewState extends State<ReceptionistListView> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ReceptionistCubit, ReceptionistState>(
+    return BlocBuilder<GetReceptionistsCubit, GetReceptionistsState>(
       builder: (context, state) {
-        final cubit = context.read<ReceptionistCubit>();
-        bool isLoading = ReceptionistCubit.get(context).receptionists == null;
-        bool isEmpty = ReceptionistCubit.get(context).receptionists?.receptionists.isEmpty ?? true;
-        if (isLoading) {
+        if (state.isLoading) {
           return _buildLoadingList();
-        } else if (isEmpty) {
+        } else if (state.receptionists == null ||
+            state.receptionists!.receptionists.isEmpty) {
           return _buildEmptyState();
         } else {
-          return _buildOrderList(cubit);
+          return _buildReceptionistList(state);
         }
       },
     );
@@ -246,54 +322,71 @@ class _ReceptionistListViewState extends State<ReceptionistListView> {
     );
   }
 
-  Widget _buildOrderList(ReceptionistCubit cubit) {
+  Widget _buildReceptionistList(GetReceptionistsState state) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const AlwaysScrollableScrollPhysics(),
       itemBuilder: (context, index) => Column(
         children: [
           ReceptionistCard(
-            receptionist: cubit.receptionists!.receptionists[index],
+            receptionist: state.receptionists!.receptionists[index],
             isLoading: false,
           ),
-          cubit.receptionists!.receptionists.length != index + 1
+          state.receptionists!.receptionists.length != index + 1
               ? const SizedBox.shrink()
-              : cubit.receptionists?.totalPages != null && cubit.receptionists!.totalPages! > 1
+              : state.receptionists?.totalPages != null &&
+                      state.receptionists!.totalPages! > 1
                   ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20).copyWith(bottom: 20),
+                      padding: const EdgeInsets.symmetric(vertical: 20)
+                          .copyWith(bottom: 20),
                       child: CustomPagination(
-                          currentPage: cubit.page,
-                          totalPages: int.parse('${cubit.receptionists?.totalPages ?? 0}'),
-                          onPageChanged: (int newPage) {
-                            cubit.page = newPage;
-                            cubit.getReceptionists();
-                            setState(() {});
-                          }),
+                        currentPage: state.page,
+                        totalPages: int.parse(
+                            '${state.receptionists?.totalPages ?? 0}'),
+                        onPageChanged: (int newPage) {
+                          context.read<GetReceptionistsCubit>().add(
+                                SetPageEvent(newPage),
+                              );
+                          context.read<GetReceptionistsCubit>().add(
+                                GetAllReceptionistsEvent(),
+                              );
+                        },
+                      ),
                     )
                   : const HeightSpacer(size: 10),
         ],
       ),
       separatorBuilder: (context, index) => const HeightSpacer(size: 20),
-      itemCount: cubit.receptionists!.receptionists.length,
+      itemCount: state.receptionists!.receptionists.length,
     );
   }
 
   Widget _buildEmptyState() {
+    final theme = Theme.of(context);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const HeightSpacer(size: 30),
-          Icon(Icons.inbox_outlined, size: 70, color: Colors.grey[400]),
+          Icon(
+            Icons.inbox_outlined,
+            size: 70,
+            color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
+          ),
           const SizedBox(height: 16),
           Text(
             'No Receptionist found',
-            style: TextStyle(fontSize: 22, color: Colors.grey[600], fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Receptionist will appear here',
-            style: TextStyle(fontSize: 18, color: Colors.grey[400], fontWeight: FontWeight.w600),
+            'Receptionists will appear here',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+            ),
           ),
         ],
       ),

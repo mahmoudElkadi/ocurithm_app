@@ -20,6 +20,12 @@ import '../../modules/Examination Type/data/repos/examination_type_repo_impl.dar
 import '../../modules/Examination Type/presentation/manager/get_examination_types_cubit/get_examination_types_cubit.dart';
 import '../../modules/Examination Type/presentation/manager/examination_type_actions_cubit/examination_type_actions_cubit.dart';
 import '../../modules/Examination Type/presentation/manager/get_single_examination_type_cubit/get_single_examination_type_cubit.dart';
+import '../../modules/Receptionist/data/repos/receptionist_repo.dart';
+import '../../modules/Receptionist/data/repos/receptionist_repo_impl.dart';
+import '../../modules/Receptionist/presentation/manager/receptionist_actions_cubit/receptionist_actions_cubit.dart';
+import '../../modules/Receptionist/presentation/manager/get_receptionists_cubit/get_receptionists_cubit.dart';
+import '../../modules/Receptionist/presentation/manager/get_single_receptionist_cubit/get_single_receptionist_cubit.dart';
+import '../../modules/Receptionist/presentation/manager/get_capabilities_cubit/get_capabilities_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -55,5 +61,15 @@ class ServiceLocator {
         () => ExaminationTypeActionsCubit(sl.call<ExaminationTypeRepo>()));
     sl.registerFactory(
         () => GetSingleExaminationTypeCubit(sl.call<ExaminationTypeRepo>()));
+
+    ///Receptionists
+    sl.registerLazySingleton<ReceptionistRepo>(() => ReceptionistRepoImpl());
+    sl.registerFactory(
+        () => GetReceptionistsCubit(sl.call<ReceptionistRepo>()));
+    sl.registerFactory(
+        () => ReceptionistActionsCubit(sl.call<ReceptionistRepo>()));
+    sl.registerFactory(
+        () => GetSingleReceptionistCubit(sl.call<ReceptionistRepo>()));
+    sl.registerFactory(() => GetCapabilitiesCubit(sl.call<ReceptionistRepo>()));
   }
 }

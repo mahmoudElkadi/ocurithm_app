@@ -13,14 +13,19 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../../../../../generated/l10n.dart';
-import '../../../../../../../Receptionist/presentation/views/Add Receptionist/presentation/view/widgets/add_receptionist_view_body.dart';
-import '../../../../../../../Receptionist/presentation/views/Receptionist Details/presentation/view/widgets/capabilities_section.dart';
+
+import '../../../../../../../../../core/widgets/capabilities_section.dart';
+import '../../../../../../../Receptionist/presentation/views/receptionist_form/receptionist_form_page.dart';
 import '../../../../../manager/doctor_cubit.dart';
 import '../../../../../manager/doctor_state.dart';
 import 'branch_detials.dart';
 
 class EditDoctorViewBody extends StatefulWidget {
-  const EditDoctorViewBody({super.key, required this.cubit, required this.formKey, required this.id});
+  const EditDoctorViewBody(
+      {super.key,
+      required this.cubit,
+      required this.formKey,
+      required this.id});
   final DoctorCubit cubit;
   final GlobalKey<FormState> formKey;
   final String id;
@@ -119,7 +124,8 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             readOnly: widget.cubit.readOnly,
                             radius: 30,
                             suffixIcon: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 14.w, vertical: 5.h),
                               child: SvgPicture.asset(
                                 color: Colorz.primaryColor,
                                 "assets/icons/profile.svg",
@@ -163,7 +169,8 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                                   _isPhoneShadow = false;
                                 });
                                 return S.of(context).mustPhone;
-                              } else if (!RegExp(r'^01[0125][0-9]{8}$').hasMatch(value)) {
+                              } else if (!RegExp(r'^01[0125][0-9]{8}$')
+                                  .hasMatch(value)) {
                                 setState(() {
                                   _isPhoneShadow = false;
                                 });
@@ -178,7 +185,8 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             borderColor: Colorz.primaryColor,
                             radius: 30,
                             suffixIcon: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w, vertical: 5.h),
                               child: SvgPicture.asset(
                                 color: Colorz.primaryColor,
                                 "assets/icons/phone_number.svg",
@@ -186,7 +194,8 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             ),
                             isShadow: _isPhoneShadow,
                           ),
-                    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+                    if (CacheHelper.getStringList(key: "capabilities")
+                        .contains("manageCapabilities"))
                       isLoading
                           ? _buildShimmer(Padding(
                               padding: const EdgeInsets.only(top: 16),
@@ -211,7 +220,8 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                                 ),
                                 readOnly: widget.cubit.readOnly,
                                 items: widget.cubit.clinics?.clinics,
-                                selectedValue: widget.cubit.selectedClinic?.name,
+                                selectedValue:
+                                    widget.cubit.selectedClinic?.name,
                                 hintText: 'Select Clinic',
                                 isValid: widget.cubit.chooseClinic,
                                 validateText: 'Clinic must not be Empty',
@@ -237,11 +247,14 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             ),
                           ))
                         : CapabilitiesSection(
-                            capabilities: widget.cubit.capabilities?.capabilities ?? [],
+                            capabilities:
+                                widget.cubit.capabilities?.capabilities ?? [],
                             readOnly: widget.cubit.readOnly,
-                            initialSelectedCapabilities: widget.cubit.doctor?.capabilities ?? [],
+                            initialSelectedCapabilities:
+                                widget.cubit.doctor?.capabilities ?? [],
                             onSelectionChanged: (newSelection) {
-                              widget.cubit.capabilitiesList = newSelection.map((e) => e.id).toList();
+                              widget.cubit.capabilitiesList =
+                                  newSelection.map((e) => e.id).toList();
                               setState(() {});
                             },
                           ),
@@ -290,7 +303,11 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                       color: Colorz.grey,
                     ),
                     const HeightSpacer(size: 20),
-                    Text(S.of(context).dateOfBirth, style: TextStyle(color: Colorz.black, fontWeight: FontWeight.w600, fontSize: 18)),
+                    Text(S.of(context).dateOfBirth,
+                        style: TextStyle(
+                            color: Colorz.black,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18)),
                     const HeightSpacer(size: 10),
                     isLoading
                         ? _buildShimmer(Container(
@@ -315,7 +332,8 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                                         ),
                                         textButtonTheme: TextButtonThemeData(
                                           style: TextButton.styleFrom(
-                                            foregroundColor: Colorz.primaryColor,
+                                            foregroundColor:
+                                                Colorz.primaryColor,
                                           ),
                                         ),
                                       ),
@@ -325,7 +343,8 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                                   context: context,
                                   initialDate: DateTime(2000),
                                   firstDate: DateTime(1900),
-                                  lastDate: DateTime.now().subtract(Duration(days: 6600)),
+                                  lastDate: DateTime.now()
+                                      .subtract(Duration(days: 6600)),
                                 ).then((selectedDate) {
                                   // After selecting the date, display the time picker.
                                   if (selectedDate != null) {
@@ -341,46 +360,67 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             },
                             child: Ink(
                               child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10.w, vertical: 10.h),
                                 decoration: BoxDecoration(
                                   color: HexColor("#E7EDEF"),
                                   borderRadius: BorderRadius.circular(30),
-                                  border: Border.all(color: widget.cubit.picDate == false ? Colors.redAccent : Colors.transparent, width: 1),
+                                  border: Border.all(
+                                      color: widget.cubit.picDate == false
+                                          ? Colors.redAccent
+                                          : Colors.transparent,
+                                      width: 1),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
                                       child: Center(
                                         child: Text(
-                                          widget.cubit.date != null ? "${widget.cubit.date!.day}" : S.of(context).dd,
-                                          style: appStyle(context, 18, Colorz.black, FontWeight.w600),
+                                          widget.cubit.date != null
+                                              ? "${widget.cubit.date!.day}"
+                                              : S.of(context).dd,
+                                          style: appStyle(context, 18,
+                                              Colorz.black, FontWeight.w600),
                                         ),
                                       ),
                                     ),
                                     Container(
                                       width: 2,
                                       height: 30,
-                                      decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30)),
+                                      decoration: BoxDecoration(
+                                          color: Colorz.white,
+                                          borderRadius:
+                                              BorderRadius.circular(30)),
                                     ),
                                     Expanded(
                                       child: Center(
                                         child: Text(
-                                          widget.cubit.date != null ? "${widget.cubit.date!.month}" : S.of(context).mm,
-                                          style: appStyle(context, 18, Colorz.black, FontWeight.w600),
+                                          widget.cubit.date != null
+                                              ? "${widget.cubit.date!.month}"
+                                              : S.of(context).mm,
+                                          style: appStyle(context, 18,
+                                              Colorz.black, FontWeight.w600),
                                         ),
                                       ),
                                     ),
                                     Container(
                                       width: 2,
                                       height: 30,
-                                      decoration: BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30)),
+                                      decoration: BoxDecoration(
+                                          color: Colorz.white,
+                                          borderRadius:
+                                              BorderRadius.circular(30)),
                                     ),
                                     Expanded(
                                       child: Center(
                                         child: Text(
-                                          widget.cubit.date != null ? "${widget.cubit.date!.year}" : S.of(context).yy,
-                                          style: appStyle(context, 18, Colorz.black, FontWeight.w600),
+                                          widget.cubit.date != null
+                                              ? "${widget.cubit.date!.year}"
+                                              : S.of(context).yy,
+                                          style: appStyle(context, 18,
+                                              Colorz.black, FontWeight.w600),
                                         ),
                                       ),
                                     ),
@@ -400,7 +440,10 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                             ),
                             Text(
                               S.of(context).mustBirth,
-                              style: TextStyle(fontSize: 12, color: Colors.red.shade700, fontWeight: FontWeight.w400),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red.shade700,
+                                  fontWeight: FontWeight.w400),
                             ),
                           ],
                         ),
@@ -411,7 +454,11 @@ class _EditDoctorViewBodyState extends State<EditDoctorViewBody> {
                       color: Colorz.grey,
                     ),
                     const HeightSpacer(size: 20),
-                    Text("Branches", style: TextStyle(color: Colorz.black, fontWeight: FontWeight.w600, fontSize: 18)),
+                    Text("Branches",
+                        style: TextStyle(
+                            color: Colorz.black,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18)),
                     const HeightSpacer(size: 10),
                     isLoading
                         ? _buildShimmer(Container(
