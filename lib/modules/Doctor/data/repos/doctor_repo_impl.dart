@@ -1,20 +1,18 @@
-import 'package:dio/dio.dart';
-
-import '../../../../../core/Network/dio_handler.dart';
-import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../../core/api/api_constants.dart';
+import '../../../../../core/api/api_handler.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Branch/data/model/data.dart';
 import '../model/doctor_model.dart';
 import 'doctor_repo.dart';
 
+/// Repository implementation for Doctor operations
+/// Uses ApiHandler for all API calls (following the new pattern)
 class DoctorRepoImpl implements DoctorRepo {
+  final ApiHandler _apiHandler = ApiHandler();
+
   @override
   Future<Doctor> createDoctor({required Doctor doctor}) async {
     try {
-      final url = "${Config.baseUrl}${Config.doctors}";
-      final String? token = CacheHelper.getData(key: "token");
-
       // Sanitize and validate data before sending
       Map<String, dynamic> data = {
         "name": doctor.name?.trim(),
@@ -22,211 +20,28 @@ class DoctorRepoImpl implements DoctorRepo {
         "password": doctor.password,
         "clinic": doctor.clinic?.id,
         if (doctor.birthDate != null) "birthDate": doctor.birthDate.toString(),
-        if (doctor.qualifications != null && doctor.qualifications!.isNotEmpty) "qualifications": doctor.qualifications,
-        if (doctor.image != null && doctor.image!.isNotEmpty) "image": doctor.image,
+        if (doctor.qualifications != null && doctor.qualifications!.isNotEmpty)
+          "qualifications": doctor.qualifications,
+        if (doctor.image != null && doctor.image!.isNotEmpty)
+          "image": doctor.image,
       };
 
-      final result = await ApiService.request<Doctor>(
-        url: url,
+      final response = await _apiHandler.post<Doctor>(
+        ApiConstants.doctors,
         data: data,
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-          if (token != null) 'Cookie': 'ocurithmToken=$token',
-        },
-        showError: true,
+        cancelKey: 'createDoctor',
         fromJson: (json) => Doctor.fromJson(json),
       );
 
-      if (result != null) {
-        return result;
+      // Check if the response was successful
+      if (response.success && response.data != null) {
+        return response.data!;
       } else {
-        throw Exception("Failed to create doctor: No response from server");
+        // Handle error case
+        throw Exception(response.message ?? 'Failed to create doctor');
       }
     } catch (e) {
-      if (e is DioException) {
-        switch (e.type) {
-          case DioExceptionType.connectionTimeout:
-          case DioExceptionType.sendTimeout:
-          case DioExceptionType.receiveTimeout:
-            throw Exception("Connection timeout. Please try again.");
-          case DioExceptionType.badResponse:
-            final responseData = e.response?.data;
-            final errorMessage = responseData is Map ? responseData['error'] ?? 'Unknown error' : 'Unknown error';
-            throw Exception("Server error: $errorMessage");
-          case DioExceptionType.cancel:
-            throw Exception("Request cancelled");
-          default:
-            throw Exception("Network error: ${e.message}");
-        }
-      }
-      throw Exception("Failed to create doctor: ${e.toString()}");
-    }
-  }
-
-  @override
-  Future<Doctor> addBranch(
-      {required String doctorId,
-      required String branchId,
-      required String availableFrom,
-      required String availableTo,
-      required List availableDays}) async {
-    try {
-      final url = "${Config.baseUrl}${Config.doctors}/addBranch";
-      final String? token = CacheHelper.getData(key: "token");
-
-      // Sanitize and validate data before sending
-      Map<String, dynamic> data = {
-        "doctorId": doctorId,
-        "branchId": branchId,
-        "availableFrom": availableFrom,
-        "availableTo": availableTo,
-        "availableDays": availableDays
-      };
-
-      final result = await ApiService.request<Doctor>(
-        url: url,
-        data: data,
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-          if (token != null) 'Cookie': 'ocurithmToken=$token',
-        },
-        showError: true,
-        fromJson: (json) => Doctor.fromJson(json),
-      );
-
-      if (result != null) {
-        return result;
-      } else {
-        throw Exception("Failed to create doctor: No response from server");
-      }
-    } catch (e) {
-      if (e is DioException) {
-        switch (e.type) {
-          case DioExceptionType.connectionTimeout:
-          case DioExceptionType.sendTimeout:
-          case DioExceptionType.receiveTimeout:
-            throw Exception("Connection timeout. Please try again.");
-          case DioExceptionType.badResponse:
-            final responseData = e.response?.data;
-            final errorMessage = responseData is Map ? responseData['error'] ?? 'Unknown error' : 'Unknown error';
-            throw Exception("Server error: $errorMessage");
-          case DioExceptionType.cancel:
-            throw Exception("Request cancelled");
-          default:
-            throw Exception("Network error: ${e.message}");
-        }
-      }
-      throw Exception("Failed to create doctor: ${e.toString()}");
-    }
-  }
-
-  @override
-  Future<Doctor> editBranch(
-      {required String doctorId,
-      required String branchId,
-      required String availableFrom,
-      required String availableTo,
-      required List availableDays}) async {
-    try {
-      final url = "${Config.baseUrl}${Config.doctors}/editBranch";
-      final String? token = CacheHelper.getData(key: "token");
-
-      // Sanitize and validate data before sending
-      Map<String, dynamic> data = {
-        "doctorId": doctorId,
-        "branchId": branchId,
-        "availableFrom": availableFrom,
-        "availableTo": availableTo,
-        "availableDays": availableDays
-      };
-
-      final result = await ApiService.request<Doctor>(
-        url: url,
-        data: data,
-        method: 'PUT',
-        headers: {
-          "Content-Type": "application/json",
-          if (token != null) 'Cookie': 'ocurithmToken=$token',
-        },
-        showError: true,
-        fromJson: (json) => Doctor.fromJson(json),
-      );
-
-      if (result != null) {
-        return result;
-      } else {
-        throw Exception("Failed to create doctor: No response from server");
-      }
-    } catch (e) {
-      if (e is DioException) {
-        switch (e.type) {
-          case DioExceptionType.connectionTimeout:
-          case DioExceptionType.sendTimeout:
-          case DioExceptionType.receiveTimeout:
-            throw Exception("Connection timeout. Please try again.");
-          case DioExceptionType.badResponse:
-            final responseData = e.response?.data;
-            final errorMessage = responseData is Map ? responseData['error'] ?? 'Unknown error' : 'Unknown error';
-            throw Exception("Server error: $errorMessage");
-          case DioExceptionType.cancel:
-            throw Exception("Request cancelled");
-          default:
-            throw Exception("Network error: ${e.message}");
-        }
-      }
-      throw Exception("Failed to create doctor: ${e.toString()}");
-    }
-  }
-
-  @override
-  Future<Doctor> deleteBranch({required String doctorId, required String branchId}) async {
-    try {
-      final url = "${Config.baseUrl}${Config.doctors}/deleteBranch";
-      final String? token = CacheHelper.getData(key: "token");
-
-      // Sanitize and validate data before sending
-      Map<String, dynamic> data = {
-        "doctorId": doctorId,
-        "branchId": branchId,
-      };
-
-      final result = await ApiService.request<Doctor>(
-        url: url,
-        data: data,
-        method: 'DELETE',
-        headers: {
-          "Content-Type": "application/json",
-          if (token != null) 'Cookie': 'ocurithmToken=$token',
-        },
-        showError: true,
-        fromJson: (json) => Doctor.fromJson(json),
-      );
-
-      if (result != null) {
-        return result;
-      } else {
-        throw Exception("Failed to delete branch: No response from server");
-      }
-    } catch (e) {
-      if (e is DioException) {
-        switch (e.type) {
-          case DioExceptionType.connectionTimeout:
-          case DioExceptionType.sendTimeout:
-          case DioExceptionType.receiveTimeout:
-            throw Exception("Connection timeout. Please try again.");
-          case DioExceptionType.badResponse:
-            final responseData = e.response?.data;
-            final errorMessage = responseData is Map ? responseData['error'] ?? 'Unknown error' : 'Unknown error';
-            throw Exception("Server error: $errorMessage");
-          case DioExceptionType.cancel:
-            throw Exception("Request cancelled");
-          default:
-            throw Exception("Network error: ${e.message}");
-        }
-      }
-      throw Exception("Failed to create doctor: ${e.toString()}");
+      rethrow;
     }
   }
 
@@ -238,137 +53,233 @@ class DoctorRepoImpl implements DoctorRepo {
     String? clinic,
     bool? isActive,
   }) async {
-    final url = "${Config.baseUrl}${Config.doctors}";
-    final String? token = CacheHelper.getData(key: "token");
+    try {
+      Map<String, dynamic> query = {
+        if (page != null) "page": page,
+        if (page != null) 'limit': 10,
+        if (search != null && search.isNotEmpty) "search": search,
+        if (clinic != null && clinic.isNotEmpty) "clinic": clinic,
+        if (branch != null && branch.isNotEmpty) "branch": branch,
+        if (isActive != null) "isActive": isActive,
+      };
 
-    Map<String, dynamic> query = {
-      "page": page ?? 1,
-      'limit': 10,
-      if (search != null || search!.isNotEmpty) "search": search,
-      if (branch != null) "branch": branch,
-      if (clinic != null) "clinic": clinic,
-      if (isActive != null) "isActive": isActive,
-    };
+      final response = await _apiHandler.get<DoctorModel>(
+        ApiConstants.doctors,
+        queryParameters: query,
+        cancelKey: 'getAllDoctors',
+        fromJson: (json) => DoctorModel.fromJson(json),
+      );
 
-    final result = await ApiService.request<DoctorModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => DoctorModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to fetch doctors");
+      // Check if the response was successful
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        // Handle error case
+        throw Exception(response.message ?? 'Failed to fetch doctors');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<Doctor> getDoctor({required String id}) async {
-    final url = "${Config.baseUrl}${Config.doctors}/$id";
-    final String? token = CacheHelper.getData(key: "token");
+    try {
+      final response = await _apiHandler.get<Doctor>(
+        '${ApiConstants.doctors}/$id',
+        cancelKey: 'getDoctor',
+        fromJson: (json) => Doctor.fromJson(json),
+      );
 
-    final result = await ApiService.request<Doctor>(
-      url: url,
-      method: 'GET',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => Doctor.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to fetch doctor");
+      // Check if the response was successful
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        // Handle error case
+        throw Exception(response.message ?? 'Failed to fetch doctor');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
-  Future<Doctor> updateDoctor({required String id, required Doctor doctor}) async {
-    final url = "${Config.baseUrl}${Config.doctors}/$id";
-    final String? token = CacheHelper.getData(key: "token");
+  Future<Doctor> updateDoctor(
+      {required String id, required Doctor doctor}) async {
+    try {
+      Map<String, dynamic> data = {
+        "name": doctor.name?.trim(),
+        "phone": doctor.phone?.trim(),
+        "clinic": doctor.clinic?.id,
+        if (doctor.birthDate != null) "birthDate": doctor.birthDate.toString(),
+        if (doctor.capability != null && doctor.capability!.isNotEmpty)
+          "capabilities": doctor.capability,
+        if (doctor.qualifications != null && doctor.qualifications!.isNotEmpty)
+          "qualifications": doctor.qualifications,
+        if (doctor.image != null && doctor.image!.isNotEmpty)
+          "image": doctor.image,
+      };
 
-    Map<String, dynamic> data = {
-      "name": doctor.name?.trim(),
-      "phone": doctor.phone?.trim(),
-      "clinic": doctor.clinic?.id,
-      if (doctor.birthDate != null) "birthDate": doctor.birthDate.toString(),
-      if (doctor.capability != null && doctor.capability!.isNotEmpty) "capabilities": doctor.capability,
-      if (doctor.qualifications != null && doctor.qualifications!.isNotEmpty) "qualifications": doctor.qualifications,
-      if (doctor.image != null && doctor.image!.isNotEmpty) "image": doctor.image,
-    };
+      final response = await _apiHandler.put<Doctor>(
+        '${ApiConstants.doctors}/$id',
+        data: data,
+        cancelKey: 'updateDoctor',
+        fromJson: (json) => Doctor.fromJson(json),
+      );
 
-    final result = await ApiService.request<Doctor>(
-      url: url,
-      method: 'PUT',
-      data: data,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => Doctor.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to update doctor");
+      // Check if the response was successful
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        // Handle error case
+        throw Exception(response.message ?? 'Failed to update doctor');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<DataModel> deleteDoctor({required String id}) async {
-    final url = "${Config.baseUrl}${Config.doctors}/$id";
-    final String? token = CacheHelper.getData(key: "token");
+    try {
+      final response = await _apiHandler.delete<DataModel>(
+        '${ApiConstants.doctors}/$id',
+        cancelKey: 'deleteDoctor',
+        fromJson: (json) => DataModel.fromJson(json),
+      );
 
-    final result = await ApiService.request<DataModel>(
-      url: url,
-      method: 'DELETE',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => DataModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to delete doctor");
+      // Check if the response was successful
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        // Handle error case
+        throw Exception(response.message ?? 'Failed to delete doctor');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<BranchesModel> getAllBranches() async {
-    final url = "${Config.baseUrl}${Config.branches}";
-    final String? token = CacheHelper.getData(key: "token");
+    try {
+      final response = await _apiHandler.get<BranchesModel>(
+        ApiConstants.branches,
+        cancelKey: 'getAllBranches',
+        fromJson: (json) => BranchesModel.fromJson(json),
+      );
 
-    final result = await ApiService.request<BranchesModel>(
-      url: url,
-      method: 'GET',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => BranchesModel.fromJson(json),
-    );
+      // Check if the response was successful
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        // Handle error case
+        throw Exception(response.message ?? 'Failed to fetch branches');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch branches");
+  @override
+  Future<Doctor> addBranch({
+    required String doctorId,
+    required String branchId,
+    required String availableFrom,
+    required String availableTo,
+    required List availableDays,
+  }) async {
+    try {
+      Map<String, dynamic> data = {
+        "doctorId": doctorId,
+        "branchId": branchId,
+        "availableFrom": availableFrom,
+        "availableTo": availableTo,
+        "availableDays": availableDays,
+      };
+
+      final response = await _apiHandler.post<Doctor>(
+        '${ApiConstants.doctors}/addBranch',
+        data: data,
+        cancelKey: 'addBranch',
+        fromJson: (json) => Doctor.fromJson(json),
+      );
+
+      // Check if the response was successful
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        // Handle error case
+        throw Exception(response.message ?? 'Failed to add branch');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Doctor> editBranch({
+    required String doctorId,
+    required String branchId,
+    required String availableFrom,
+    required String availableTo,
+    required List availableDays,
+  }) async {
+    try {
+      Map<String, dynamic> data = {
+        "doctorId": doctorId,
+        "branchId": branchId,
+        "availableFrom": availableFrom,
+        "availableTo": availableTo,
+        "availableDays": availableDays,
+      };
+
+      final response = await _apiHandler.put<Doctor>(
+        '${ApiConstants.doctors}/editBranch',
+        data: data,
+        cancelKey: 'editBranch',
+        fromJson: (json) => Doctor.fromJson(json),
+      );
+
+      // Check if the response was successful
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        // Handle error case
+        throw Exception(response.message ?? 'Failed to edit branch');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Doctor> deleteBranch({
+    required String doctorId,
+    required String branchId,
+  }) async {
+    try {
+      Map<String, dynamic> data = {
+        "doctorId": doctorId,
+        "branchId": branchId,
+      };
+
+      final response = await _apiHandler.delete<Doctor>(
+        '${ApiConstants.doctors}/deleteBranch',
+        data: data,
+        cancelKey: 'deleteBranch',
+        fromJson: (json) => Doctor.fromJson(json),
+      );
+
+      // Check if the response was successful
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        // Handle error case
+        throw Exception(response.message ?? 'Failed to delete branch');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

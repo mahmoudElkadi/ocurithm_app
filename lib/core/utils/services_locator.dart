@@ -26,6 +26,12 @@ import '../../modules/Receptionist/presentation/manager/receptionist_actions_cub
 import '../../modules/Receptionist/presentation/manager/get_receptionists_cubit/get_receptionists_cubit.dart';
 import '../../modules/Receptionist/presentation/manager/get_single_receptionist_cubit/get_single_receptionist_cubit.dart';
 import '../../modules/Receptionist/presentation/manager/get_capabilities_cubit/get_capabilities_cubit.dart';
+import '../../modules/Doctor/data/repos/doctor_repo.dart';
+import '../../modules/Doctor/data/repos/doctor_repo_impl.dart';
+import '../../modules/Doctor/presentation/manager/doctor_actions_cubit/doctor_actions_cubit.dart';
+import '../../modules/Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart';
+import '../../modules/Doctor/presentation/manager/get_single_doctor_cubit/get_single_doctor_cubit.dart';
+import '../../modules/Doctor/presentation/manager/doctor_branch_actions_cubit/doctor_branch_actions_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -71,5 +77,12 @@ class ServiceLocator {
     sl.registerFactory(
         () => GetSingleReceptionistCubit(sl.call<ReceptionistRepo>()));
     sl.registerFactory(() => GetCapabilitiesCubit(sl.call<ReceptionistRepo>()));
+
+    ///Doctors
+    sl.registerLazySingleton<DoctorRepo>(() => DoctorRepoImpl());
+    sl.registerFactory(() => GetDoctorsCubit(sl.call<DoctorRepo>()));
+    sl.registerFactory(() => DoctorActionsCubit(sl.call<DoctorRepo>()));
+    sl.registerFactory(() => GetSingleDoctorCubit(sl.call<DoctorRepo>()));
+    sl.registerFactory(() => DoctorBranchActionsCubit(sl.call<DoctorRepo>()));
   }
 }
