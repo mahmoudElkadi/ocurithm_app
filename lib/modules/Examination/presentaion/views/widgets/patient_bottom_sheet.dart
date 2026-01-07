@@ -151,7 +151,7 @@ class _PatientDetailsBottomSheetState extends State<PatientDetailsBottomSheet> {
             child: ElevatedButton(
               onPressed: () async {
                 if (widget.patient != null) {
-                  await Get.to(() => PatientDetailsView(patient: widget.patient, id: widget.patient!.id.toString()));
+                //  await Get.to(() => PatientDetailsView(patient: widget.patient, id: widget.patient!.id.toString()));
                   setState(() {});
                 }
                 Navigator.pop(context);

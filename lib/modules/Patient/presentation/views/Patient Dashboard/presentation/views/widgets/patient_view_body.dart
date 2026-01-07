@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../../../../../core/widgets/height_spacer.dart';
+import '../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../core/widgets/search_fileld.dart';
-import '../../../../../manager/patient_cubit.dart';
-import '../../../../../manager/patient_state.dart';
+import '../../../../../manager/get_patients_cubit/get_patients_cubit.dart';
 import 'patient_card.dart';
 
 class PatientViewBody extends StatefulWidget {
@@ -16,22 +15,28 @@ class PatientViewBody extends StatefulWidget {
 
 class _PatientViewBodyState extends State<PatientViewBody> {
   TextEditingController searchController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PatientCubit, PatientState>(
+    return BlocBuilder<GetPatientsCubit, GetPatientsState>(
       builder: (context, state) => Column(
-        children: [_buildSearchField(PatientCubit.get(context)), const HeightSpacer(size: 10), const PatientListView()],
+        children: [
+          _buildSearchField(context),
+          const HeightSpacer(size: 10),
+          const PatientListView()
+        ],
       ),
     );
   }
 
-  Widget _buildSearchField(PatientCubit cubit) {
+  Widget _buildSearchField(BuildContext context) {
+    final cubit = context.read<GetPatientsCubit>();
     return SearchField(
-        onTextFieldChanged: () => cubit.getPatients(),
-        searchController: cubit.searchController,
+        onTextFieldChanged: ()async => cubit.onSearchChanged(searchController.text),
+        searchController: searchController,
         onClose: () {
-          cubit.searchController.clear();
-          cubit.getPatients();
+          searchController.clear();
+          cubit.onSearchChanged('');
         });
   }
 }

@@ -32,6 +32,13 @@ import '../../modules/Doctor/presentation/manager/doctor_actions_cubit/doctor_ac
 import '../../modules/Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart';
 import '../../modules/Doctor/presentation/manager/get_single_doctor_cubit/get_single_doctor_cubit.dart';
 import '../../modules/Doctor/presentation/manager/doctor_branch_actions_cubit/doctor_branch_actions_cubit.dart';
+import '../../modules/Patient/data/repos/patient_repo.dart';
+import '../../modules/Patient/data/repos/patient_repo_impl.dart';
+import '../../modules/Patient/presentation/manager/get_patients_cubit/get_patients_cubit.dart';
+import '../../modules/Patient/presentation/manager/patient_actions_cubit/patient_actions_cubit.dart';
+import '../../modules/Patient/presentation/manager/get_single_patient_cubit/get_single_patient_cubit.dart';
+import '../../modules/Patient/presentation/manager/get_patient_examinations_cubit/get_patient_examinations_cubit.dart';
+import '../../modules/Patient/presentation/manager/get_one_examination_cubit/get_one_examination_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -84,5 +91,14 @@ class ServiceLocator {
     sl.registerFactory(() => DoctorActionsCubit(sl.call<DoctorRepo>()));
     sl.registerFactory(() => GetSingleDoctorCubit(sl.call<DoctorRepo>()));
     sl.registerFactory(() => DoctorBranchActionsCubit(sl.call<DoctorRepo>()));
+
+    ///Patients
+    sl.registerLazySingleton<PatientRepo>(() => PatientRepoImpl());
+    sl.registerFactory(() => GetPatientsCubit(sl.call<PatientRepo>()));
+    sl.registerFactory(() => PatientActionsCubit(sl.call<PatientRepo>()));
+    sl.registerFactory(() => GetSinglePatientCubit(sl.call<PatientRepo>()));
+    sl.registerFactory(
+        () => GetPatientExaminationsCubit(sl.call<PatientRepo>()));
+    sl.registerFactory(() => GetOneExaminationCubit(sl.call<PatientRepo>()));
   }
 }

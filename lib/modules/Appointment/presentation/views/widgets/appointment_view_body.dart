@@ -538,11 +538,11 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
               InkWell(
                 onTap: () async {
                   if (appointment.patient != null) {
-                    bool? result = await Get.to(() =>
-                        PatientDetailsView(patient: appointment.patient!, id: appointment.patient!.id.toString()));
-                    if (result == true) {
-                      setState(() {});
-                    }
+                   // bool? result = await Get.to(() =>
+                      //  PatientDetailsView(patient: appointment.patient!, id: appointment.patient!.id.toString()));
+                    // if (result == true) {
+                    //   setState(() {});
+                    // }
                   }
                 },
                 child: Ink(

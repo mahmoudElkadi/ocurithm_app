@@ -6,15 +6,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
-import 'package:ocurithm/modules/Patient/data/repos/Patient_repo_impl.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/widgets/patient_view_body.dart';
 
 import '../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../core/widgets/no_internet.dart';
 import '../../../../../../../core/Network/shared.dart';
-import '../../../../manager/patient_cubit.dart';
-import '../../../../manager/patient_state.dart';
-import '../../../Add Patient/presentation/view/add_patient_view.dart';
+import '../../../../../../../core/utils/services_locator.dart';
+import '../../../../manager/get_patients_cubit/get_patients_cubit.dart';
+import '../../../../manager/patient_actions_cubit/patient_actions_cubit.dart';
+import '../../../patient_form/patient_form_page.dart';
 
 class AdminPatientView extends StatelessWidget {
   const AdminPatientView({super.key});
@@ -25,47 +25,75 @@ class AdminPatientView extends StatelessWidget {
       onTap: () {
         WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
       },
-      child: BlocProvider(
-        create: (context) => PatientCubit(PatientRepoImpl())..getPatients(),
-        child: BlocBuilder<PatientCubit, PatientState>(
-          builder: (context, state) => CustomScaffold(
-            title: "Patients",
-            actions: [
-              if (CacheHelper.getStringList(key: "capabilities").contains("managePatients"))
-                IconButton(
-                  onPressed: () {
-                    Get.to(() => CreatePatientView(
-                          cubit: PatientCubit.get(context),
-                        ));
-                  },
-                  icon: SvgPicture.asset(
-                    "assets/icons/add_user.svg",
-                    color: Colorz.primaryColor,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (context) =>
+                  sl<GetPatientsCubit>()..add(GetAllPatientsEvent())),
+          BlocProvider(create: (context) => sl<PatientActionsCubit>()),
+        ],
+        child: BlocListener<PatientActionsCubit, PatientActionsState>(
+          listener: (context, state) {
+            if (state.isSuccess) {
+              if (state.successMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(state.successMessage!),
+                    backgroundColor: Colors.green));
+              }
+              // Refresh list
+              context.read<GetPatientsCubit>().add(GetAllPatientsEvent());
+            } else if (state.isError) {
+              if (state.errorMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(state.errorMessage!),
+                    backgroundColor: Colors.red));
+              }
+            }
+          },
+          child: BlocBuilder<GetPatientsCubit, GetPatientsState>(
+            builder: (context, state) => CustomScaffold(
+              title: "Patients",
+              actions: [
+                if (CacheHelper.getStringList(key: "capabilities")
+                    .contains("managePatients"))
+                  IconButton(
+                    onPressed: () async {
+                      final result = await Get.to(() =>
+                          const PatientFormPage(mode: PatientFormMode.add));
+                      if (result == true) {
+                        context
+                            .read<GetPatientsCubit>()
+                            .add(GetAllPatientsEvent());
+                      }
+                    },
+                    icon: SvgPicture.asset(
+                      "assets/icons/add_user.svg",
+                      color: Colorz.primaryColor,
+                    ),
                   ),
-                ),
-            ],
-            body: CustomMaterialIndicator(
-                onRefresh: () async {
-                  try {
-                    PatientCubit.get(context).page = 1;
-                    PatientCubit.get(context).searchController.clear();
-                    await PatientCubit.get(context).getPatients();
-                  } catch (e) {
-                    log(e.toString());
-                  }
-                },
-                indicatorBuilder: (BuildContext context, IndicatorController controller) {
-                  return const Image(image: AssetImage("assets/icons/logo.png"));
-                },
-                child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: PatientCubit.get(context).connection != false
-                        ? const PatientViewBody()
-                        : NoInternet(
-                            onPressed: () {
-                              PatientCubit.get(context).getPatients();
-                            },
-                          ))),
+              ],
+              body: CustomMaterialIndicator(
+                  onRefresh: () async {
+                    context.read<GetPatientsCubit>().add(ResetPatientFilters());
+                    // Reset filters triggers get all
+                  },
+                  indicatorBuilder:
+                      (BuildContext context, IndicatorController controller) {
+                    return const Image(
+                        image: AssetImage("assets/icons/logo.png"));
+                  },
+                  child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: !state.noConnection
+                          ? const PatientViewBody()
+                          : NoInternet(
+                              onPressed: () {
+                                context
+                                    .read<GetPatientsCubit>()
+                                    .add(GetAllPatientsEvent());
+                              },
+                            ))),
+            ),
           ),
         ),
       ),

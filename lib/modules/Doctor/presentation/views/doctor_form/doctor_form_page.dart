@@ -115,9 +115,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   // Validation flags
   bool _isNameValid = true;
   bool _isPhoneValid = true;
-  bool _isPasswordValid = true;
   bool _isBirthDateValid = true;
-  bool _isQualificationsValid = true;
 
   // Password generator
   final _passwordGenerator = PasswordGenerator(
@@ -209,7 +207,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
               },
               icon: SvgPicture.asset(
                 "assets/icons/add_branch.svg",
-                color: Colors.white,
+                colorFilter: ColorFilter.mode(
+                    isDark ? Colors.white : Colors.black, BlendMode.srcIn),
               ),
             ),
         ],
@@ -591,60 +590,83 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     final theme = Theme.of(context);
     final primaryColor = theme.primaryColor;
 
-    return TextField2(
-      controller: controller,
-      required: true,
-      type: keyboardType,
-      hintText: hintText,
-      fillColor: theme.cardColor,
-      borderColor: primaryColor,
-      radius: 30,
-      readOnly: readOnly,
-      suffixIcon: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
-        child: SvgPicture.asset(
-          icon,
-          color: primaryColor,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          hintText,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
-      isShadow: isValid,
-      validator: validator,
+        const HeightSpacer(size: 8),
+        TextField2(
+          controller: controller,
+          required: true,
+          type: keyboardType,
+          hintText: hintText,
+          fillColor: theme.cardColor,
+          borderColor: primaryColor,
+          border: primaryColor,
+          radius: 30,
+          readOnly: readOnly,
+          suffixIcon: Container(
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
+            child: SvgPicture.asset(
+              icon,
+              color: primaryColor,
+            ),
+          ),
+          isShadow: false,
+          validator: validator,
+        ),
+      ],
     );
   }
 
   Widget _buildPasswordField(ThemeData theme) {
-    return TextField2(
-      controller: _passwordController,
-      required: true,
-      hintText: S.of(context).password,
-      fillColor: theme.cardColor,
-      borderColor: theme.primaryColor,
-      radius: 30,
-      isPassword: _obscurePassword,
-      suffixIcon: IconButton(
-        onPressed: () {
-          setState(() {
-            _obscurePassword = !_obscurePassword;
-          });
-        },
-        icon: Icon(
-          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          S.of(context).password,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        color: theme.primaryColor,
-      ),
-      isShadow: _isPasswordValid,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          setState(() => _isPasswordValid = false);
-          return S.of(context).mustPassword;
-        }
-        if (value.length < 6) {
-          setState(() => _isPasswordValid = false);
-          return 'Password must be at least 6 characters';
-        }
-        setState(() => _isPasswordValid = true);
-        return null;
-      },
+        const HeightSpacer(size: 8),
+        TextField2(
+          controller: _passwordController,
+          required: true,
+          hintText: S.of(context).password,
+          fillColor: theme.cardColor,
+          borderColor: theme.primaryColor,
+          border: theme.primaryColor,
+          radius: 30,
+          isPassword: _obscurePassword,
+          suffixIcon: IconButton(
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
+            icon: Icon(
+              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+            ),
+            color: theme.primaryColor,
+          ),
+          isShadow: false,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return S.of(context).mustPassword;
+            }
+            if (value.length < 6) {
+              return 'Password must be at least 6 characters';
+            }
+            return null;
+          },
+        ),
+      ],
     );
   }
 
@@ -685,55 +707,53 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   }
 
   Widget _buildQualificationsField(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: _isQualificationsValid
-            ? [
-                BoxShadow(
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.grey.shade200,
-                  spreadRadius: 2,
-                  blurRadius: 3,
-                  offset: const Offset(0, 0),
-                ),
-              ]
-            : null,
-      ),
-      child: TextFormField(
-        controller: _qualificationsController,
-        readOnly: _isReadOnly,
-        maxLines: 4,
-        decoration: InputDecoration(
-          hintText: 'Qualifications',
-          hintStyle: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Qualifications",
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: theme.primaryColor),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: theme.primaryColor.withOpacity(0.3)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: theme.primaryColor, width: 2),
-          ),
-          contentPadding: const EdgeInsets.all(16),
         ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            setState(() => _isQualificationsValid = false);
-            return 'Qualifications are required';
-          }
-          setState(() => _isQualificationsValid = true);
-          return null;
-        },
-      ),
+        const HeightSpacer(size: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextFormField(
+            controller: _qualificationsController,
+            readOnly: _isReadOnly,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText: 'Qualifications',
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: theme.primaryColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: theme.primaryColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: theme.primaryColor, width: 2),
+              ),
+              contentPadding: const EdgeInsets.all(16),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Qualifications are required';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -743,35 +763,48 @@ class _DoctorFormViewState extends State<DoctorFormView> {
       builder: (context, state) {
         return Padding(
           padding: EdgeInsets.only(bottom: 20.h),
-          child: DropdownItem(
-            radius: 30,
-            color: theme.cardColor,
-            isShadow: true,
-            iconData: Icon(
-              Icons.arrow_drop_down_circle,
-              color: theme.primaryColor,
-            ),
-            items: state.clinics?.clinics ?? [],
-            isValid: true,
-            validateText: 'Clinic must not be empty',
-            selectedValue: _selectedClinicId != null
-                ? state.clinics?.clinics
-                    .firstWhere((c) => c.id == _selectedClinicId)
-                    .name
-                : null,
-            hintText: 'Select Clinic',
-            itemAsString: (item) => item.name.toString(),
-            readOnly: _isReadOnly,
-            onItemSelected: (item) {
-              setState(() {
-                _selectedClinicId = item.id;
-              });
-              // Load branches for selected clinic
-              context.read<GetBranchesCubit>().add(
-                    SetClinicFilterEvent(_selectedClinicId),
-                  );
-            },
-            isLoading: state.isLoading,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Clinic",
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const HeightSpacer(size: 8),
+              DropdownItem(
+                radius: 30,
+                color: theme.cardColor,
+                border: theme.primaryColor,
+                isShadow: false,
+                iconData: Icon(
+                  Icons.arrow_drop_down_circle,
+                  color: theme.primaryColor,
+                ),
+                items: state.clinics?.clinics ?? [],
+                isValid: true,
+                validateText: 'Clinic must not be empty',
+                selectedValue: _selectedClinicId != null
+                    ? state.clinics?.clinics
+                        .firstWhere((c) => c.id == _selectedClinicId)
+                        .name
+                    : null,
+                hintText: 'Select Clinic',
+                itemAsString: (item) => item.name.toString(),
+                readOnly: _isReadOnly,
+                onItemSelected: (item) {
+                  setState(() {
+                    _selectedClinicId = item.id;
+                  });
+                  // Load branches for selected clinic
+                  context.read<GetBranchesCubit>().add(
+                        SetClinicFilterEvent(_selectedClinicId),
+                      );
+                },
+                isLoading: state.isLoading,
+              ),
+            ],
           ),
         );
       },
@@ -877,44 +910,61 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                   }
                 },
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
             decoration: BoxDecoration(
               color: theme.cardColor,
               borderRadius: BorderRadius.circular(30),
               border: Border.all(
-                color: _isBirthDateValid
-                    ? theme.primaryColor.withOpacity(0.3)
-                    : Colors.red,
+                color: _isBirthDateValid ? theme.primaryColor : Colors.red,
               ),
-              boxShadow: _isBirthDateValid
-                  ? [
-                      BoxShadow(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.1)
-                            : Colors.grey.shade200,
-                        spreadRadius: 2,
-                        blurRadius: 3,
-                        offset: const Offset(0, 0),
-                      ),
-                    ]
-                  : null,
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  Icons.calendar_today,
-                  color: theme.primaryColor,
-                  size: 20,
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      _birthDate != null
+                          ? '${_birthDate!.day}'
+                          : S.of(context).dd,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
                 ),
-                SizedBox(width: 12.w),
-                Text(
-                  _birthDate != null
-                      ? '${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}'
-                      : 'Select Birth Date',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: _birthDate != null
-                        ? theme.textTheme.bodyMedium?.color
-                        : theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                Container(
+                  width: 2,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: theme.dividerColor,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      _birthDate != null
+                          ? '${_birthDate!.month}'
+                          : S.of(context).mm,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 2,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: theme.dividerColor,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      _birthDate != null
+                          ? '${_birthDate!.year}'
+                          : S.of(context).yy,
+                      style: theme.textTheme.titleMedium,
+                    ),
                   ),
                 ),
               ],

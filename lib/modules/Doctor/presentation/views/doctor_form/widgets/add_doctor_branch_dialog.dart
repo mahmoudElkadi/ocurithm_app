@@ -39,9 +39,9 @@ class _AddDoctorBranchDialogState extends State<AddDoctorBranchDialog> {
   List<String> _availableDays = [];
 
   // Validation state
-  bool _chooseBranch = false;
-  bool _chooseTime = false;
-  bool _chooseDays = false;
+  bool _chooseBranch = true;
+  bool _chooseTime = true;
+  bool _chooseDays = true;
 
   List<String> _initialSelectedDays = [];
 
@@ -89,90 +89,129 @@ class _AddDoctorBranchDialogState extends State<AddDoctorBranchDialog> {
               const SizedBox(height: 20),
 
               // Branch Dropdown
-              BlocBuilder<GetBranchesCubit, GetBranchesState>(
-                builder: (context, state) {
-                  return DropdownItem(
-                    radius: 30,
-                    color: isDark
-                        ? Colors.grey[800]!.withOpacity(0.5)
-                        : Colorz.white,
-                    isShadow: true,
-                    iconData: Icon(
-                      Icons.arrow_drop_down_circle,
-                      color: theme.primaryColor,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Branch",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                    items: state.branches?.branches,
-                    isValid: _chooseBranch,
-                    validateText: S.of(context).mustBranch,
-                    readOnly:
-                        widget.initialBranch != null, // Read-only if editing
-                    selectedValue: _selectedBranch?.name,
-                    hintText: 'Select Branch',
-                    itemAsString: (item) => item.name.toString(),
-                    onItemSelected: (item) {
-                      setState(() {
-                        if (item != "Not Found") {
-                          _chooseBranch = true;
-                          _selectedBranch = item;
-                          // Initialize times with branch times
-                          _availableFrom = item.openTime ?? '08:00';
-                          _availableTo = item.closeTime ?? '18:00';
-                        }
-                      });
+                  ),
+                  const SizedBox(height: 8),
+                  BlocBuilder<GetBranchesCubit, GetBranchesState>(
+                    builder: (context, state) {
+                      return DropdownItem(
+                        radius: 30,
+                        color: isDark
+                            ? Colors.grey[800]!.withOpacity(0.5)
+                            : Colorz.white,
+                        isShadow: false,
+                        border: theme.primaryColor,
+                        iconData: Icon(
+                          Icons.arrow_drop_down_circle,
+                          color: theme.primaryColor,
+                        ),
+                        items: state.branches?.branches,
+                        isValid: _chooseBranch,
+                        validateText: S.of(context).mustBranch,
+                        readOnly: widget.initialBranch !=
+                            null, // Read-only if editing
+                        selectedValue: _selectedBranch?.name,
+                        hintText: 'Select Branch',
+                        itemAsString: (item) => item.name.toString(),
+                        onItemSelected: (item) {
+                          setState(() {
+                            if (item != "Not Found") {
+                              _chooseBranch = true;
+                              _selectedBranch = item;
+                              // Initialize times with branch times
+                              _availableFrom = item.openTime ?? '08:00';
+                              _availableTo = item.closeTime ?? '18:00';
+                            }
+                          });
+                        },
+                        isLoading: state.state == GetBranchesStatus.loading,
+                      );
                     },
-                    isLoading: state.state == GetBranchesStatus.loading,
-                  );
-                },
+                  ),
+                ],
               ),
 
               const SizedBox(height: 20),
 
               if (_selectedBranch != null) ...[
                 // Work Days Selector
-                WorkDaysSelector(
-                  radius: 30,
-                  isShadow: true,
-                  border: Colors.transparent,
-                  onDaysSelected: (List<String> days) {
-                    setState(() {
-                      _availableDays = days;
-                    });
-                  },
-                  isValid: _chooseDays,
-                  initialSelectedDays: _initialSelectedDays,
-                  enabledDays: _selectedBranch?.workDays,
-                  icon: Icon(
-                    Icons.arrow_drop_down_circle,
-                    color: theme.primaryColor,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Working Days",
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    WorkDaysSelector(
+                      radius: 30,
+                      isShadow: false,
+                      border: theme.primaryColor,
+                      onDaysSelected: (List<String> days) {
+                        setState(() {
+                          _availableDays = days;
+                        });
+                      },
+                      isValid: _chooseDays,
+                      initialSelectedDays: _initialSelectedDays,
+                      enabledDays: _selectedBranch?.workDays,
+                      icon: Icon(
+                        Icons.arrow_drop_down_circle,
+                        color: theme.primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 20),
 
                 // Business Hours Selector
-                BusinessHoursSelector(
-                  onTimeRangeSelected: (openTime, closeTime) {
-                    setState(() {
-                      _availableFrom =
-                          '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
-                      _availableTo =
-                          '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
-                    });
-                  },
-                  initialOpenTime: TimeParser.stringToTimeOfDay(_availableFrom),
-                  initialCloseTime: TimeParser.stringToTimeOfDay(_availableTo),
-                  icon: Icon(
-                    Icons.arrow_drop_down_circle,
-                    color: theme.primaryColor,
-                  ),
-                  radius: 30,
-                  isValid: _chooseTime,
-                  isShadow: true,
-                  border: Colors.transparent,
-                  startEnabledTime:
-                      TimeParser.stringToTimeOfDay(_selectedBranch?.openTime),
-                  endEnabledTime:
-                      TimeParser.stringToTimeOfDay(_selectedBranch?.closeTime),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Business Hours",
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    BusinessHoursSelector(
+                      onTimeRangeSelected: (openTime, closeTime) {
+                        setState(() {
+                          _availableFrom =
+                              '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
+                          _availableTo =
+                              '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
+                        });
+                      },
+                      initialOpenTime:
+                          TimeParser.stringToTimeOfDay(_availableFrom),
+                      initialCloseTime:
+                          TimeParser.stringToTimeOfDay(_availableTo),
+                      icon: Icon(
+                        Icons.arrow_drop_down_circle,
+                        color: theme.primaryColor,
+                      ),
+                      radius: 30,
+                      isValid: _chooseTime,
+                      isShadow: false,
+                      border: theme.primaryColor,
+                      startEnabledTime: TimeParser.stringToTimeOfDay(
+                          _selectedBranch?.openTime),
+                      endEnabledTime: TimeParser.stringToTimeOfDay(
+                          _selectedBranch?.closeTime),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 20),
