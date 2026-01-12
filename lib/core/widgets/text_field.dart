@@ -70,7 +70,14 @@ class TextField2 extends StatelessWidget {
                   const WidthSpacer(size: 10),
                   Text(
                     text!,
-                    style: appStyle(context, 18, Colors.black, FontWeight.bold),
+                    style: appStyle(
+                        context,
+                        18,
+                        Theme.of(context).primaryColor == Colors.black
+                            ? Colors.black
+                            : Theme.of(context).textTheme.bodyLarge?.color ??
+                                Colors.black,
+                        FontWeight.bold),
                   ),
                 ],
               )
@@ -337,14 +344,16 @@ class CustomTextField extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide(
-                    color: errorText != null ? Colors.red : Colors.grey.shade300,
+                    color:
+                        errorText != null ? Colors.red : Colors.grey.shade300,
                     width: 1,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide(
-                    color: errorText != null ? Colors.red : Colors.grey.shade300,
+                    color:
+                        errorText != null ? Colors.red : Colors.grey.shade300,
                     width: 1,
                   ),
                 ),
@@ -443,6 +452,15 @@ class EnhancedTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine colors based on theme if not explicitly provided
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultTextColor = isDark ? Colors.white : Colors.black;
+    final defaultFillColor = isDark
+        ? const Color(0xFF2C2C2C)
+        : (Colors.grey[200]?.withOpacity(0.9) ?? Colors.grey);
+    final defaultContainerColor =
+        isDark ? const Color(0xFF2C2C2C) : Colors.white;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -454,10 +472,10 @@ class EnhancedTextField extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 text!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: defaultTextColor,
                 ),
               ),
             ],
@@ -467,10 +485,10 @@ class EnhancedTextField extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius ?? 30),
-            color: fillColor ?? Colors.white,
+            color: fillColor ?? defaultContainerColor,
             boxShadow: [
               // Only show shadow if isShadow is true AND there's no error
-              if (isShadow == false)
+              if (isShadow == false && !isDark)
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.2),
                   spreadRadius: 2,
@@ -487,6 +505,7 @@ class EnhancedTextField extends StatelessWidget {
             onChanged: onChanged,
             onFieldSubmitted: onSubmit,
             onTap: onTap,
+            style: TextStyle(color: defaultTextColor),
             validator: required
                 ? validator ??
                     (value) {
@@ -500,7 +519,7 @@ class EnhancedTextField extends StatelessWidget {
               hintText: hintText,
               hintStyle: hintStyle ??
                   TextStyle(
-                    color: Colors.grey.shade500,
+                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade500,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -510,7 +529,7 @@ class EnhancedTextField extends StatelessWidget {
               ),
               isDense: true,
               filled: true,
-              fillColor: fillColor ?? Colors.grey[200]?.withOpacity(0.9),
+              fillColor: fillColor ?? defaultFillColor,
               suffixIcon: Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: suffixIcon,
@@ -519,21 +538,27 @@ class EnhancedTextField extends StatelessWidget {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(radius ?? 30),
                 borderSide: BorderSide(
-                  color: errorText != null ? Colors.red : border ?? Colors.transparent,
+                  color: errorText != null
+                      ? Colors.red
+                      : border ?? Colors.transparent,
                   width: 1,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(radius ?? 30),
                 borderSide: BorderSide(
-                  color: errorText != null ? Colors.red : border ?? Colors.transparent,
+                  color: errorText != null
+                      ? Colors.red
+                      : border ?? Colors.transparent,
                   width: 1,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(radius ?? 30),
                 borderSide: BorderSide(
-                  color: errorText != null ? Colors.red : borderColor ?? Colors.blue,
+                  color: errorText != null
+                      ? Colors.red
+                      : borderColor ?? Colors.blue,
                   width: 1,
                 ),
               ),

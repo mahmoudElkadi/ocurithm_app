@@ -718,8 +718,14 @@ class DropdownItem<T> extends StatelessWidget {
                   const SizedBox(width: 10),
                   Text(
                     label!,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                    style: appStyle(
+                        context,
+                        18,
+                        Theme.of(context).primaryColor == Colors.black
+                            ? Colors.black
+                            : Theme.of(context).textTheme.bodyLarge?.color ??
+                                Colors.black,
+                        FontWeight.bold),
                   ),
                 ],
               )

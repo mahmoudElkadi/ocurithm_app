@@ -39,6 +39,16 @@ import '../../modules/Patient/presentation/manager/patient_actions_cubit/patient
 import '../../modules/Patient/presentation/manager/get_single_patient_cubit/get_single_patient_cubit.dart';
 import '../../modules/Patient/presentation/manager/get_patient_examinations_cubit/get_patient_examinations_cubit.dart';
 import '../../modules/Patient/presentation/manager/get_one_examination_cubit/get_one_examination_cubit.dart';
+import '../../modules/Medicine/data/repos/medicine_repo.dart';
+import '../../modules/Medicine/data/repos/medicine_repo_impl.dart';
+import '../../modules/Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
+import '../../modules/Medicine/presentation/manager/medicine_actions_cubit/medicine_actions_cubit.dart';
+import '../../modules/Medicine/presentation/manager/get_active_ingredients_cubit/get_active_ingredients_cubit.dart';
+import '../../modules/Examination/data/repos/examination_repo.dart';
+import '../../modules/Examination/data/repos/examination_repo_impl.dart';
+import '../../modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
+import '../../modules/Examination/presentation/manager/get_single_examination_cubit/get_single_examination_cubit.dart';
+import 'package:ocurithm/modules/Examination/presentation/manager/examination_form_cubit/examination_form_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -100,5 +110,22 @@ class ServiceLocator {
     sl.registerFactory(
         () => GetPatientExaminationsCubit(sl.call<PatientRepo>()));
     sl.registerFactory(() => GetOneExaminationCubit(sl.call<PatientRepo>()));
+
+    ///Medicines
+    sl.registerLazySingleton<MedicineRepo>(() => MedicineRepoImpl());
+    sl.registerFactory(
+        () => GetMedicinesCubit(medicineRepo: sl.call<MedicineRepo>()));
+    sl.registerFactory(
+        () => MedicineActionsCubit(medicineRepo: sl.call<MedicineRepo>()));
+    sl.registerFactory(
+        () => GetActiveIngredientsCubit(medicineRepo: sl.call<MedicineRepo>()));
+
+    ///Examinations
+    sl.registerLazySingleton<ExaminationRepo>(() => ExaminationRepoImpl());
+    sl.registerFactory(
+        () => ExaminationActionsCubit(sl.call<ExaminationRepo>()));
+    sl.registerFactory(
+        () => GetSingleExaminationCubit(sl.call<ExaminationRepo>()));
+    sl.registerFactory(() => ExaminationFormCubit());
   }
 }

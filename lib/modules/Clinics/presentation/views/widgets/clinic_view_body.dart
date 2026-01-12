@@ -36,9 +36,12 @@ class _ClinicViewBodyState extends State<ClinicViewBody> {
     final cubit = GetClinicsCubit.get(context);
     return BlocBuilder<GetClinicsCubit, GetClinicsState>(
       builder: (context, state)
-        {return  Column(
-        children: [_buildSearchField(cubit), const HeightSpacer(size: 10), const ClinicListView()],
-      );}
+        {return  SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+          children: [_buildSearchField(cubit), const HeightSpacer(size: 10), const ClinicListView()],
+                ),
+        );}
     );
   }
 

@@ -114,7 +114,8 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
     // Dispatch appropriate event based on mode
     if (widget.mode == ClinicFormMode.add) {
       widget.actionsCubit.add(AddClinicEvent(clinic));
-    } else if (widget.mode == ClinicFormMode.edit) {
+    } else if (widget.mode == ClinicFormMode.edit ||
+        widget.mode == ClinicFormMode.view) {
       widget.actionsCubit.add(UpdateClinicEvent(
         clinicId: widget.clinicId!,
         clinic: clinic,
@@ -178,7 +179,6 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
                 message:
                     state.successMessage ?? 'Operation completed successfully',
               );
-              Navigator.of(context).pop(); // Close form dialog
               Navigator.of(context).pop(); // Go back to list
             }
 

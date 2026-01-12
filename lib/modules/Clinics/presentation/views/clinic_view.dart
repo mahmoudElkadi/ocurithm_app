@@ -26,41 +26,57 @@ class ClinicView extends StatelessWidget {
                 sl<GetClinicsCubit>()..add(GetAllClinicsEvent())),
         BlocProvider(create: (context) => sl<ClinicActionsCubit>()),
       ],
-      child: BlocBuilder<GetClinicsCubit, GetClinicsState>(
-        builder: (context, state) => CustomScaffold(
-            title: "Clinics",
-            actions: [
-              IconButton(
-                onPressed: () {
-                  // Show add clinic dialog
-                  showClinicFormDialog(
-                    context,
-                    mode: ClinicFormMode.add,
-                    actionsCubit: context.read<ClinicActionsCubit>(),
-                  );
-                },
-                icon: SvgPicture.asset(
-                  "assets/icons/add_branch.svg",
-                  color: Theme.of(context).primaryColor,
+      child: BlocListener<ClinicActionsCubit, ClinicActionsState>(
+        listener: (context, state) {
+          if (state.isAddSuccess && state.clinic != null) {
+            context
+                .read<GetClinicsCubit>()
+                .add(AddClinicToListEvent(state.clinic!));
+          } else if (state.isUpdateSuccess && state.clinic != null) {
+            context
+                .read<GetClinicsCubit>()
+                .add(UpdateClinicInListEvent(state.clinic!));
+          }
+        },
+        child: BlocBuilder<GetClinicsCubit, GetClinicsState>(
+          builder: (context, state) => CustomScaffold(
+              title: "Clinics",
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    context
+                        .read<ClinicActionsCubit>()
+                        .add(ResetClinicActionsEvent());
+                    // Show add clinic dialog
+                    showClinicFormDialog(
+                      context,
+                      mode: ClinicFormMode.add,
+                      actionsCubit: context.read<ClinicActionsCubit>(),
+                    );
+                  },
+                  icon: SvgPicture.asset(
+                    "assets/icons/add_branch.svg",
+                    color: Theme.of(context).primaryColor,
+                  ),
                 ),
-              ),
-            ],
-            body: CustomMaterialIndicator(
-                onRefresh: () async {
-                  try {
-                    context.read<GetClinicsCubit>().add(SetPageEvent(1));
-                    context.read<GetClinicsCubit>().add(SetSearchEvent(''));
-                    context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
-                  } catch (e) {
-                    log(e.toString());
-                  }
-                },
-                indicatorBuilder:
-                    (BuildContext context, IndicatorController controller) {
-                  return const Image(
-                      image: AssetImage("assets/icons/logo.png"));
-                },
-                child: const ClinicViewBody())),
+              ],
+              body: CustomMaterialIndicator(
+                  onRefresh: () async {
+                    try {
+                      context.read<GetClinicsCubit>().add(SetPageEvent(1));
+                      context.read<GetClinicsCubit>().add(SetSearchEvent(''));
+                      context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
+                    } catch (e) {
+                      log(e.toString());
+                    }
+                  },
+                  indicatorBuilder:
+                      (BuildContext context, IndicatorController controller) {
+                    return const Image(
+                        image: AssetImage("assets/icons/logo.png"));
+                  },
+                  child: const ClinicViewBody())),
+        ),
       ),
     );
   }

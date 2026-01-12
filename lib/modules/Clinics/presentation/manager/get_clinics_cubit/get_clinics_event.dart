@@ -10,7 +10,6 @@ class GetAllClinicsEvent extends GetClinicsEvent {
   GetAllClinicsEvent({this.page, this.search});
 }
 
-
 class RefreshClinicsEvent extends GetClinicsEvent {}
 
 class SetPageEvent extends GetClinicsEvent {
@@ -29,6 +28,18 @@ class RemoveClinicsEvent extends GetClinicsEvent {
   final int index;
 
   RemoveClinicsEvent(this.index);
+}
+
+class AddClinicToListEvent extends GetClinicsEvent {
+  final Clinic clinic;
+
+  AddClinicToListEvent(this.clinic);
+}
+
+class UpdateClinicInListEvent extends GetClinicsEvent {
+  final Clinic clinic;
+
+  UpdateClinicInListEvent(this.clinic);
 }
 
 class ResetFiltersEvent extends GetClinicsEvent {}

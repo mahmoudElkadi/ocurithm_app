@@ -8,6 +8,7 @@ import 'package:ocurithm/modules/Branch/presentation/views/branch_view.dart';
 import 'package:ocurithm/modules/Examination%20Type/presentation/views/examination_type_view.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
+import '../../../modules/Medicine/presentation/views/medicine_view.dart';
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
@@ -99,23 +100,73 @@ class MainCubit extends Cubit<MainState> {
     capabilities.add("dashboard");
 
     Map<String, List<dynamic>> statusMappings = {
-      "dashboard": ["Dashboard", const DashboardView(), "assets/icons/dashboard.svg"],
-      "showPatients": ["Patients", const AdminPatientView(), "assets/icons/patient.svg"],
-      "showAppointments": ["Appointments", const AppointmentView(), "assets/icons/appointment.svg"],
-      "manageClinics": ["Clinics", const ClinicView(), "assets/icons/clinic.svg"],
-      "showBranches": ["Branches", const AdminBranchView(), "assets/icons/branch.svg"],
-      "showDoctors": ["Doctors", const AdminDoctorView(), "assets/icons/doctor.svg"],
-      "manageReciptionists": ["Receptionists", const ReceptionistView(), "assets/icons/receptionist.svg"],
-      "manageExaminationTypes": ["Examination Types", const ExaminationTypeView(), "assets/icons/exam_type.svg"],
-      "managePaymentMethods": ["Payment Methods", const PaymentMethodView(), "assets/icons/payment.svg"],
+      "dashboard": [
+        "Dashboard",
+        const DashboardView(),
+        "assets/icons/dashboard.svg"
+      ],
+      "showPatients": [
+        "Patients",
+        const AdminPatientView(),
+        "assets/icons/patient.svg"
+      ],
+      "showAppointments": [
+        "Appointments",
+        const AppointmentView(),
+        "assets/icons/appointment.svg"
+      ],
+      "manageClinics": [
+        "Clinics",
+        const ClinicView(),
+        "assets/icons/clinic.svg"
+      ],
+      "showBranches": [
+        "Branches",
+        const AdminBranchView(),
+        "assets/icons/branch.svg"
+      ],
+      "showDoctors": [
+        "Doctors",
+        const AdminDoctorView(),
+        "assets/icons/doctor.svg"
+      ],
+      "manageReciptionists": [
+        "Receptionists",
+        const ReceptionistView(),
+        "assets/icons/receptionist.svg"
+      ],
+      "manageExaminationTypes": [
+        "Examination Types",
+        const ExaminationTypeView(),
+        "assets/icons/exam_type.svg"
+      ],
+      "managePaymentMethods": [
+        "Payment Methods",
+        const PaymentMethodView(),
+        "assets/icons/payment.svg"
+      ],
+      "manageMedicines": [
+        "Medicines",
+        const MedicineView(),
+        "assets/icons/clinic.svg"
+      ],
     };
 
     // Define groups structure
     Map<String, List<String>> groupStructure = {
       "dashboard": ["dashboard"],
       "Patient Management": ["showPatients", "showAppointments"],
-      "Management": ["manageClinics", "showBranches", "showDoctors", "manageReciptionists"],
-      "Configuration": ["manageExaminationTypes", "managePaymentMethods"],
+      "Management": [
+        "manageClinics",
+        "showBranches",
+        "showDoctors",
+        "manageReciptionists"
+      ],
+      "Configuration": [
+        "manageExaminationTypes",
+        "managePaymentMethods",
+        "manageMedicines"
+      ],
     };
 
     drawerItems = [];
@@ -131,7 +182,9 @@ class MainCubit extends Cubit<MainState> {
         List<DrawerItem> groupItems = [];
 
         for (String capability in groupCapabilities) {
-          if (capabilities.contains(capability) && statusMappings.containsKey(capability)) {
+          if ((capabilities.contains(capability) ||
+                  capabilities.contains("manageCapabilities")) &&
+              statusMappings.containsKey(capability)) {
             var mappingData = statusMappings[capability]!;
 
             DrawerItem item = DrawerItem(
@@ -153,7 +206,8 @@ class MainCubit extends Cubit<MainState> {
             title: groupName == "dashboard" ? null : groupName,
             items: groupItems,
             groupIndex: groupIndex,
-            isCollapsible: groupName != "dashboard", // Dashboard is not collapsible
+            isCollapsible:
+                groupName != "dashboard", // Dashboard is not collapsible
           ));
           groupIndex++;
         }
@@ -174,7 +228,8 @@ class MainCubit extends Cubit<MainState> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text("Login Failed"),
-            content: const Text("You don't have permission to access this application"),
+            content: const Text(
+                "You don't have permission to access this application"),
             actions: [
               TextButton(
                 child: Text(

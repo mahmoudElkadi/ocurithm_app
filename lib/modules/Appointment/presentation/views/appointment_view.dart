@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/appointment_view_body.dart';
@@ -34,15 +35,17 @@ class AppointmentView extends StatelessWidget {
                         },
                       ),
                 actions: [
-                  if (CacheHelper.getStringList(key: "capabilities").contains("addAppointments"))
-                    IconButton(
-                      onPressed: () async {
-                        bool? isChanged = await Get.to(() => MakeAppointmentView());
-                        if (isChanged == true) {
-                          AppointmentCubit.get(context).getAppointments();
-                        }
-                      },
-                      icon: Icon(Icons.add, color: Colorz.primaryColor),
+                    ManageCapabilities(
+                      capability: 'addAppointments',
+                      child: IconButton(
+                        onPressed: () async {
+                          bool? isChanged = await Get.to(() => MakeAppointmentView());
+                          if (isChanged == true) {
+                            AppointmentCubit.get(context).getAppointments();
+                          }
+                        },
+                        icon: Icon(Icons.add, color: Colorz.primaryColor),
+                      ),
                     )
                 ],
                 title: "Appointments")));
