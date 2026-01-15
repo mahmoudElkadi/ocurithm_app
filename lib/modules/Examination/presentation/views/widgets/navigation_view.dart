@@ -25,7 +25,7 @@ class StepNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 70,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),

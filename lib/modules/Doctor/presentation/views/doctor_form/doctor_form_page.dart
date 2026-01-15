@@ -411,7 +411,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
 
           // Clinic Dropdown Shimmer (if user has permission)
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapabilities"))
+              .contains("manageCapability"))
             _buildShimmer(
               Container(
                 width: double.infinity,
@@ -425,7 +425,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
               isDark,
             ),
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapabilities"))
+              .contains("manageCapability"))
             const HeightSpacer(size: 20),
 
           // Capabilities Shimmer
@@ -554,7 +554,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
 
             // Clinic Dropdown (if user has permission)
             if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapabilities"))
+                .contains("manageCapability"))
               _buildClinicDropdown(context, theme, isDark),
 
             // Capabilities Multi-Select (hidden in add mode)
@@ -1045,7 +1045,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
 
     // Validate clinic selection (if user has permission)
     if (CacheHelper.getStringList(key: "capabilities")
-            .contains("manageCapabilities") &&
+            .contains("manageCapability") &&
         _selectedClinicId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

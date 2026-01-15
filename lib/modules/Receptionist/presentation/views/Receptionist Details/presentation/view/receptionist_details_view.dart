@@ -68,7 +68,7 @@
 //     setState(() {
 //       widget.cubit.readOnly = !widget.cubit.readOnly;
 //     });
-//     if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+//     if (CacheHelper.getStringList(key: "capabilities").contains("manageCapability")) {
 //       if (widget.cubit.clinics == null) {
 //         Future.wait([widget.cubit.getClinics(), widget.cubit.getBranches()]);
 //       } else {

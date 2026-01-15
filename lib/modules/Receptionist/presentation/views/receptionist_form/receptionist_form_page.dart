@@ -360,7 +360,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
 
           // Clinic Dropdown Shimmer (if user has permission)
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapabilities"))
+              .contains("manageCapability"))
             _buildShimmer(
               Container(
                 width: double.infinity,
@@ -374,7 +374,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
               isDark,
             ),
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapabilities"))
+              .contains("manageCapability"))
             const HeightSpacer(size: 20),
 
           // Branch Dropdown Shimmer
@@ -514,7 +514,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
 
             // Clinic Dropdown (if user has permission)
             if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapabilities"))
+                .contains("manageCapability"))
               _buildClinicDropdown(context, theme, isDark),
 
             // Branch Dropdown
@@ -986,7 +986,6 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
       image: _imageUrl,
       capability: _selectedCapabilities.map((c) => c.id).toList(),
     );
-
 
     // Dispatch event
     if (_isAddMode) {

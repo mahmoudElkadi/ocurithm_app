@@ -27,9 +27,10 @@ class LoginViewBody extends StatelessWidget {
                     HeightSpacer(size: 40.h),
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.symmetric(horizontal: 0.w, vertical: 0),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 0.w, vertical: 0),
                       decoration: BoxDecoration(
-                        color: Colorz.white,
+                        color: Theme.of(context).cardColor,
                         shape: BoxShape.circle,
                       ),
                       child: Image.asset(
@@ -38,7 +39,9 @@ class LoginViewBody extends StatelessWidget {
                         height: 80,
                       ),
                     ),
-                    Text("OCURITHM", style: appStyle(context, 40, Colorz.white, FontWeight.bold)),
+                    Text("OCURITHM",
+                        style: appStyle(
+                            context, 40, Colorz.white, FontWeight.bold)),
                   ],
                 )),
           ),
@@ -49,16 +52,21 @@ class LoginViewBody extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Column(children: [
-                  Text(S.of(context).hello, style: GoogleFonts.trocchi(color: Colorz.primaryColor, fontSize: 40.spMin)),
+                  Text(S.of(context).hello,
+                      style: GoogleFonts.trocchi(
+                          color: Colorz.primaryColor, fontSize: 40.spMin)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SvgPicture.asset("assets/icons/login_icon.svg"),
-                      Text(S.of(context).pleaseSignInToYourAccount, style: appStyle(context, 16, Colorz.primaryColor, FontWeight.w400)),
+                      Text(S.of(context).pleaseSignInToYourAccount,
+                          style: appStyle(context, 16, Colorz.primaryColor,
+                              FontWeight.w400)),
                       SvgPicture.asset(
                         "assets/icons/login_icon.svg",
-                        colorFilter: ColorFilter.mode(Colors.transparent, BlendMode.srcIn),
+                        colorFilter: ColorFilter.mode(
+                            Colors.transparent, BlendMode.srcIn),
                       ),
                     ],
                   ),

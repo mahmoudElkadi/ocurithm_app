@@ -9,7 +9,10 @@ class CapabilityModel {
 
   factory CapabilityModel.fromJson(Map<String, dynamic> json) {
     return CapabilityModel(
-      capabilities: json["capabilities"] == null ? [] : List<Capability>.from(json["capabilities"]!.map((x) => Capability.fromJson(x))),
+      capabilities: json["capabilities"] == null
+          ? []
+          : List<Capability>.from(
+              json["capabilities"]!.map((x) => Capability.fromJson(x))),
     );
   }
 

@@ -3,86 +3,68 @@ import '../../../Clinics/data/model/clinics_model.dart';
 
 class LoginModel {
   LoginModel({
-    required this.message,
+    required this.accessToken,
+    required this.refreshToken,
+    required this.expiresIn,
     required this.user,
-    required this.token,
   });
 
-  final String? message;
+  final String? accessToken;
+  final String? refreshToken;
+  final int? expiresIn;
   final User? user;
-  final String? token;
 
   factory LoginModel.fromJson(Map<String, dynamic> json) {
     return LoginModel(
-      message: json["message"],
+      accessToken: json["accessToken"],
+      refreshToken: json["refreshToken"],
+      expiresIn: json["expiresIn"],
       user: json["user"] == null ? null : User.fromJson(json["user"]),
-      token: json["token"],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        "message": message,
-        "user": user?.toJson(),
-        "token": token,
-      };
+    "accessToken": accessToken,
+    "refreshToken": refreshToken,
+    "expiresIn": expiresIn,
+    "user": user?.toJson(),
+  };
 }
 
 class User {
   User({
-    required this.clinic,
-    required this.name,
-    required this.phone,
-    required this.image,
-    required this.birthDate,
-    required this.branch,
-    required this.isActive,
-    required this.capabilities,
-    required this.createdAt,
-    required this.updatedAt,
     required this.id,
+    required this.name,
+    required this.userType,
+    required this.clinic,
+    required this.capabilities,
   });
 
-  final Clinic? clinic;
-  final String? name;
-  final String? phone;
-  final String? image;
-  final DateTime? birthDate;
-  final Branch? branch;
-  final bool? isActive;
-  final List<Capability> capabilities;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
   final String? id;
+  final String? name;
+  final String? userType;
+  final Clinic? clinic;
+  final List<String> capabilities;
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
-      name: json["name"],
-      phone: json["phone"],
-      image: json["image"],
-      birthDate: DateTime.tryParse(json["birthDate"] ?? ""),
-      branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
-      isActive: json["isActive"],
-      capabilities: json["capabilities"] == null ? [] : List<Capability>.from(json["capabilities"]!.map((x) => Capability.fromJson(x))),
-      createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
-      updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
+      name: json["name"],
+      userType: json["userType"],
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
+      capabilities: json["capabilities"] == null
+          ? []
+          : List<String>.from(json["capabilities"]!.map((x) => x)),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        "clinic": clinic?.toJson(),
-        "name": name,
-        "phone": phone,
-        "image": image,
-        "birthDate": birthDate?.toIso8601String(),
-        "branch": branch?.toJson(),
-        "isActive": isActive,
-        "capabilities": capabilities.map((x) => x?.toJson()).toList(),
-        "createdAt": createdAt?.toIso8601String(),
-        "updatedAt": updatedAt?.toIso8601String(),
-        "id": id,
-      };
+    "id": id,
+    "name": name,
+    "userType": userType,
+    "clinic": clinic?.toJson(),
+    "capabilities": capabilities.map((x) => x).toList(),
+  };
 }
 
 class Capability {

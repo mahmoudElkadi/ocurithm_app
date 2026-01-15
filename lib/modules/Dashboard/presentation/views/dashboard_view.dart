@@ -93,7 +93,7 @@ class _DashboardViewState extends State<DashboardView> {
                   },
                 ),
           actions: [
-            if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+            if (CacheHelper.getStringList(key: "capabilities").contains("manageCapability"))
               IconButton(
                 onPressed: () {
                   _selectDateRange(context);

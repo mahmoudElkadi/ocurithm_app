@@ -621,7 +621,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
               if (appointment.status != 'Completed' && appointment.status != 'Cancelled')
                 appointment.status != 'Examining' &&
                         appointment.status != 'Saved'
-                    ? ManageCapabilities(
+                    ? manageCapability(
                   capability: "editAppointmentsReciptionist",
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -782,7 +782,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                         ),
                     )
                     : (appointment.status == 'Examining' || appointment.status == 'Saved')
-                        ? ManageCapabilities(
+                        ? manageCapability(
                   capability:"editAppointmentsDoctor" ,
                   child: Row(spacing: 10, children: [
                               Expanded(

@@ -49,11 +49,18 @@ import '../../modules/Examination/data/repos/examination_repo_impl.dart';
 import '../../modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
 import '../../modules/Examination/presentation/manager/get_single_examination_cubit/get_single_examination_cubit.dart';
 import 'package:ocurithm/modules/Examination/presentation/manager/examination_form_cubit/examination_form_cubit.dart';
+import '../../modules/Login/data/repos/login_repo.dart';
+import '../../modules/Login/data/repos/login_repo_impl.dart';
+import '../../modules/Login/presentation/manger/login_cubit/login_cubit.dart';
 
 final sl = GetIt.instance;
 
 class ServiceLocator {
   void init() {
+    ///Login
+    sl.registerLazySingleton<LoginRepo>(() => LoginRepoImpl());
+    sl.registerFactory(() => LoginCubit(sl.call<LoginRepo>()));
+
     ///Clinics
     sl.registerLazySingleton<ClinicRepo>(() => ClinicRepoImpl());
     sl.registerFactory(() => GetClinicsCubit(sl.call<ClinicRepo>()));

@@ -251,7 +251,7 @@ class _PatientFormViewState extends State<PatientFormView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapabilities"))
+                .contains("manageCapability"))
               _buildClinicDropdown(theme),
             _buildBranchDropdown(theme),
             const HeightSpacer(size: 20),
@@ -840,7 +840,7 @@ class _PatientFormViewState extends State<PatientFormView> {
     setState(() {
       _isClinicValid = _selectedClinicId != null ||
           !CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapabilities");
+              .contains("manageCapability");
       _isBranchValid = _selectedBranch != null;
       _isNationalityValid = _selectedNationality != null;
       _isBirthDateValid = _birthDate != null;

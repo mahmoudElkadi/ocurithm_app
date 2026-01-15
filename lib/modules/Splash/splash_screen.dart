@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -91,9 +92,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
         // Make API request to check auth status
         final response = await http.get(
-          Uri.parse('${Config.baseUrl}/me'),
+          Uri.parse('${Config.baseUrl}/auth/me'),
           headers: headers,
         );
+
+        log(response.body.toString());
 
         if (!mounted) return;
 

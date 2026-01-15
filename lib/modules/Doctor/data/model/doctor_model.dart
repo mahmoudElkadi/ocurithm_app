@@ -18,7 +18,9 @@ class DoctorModel {
 
   factory DoctorModel.fromJson(Map<String, dynamic> json) {
     return DoctorModel(
-      doctors: json["doctors"] == null ? [] : List<Doctor>.from(json["doctors"]!.map((x) => Doctor.fromJson(x))),
+      doctors: json["doctors"] == null
+          ? []
+          : List<Doctor>.from(json["doctors"]!.map((x) => Doctor.fromJson(x))),
       total: json["total"],
       totalPages: json["totalPages"],
       error: json["error"],
@@ -76,9 +78,15 @@ class Doctor {
       phone: json["phone"],
       birthDate: DateTime.tryParse(json["birthDate"] ?? ""),
       qualifications: json["qualifications"],
-      branches: json["branches"] == null ? [] : List<BranchElement>.from(json["branches"]!.map((x) => BranchElement.fromJson(x))),
+      branches: json["branches"] == null
+          ? []
+          : List<BranchElement>.from(
+              json["branches"]!.map((x) => BranchElement.fromJson(x))),
       isActive: json["isActive"],
-      capabilities: json["capabilities"] == null ? [] : List<Capability>.from(json["capabilities"]!.map((x) => Capability.fromJson(x))),
+      capabilities: json["capabilities"] == null
+          ? []
+          : List<Capability>.from(
+              json["capabilities"]!.map((x) => Capability.fromJson(x))),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
@@ -126,7 +134,9 @@ class BranchElement {
       branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
       availableFrom: json["availableFrom"],
       availableTo: json["availableTo"],
-      availableDays: json["availableDays"] == null ? [] : List<String>.from(json["availableDays"]!.map((x) => x)),
+      availableDays: json["availableDays"] == null
+          ? []
+          : List<String>.from(json["availableDays"]!.map((x) => x)),
       id: json["_id"],
       branchId: json["id"],
     );

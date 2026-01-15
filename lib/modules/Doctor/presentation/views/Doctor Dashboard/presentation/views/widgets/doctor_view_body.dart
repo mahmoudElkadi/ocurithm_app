@@ -125,7 +125,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   Future<void> _loadClinics() async {
     if (CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapabilities")) {
+        .contains("manageCapability")) {
       _clinicsCubit.add(GetAllClinicsEvent());
     } else {
       final userClinicId = CacheHelper.getUser("user")?.clinic?.id;
@@ -181,7 +181,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapabilities"))
+                .contains("manageCapability"))
               BlocBuilder<GetClinicsCubit, GetClinicsState>(
                 builder: (context, clinicsState) {
                   return DropdownItem(
@@ -217,7 +217,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 },
               ),
             if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapabilities"))
+                .contains("manageCapability"))
               const SizedBox(height: 20),
             BlocBuilder<branch_cubit.GetBranchesCubit,
                 branch_cubit.GetBranchesState>(

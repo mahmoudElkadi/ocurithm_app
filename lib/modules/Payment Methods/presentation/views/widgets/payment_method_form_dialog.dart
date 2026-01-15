@@ -62,9 +62,9 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
       _isReadOnly = true;
     }
 
-    // Set clinic if user doesn't have manageCapabilities
+    // Set clinic if user doesn't have manageCapability
     if (!CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapabilities")) {
+        .contains("manageCapability")) {
       selectedClinic = CacheHelper.getUser("user")?.clinic;
     }
 
@@ -335,10 +335,10 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
             child: Column(
               children: [
                 if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageCapabilities"))
+                    .contains("manageCapability"))
                   _buildClinicDropdown(isLoading),
                 if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageCapabilities"))
+                    .contains("manageCapability"))
                   const SizedBox(height: 16),
                 _buildTitleField(isLoading),
                 const SizedBox(height: 16),
@@ -358,10 +358,10 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
       child: Column(
         children: [
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapabilities"))
+              .contains("manageCapability"))
             _buildClinicDropdown(false),
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapabilities"))
+              .contains("manageCapability"))
             const SizedBox(height: 16),
           _buildTitleField(false),
           const SizedBox(height: 16),
@@ -379,11 +379,11 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
     }
 
     // Check if user has permission to manage capabilities
-    final hasManageCapabilities = CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapabilities");
+    final hasmanageCapability = CacheHelper.getStringList(key: "capabilities")
+        .contains("manageCapability");
 
     // If user has permission, use BlocBuilder to get clinics from cubit
-    if (hasManageCapabilities) {
+    if (hasmanageCapability) {
       return BlocBuilder<GetClinicsCubit, GetClinicsState>(
         builder: (context, clinicsState) {
           return DropdownItem(
@@ -509,7 +509,7 @@ void showPaymentMethodFormDialog(
 }) {
   // Check if user has permission to manage capabilities (needs clinic selection)
   final needsClinicCubit = CacheHelper.getStringList(key: "capabilities")
-      .contains("manageCapabilities");
+      .contains("manageCapability");
 
   showDialog(
     context: context,

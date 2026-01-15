@@ -35,7 +35,7 @@ class AppointmentView extends StatelessWidget {
                         },
                       ),
                 actions: [
-                    ManageCapabilities(
+                    manageCapability(
                       capability: 'addAppointments',
                       child: IconButton(
                         onPressed: () async {

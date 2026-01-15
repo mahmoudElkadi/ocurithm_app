@@ -16,7 +16,10 @@ class ReceptionistsModel {
 
   factory ReceptionistsModel.fromJson(Map<String, dynamic> json) {
     return ReceptionistsModel(
-      receptionists: json["receptionists"] == null ? [] : List<Receptionist>.from(json["receptionists"]!.map((x) => Receptionist.fromJson(x))),
+      receptionists: json["receptionists"] == null
+          ? []
+          : List<Receptionist>.from(
+              json["receptionists"]!.map((x) => Receptionist.fromJson(x))),
       total: json["total"],
       totalPages: json["totalPages"],
     );
@@ -74,7 +77,10 @@ class Receptionist {
       birthDate: DateTime.tryParse(json["birthDate"] ?? ""),
       branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
       isActive: json["isActive"],
-      capabilities: json["capabilities"] == null ? [] : List<Capability>.from(json["capabilities"]!.map((x) => Capability.fromJson(x))),
+      capabilities: json["capabilities"] == null
+          ? []
+          : List<Capability>.from(
+              json["capabilities"]!.map((x) => Capability.fromJson(x))),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],

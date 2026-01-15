@@ -2,7 +2,7 @@ name: ocurithm
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev4
+publish_to: "none" # Remove this line if you wish to publish to pub.dev4
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev4
 version: 1.0.7+9
 
 environment:
-  sdk: '>=3.4.3 <4.0.0'
+  sdk: ">=3.4.3 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -76,6 +76,7 @@ dependencies:
   phone_numbers_parser: ^9.0.3
   get_it: ^9.1.1
   rxdart: ^0.28.0
+  fl_chart: ^0.69.0
 
   flutter_localizations:
     sdk: flutter
@@ -96,9 +97,8 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in 
+  # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
   # To add assets to your application, add an assets section, like this:
@@ -106,7 +106,7 @@ flutter:
     - assets/files/
     - assets/icons/
     # - packages/booking_calendar/assets/name_icon.svg
-    # - packages/booking_calendar/assets/examination.svg 
+    # - packages/booking_calendar/assets/examination.svg
     # - packages/booking_calendar/assets/id.svg
     # - packages/booking_calendar/assets/phone.svg
     # - packages/booking_calendar/assets/branch.svg
@@ -134,5 +134,3 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
 flutter_intl:
   enabled: true
-
-

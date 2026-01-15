@@ -214,22 +214,7 @@ class CustomDrawer extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    CacheHelper.getUser("user")?.image != null
-                        ? Container(
-                            height: 80,
-                            width: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                              image: DecorationImage(
-                                  image: NetworkImage(
-                                      CacheHelper.getUser("user")?.image ??
-                                          "https://via.placeholder.com/150"),
-                                  fit: BoxFit.cover,
-                                  alignment: Alignment.center),
-                            ),
-                          )
-                        : Container(
+                     Container(
                             height: 70,
                             width: 70,
                             decoration: BoxDecoration(

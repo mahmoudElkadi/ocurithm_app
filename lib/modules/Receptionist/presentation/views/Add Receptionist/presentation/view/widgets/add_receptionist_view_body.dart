@@ -58,7 +58,7 @@
 //
 //   @override
 //   initState() {
-//     if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+//     if (CacheHelper.getStringList(key: "capabilities").contains("manageCapability")) {
 //       if (widget.cubit.clinics == null) {
 //         widget.cubit.getClinics();
 //       }
@@ -243,7 +243,7 @@
 //                         )
 //                       ],
 //                     ),
-//                     if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities"))
+//                     if (CacheHelper.getStringList(key: "capabilities").contains("manageCapability"))
 //                       Padding(
 //                         padding: const EdgeInsets.only(top: 20),
 //                         child: DropdownItem(

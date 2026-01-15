@@ -9,6 +9,7 @@ import 'package:ocurithm/modules/Examination%20Type/presentation/views/examinati
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
 import '../../../modules/Medicine/presentation/views/medicine_view.dart';
+import '../../../modules/Analysis/presentation/views/analysis_view.dart';
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
@@ -115,6 +116,11 @@ class MainCubit extends Cubit<MainState> {
         const AppointmentView(),
         "assets/icons/appointment.svg"
       ],
+      "showAnalysis": [
+        "Analysis",
+        const AnalysisView(),
+        "assets/icons/examination.svg"
+      ],
       "manageClinics": [
         "Clinics",
         const ClinicView(),
@@ -155,7 +161,11 @@ class MainCubit extends Cubit<MainState> {
     // Define groups structure
     Map<String, List<String>> groupStructure = {
       "dashboard": ["dashboard"],
-      "Patient Management": ["showPatients", "showAppointments"],
+      "Patient Management": [
+        "showPatients",
+        "showAppointments",
+        "showAnalysis"
+      ],
       "Management": [
         "manageClinics",
         "showBranches",
@@ -183,7 +193,7 @@ class MainCubit extends Cubit<MainState> {
 
         for (String capability in groupCapabilities) {
           if ((capabilities.contains(capability) ||
-                  capabilities.contains("manageCapabilities")) &&
+                  capabilities.contains("manageCapability")) &&
               statusMappings.containsKey(capability)) {
             var mappingData = statusMappings[capability]!;
 

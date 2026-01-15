@@ -273,7 +273,7 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
   }
 
   getAllData() async {
-    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities")) {
+    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapability")) {
       await Future.wait([
         getClinics(),
       ]);

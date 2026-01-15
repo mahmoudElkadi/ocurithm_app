@@ -208,7 +208,7 @@
 //                             ),
 //                             items: widget.cubit.clinics?.clinics,
 //                             isValid: widget.cubit.chooseClinic,
-//                             readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapabilities") ? widget.cubit.readOnly : true,
+//                             readOnly: CacheHelper.getStringList(key: "capabilities").contains("manageCapability") ? widget.cubit.readOnly : true,
 //                             validateText: 'Clinic must not be Empty',
 //                             selectedValue: widget.cubit.selectedClinic?.name,
 //                             hintText: 'Select Clinic',

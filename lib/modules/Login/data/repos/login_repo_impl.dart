@@ -1,26 +1,31 @@
-import 'package:ocurithm/core/utils/config.dart';
-import 'package:ocurithm/modules/Login/data/model/login_response.dart';
-
-import '../../../../core/Network/dio_handler.dart';
+import '../../../../../core/api/api_handler.dart';
+import '../../../../../core/utils/config.dart';
+import '../model/login_response.dart';
 import 'login_repo.dart';
 
 class LoginRepoImpl extends LoginRepo {
   @override
-  Future<LoginModel> loginUser({required String username, required String password, bool? rememberMe}) async {
+  Future<LoginModel> loginUser(
+      {required String username,
+      required String password,
+      bool? rememberMe}) async {
     final url = "${Config.baseUrl}${Config.login}";
-    Map<String, dynamic> data = {"username": username, "password": password, "rememberMe": rememberMe};
-    final result = await ApiService.request<LoginModel>(
-      url: url,
+    Map<String, dynamic> data = {
+      "username": username,
+      "password": password,
+      "rememberMe": rememberMe
+    };
+
+    final result = await ApiHandler().post<LoginModel>(
+      url,
       data: data,
-      method: 'POST',
-      showError: true,
       fromJson: (json) => LoginModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (result.data != null) {
+      return result.data!;
     } else {
-      throw Exception("Failed to Login");
+      throw Exception(result.message ?? "Failed to Login");
     }
   }
 }

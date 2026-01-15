@@ -241,7 +241,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (CacheHelper.getStringList(key: "capabilities")
-                            .contains("manageCapabilities"))
+                            .contains("manageCapability"))
                           _buildClinicDropdown(cubit),
                         const HeightSpacer(size: 15),
                         _buildBranchDropdown(cubit),
