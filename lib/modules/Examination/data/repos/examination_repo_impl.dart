@@ -3,7 +3,7 @@ import 'package:ocurithm/modules/Examination/data/repos/examination_repo.dart';
 
 import '../../../../../core/api/api_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/data.dart';
 import '../../../Patient/data/model/one_exam.dart';
 import '../model/saved_Exam.dart';
@@ -25,7 +25,7 @@ class ExaminationRepoImpl implements ExaminationRepo {
   Future<ExaminationModel> makeExamination(
       {required Map<String, dynamic> data}) async {
     final result = await _apiHandler.post<ExaminationModel>(
-      Config.examination,
+      ApiConstants.examination,
       data: data,
       options: _getOptions(),
       fromJson: (json) => ExaminationModel.fromJson(json),
@@ -42,7 +42,7 @@ class ExaminationRepoImpl implements ExaminationRepo {
   Future<DataModel> makeFinalization(
       {required String id, required Map<String, dynamic> data}) async {
     final result = await _apiHandler.post<DataModel>(
-      "${Config.examination}/$id/finalization",
+      "${ApiConstants.examination}/$id/finalization",
       data: data,
       options: _getOptions(),
       fromJson: (json) => DataModel.fromJson(json),
@@ -59,7 +59,7 @@ class ExaminationRepoImpl implements ExaminationRepo {
   Future<SavedExaminationModel> getOneExamination(
       {required String appointmentId}) async {
     final result = await _apiHandler.get<SavedExaminationModel>(
-      Config.examination,
+      ApiConstants.examination,
       queryParameters: {"appointment": appointmentId},
       options: _getOptions(),
       fromJson: (json) => SavedExaminationModel.fromJson(json),

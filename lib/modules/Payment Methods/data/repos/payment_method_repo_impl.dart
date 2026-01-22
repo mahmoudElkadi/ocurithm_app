@@ -1,6 +1,6 @@
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/data.dart';
 import '../model/payment_method_model.dart';
 import 'payment_method_repo.dart';
@@ -8,7 +8,7 @@ import 'payment_method_repo.dart';
 class PaymentMethodRepoImpl implements PaymentMethodRepo {
   @override
   Future<PaymentMethod> createPaymentMethod({required PaymentMethod paymentMethod}) async {
-    final url = "${Config.baseUrl}${Config.paymentMethods}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<PaymentMethod>(
@@ -32,7 +32,7 @@ class PaymentMethodRepoImpl implements PaymentMethodRepo {
 
   @override
   Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? search}) async {
-    final url = "${Config.baseUrl}${Config.paymentMethods}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
     Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
 
@@ -57,7 +57,7 @@ class PaymentMethodRepoImpl implements PaymentMethodRepo {
 
   @override
   Future<PaymentMethod> getPaymentMethod({required String id}) async {
-    final url = "${Config.baseUrl}${Config.paymentMethods}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<PaymentMethod>(
@@ -80,7 +80,7 @@ class PaymentMethodRepoImpl implements PaymentMethodRepo {
 
   @override
   Future<PaymentMethod> updatePaymentMethod({required String id, required PaymentMethod paymentMethod}) async {
-    final url = "${Config.baseUrl}${Config.paymentMethods}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<PaymentMethod>(
@@ -104,7 +104,7 @@ class PaymentMethodRepoImpl implements PaymentMethodRepo {
 
   @override
   Future<DataModel> deletePaymentMethod({required String id}) async {
-    final url = "${Config.baseUrl}${Config.paymentMethods}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<DataModel>(

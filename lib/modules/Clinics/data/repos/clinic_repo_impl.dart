@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/data.dart';
 import '../model/clinics_model.dart';
 import 'clinic_repo.dart';
@@ -10,7 +10,7 @@ import 'clinic_repo.dart';
 class ClinicRepoImpl implements ClinicRepo {
   @override
   Future<Clinic> createClinic({required Clinic clinic}) async {
-    final url = "${Config.baseUrl}${Config.clinics}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.clinics}";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<Clinic>(
@@ -34,7 +34,7 @@ class ClinicRepoImpl implements ClinicRepo {
 
   @override
   Future<ClinicsModel> getAllClinics({int? page, String? search}) async {
-    final url = "${Config.baseUrl}${Config.clinics}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.clinics}";
     final String? token = CacheHelper.getData(key: "token");
     Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
 
@@ -61,7 +61,7 @@ class ClinicRepoImpl implements ClinicRepo {
 
   @override
   Future<Clinic> getClinic({required String id}) async {
-    final url = "${Config.baseUrl}${Config.clinics}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.clinics}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<Clinic>(
@@ -84,7 +84,7 @@ class ClinicRepoImpl implements ClinicRepo {
 
   @override
   Future<Clinic> updateClinic({required String id, required Clinic clinic}) async {
-    final url = "${Config.baseUrl}${Config.clinics}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.clinics}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<Clinic>(
@@ -108,7 +108,7 @@ class ClinicRepoImpl implements ClinicRepo {
 
   @override
   Future<DataModel> deleteClinic({required String id}) async {
-    final url = "${Config.baseUrl}${Config.clinics}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.clinics}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<DataModel>(

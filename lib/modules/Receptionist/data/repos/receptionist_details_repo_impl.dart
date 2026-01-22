@@ -13,7 +13,7 @@
 //   @override
 //   Future<AddReceptionistsModel> createReceptionist({required Receptionist receptionist}) async {
 //     try {
-//       final url = "${Config.baseUrl}${Config.receptionists}";
+//       final url = "${ApiConstants.baseUrl}${Config.receptionists}";
 //       final String? token = CacheHelper.getData(key: "token");
 //
 //       // Sanitize and validate data before sending
@@ -69,7 +69,7 @@
 //
 //   @override
 //   Future<BranchesModel> getAllBranches() async {
-//     final url = "${Config.baseUrl}${Config.branches}";
+//     final url = "${ApiConstants.baseUrl}${Config.branches}";
 //     final String? token = CacheHelper.getData(key: "token");
 //
 //     final result = await ApiService.request<BranchesModel>(
@@ -92,7 +92,7 @@
 //
 //   @override
 //   Future<ReceptionistsModel> getAllReceptionists({int? page, String? search}) async {
-//     final url = "${Config.baseUrl}${Config.receptionists}";
+//     final url = "${ApiConstants.baseUrl}${Config.receptionists}";
 //     final String? token = CacheHelper.getData(key: "token");
 //     Map<String, dynamic> query = {"page": page ?? 1, 'limit': 10, "search": search};
 //
@@ -117,7 +117,7 @@
 //
 //   @override
 //   Future<Receptionist> getReceptionist({required String id}) async {
-//     final url = "${Config.baseUrl}${Config.receptionists}/$id";
+//     final url = "${ApiConstants.baseUrl}${Config.receptionists}/$id";
 //     final String? token = CacheHelper.getData(key: "token");
 //
 //     final result = await ApiService.request<Receptionist>(
@@ -140,7 +140,7 @@
 //
 //   @override
 //   Future<Receptionist> updateReceptionist({required String id, required Receptionist receptionist}) async {
-//     final url = "${Config.baseUrl}${Config.receptionists}/$id";
+//     final url = "${ApiConstants.baseUrl}${Config.receptionists}/$id";
 //     final String? token = CacheHelper.getData(key: "token");
 //
 //     Map<String, dynamic> data = {
@@ -174,7 +174,7 @@
 //
 //   @override
 //   Future<DataModel> deleteReceptionist({required String id}) async {
-//     final url = "${Config.baseUrl}${Config.receptionists}/$id";
+//     final url = "${ApiConstants.baseUrl}${Config.receptionists}/$id";
 //     final String? token = CacheHelper.getData(key: "token");
 //
 //     final result = await ApiService.request<DataModel>(

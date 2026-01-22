@@ -16,7 +16,6 @@ import 'package:upgrader/upgrader.dart';
 
 import '../../Main/presentation/views/main_view.dart';
 import '../../core/Network/shared.dart';
-import '../../core/utils/config.dart';
 import '../../core/widgets/height_spacer.dart';
 import '../../core/widgets/no_internet.dart';
 import '../Login/presentation/view/login_view.dart';
@@ -85,28 +84,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       if (result == true) {
         final String? token = CacheHelper.getData(key: "token");
         // Prepare headers with token if available
-        final headers = {
-          'Content-Type': 'application/json',
-          if (token != null) 'Cookie': 'ocurithmToken=$token',
-        };
-
-        // Make API request to check auth status
-        final response = await http.get(
-          Uri.parse('${Config.baseUrl}/auth/me'),
-          headers: headers,
-        );
-
-        log(response.body.toString());
-
-        if (!mounted) return;
-
-        final responseData = json.decode(response.body);
-
-        if (response.statusCode == 201 && responseData['message'] != 'No user logged in') {
+        if (token!=null) {
           // User is authenticated, navigate to Main View
 
           Get.offAll(
-            () => UpgradeAlert(
+                () => UpgradeAlert(
               showIgnore: false,
               showReleaseNotes: false,
               dialogStyle: UpgradeDialogStyle.cupertino,
@@ -124,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           CacheHelper.removeData(key: "token");
           CacheHelper.removeData(key: "user");
           Get.offAll(
-            () => UpgradeAlert(
+                () => UpgradeAlert(
                 showIgnore: false,
                 showReleaseNotes: false,
                 dialogStyle: UpgradeDialogStyle.cupertino,
@@ -137,6 +119,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             duration: const Duration(seconds: 1),
           );
         }
+
+
       }
     } catch (e) {
       if (!mounted) return;

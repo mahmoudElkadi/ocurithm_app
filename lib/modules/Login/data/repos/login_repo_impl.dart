@@ -1,5 +1,5 @@
 import '../../../../../core/api/api_handler.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import '../model/login_response.dart';
 import 'login_repo.dart';
 
@@ -9,7 +9,7 @@ class LoginRepoImpl extends LoginRepo {
       {required String username,
       required String password,
       bool? rememberMe}) async {
-    final url = "${Config.baseUrl}${Config.login}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.login}";
     Map<String, dynamic> data = {
       "username": username,
       "password": password,

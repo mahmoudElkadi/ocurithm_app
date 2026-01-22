@@ -2,7 +2,7 @@ import 'package:ocurithm/modules/Make_Appointment/data/models/make_appointment_m
 
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import '../../../Appointment/data/models/appointment_model.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Doctor/data/model/doctor_model.dart';
@@ -16,7 +16,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
   Future<DoctorModel> getAllDoctors({
     String? branch,
   }) async {
-    final url = "${Config.baseUrl}${Config.doctors}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.doctors}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> query = {
@@ -45,7 +45,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
 
   @override
   Future<BranchesModel> getAllBranches() async {
-    final url = "${Config.baseUrl}${Config.branches}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}";
     final String? token = CacheHelper.getData(key: "token");
     Map<String, dynamic> query = {"isActive": true, "haveDoctors": true};
 
@@ -70,7 +70,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
 
   @override
   Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? clinic}) async {
-    final url = "${Config.baseUrl}${Config.paymentMethods}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
     Map<String, dynamic> query = {"clinic": clinic};
 
@@ -95,7 +95,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
 
   @override
   Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? clinic}) async {
-    final url = "${Config.baseUrl}${Config.examinationTypes}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}";
     final String? token = CacheHelper.getData(key: "token");
     Map<String, dynamic> query = {"clinic": clinic};
 
@@ -120,7 +120,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
 
   @override
   Future<PatientModel> getAllPatients({String? search}) async {
-    final url = "${Config.baseUrl}${Config.patients}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.patients}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> query = {
@@ -149,7 +149,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
 
   @override
   Future<Appointment> makeAppointment({required MakeAppointmentModel model}) async {
-    final url = "${Config.baseUrl}${Config.appointments}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.appointments}";
     final String? token = CacheHelper.getData(key: "token");
     final result = await ApiService.request<Appointment>(
       url: url,
@@ -172,7 +172,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
 
   @override
   Future<Appointment> editAppointment({required MakeAppointmentModel model, required String id}) async {
-    final url = "${Config.baseUrl}${Config.appointments}/${model.id}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.appointments}/${model.id}";
     final String? token = CacheHelper.getData(key: "token");
     final result = await ApiService.request<Appointment>(
       url: url,
@@ -195,7 +195,7 @@ class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
 
   @override
   Future<AppointmentModel> getAllAppointment({DateTime? date, String? branch, String? doctor}) async {
-    final url = "${Config.baseUrl}${Config.appointments}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.appointments}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> quary = {

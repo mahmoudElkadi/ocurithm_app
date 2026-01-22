@@ -14,6 +14,7 @@ import '../../../../../../../core/Network/shared.dart';
 import '../../../../../../../core/utils/services_locator.dart';
 import '../../../../manager/get_patients_cubit/get_patients_cubit.dart';
 import '../../../../manager/patient_actions_cubit/patient_actions_cubit.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import '../../../patient_form/patient_form_page.dart';
 
 class AdminPatientView extends StatelessWidget {
@@ -34,7 +35,12 @@ class AdminPatientView extends StatelessWidget {
         ],
         child: BlocListener<PatientActionsCubit, PatientActionsState>(
           listener: (context, state) {
-            if (state.isSuccess) {
+            if (state.isLoading) {
+              customLoading(context, "");
+            } else if (state.isSuccess) {
+              // Pop loading if open
+              Navigator.pop(context);
+
               if (state.successMessage != null) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(state.successMessage!),
@@ -42,7 +48,12 @@ class AdminPatientView extends StatelessWidget {
               }
               // Refresh list
               context.read<GetPatientsCubit>().add(GetAllPatientsEvent());
-            } else if (state.isError) {
+            } else if (state.isError || state.noConnection) {
+              // Pop loading if open
+              if (state.state != PatientActionsStatus.initial) {
+                Navigator.pop(context);
+              }
+
               if (state.errorMessage != null) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(state.errorMessage!),

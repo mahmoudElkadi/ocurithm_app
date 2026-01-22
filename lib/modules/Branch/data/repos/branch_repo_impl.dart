@@ -1,6 +1,6 @@
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import '../model/add_branch_model.dart';
 import '../model/branches_model.dart';
 import '../model/data.dart';
@@ -9,7 +9,7 @@ import 'branch_repo.dart';
 class BranchRepoImpl implements BranchRepo {
   @override
   Future<AddBranchModel> createBranch({required AddBranchModel addBranchModel}) async {
-    final url = "${Config.baseUrl}${Config.branches}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<AddBranchModel>(
@@ -33,7 +33,7 @@ class BranchRepoImpl implements BranchRepo {
 
   @override
   Future<BranchesModel> getAllBranches({int? page, String? search, String? clinic}) async {
-    final url = "${Config.baseUrl}${Config.branches}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> query = {
@@ -64,7 +64,7 @@ class BranchRepoImpl implements BranchRepo {
 
   @override
   Future<AddBranchModel> getBranch({required String id}) async {
-    final url = "${Config.baseUrl}${Config.branches}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<AddBranchModel>(
@@ -87,7 +87,7 @@ class BranchRepoImpl implements BranchRepo {
 
   @override
   Future<AddBranchModel> updateBranch({required String id, required AddBranchModel addBranchModel}) async {
-    final url = "${Config.baseUrl}${Config.branches}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<AddBranchModel>(
@@ -111,7 +111,7 @@ class BranchRepoImpl implements BranchRepo {
 
   @override
   Future<DataModel> deleteBranch({required String id}) async {
-    final url = "${Config.baseUrl}${Config.branches}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<DataModel>(

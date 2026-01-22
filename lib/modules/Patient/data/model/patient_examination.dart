@@ -26,7 +26,7 @@ class Examinations {
   }
 
   Map<String, dynamic> toJson() => {
-        "examinations": examinations.map((x) => x?.toJson()).toList(),
+        "examinations": examinations.map((x) => x.toJson()).toList(),
         "total": total,
         "totalPages": totalPages,
         "success": success,
@@ -39,11 +39,11 @@ class Examination {
     required this.patient,
     required this.appointment,
     required this.type,
-    required this.measurements,
+    // required this.measurements,
     required this.createdAt,
     required this.updatedAt,
-    required this.history,
-    required this.complain,
+    // required this.history,
+    // required this.complain,
     required this.id,
   });
 
@@ -51,11 +51,11 @@ class Examination {
   final Patient? patient;
   final Appointment? appointment;
   final Type? type;
-  final List<Measurement> measurements;
+  // final List<Measurement> measurements;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final History? history;
-  final Complain? complain;
+  // final History? history;
+  // final Complain? complain;
   final String? id;
 
   factory Examination.fromJson(Map<String, dynamic> json) {
@@ -64,13 +64,13 @@ class Examination {
       patient: json["patient"] == null ? null : Patient.fromJson(json["patient"]),
       appointment: json["appointment"] == null ? null : Appointment.fromJson(json["appointment"]),
       type: json["type"] == null ? null : Type.fromJson(json["type"]),
-      measurements: json["measurements"] == null
-          ? []
-          : List<Measurement>.from(json["measurements"]!.map((x) => Measurement.fromJson(x))),
+      // measurements: json["measurements"] == null
+      //     ? []
+      //     : List<Measurement>.from(json["measurements"]!.map((x) => Measurement.fromJson(x))),
       createdAt: json["createdAt"] == null ? null : DateTime.tryParse(json["createdAt"])?.toLocal(),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
-      history: json["history"] == null ? null : History.fromJson(json["history"]),
-      complain: json["complain"] == null ? null : Complain.fromJson(json["complain"]),
+      // history: json["history"] == null ? null : History.fromJson(json["history"]),
+      // complain: json["complain"] == null ? null : Complain.fromJson(json["complain"]),
       id: json["id"],
     );
   }
@@ -80,11 +80,11 @@ class Examination {
         "patient": patient?.toJson(),
         "appointment": appointment?.toJson(),
         "type": type?.toJson(),
-        "measurements": measurements.map((x) => x?.toJson()).toList(),
+        // "measurements": measurements.map((x) => x.toJson()).toList(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
-        "history": history?.toJson(),
-        "complain": complain?.toJson(),
+        // "history": history?.toJson(),
+        // "complain": complain?.toJson(),
         "id": id,
       };
 }

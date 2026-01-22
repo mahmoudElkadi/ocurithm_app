@@ -22,8 +22,11 @@ import 'package:ocurithm/core/utils/constant.dart';
 import 'package:ocurithm/modules/Patient/data/model/nationality_model.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import '../../../../Analysis/presentation/views/analysis_view.dart';
 import '../examination_view/one_examination_view.dart';
+import '../examination_view/scan_form_page.dart';
+import '../examination_view/scanned_list_page.dart';
 
 enum PatientFormMode { add, edit, view }
 
@@ -196,10 +199,11 @@ class _PatientFormViewState extends State<PatientFormView> {
               },
               icon: Icon(_isReadOnly ? Icons.edit : Icons.close),
             ),
-          if (widget.mode != PatientFormMode.add && widget.patientId!=null)
+          if (widget.mode != PatientFormMode.add && widget.patientId != null)
             IconButton(
               onPressed: () {
-                Get.to(()=>AnalysisView(patientId:widget.patientId.toString() ));
+                Get.to(
+                    () => AnalysisView(patientId: widget.patientId.toString()));
               },
               icon: const Icon(Icons.analytics_outlined),
             ),
@@ -217,12 +221,24 @@ class _PatientFormViewState extends State<PatientFormView> {
             ),
           BlocListener<PatientActionsCubit, PatientActionsState>(
             listener: (context, state) {
-              if (state.isSuccess) {
+              if (state.isLoading) {
+                customLoading(
+                    context,
+                    (state.actionType == PatientActionType.add)
+                        ? "Adding Patient..."
+                        : "Updating Patient...");
+              } else if (state.isSuccess) {
+                // Pop the loading dialog
+                Navigator.pop(context);
+
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(state.successMessage ?? 'Success'),
                     backgroundColor: Colors.green));
                 Navigator.pop(context, true);
-              } else if (state.isError) {
+              } else if (state.isError || state.noConnection) {
+                // Pop the loading dialog
+                Navigator.pop(context);
+
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(state.errorMessage ?? 'Error'),
                     backgroundColor: Colors.red));
@@ -240,12 +256,303 @@ class _PatientFormViewState extends State<PatientFormView> {
                   if (state.isError) {
                     return Center(child: Text(state.errorMessage ?? 'Error'));
                   }
-                  return _buildForm(context, theme, isDark);
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _isReadOnly
+                        ? _buildPatientDetailView(theme, isDark)
+                        : _buildForm(context, theme, isDark),
+                  );
                 },
               ),
       ),
-      bottomNavigationBar:
-          !_isReadOnly ? _buildBottomBar(context, theme) : null,
+      bottomNavigationBar: (!_isReadOnly || widget.mode == PatientFormMode.add)
+          ? _buildBottomBar(context, theme)
+          : null,
+    );
+  }
+
+  Widget _buildPatientDetailView(ThemeData theme, bool isDark) {
+    if (_loadedPatient == null) return const SizedBox.shrink();
+    final p = _loadedPatient!;
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          _buildDetailHeader(p, theme, isDark),
+          Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoSection(
+                  title: 'Personal Information',
+                  items: [
+                    _InfoItemData(
+                        label: 'Gender',
+                        value: p.gender ?? 'N/A',
+                        icon: Icons.person_outline),
+                    _InfoItemData(
+                        label: 'Birth Date',
+                        value: p.birthDate != null
+                            ? DateFormat('MMM dd, yyyy').format(p.birthDate!)
+                            : 'N/A',
+                        icon: Icons.cake_outlined),
+                    _InfoItemData(
+                        label: 'Nationality',
+                        value: p.nationality ?? 'N/A',
+                        icon: Icons.flag_outlined),
+                  ],
+                  theme: theme,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildInfoSection(
+                  title: 'Contact & ID',
+                  items: [
+                    _InfoItemData(
+                        label: 'Email',
+                        value: p.email ?? 'N/A',
+                        icon: Icons.email_outlined),
+                    _InfoItemData(
+                        label: 'Phone',
+                        value: p.phone ?? 'N/A',
+                        icon: Icons.phone_outlined),
+                    _InfoItemData(
+                        label: 'National ID',
+                        value: p.nationalId ?? 'N/A',
+                        icon: Icons.badge_outlined),
+                    _InfoItemData(
+                        label: 'Serial Number',
+                        value: p.serialNumber ?? 'N/A',
+                        icon: Icons.numbers_outlined),
+                  ],
+                  theme: theme,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildInfoSection(
+                  title: 'Location & Affiliation',
+                  items: [
+                    _InfoItemData(
+                        label: 'Address',
+                        value: p.address ?? 'N/A',
+                        icon: Icons.location_on_outlined),
+                    _InfoItemData(
+                        label: 'Clinic',
+                        value: p.clinic?.name ?? 'N/A',
+                        icon: Icons.local_hospital_outlined),
+                    _InfoItemData(
+                        label: 'Branch',
+                        value: p.branch?.name ?? 'N/A',
+                        icon: Icons.business_outlined),
+                  ],
+                  theme: theme,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () =>
+                            Get.to(() => ScanFormPage(patientId: p.id ?? '')),
+                        icon: const Icon(Icons.qr_code_scanner, size: 20),
+                        label: const Text("Scan"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Get.to(
+                            () => ScannedListPage(patientId: p.id ?? '')),
+                        icon: const Icon(Icons.image_outlined, size: 20),
+                        label: const Text("Show Scanned"),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.primaryColor,
+                          side: BorderSide(color: theme.primaryColor),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildExaminationsList(theme),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailHeader(Patient p, ThemeData theme, bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 30.h, horizontal: 16.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [theme.primaryColor.withValues(alpha: 0.2), theme.cardColor]
+              : [
+                  theme.primaryColor.withValues(alpha: 0.1),
+                  theme.primaryColor.withValues(alpha: 0.02)
+                ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 80.w,
+            height: 80.w,
+            decoration: BoxDecoration(
+              color: theme.primaryColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: theme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                p.name?.isNotEmpty == true ? p.name![0].toUpperCase() : 'P',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            p.name ?? 'Unknown Patient',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          if (p.serialNumber != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: theme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'SN: ${p.serialNumber}',
+                style: TextStyle(
+                  color: theme.primaryColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoSection({
+    required String title,
+    required List<_InfoItemData> items,
+    required ThemeData theme,
+    required bool isDark,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[900] : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...items.map((item) => _buildInfoRow(item, theme, isDark)).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(_InfoItemData item, ThemeData theme, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(item.icon, size: 18, color: theme.primaryColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -498,13 +805,12 @@ class _PatientFormViewState extends State<PatientFormView> {
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.primaryColor.withValues(alpha:0.3)),
+          border: Border.all(color: theme.primaryColor.withValues(alpha: 0.3)),
         ),
         child: InkWell(
             onTap: () {
-              if (CacheHelper.getStringList(key: "capabilities")
-                  .contains("showExaminations")) {
-                Get.to(() => OneExaminationView(id: exam.id.toString()));
+              if (exam.id != null) {
+                Get.to(() => OneExaminationView(id: exam.id!));
               }
             },
             child: Padding(
@@ -514,7 +820,7 @@ class _PatientFormViewState extends State<PatientFormView> {
                     width: 55,
                     height: 55,
                     decoration: BoxDecoration(
-                      color: theme.primaryColor.withValues(alpha:0.1),
+                      color: theme.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(Icons.visibility_outlined,
@@ -562,7 +868,8 @@ class _PatientFormViewState extends State<PatientFormView> {
             borderSide: const BorderSide(color: Colors.red)),
         suffixIcon: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: SvgPicture.asset("assets/icons/phone_number.svg", height: 15, width: 15),
+          child: SvgPicture.asset("assets/icons/phone_number.svg",
+              height: 15, width: 15),
         ),
       ),
       initialCountryCode: 'EG',
@@ -879,4 +1186,12 @@ class _PatientFormViewState extends State<PatientFormView> {
           .add(UpdatePatientEvent(widget.patientId!, patient));
     }
   }
+}
+
+class _InfoItemData {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  _InfoItemData({required this.label, required this.value, required this.icon});
 }

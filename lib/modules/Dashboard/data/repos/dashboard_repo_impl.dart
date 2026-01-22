@@ -2,7 +2,7 @@ import 'package:ocurithm/modules/Dashboard/data/models/dashboard_model.dart';
 
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import 'dashboard_repo.dart';
 
 class DashboardRepoImpl implements DashboardRepo {
@@ -11,7 +11,7 @@ class DashboardRepoImpl implements DashboardRepo {
     DateTime? start,
     DateTime? end,
   }) async {
-    final url = Config.baseUrl;
+    final url = ApiConstants.baseUrl;
     final String? token = CacheHelper.getData(key: "token");
     Map<String, dynamic> query = {if (start != null) "start": start, if (end != null) "end": end};
     final result = await ApiService.request<DashboardModel>(

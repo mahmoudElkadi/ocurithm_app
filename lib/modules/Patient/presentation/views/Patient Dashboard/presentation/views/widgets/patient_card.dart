@@ -6,15 +6,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+
 import 'package:shimmer/shimmer.dart';
 
-import '../../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../../core/widgets/confirmation_popuo.dart';
-import '../../../../../../../../../core/widgets/custom_freeze_loading.dart';
+
 import '../../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../../core/widgets/pagination.dart';
-import '../../../../../../../../../core/widgets/width_spacer.dart';
+
 import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../../data/model/patients_model.dart';
 import '../../../../../manager/get_patients_cubit/get_patients_cubit.dart';
@@ -57,193 +56,171 @@ class PatientCard extends StatelessWidget {
         }
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Container(
           width: MediaQuery.of(context).size.width,
-          padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 15.w),
+          padding: EdgeInsets.all(16.h),
           decoration: BoxDecoration(
             color: theme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: isDark
-                ? Border.all(color: Colors.white.withValues(alpha:0.1))
-                : null,
-            boxShadow: isDark
-                ? null
-                : [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha:0.2),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                    ),
-                  ],
-          ),
-          child: Row(children: [
-            isLoading
-                ? _buildShimmer(
-                    context,
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.cardColor,
-                      ),
-                    ),
-                  )
-                : Expanded(
-                    flex: 1,
-                    child: Container(
-                      height: 50,
-                      width: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.cardColor,
-                        border: Border.all(
-                          color: theme.dividerColor,
-                          width: 1,
-                        ),
-                      ),
-                      child: patient?.name != null
-                          ? Center(
-                              child: Text(
-                                patient!.name!.split("")[0].toUpperCase(),
-                                style: theme.textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            )
-                          : null,
-                    ),
-                  ),
-            const WidthSpacer(size: 10),
-            Expanded(
-              flex: 5,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const HeightSpacer(size: 5),
-                  isLoading
-                      ? _buildShimmer(
-                          context,
-                          Container(
-                            width: 170,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: theme.cardColor,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          patient?.name ?? "N/A",
-                          maxLines: 2,
-                          style: GoogleFonts.inter(
-                            textStyle: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                  const HeightSpacer(size: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onLongPress: () async {
-                          await Clipboard.setData(
-                              ClipboardData(text: patient?.phone ?? "N/A"));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Copied"),
-                            ),
-                          );
-                        },
-                        child: isLoading
-                            ? _buildShimmer(
-                                context,
-                                Container(
-                                  width: 100,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(20)),
-                                    color: theme.cardColor,
-                                  ),
-                                ),
-                              )
-                            : Text(
-                                patient?.phone ?? "N/A",
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: theme.textTheme.bodySmall?.color,
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : theme.primaryColor.withValues(alpha: 0.08),
             ),
-            if (CacheHelper.getStringList(key: "capabilities")
-                .contains("managePatients"))
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
               isLoading
                   ? _buildShimmer(
                       context,
                       Container(
-                        width: 30,
-                        height: 30,
+                        width: 56,
+                        height: 56,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: theme.cardColor,
                         ),
                       ),
                     )
-                  : IconButton(
-                      onPressed: () async {
-                        showConfirmationDialog(
-                          context: context,
-                          title: "Delete Patient",
-                          message:
-                              "Do you want to Delete ${patient?.name ?? "this Patient"}?",
-                          onConfirm: () async {
-                            customLoading(context, "");
-                            bool connection =
-                                await InternetConnection().hasInternetAccess;
-                            if (!connection) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text(
-                                  "No Internet Connection",
-                                  style: TextStyle(color: Colors.white),
+                  : Container(
+                      height: 56,
+                      width: 56,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.primaryColor,
+                            theme.primaryColor.withValues(alpha: 0.7),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.primaryColor.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          patient?.name?.isNotEmpty == true
+                              ? patient!.name![0].toUpperCase()
+                              : 'P',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    isLoading
+                        ? _buildShimmer(
+                            context,
+                            Container(
+                              width: 140,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: theme.cardColor,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            patient?.name ?? "N/A",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              textStyle: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                    const SizedBox(height: 6),
+                    isLoading
+                        ? _buildShimmer(
+                            context,
+                            Container(
+                              width: 100,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: theme.cardColor,
+                              ),
+                            ),
+                          )
+                        : Row(
+                            children: [
+                              Icon(
+                                Icons.phone_outlined,
+                                size: 14,
+                                color: isDark ? Colors.white70 : Colors.black54,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                patient?.phone ?? "N/A",
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54,
+                                  fontSize: 13,
                                 ),
-                                backgroundColor: Colors.red,
-                              ));
-                            } else {
-                              // Use PatientActionsCubit
+                              ),
+                            ],
+                          ),
+                  ],
+                ),
+              ),
+              if (CacheHelper.getStringList(key: "capabilities")
+                      .contains("managePatients") &&
+                  !isLoading)
+                Row(
+                  children: [
+                    IconButton(
+                        onPressed: () async {
+                          showConfirmationDialog(
+                            context: context,
+                            title: "Delete Patient",
+                            message:
+                                "Are you sure you want to delete ${patient?.name ?? "this patient"}?",
+                            onConfirm: () async {
+                              Navigator.pop(
+                                  context); // Close confirmation dialog
                               context
                                   .read<PatientActionsCubit>()
                                   .add(DeletePatientEvent(patient!.id!));
-                              Navigator.pop(context); // close dialog
-                              // Loading dialog is handled by UI?
-                              // Current code shows loading then closes dialog.
-                              // Since ActionsCubit is listened to in PatientView, it will show Snackbars.
-                              // So I should just dispatch event.
-                              // But I turned on customLoading. I should pop customLoading if I rely on listener.
-                              // Or I rely on listener to pop loading?
-                              // Doctor module: Listener pops loading?
-                              Navigator.pop(context); // close loading
-                            }
-                          },
-                          onCancel: () {
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
-                      icon: Icon(
-                        Icons.delete_forever,
-                        color: Colorz.redColor,
-                      )),
-          ]),
+                            },
+                            onCancel: () => Navigator.pop(context),
+                          );
+                        },
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color: Colors.red[400],
+                          size: 22,
+                        )),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -329,7 +306,7 @@ class PatientListView extends StatelessWidget {
               Icon(
                 Icons.inbox_outlined,
                 size: 70,
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha:0.5),
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 16),
               Text(
@@ -342,7 +319,8 @@ class PatientListView extends StatelessWidget {
               Text(
                 'Patient will appear here',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.textTheme.bodySmall?.color?.withValues(alpha:0.7),
+                  color:
+                      theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                 ),
               ),
             ],

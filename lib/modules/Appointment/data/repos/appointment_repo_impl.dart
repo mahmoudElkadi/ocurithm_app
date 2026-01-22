@@ -1,6 +1,6 @@
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Doctor/data/model/doctor_model.dart';
 import '../models/appointment_model.dart';
@@ -12,7 +12,7 @@ class AppointmentRepoImpl implements AppointmentRepo {
     String? branch,
     bool? isActive,
   }) async {
-    final url = "${Config.baseUrl}${Config.doctors}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.doctors}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> query = {
@@ -43,7 +43,7 @@ class AppointmentRepoImpl implements AppointmentRepo {
 
   @override
   Future<BranchesModel> getAllBranches() async {
-    final url = "${Config.baseUrl}${Config.branches}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<BranchesModel>(
@@ -67,7 +67,7 @@ class AppointmentRepoImpl implements AppointmentRepo {
   @override
   Future<AppointmentModel> getAllAppointment(
       {DateTime? date, String? branch, String? doctor, String? search}) async {
-    final url = "${Config.baseUrl}${Config.appointments}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.appointments}";
     final String? token = CacheHelper.getData(key: "token");
 
     Map<String, dynamic> quary = {
@@ -107,7 +107,7 @@ class AppointmentRepoImpl implements AppointmentRepo {
       required String action,
       DateTime? date,
       String? doctor}) async {
-    final url = "${Config.baseUrl}${Config.appointments}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.appointments}/$id";
     final String? token = CacheHelper.getData(key: "token");
     Map<String, dynamic> data = {
       "action": action,

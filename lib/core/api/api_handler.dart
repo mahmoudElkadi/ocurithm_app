@@ -538,8 +538,16 @@ class ApiHandler {
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
           String message = 'Request failed';
-
-          if (statusCode == 401) {
+          if (error.response?.data != null) {
+            // Try to extract error message from response
+            final data = error.response?.data;
+            if (data is Map && data.containsKey('message')) {
+              message = data['message'].toString();
+            } else if (data is Map && data.containsKey('error')) {
+              message = data['error'].toString();
+            }
+          }
+         else if (statusCode == 401) {
             message = 'Unauthorized. Please login again.';
           } else if (statusCode == 403) {
             message = 'Access forbidden.';

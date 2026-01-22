@@ -7,9 +7,9 @@ class ApiConstants {
 
   // static String get baseUrl => "https://ocurithm.com/api/";
 
-  static String get baseUrl => "http://192.168.1.8:3000/api/";
+  static String get baseUrl => "http://192.168.1.4:3000/api/";
 
-  static String get login => "login";
+  static String get login => "auth/login";
 
   static String get refreshToken => "auth/refresh";
 
@@ -36,5 +36,8 @@ class ApiConstants {
   static String get medicines => "medicines/commercial-names";
 
   static String get activeIngredients => "medicines/active-ingredients";
+
   static String get analysis => "measurement-trends";
+  static String get storageUpload => "storage/upload";
+  static String get storageDelete => "storage";
 }

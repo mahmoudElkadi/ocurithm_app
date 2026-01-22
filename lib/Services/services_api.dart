@@ -1,13 +1,13 @@
 import '../core/Network/dio_handler.dart';
 import '../core/Network/shared.dart';
-import '../core/utils/config.dart';
+import '../core/api/api_constants.dart';
 import '../modules/Branch/data/model/branches_model.dart';
 import '../modules/Clinics/data/model/clinics_model.dart';
 import '../modules/Doctor/data/model/capability_model.dart';
 
 class ServicesApi {
   Future<ClinicsModel> getAllClinics({int? page, String? search}) async {
-    final url = "${Config.baseUrl}${Config.clinics}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.clinics}";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<ClinicsModel>(
@@ -29,7 +29,7 @@ class ServicesApi {
   }
 
   Future<BranchesModel> getAllBranches({String? clinic, bool? haveDoctors}) async {
-    final url = "${Config.baseUrl}${Config.branches}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<BranchesModel>(
@@ -52,7 +52,7 @@ class ServicesApi {
   }
 
   Future<CapabilityModel> getAllCapability() async {
-    final url = "${Config.baseUrl}${Config.capabilities}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.capabilities}";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<CapabilityModel>(

@@ -93,7 +93,7 @@ class _AnalysisViewBodyState extends State<AnalysisViewBody> {
                           title: 'Near Vision Addition',
                           axis: trends.nearVision!.addition!,
                           defaultMinY: 0,
-                          defaultMaxY: 4.0,
+                          defaultMaxY: 10.0,
                         ),
                     ],
                   ),
@@ -110,15 +110,15 @@ class _AnalysisViewBodyState extends State<AnalysisViewBody> {
                         _buildChartConfigFromAxis(
                           title: 'IOP',
                           axis: trends.iop!.primary!,
-                          defaultMinY: 8,
-                          defaultMaxY: 30,
+                          defaultMinY: 0,
+                          defaultMaxY: 70,
                         ),
                       if (trends.iop!.secondary != null)
                         _buildChartConfigFromAxis(
                           title: 'IOP Measurement',
                           axis: trends.iop!.secondary!,
-                          defaultMinY: 8,
-                          defaultMaxY: 30,
+                          defaultMinY: 0,
+                          defaultMaxY: 70,
                         ),
                     ],
                   ),
@@ -139,16 +139,16 @@ class _AnalysisViewBodyState extends State<AnalysisViewBody> {
       configs.add(_buildChartConfigFromAxis(
         title: 'Spherical',
         axis: refraction.spherical!,
-        defaultMinY: -10,
-        defaultMaxY: 6,
+        defaultMinY: -25,
+        defaultMaxY: 20,
       ));
     }
     if (refraction.cylindrical != null) {
       configs.add(_buildChartConfigFromAxis(
         title: 'Cylindrical',
         axis: refraction.cylindrical!,
-        defaultMinY: -6,
-        defaultMaxY: 0.5,
+        defaultMinY: -25,
+        defaultMaxY: 20,
       ));
     }
     if (refraction.axis != null) {

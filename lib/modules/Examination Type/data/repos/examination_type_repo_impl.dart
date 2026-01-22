@@ -1,6 +1,6 @@
 import '../../../../../core/Network/dio_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/data.dart';
 import '../model/examination_type_model.dart';
 import 'examination_type_repo.dart';
@@ -8,7 +8,7 @@ import 'examination_type_repo.dart';
 class ExaminationTypeRepoImpl implements ExaminationTypeRepo {
   @override
   Future<ExaminationType> createExaminationType({required ExaminationType examinationType}) async {
-    final url = "${Config.baseUrl}${Config.examinationTypes}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<ExaminationType>(
@@ -32,7 +32,7 @@ class ExaminationTypeRepoImpl implements ExaminationTypeRepo {
 
   @override
   Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? search}) async {
-    final url = "${Config.baseUrl}${Config.examinationTypes}";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}";
     final String? token = CacheHelper.getData(key: "token");
     Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
 
@@ -57,7 +57,7 @@ class ExaminationTypeRepoImpl implements ExaminationTypeRepo {
 
   @override
   Future<ExaminationType> getExaminationType({required String id}) async {
-    final url = "${Config.baseUrl}${Config.examinationTypes}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<ExaminationType>(
@@ -80,7 +80,7 @@ class ExaminationTypeRepoImpl implements ExaminationTypeRepo {
 
   @override
   Future<ExaminationType> updateExaminationType({required String id, required ExaminationType examinationType}) async {
-    final url = "${Config.baseUrl}${Config.examinationTypes}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<ExaminationType>(
@@ -104,7 +104,7 @@ class ExaminationTypeRepoImpl implements ExaminationTypeRepo {
 
   @override
   Future<DataModel> deleteExaminationType({required String id}) async {
-    final url = "${Config.baseUrl}${Config.examinationTypes}/$id";
+    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}/$id";
     final String? token = CacheHelper.getData(key: "token");
 
     final result = await ApiService.request<DataModel>(

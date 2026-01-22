@@ -6,11 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/widgets/select_doctor_branch.dart';
-
 import '../../../../../core/Network/shared.dart';
+import '../../../../../core/api/api_constants.dart';
 import '../../../../../core/utils/booking_calendar/booking_calendar.dart';
 import '../../../../../core/utils/colors.dart';
-import '../../../../../core/utils/config.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../Patient/data/model/patients_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
@@ -141,7 +140,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
     try {
       var response = await dio.get(
-        "${Config.baseUrl}appointments",
+        "${ApiConstants.baseUrl}appointments",
         queryParameters: query,
         options: Options(
           headers: {
@@ -249,7 +248,7 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       };
 
       var response = await dio.post(
-        "${Config.baseUrl}appointment",
+        "${ApiConstants.baseUrl}appointment",
         data: data,
         options: Options(
           validateStatus: (status) {

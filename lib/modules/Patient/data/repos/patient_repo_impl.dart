@@ -1,77 +1,45 @@
-import 'package:dio/dio.dart';
+import 'package:ocurithm/core/api/api_handler.dart';
 import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
 import 'package:ocurithm/modules/Patient/data/model/patient_examination.dart';
 
-import '../../../../../core/Network/dio_handler.dart';
-import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
+import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Branch/data/model/data.dart';
 import '../model/patients_model.dart';
 import 'patient_repo.dart';
 
 class PatientRepoImpl implements PatientRepo {
+  final ApiHandler _apiHandler = ApiHandler();
+
   @override
   Future<Patient> createPatient({required Patient patient}) async {
-    try {
-      final url = "${Config.baseUrl}${Config.patients}";
-      final String? token = CacheHelper.getData(key: "token");
+    Map<String, dynamic> data = {
+      "name": patient.name?.trim(),
+      "clinic": patient.clinic?.id,
+      "phone": patient.phone?.trim(),
+      "password": patient.password,
+      "branch": patient.branch?.id,
+      "email": patient.email?.trim(),
+      "address": patient.address?.trim(),
+      "username": patient.username?.trim(),
+      "gender": patient.gender,
+      "nationality": patient.nationality?.trim(),
+      "nationalID": patient.nationalId?.trim().toString(),
+      "serialNumber": patient.nationalId?.trim().toString(),
+      if (patient.birthDate != null)
+        "birthDate": patient.birthDate!.toIso8601String(),
+    };
 
-      // Sanitize and validate data before sending
-      Map<String, dynamic> data = {
-        "name": patient.name?.trim(),
-        "clinic": patient.clinic?.id,
-        "phone": patient.phone?.trim(),
-        "password": patient.password,
-        "branch": patient.branch?.id,
-        "email": patient.email?.trim(),
-        "address": patient.address?.trim(),
-        "username": patient.username?.trim(),
-        "gender": patient.gender,
-        "nationality": patient.nationality?.trim(),
-        "nationalID": patient.nationalId?.trim().toString(),
-        "serialNumber": patient.nationalId?.trim().toString(),
-        if (patient.birthDate != null)
-          "birthDate": patient.birthDate.toString(),
-      };
+    final response = await _apiHandler.post<Patient>(
+      ApiConstants.patients,
+      data: data,
+      fromJson: (json) => Patient.fromJson(json),
+    );
 
-      final result = await ApiService.request<Patient>(
-        url: url,
-        data: data,
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-          if (token != null) 'Cookie': 'ocurithmToken=$token',
-        },
-        showError: true,
-        fromJson: (json) => Patient.fromJson(json),
-      );
-
-      if (result != null) {
-        return result;
-      } else {
-        throw Exception("Failed to create Patient: No response from server");
-      }
-    } catch (e) {
-      if (e is DioException) {
-        switch (e.type) {
-          case DioExceptionType.connectionTimeout:
-          case DioExceptionType.sendTimeout:
-          case DioExceptionType.receiveTimeout:
-            throw Exception("Connection timeout. Please try again.");
-          case DioExceptionType.badResponse:
-            final responseData = e.response?.data;
-            final errorMessage = responseData is Map
-                ? responseData['error'] ?? 'Unknown error'
-                : 'Unknown error';
-            throw Exception("Server error: $errorMessage");
-          case DioExceptionType.cancel:
-            throw Exception("Request cancelled");
-          default:
-            throw Exception("Network error: ${e.message}");
-        }
-      }
-      throw Exception("Failed to create Patient: ${e.toString()}");
+    if (response.success && response.data != null) {
+      return response.data!;
+    } else {
+      throw Exception(response.message ?? "Failed to create Patient");
     }
   }
 
@@ -82,65 +50,46 @@ class PatientRepoImpl implements PatientRepo {
     String? branch,
     bool? isActive,
   }) async {
-    final url = "${Config.baseUrl}${Config.patients}";
-    final String? token = CacheHelper.getData(key: "token");
-
     Map<String, dynamic> query = {
       "page": page ?? 1,
       'limit': 10,
-      if (search != null) "search": search,
+      if (search != null && search.isNotEmpty) "search": search,
       if (branch != null) "branch": branch,
       if (isActive != null) "isActive": isActive,
     };
 
-    final result = await ApiService.request<PatientModel>(
-      url: url,
-      method: 'GET',
+    final response = await _apiHandler.get<PatientModel>(
+      ApiConstants.patients,
       queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
       fromJson: (json) => PatientModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed to fetch Patients");
+      throw Exception(response.message ?? 'Failed to fetch patients');
     }
   }
 
   @override
   Future<Patient> getPatient({required String id}) async {
-    final url = "${Config.baseUrl}${Config.patients}/$id";
-    final String? token = CacheHelper.getData(key: "token");
-
-    final result = await ApiService.request<Patient>(
-      url: url,
-      method: 'GET',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
+    final response = await _apiHandler.get<Patient>(
+      "${ApiConstants.patients}/$id",
       fromJson: (json) => Patient.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed to fetch Patient");
+      throw Exception(response.message ?? "Failed to fetch Patient");
     }
   }
 
   @override
-  Future<Patient> updatePatient(
-      {required String id, required Patient patient}) async {
-    final url = "${Config.baseUrl}${Config.patients}/$id";
-    final String? token = CacheHelper.getData(key: "token");
-
+  Future<Patient> updatePatient({
+    required String id,
+    required Patient patient,
+  }) async {
     Map<String, dynamic> data = {
       "name": patient.name?.trim(),
       "phone": patient.phone?.trim(),
@@ -153,119 +102,77 @@ class PatientRepoImpl implements PatientRepo {
       "nationality": patient.nationality?.trim(),
       "nationalID": patient.nationalId?.trim().toString(),
       "serialNumber": patient.nationalId?.trim().toString(),
-      if (patient.birthDate != null) "birthDate": patient.birthDate.toString(),
+      if (patient.birthDate != null)
+        "birthDate": patient.birthDate!.toIso8601String(),
     };
 
-    final result = await ApiService.request<Patient>(
-      url: url,
-      method: 'PUT',
+    final response = await _apiHandler.put<Patient>(
+      "${ApiConstants.patients}/$id",
       data: data,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
       fromJson: (json) => Patient.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed to update Patient");
+      throw Exception(response.message ?? "Failed to update Patient");
     }
   }
 
   @override
   Future<DataModel> deletePatient({required String id}) async {
-    final url = "${Config.baseUrl}${Config.patients}/$id";
-    final String? token = CacheHelper.getData(key: "token");
-
-    final result = await ApiService.request<DataModel>(
-      url: url,
-      method: 'DELETE',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
+    final response = await _apiHandler.delete<DataModel>(
+      "${ApiConstants.patients}/$id",
       fromJson: (json) => DataModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed to delete Patient");
+      throw Exception(response.message ?? "Failed to delete Patient");
     }
   }
 
   @override
   Future<BranchesModel> getAllBranches() async {
-    final url = "${Config.baseUrl}${Config.branches}";
-    final String? token = CacheHelper.getData(key: "token");
-
-    final result = await ApiService.request<BranchesModel>(
-      url: url,
-      method: 'GET',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
+    final response = await _apiHandler.get<BranchesModel>(
+      ApiConstants.branches,
       fromJson: (json) => BranchesModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed fetch branches");
+      throw Exception(response.message ?? "Failed fetch branches");
     }
   }
 
   @override
-  Future<Examinations> getPatientExaminations(
-      {required String id}) async {
-    final url = "${Config.baseUrl}${Config.examination}";
-    final String? token = CacheHelper.getData(key: "token");
-
-    final result = await ApiService.request<Examinations>(
-      url: url,
-      method: 'GET',
+  Future<Examinations> getPatientExaminations({required String id}) async {
+    final response = await _apiHandler.get<Examinations>(
+      ApiConstants.examination,
       queryParameters: {"patient": id},
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
       fromJson: (json) => Examinations.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed fetch branches");
+      throw Exception(response.message ?? "Failed fetch examinations");
     }
   }
 
   @override
   Future<ExaminationModel> getOneExamination({required String id}) async {
-    final url = "${Config.baseUrl}${Config.examination}/$id";
-    final String? token = CacheHelper.getData(key: "token");
-
-    final result = await ApiService.request<ExaminationModel>(
-      url: url,
-      method: 'GET',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
+    final response = await _apiHandler.get<ExaminationModel>(
+      "${ApiConstants.examination}/$id",
       fromJson: (json) => ExaminationModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed fetch branches");
+      throw Exception(response.message ?? "Failed fetch examination");
     }
   }
 }

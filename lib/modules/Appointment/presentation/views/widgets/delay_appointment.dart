@@ -8,9 +8,9 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 
 import '../../../../../core/Network/shared.dart';
+import '../../../../../core/api/api_constants.dart';
 import '../../../../../core/utils/booking_calendar/booking_calendar.dart';
 import '../../../../../core/utils/colors.dart';
-import '../../../../../core/utils/config.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../Patient/data/model/patients_model.dart';
 import '../../../data/models/appointment_model.dart';
@@ -133,7 +133,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
 
     try {
       var response = await dio.get(
-        "${Config.baseUrl}appointments",
+        "${ApiConstants.baseUrl}appointments",
         queryParameters: query,
         options: Options(
           headers: {"Accept": "application/json", "Content-Type": "application/json", "Cookie": "ocurithmToken=${CacheHelper.getData(key: 'token')}"},
@@ -203,7 +203,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
       };
 
       var response = await dio.post(
-        "${Config.baseUrl}appointment",
+        "${ApiConstants.baseUrl}appointment",
         data: data,
         options: Options(
           validateStatus: (status) {

@@ -43,6 +43,7 @@ dependencies:
   cached_network_image: ^3.2.3
   shimmer: ^3.0.0
   image_picker: ^1.0.7
+  file_picker: ^8.0.0
   cloudinary_public: ^0.23.1
   get: ^4.6.6
   flutter_keyboard_visibility: ^6.0.0

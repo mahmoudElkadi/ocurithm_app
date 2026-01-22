@@ -55,6 +55,8 @@ import 'package:ocurithm/modules/Examination/presentation/manager/examination_fo
 import '../../modules/Login/data/repos/login_repo.dart';
 import '../../modules/Login/data/repos/login_repo_impl.dart';
 import '../../modules/Login/presentation/manger/login_cubit/login_cubit.dart';
+import '../../modules/Storage/data/repos/storage_repo.dart';
+import '../../modules/Storage/presentation/manager/storage_cubit/storage_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -141,7 +143,9 @@ class ServiceLocator {
     ///Analysis
     sl.registerLazySingleton<AnalysisRepo>(() => AnalysisRepoImpl());
     sl.registerFactory(() => GetAnalysisCubit(sl.call<AnalysisRepo>()));
+
+    ///Storage
+    sl.registerLazySingleton<StorageRepo>(() => StorageRepoImpl());
+    sl.registerFactory(() => StorageCubit(sl.call<StorageRepo>()));
   }
-
-
 }

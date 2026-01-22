@@ -14,6 +14,9 @@ class OneExaminationContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -33,10 +36,16 @@ class OneExaminationContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildEyeExaminationContent(context,
-                      isLeft: false, examination: examination),
+                      isLeft: false,
+                      examination: examination,
+                      isDark: isDark,
+                      theme: theme),
                   const SizedBox(width: 10),
                   _buildEyeExaminationContent(context,
-                      isLeft: true, examination: examination),
+                      isLeft: true,
+                      examination: examination,
+                      isDark: isDark,
+                      theme: theme),
                 ],
               )
             ],
@@ -48,6 +57,9 @@ class OneExaminationContent extends StatelessWidget {
 
   Widget _buildMedicationContent(BuildContext context, Action action,
       List<Medicine>? medicines, ExaminationModel examinationModel) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -82,9 +94,10 @@ class OneExaminationContent extends StatelessWidget {
         if (medicines != null && medicines.isNotEmpty) ...[
           Container(
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: isDark ? Colors.grey[900] : Colors.grey[50],
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
+              border: Border.all(
+                  color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
             ),
             child: Column(
               children: [
@@ -92,7 +105,7 @@ class OneExaminationContent extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colorz.primaryColor.withValues(alpha:0.1),
+                    color: Colorz.primaryColor.withValues(alpha: 0.1),
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(12)),
                   ),
@@ -141,7 +154,9 @@ class OneExaminationContent extends StatelessWidget {
                         bottom: BorderSide(
                           color: index == medicines.length - 1
                               ? Colors.transparent
-                              : Colors.grey[200]!,
+                              : (isDark
+                                  ? Colors.grey[800]!
+                                  : Colors.grey[200]!),
                         ),
                       ),
                     ),
@@ -182,9 +197,10 @@ class OneExaminationContent extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: isDark ? Colors.grey[900] : Colors.grey[100],
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[200]!),
+              border: Border.all(
+                  color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
             ),
             child: const Text(
               'No medications prescribed',
@@ -429,9 +445,9 @@ class OneExaminationContent extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               content,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
                 height: 1.5,
               ),
             ),
@@ -497,16 +513,23 @@ class OneExaminationContent extends StatelessWidget {
 
   Widget _buildQuadrantSection(BuildContext context,
       {required bool isLeft, required ExaminationModel examinationModel}) {
-    final List<Color> _colorList = [
-      Colors.grey[400]!,
-      Colors.black,
-      Colors.white,
-    ];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final List<Color> _colorList = isDark
+        ? [
+            Colors.grey[700]!,
+            Colors.grey[900]!,
+            Colors.white.withValues(alpha: 0.9),
+          ]
+        : [
+            Colors.grey[400]!,
+            Colors.black,
+            Colors.white,
+          ];
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: Colorz.primaryColor.withValues(alpha:0.2),
+      shadowColor: Colorz.primaryColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -566,7 +589,10 @@ class OneExaminationContent extends StatelessWidget {
   }
 
   Widget _buildEyeExaminationContent(BuildContext context,
-      {required bool isLeft, required ExaminationModel examination}) {
+      {required bool isLeft,
+      required ExaminationModel examination,
+      required bool isDark,
+      required ThemeData theme}) {
     if (examination.examination?.measurements.isEmpty ?? true) {
       return const SizedBox.shrink();
     }
@@ -591,6 +617,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'Old Glasses',
             icon: Icons.remove_red_eye,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 0,
             data: {
               'Spherical': isLeft
@@ -616,6 +644,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'Autorefraction',
             icon: Icons.remove_red_eye,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 0,
             data: {
               'Spherical': isLeft
@@ -641,6 +671,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'Refined Refraction',
             icon: Icons.science,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 2,
             data: {
               'Spherical': isLeft
@@ -670,6 +702,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'Visual Acuity',
             icon: Icons.visibility,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 1,
             data: {
               'UCVA': isLeft
@@ -685,6 +719,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'IOP',
             icon: Icons.opacity,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 3,
             data: {
               'IOP Value': isLeft
@@ -705,6 +741,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'Pupils',
             icon: Icons.lens_blur,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 4,
             data: {
               'Shape': isLeft
@@ -737,6 +775,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'Eyelid & Physical',
             icon: Icons.visibility_outlined,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 5,
             data: {
               'Eyelid Ptosis': isLeft
@@ -761,6 +801,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'Eye Structure',
             icon: Icons.add_circle_outline,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 7,
             data: {
               'Cornea': (isLeft
@@ -793,6 +835,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'Fundus Examination',
             icon: Icons.center_focus_strong,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 8,
             data: {
               'Optic Disc': (isLeft
@@ -820,6 +864,8 @@ class OneExaminationContent extends StatelessWidget {
             title: 'External Features',
             icon: Icons.biotech,
             isLeft: isLeft,
+            isDark: isDark,
+            theme: theme,
             sectionIndex: 6,
             data: {
               'Lids': isLeft
@@ -852,11 +898,13 @@ class OneExaminationContent extends StatelessWidget {
     required Map<String, dynamic> data,
     required int sectionIndex,
     required bool isLeft,
+    required bool isDark,
+    required ThemeData theme,
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: Colorz.primaryColor.withValues(alpha:0.2),
+      shadowColor: Colorz.primaryColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -878,7 +926,8 @@ class OneExaminationContent extends StatelessWidget {
           children: [
             Column(
               children: data.entries
-                  .map((entry) => _buildDataRow(entry.key, entry.value))
+                  .map((entry) => _buildDataRow(entry.key, entry.value,
+                      isDark: isDark, theme: theme))
                   .toList(),
             ),
           ],
@@ -887,7 +936,8 @@ class OneExaminationContent extends StatelessWidget {
     );
   }
 
-  Widget _buildDataRow(String label, dynamic value) {
+  Widget _buildDataRow(String label, dynamic value,
+      {required bool isDark, required ThemeData theme}) {
     final displayValue = value?.toString() ?? 'N/A';
     final isLongText = displayValue.length > 30;
 
@@ -907,15 +957,15 @@ class OneExaminationContent extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: isDark ? Colors.grey[900] : Colors.grey[100],
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withValues(alpha:0.2)),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
           ),
           child: Text(
             displayValue,
             style: TextStyle(
               fontSize: isLongText ? 13 : 14,
-              color: Colorz.black,
+              color: isDark ? Colors.white : Colors.black,
               height: 1.5,
             ),
           ),
@@ -944,19 +994,20 @@ class OneExaminationContent extends StatelessWidget {
       BuildContext context, ExaminationModel examination) {
     return Card(
       elevation: 4,
-      shadowColor: Colorz.primaryColor.withValues(alpha:0.2),
+      shadowColor: Colorz.primaryColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16), color: Colorz.white),
+            borderRadius: BorderRadius.circular(16),
+            color: Theme.of(context).cardColor),
         child: Column(
           children: [
             Row(
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colorz.primaryColor.withValues(alpha:0.1),
+                  backgroundColor: Colorz.primaryColor.withValues(alpha: 0.1),
                   child: Icon(Icons.person_outline, color: Colorz.primaryColor),
                 ),
                 const SizedBox(width: 12),
@@ -1025,7 +1076,7 @@ class OneExaminationContent extends StatelessWidget {
       required ExaminationModel examination}) {
     return Card(
       elevation: 3,
-      shadowColor: Colorz.primaryColor.withValues(alpha:0.3),
+      shadowColor: Colorz.primaryColor.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -1033,7 +1084,7 @@ class OneExaminationContent extends StatelessWidget {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colorz.primaryColor.withValues(alpha:0.1),
+              color: Colorz.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(Icons.medical_services, color: Colorz.primaryColor),
@@ -1078,7 +1129,7 @@ class OneExaminationContent extends StatelessWidget {
                         context, action, finalization.medicine, examination),
                     const HeightSpacer(size: 10),
                     Divider(
-                      color: Colors.black,
+                      color: Theme.of(context).dividerColor,
                     ),
                     const HeightSpacer(size: 10),
                   ],
@@ -1224,7 +1275,7 @@ class OneExaminationContent extends StatelessWidget {
   }) {
     return Card(
       elevation: 3,
-      shadowColor: color.withValues(alpha:0.3),
+      shadowColor: color.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -1232,7 +1283,7 @@ class OneExaminationContent extends StatelessWidget {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha:0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color),
@@ -1273,7 +1324,8 @@ class OneExaminationContent extends StatelessWidget {
                           entry.value,
                           style: TextStyle(
                             fontSize: 15,
-                            color: Colorz.black,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                             height: 1.5,
                           ),
                         ),
