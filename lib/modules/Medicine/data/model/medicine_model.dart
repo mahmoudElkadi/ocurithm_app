@@ -1,81 +1,139 @@
-import 'active_ingredient_model.dart';
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 
 class MedicinesModel {
   MedicinesModel({
-    required this.medicines,
-    this.total,
-    this.totalPages,
-    this.error,
+     this.success,
+    required this.commercialNames,
+     this.total,
+     this.totalPages,
   });
 
-  List<Medicine> medicines;
-  num? total;
-  num? totalPages;
-  String? error;
+  final bool? success;
+  final List<CommercialName> commercialNames;
+  final num? total;
+  final num? totalPages;
 
-  factory MedicinesModel.fromJson(Map<String, dynamic> json) {
+  factory MedicinesModel.fromJson(Map<String, dynamic> json){
     return MedicinesModel(
-      medicines: json["medicines"] == null
-          ? []
-          : List<Medicine>.from(
-              json["medicines"]!.map((x) => Medicine.fromJson(x))),
+      success: json["success"],
+      commercialNames: json["commercialNames"] == null ? [] : List<CommercialName>.from(json["commercialNames"]!.map((x) => CommercialName.fromJson(x))),
       total: json["total"],
       totalPages: json["totalPages"],
-      error: json["error"],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        "medicines": medicines.map((x) => x.toJson()).toList(),
-        "total": total,
-        "totalPages": totalPages,
-        "error": error,
-      };
+    "success": success,
+    "commercialNames": commercialNames.map((x) => x?.toJson()).toList(),
+    "total": total,
+    "totalPages": totalPages,
+  };
+
 }
 
-class Medicine {
-  Medicine({
-    this.name,
-    this.description,
-    this.concentration,
-    this.reminder,
-    this.parentId,
-    this.activeIngredient,
-    this.id,
-    this.error,
+class CommercialName {
+  CommercialName({
+     this.deletedAt,
+     this.deletedBy,
+     this.clinic,
+     this.parentId,
+     this.name,
+     this.description,
+     this.concentration,
+     this.isActive,
+     this.createdAt,
+     this.updatedAt,
+     this.isActiveIngredient,
+     this.isCommercialName,
+     this.id,
+     this.createdBy,
+     this.updatedBy,
   });
 
-  String? name;
-  String? description;
-  String? concentration;
-  String? reminder;
-  String? parentId;
-  ActiveIngredient? activeIngredient;
-  String? id;
-  String? error;
+  final dynamic deletedAt;
+  final dynamic deletedBy;
+  final Clinic? clinic;
+  final ParentId? parentId;
+  final String? name;
+  final String? description;
+  final String? concentration;
+  final bool? isActive;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final bool? isActiveIngredient;
+  final bool? isCommercialName;
+  final String? id;
+  final String? createdBy;
+  final String? updatedBy;
 
-  factory Medicine.fromJson(Map<String, dynamic> json) {
-    return Medicine(
+  factory CommercialName.fromJson(Map<String, dynamic> json){
+    return CommercialName(
+      deletedAt: json["deletedAt"],
+      deletedBy: json["deletedBy"],
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
+      parentId: json["parentId"] == null ? null : ParentId.fromJson(json["parentId"]),
       name: json["name"],
       description: json["description"],
       concentration: json["concentration"],
-      reminder: json["reminder"],
-      parentId: json["parent_id"],
-      activeIngredient: json["active_ingredient"] != null
-          ? ActiveIngredient.fromJson(json["active_ingredient"])
-          : null,
+      isActive: json["isActive"],
+      createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+      updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
+      isActiveIngredient: json["isActiveIngredient"],
+      isCommercialName: json["isCommercialName"],
       id: json["id"],
-      error: json["error"],
+      createdBy: json["createdBy"],
+      updatedBy: json["updatedBy"],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        "name": name,
-        "description": description,
-        "concentration": concentration,
-        "reminder": reminder,
-        "parent_id": parentId,
-        "id": id,
-        "error": error,
-      };
+    "deletedAt": deletedAt,
+    "deletedBy": deletedBy,
+    "clinic": clinic?.toJson(),
+    "parentId": parentId?.toJson(),
+    "name": name,
+    "description": description,
+    "concentration": concentration,
+    "isActive": isActive,
+    "createdAt": createdAt?.toIso8601String(),
+    "updatedAt": updatedAt?.toIso8601String(),
+    "isActiveIngredient": isActiveIngredient,
+    "isCommercialName": isCommercialName,
+    "id": id,
+    "createdBy": createdBy,
+    "updatedBy": updatedBy,
+  };
+
+}
+
+
+class ParentId {
+  ParentId({
+     this.name,
+     this.isActiveIngredient,
+     this.isCommercialName,
+     this.id,
+  });
+
+  final String? name;
+  final bool? isActiveIngredient;
+  final bool? isCommercialName;
+  final String? id;
+
+  factory ParentId.fromJson(Map<String, dynamic> json){
+    return ParentId(
+      name: json["name"],
+      isActiveIngredient: json["isActiveIngredient"],
+      isCommercialName: json["isCommercialName"],
+      id: json["id"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    "name": name,
+    "isActiveIngredient": isActiveIngredient,
+    "isCommercialName": isCommercialName,
+    "id": id,
+  };
+
 }

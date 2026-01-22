@@ -45,7 +45,7 @@ Future<String?> showAppointmentDetails(context, Map<String, dynamic> patientData
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
+                              color: Colors.grey.withValues(alpha:0.2),
                               spreadRadius: 2,
                               blurRadius: 5,
                             ),
@@ -80,7 +80,7 @@ Future<String?> showAppointmentDetails(context, Map<String, dynamic> patientData
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
+                              color: Colors.grey.withValues(alpha:0.2),
                               spreadRadius: 2,
                               blurRadius: 5,
                             ),
@@ -131,7 +131,7 @@ Future<String?> showAppointmentDetails(context, Map<String, dynamic> patientData
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
+                              color: Colors.grey.withValues(alpha:0.2),
                               spreadRadius: 2,
                               blurRadius: 5,
                             ),
@@ -166,7 +166,7 @@ Future<String?> showAppointmentDetails(context, Map<String, dynamic> patientData
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
+                              color: Colors.grey.withValues(alpha:0.2),
                               spreadRadius: 2,
                               blurRadius: 5,
                             ),
@@ -201,7 +201,7 @@ Future<String?> showAppointmentDetails(context, Map<String, dynamic> patientData
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
+                              color: Colors.grey.withValues(alpha:0.2),
                               spreadRadius: 2,
                               blurRadius: 5,
                             ),

@@ -68,13 +68,13 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(20),
             border: isDark
-                ? Border.all(color: Colors.white.withOpacity(0.1))
+                ? Border.all(color: Colors.white.withValues(alpha:0.1))
                 : null,
             boxShadow: isDark
                 ? null
                 : [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
+                      color: Colors.grey.withValues(alpha:0.2),
                       spreadRadius: 2,
                       blurRadius: 5,
                     ),
@@ -372,7 +372,7 @@ class _ReceptionistListViewState extends State<ReceptionistListView> {
           Icon(
             Icons.inbox_outlined,
             size: 70,
-            color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha:0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -385,7 +385,7 @@ class _ReceptionistListViewState extends State<ReceptionistListView> {
           Text(
             'Receptionists will appear here',
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha:0.7),
             ),
           ),
         ],

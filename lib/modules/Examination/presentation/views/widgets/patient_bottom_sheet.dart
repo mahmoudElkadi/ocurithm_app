@@ -19,8 +19,7 @@ import 'package:shimmer/shimmer.dart';
 class PatientDetailsBottomSheet extends StatefulWidget {
   final String patientId;
 
-  const PatientDetailsBottomSheet({Key? key, required this.patientId})
-      : super(key: key);
+  const PatientDetailsBottomSheet({super.key, required this.patientId});
 
   @override
   State<PatientDetailsBottomSheet> createState() =>
@@ -110,7 +109,7 @@ class _PatientDetailsBottomSheetState extends State<PatientDetailsBottomSheet> {
                         decoration: BoxDecoration(
                             color: Theme.of(context)
                                 .disabledColor
-                                .withOpacity(0.1),
+                                .withValues(alpha:0.1),
                             shape: BoxShape.circle),
                         child: const Icon(
                           Icons.close,
@@ -299,7 +298,7 @@ class _PatientInfoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
           colors: [
-            Colorz.primaryColor.withOpacity(0.9),
+            Colorz.primaryColor.withValues(alpha: 0.9),
             Colorz.primaryColor,
           ],
           begin: Alignment.topLeft,
@@ -307,7 +306,7 @@ class _PatientInfoCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colorz.primaryColor.withOpacity(0.3),
+            color: Colorz.primaryColor.withValues(alpha:0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -344,7 +343,7 @@ class _PatientInfoCard extends StatelessWidget {
                           patient.serialNumber ?? 'N/A',
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha:0.9),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -356,12 +355,12 @@ class _PatientInfoCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha:0.2),
                   shape: BoxShape.circle,
                 ),
                 child: SvgPicture.asset(
                   "assets/icons/patient.svg",
-                  color: Colors.white,
+                  colorFilter:const ColorFilter.mode(Colors.white,BlendMode.srcIn )  ,
                   height: 24.h,
                   width: 24.w,
                 ),
@@ -397,7 +396,7 @@ class _PatientInfoCard extends StatelessWidget {
         Container(
           padding: EdgeInsets.all(6.w),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: Colors.white.withValues(alpha:0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: Colors.white, size: 16.sp),
@@ -430,8 +429,8 @@ class _ExaminationsSection extends StatelessWidget {
           BlocBuilder<GetPatientExaminationsCubit, GetPatientExaminationsState>(
               builder: (context, state) {
             int count = 0;
-            if (state.examinations?.examinations?.examinations != null) {
-              count = state.examinations!.examinations!.examinations.length;
+            if (state.examinations?.examinations != null) {
+              count = state.examinations!.examinations.length;
             }
 
             return Row(
@@ -449,7 +448,7 @@ class _ExaminationsSection extends StatelessWidget {
                   padding:
                       EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: Colorz.primaryColor.withOpacity(0.1),
+                    color: Colorz.primaryColor.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -478,7 +477,7 @@ class _ExaminationsSection extends StatelessWidget {
                 }
 
                 if (state.examinations == null ||
-                    (state.examinations?.examinations?.examinations.isEmpty ??
+                    (state.examinations?.examinations.isEmpty ??
                         true)) {
                   return Center(
                     child: Column(
@@ -497,7 +496,7 @@ class _ExaminationsSection extends StatelessWidget {
                   );
                 }
 
-                final list = state.examinations!.examinations!.examinations;
+                final list = state.examinations!.examinations;
                 return ListView.separated(
                   physics: const BouncingScrollPhysics(),
                   itemCount: list.length,
@@ -535,10 +534,10 @@ class _ExaminationsSection extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border:
-            Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+            Border.all(color: Theme.of(context).dividerColor.withValues(alpha:0.1)),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.05),
+            color: Theme.of(context).shadowColor.withValues(alpha:0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -560,12 +559,12 @@ class _ExaminationsSection extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
-                    color: Colorz.primaryColor.withOpacity(0.1),
+                    color: Colorz.primaryColor.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: SvgPicture.asset(
                     "assets/icons/examination.svg",
-                    color: Colorz.primaryColor,
+                    colorFilter:ColorFilter.mode(Colorz.primaryColor, BlendMode.srcIn),
                     width: 20.w,
                     height: 20.h,
                   ),

@@ -67,7 +67,7 @@ class StepHeader extends StatelessWidget {
         color: Theme.of(context).scaffoldBackgroundColor,
         // boxShadow: [
         //   BoxShadow(
-        //     color: Colorz.primaryColor.withOpacity(0.2),
+        //     color: Colorz.primaryColor.withValues(alpha:0.2),
         //     blurRadius: 8,
         //     spreadRadius: 1,
         //     offset: const Offset(0, 2),
@@ -136,7 +136,7 @@ class StepHeader extends StatelessWidget {
                             height: 3,
                             width: constraints.maxWidth,
                             decoration: BoxDecoration(
-                              color: Colorz.primaryColor.withOpacity(0.2),
+                              color: Colorz.primaryColor.withValues(alpha:0.2),
                               borderRadius: BorderRadius.circular(1.5),
                             ),
                           ),

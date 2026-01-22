@@ -1,14 +1,14 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../../../../../../../../core/utils/app_style.dart';
 import '../../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../../../../../core/widgets/custom_freeze_loading.dart';
@@ -31,18 +31,23 @@ class PatientCard extends StatelessWidget {
   final bool isLoading;
   final Patient? patient;
 
-  Widget _buildShimmer(Widget child) {
+  Widget _buildShimmer(BuildContext context, Widget child) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+      highlightColor: isDark ? Colors.grey[600]! : Colors.grey[100]!,
       child: child,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () async {
+        log("message ${patient?.toJson().toString()}");
         if (patient?.id != null) {
           bool? result = await Get.to(() => PatientFormPage(
               mode: PatientFormMode.view, patientId: patient!.id!));
@@ -57,25 +62,34 @@ class PatientCard extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 15.w),
           decoration: BoxDecoration(
-              color: Colorz.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                ),
-              ]),
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: isDark
+                ? Border.all(color: Colors.white.withValues(alpha:0.1))
+                : null,
+            boxShadow: isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha:0.2),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                    ),
+                  ],
+          ),
           child: Row(children: [
             isLoading
-                ? _buildShimmer(Container(
-                    width: 50,
-                    height: 50,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
+                ? _buildShimmer(
+                    context,
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.cardColor,
+                      ),
                     ),
-                  ))
+                  )
                 : Expanded(
                     flex: 1,
                     child: Container(
@@ -83,22 +97,21 @@ class PatientCard extends StatelessWidget {
                       width: 50,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey.shade200,
-                              spreadRadius: 1,
-                              blurRadius: 3,
-                              offset: const Offset(0, 0))
-                        ],
+                        color: theme.cardColor,
+                        border: Border.all(
+                          color: theme.dividerColor,
+                          width: 1,
+                        ),
                       ),
                       child: patient?.name != null
                           ? Center(
                               child: Text(
-                                  patient?.name?.split("")[0].toUpperCase()
-                                      as String,
-                                  style: appStyle(context, 30,
-                                      Colors.grey.shade700, FontWeight.bold)))
+                                patient!.name!.split("")[0].toUpperCase(),
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
                           : null,
                     ),
                   ),
@@ -110,21 +123,26 @@ class PatientCard extends StatelessWidget {
                 children: [
                   const HeightSpacer(size: 5),
                   isLoading
-                      ? _buildShimmer(Container(
-                          width: 170,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.white,
+                      ? _buildShimmer(
+                          context,
+                          Container(
+                            width: 170,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: theme.cardColor,
+                            ),
                           ),
-                        ))
+                        )
                       : Text(
                           patient?.name ?? "N/A",
                           maxLines: 2,
                           style: GoogleFonts.inter(
-                              textStyle: appStyle(context, 16,
-                                      HexColor("#2A282F"), FontWeight.w600)
-                                  .copyWith(overflow: TextOverflow.ellipsis)),
+                            textStyle: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                   const HeightSpacer(size: 5),
                   Row(
@@ -141,19 +159,23 @@ class PatientCard extends StatelessWidget {
                           );
                         },
                         child: isLoading
-                            ? _buildShimmer(Container(
-                                width: 100,
-                                height: 20,
-                                decoration: const BoxDecoration(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(20)),
-                                  color: Colors.white,
+                            ? _buildShimmer(
+                                context,
+                                Container(
+                                  width: 100,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20)),
+                                    color: theme.cardColor,
+                                  ),
                                 ),
-                              ))
+                              )
                             : Text(
                                 patient?.phone ?? "N/A",
-                                style: appStyle(
-                                    context, 18, Colorz.grey, FontWeight.w400),
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: theme.textTheme.bodySmall?.color,
+                                ),
                               ),
                       ),
                     ],
@@ -164,14 +186,17 @@ class PatientCard extends StatelessWidget {
             if (CacheHelper.getStringList(key: "capabilities")
                 .contains("managePatients"))
               isLoading
-                  ? _buildShimmer(Container(
-                      width: 30,
-                      height: 30,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
+                  ? _buildShimmer(
+                      context,
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.cardColor,
+                        ),
                       ),
-                    ))
+                    )
                   : IconButton(
                       onPressed: () async {
                         showConfirmationDialog(
@@ -293,30 +318,37 @@ class PatientListView extends StatelessWidget {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const HeightSpacer(size: 30),
-          Icon(Icons.inbox_outlined, size: 70, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            'No Patient found',
-            style: TextStyle(
-                fontSize: 22,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w600),
+    return Builder(
+      builder: (context) {
+        final theme = Theme.of(context);
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const HeightSpacer(size: 30),
+              Icon(
+                Icons.inbox_outlined,
+                size: 70,
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha:0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No Patient found',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Patient will appear here',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.textTheme.bodySmall?.color?.withValues(alpha:0.7),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Patient will appear here',
-            style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[400],
-                fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

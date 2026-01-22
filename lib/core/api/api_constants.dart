@@ -5,12 +5,13 @@ class ApiConstants {
 
   // API Endpoints
 
-
   // static String get baseUrl => "https://ocurithm.com/api/";
 
-  static String get baseUrl => "http://192.168.1.32:3000/api/";
+  static String get baseUrl => "http://192.168.1.8:3000/api/";
 
   static String get login => "login";
+
+  static String get refreshToken => "auth/refresh";
 
   static String get branches => "branches";
 
@@ -31,4 +32,9 @@ class ApiConstants {
   static String get examination => "examinations";
 
   static String get capabilities => "capabilities";
+
+  static String get medicines => "medicines/commercial-names";
+
+  static String get activeIngredients => "medicines/active-ingredients";
+  static String get analysis => "measurement-trends";
 }

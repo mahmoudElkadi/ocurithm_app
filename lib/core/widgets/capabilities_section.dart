@@ -118,12 +118,12 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection>
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(_isExpanded ? 8 : 30),
         border:
-            isDark ? Border.all(color: Colors.white.withOpacity(0.1)) : null,
+            isDark ? Border.all(color: Colors.white.withValues(alpha:0.1)) : null,
         boxShadow: isDark
             ? null
             : [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha:0.2),
                   spreadRadius: 1,
                   blurRadius: 2,
                 ),
@@ -193,7 +193,7 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             color: isSelected
-                                ? theme.primaryColor.withOpacity(0.1)
+                                ? theme.primaryColor.withValues(alpha:0.1)
                                 : Colors.transparent,
                           ),
                           child: Row(

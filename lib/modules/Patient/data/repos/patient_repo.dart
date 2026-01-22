@@ -21,6 +21,6 @@ abstract class PatientRepo {
   Future<DataModel> deletePatient({required String id});
 
   Future<BranchesModel> getAllBranches();
-  Future<PatientExaminationModel> getPatientExaminations({required String id});
+  Future<Examinations> getPatientExaminations({required String id});
   Future<ExaminationModel> getOneExamination({required String id});
 }

@@ -1,5 +1,8 @@
 import 'package:get_it/get_it.dart';
 
+import '../../modules/Analysis/data/repos/analysis_repo.dart';
+import '../../modules/Analysis/data/repos/analysis_repo_impl.dart';
+import '../../modules/Analysis/presentation/manager/analysis_cubit/get_analysis_cubit.dart';
 import '../../modules/Clinics/data/repos/clinic_repo.dart';
 import '../../modules/Clinics/data/repos/clinic_repo_impl.dart';
 import '../../modules/Clinics/presentation/manager/clinic_actions_cubit/clinic_actions_cubit.dart';
@@ -134,5 +137,11 @@ class ServiceLocator {
     sl.registerFactory(
         () => GetSingleExaminationCubit(sl.call<ExaminationRepo>()));
     sl.registerFactory(() => ExaminationFormCubit());
+
+    ///Analysis
+    sl.registerLazySingleton<AnalysisRepo>(() => AnalysisRepoImpl());
+    sl.registerFactory(() => GetAnalysisCubit(sl.call<AnalysisRepo>()));
   }
+
+
 }

@@ -88,7 +88,7 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
                       decoration:
                           BoxDecoration(color: Colorz.white, borderRadius: BorderRadius.circular(30), boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha:0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 0),
                         ),
@@ -141,7 +141,7 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
       initialDate: selectedMonth ?? DateTime.now(),
       headerColor: Colorz.primaryColor,
       headerTextColor: Colors.black,
-      selectedMonthBackgroundColor: Colorz.primaryColor.withOpacity(0.5),
+      selectedMonthBackgroundColor: Colorz.primaryColor.withValues(alpha:0.5),
       selectedMonthTextColor: Colors.white,
       unselectedMonthTextColor: Colors.black,
       currentMonthTextColor: Colors.green,
@@ -446,7 +446,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
           border: Border.all(color: Colorz.grey, width: 0.3),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha:0.1),
               spreadRadius: 1,
               blurRadius: 4,
               offset: const Offset(0, 2),
@@ -881,7 +881,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colorz.grey200.withOpacity(0.7),
+              color: Colorz.grey200.withValues(alpha:0.7),
               spreadRadius: 2,
               blurRadius: 5,
             )

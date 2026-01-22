@@ -61,28 +61,59 @@ class ApiHandler {
 
   // Mock token getter - replace with your actual token storage
   Future<String?> _getToken() async {
-    final accessToken = CacheHelper.getData(key: 'accessToken');
+    final accessToken = CacheHelper.getData(key: 'token');
     return accessToken;
   }
 
-  Future<void> _refreshToken() async {}
+  Future<void> _refreshToken() async {
+    final refreshToken = CacheHelper.getData(key: 'refreshToken');
+    if (refreshToken == null) {
+      throw Exception('No refresh token available');
+    }
+
+    try {
+      // Use the existing dio instance
+      // Authentication headers are skipped for auth/refresh in AuthInterceptor
+      final response = await _dio.post(
+        ApiConstants.refreshToken,
+        data: {'refreshToken': refreshToken},
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        // Adjust these keys based on your API response structure
+        // Usually it's either data['accessToken'] or data['data']['accessToken']
+        final newAccessToken = data['accessToken'] ??
+            (data['data'] is Map ? data['data']['accessToken'] : null);
+        final newRefreshToken = data['refreshToken'] ??
+            (data['data'] is Map ? data['data']['refreshToken'] : null);
+
+        if (newAccessToken != null) {
+          await CacheHelper.saveString(key: "token", value: newAccessToken);
+          if (newRefreshToken != null) {
+            await CacheHelper.saveString(
+                key: "refreshToken", value: newRefreshToken);
+          }
+          log('Token refreshed successfully');
+        } else {
+          throw Exception('No access token in response');
+        }
+      } else {
+        throw Exception('Failed to refresh token: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('Error during token refresh: $e');
+      rethrow;
+    }
+  }
 
   // Callback when refresh token fails - clear data and navigate to login
   Future<void> _onRefreshFailed() async {
-    await logout();
-
     // Navigate to login screen using GetX
-    // This will clear all previous routes and navigate to login
     try {
-      // Use GetX navigation (already imported in the project)
-      // Note: This requires 'package:get/get.dart' to be imported
-      // If you need to use this, uncomment the import at the top of the file
-      // For now, we just clear the data and let the app handle navigation
-      // Get.offAllNamed('/login');
-
-      // Alternative: You can emit an event or use a stream to notify the app
-      // that the user needs to be logged out
       log('User session expired. Please login again.');
+      await _clearAuthData();
+      Get.offAll(() => const LoginView());
     } catch (e) {
       log('Error during logout navigation: $e');
     }
@@ -91,10 +122,13 @@ class ApiHandler {
   // Clear all authentication data
   Future<void> _clearAuthData() async {
     await CacheHelper.removeData(key: 'user');
-    // Clear notifications from SharedPreferences
     await CacheHelper.removeData(key: 'notifications');
+    await CacheHelper.removeData(key: 'token');
     await CacheHelper.removeData(key: 'accessToken');
     await CacheHelper.removeData(key: 'refreshToken');
+    await CacheHelper.removeData(key: 'id');
+    await CacheHelper.removeData(key: 'domain');
+    await CacheHelper.removeData(key: 'capabilities');
   }
 
   // Update base URL dynamically
@@ -109,28 +143,6 @@ class ApiHandler {
 
   // ==================== Authentication Methods ====================
 
-  /// Logout user - clears local data and optionally calls logout endpoint
-  Future<Object> logout() async {
-    try {
-      // Stop automatic token refresh service
-
-      // Call logout endpoint to invalidate tokens on server
-      // final response = await post<void>(
-      //   ApiConstants.logout,
-      //   fromJson: (_) => null,
-      // );
-
-      // Clear local authentication data regardless of server response
-      await _clearAuthData();
-      // Get.offAll(() => LoginScreen());
-
-      return {};
-    } catch (e) {
-      // Even if server call fails, clear local data
-      await _clearAuthData();
-      return ApiResponse.error('Logout failed: ${e.toString()}');
-    } finally {}
-  }
 
   /// Check if user is authenticated
   Future<bool> isAuthenticated() async {

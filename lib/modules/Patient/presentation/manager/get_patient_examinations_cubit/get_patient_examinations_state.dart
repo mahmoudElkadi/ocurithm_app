@@ -4,7 +4,7 @@ enum GetPatientExaminationsStatus { initial, loading, success, error }
 
 class GetPatientExaminationsState {
   final GetPatientExaminationsStatus status;
-  final PatientExaminationModel? examinations;
+  final Examinations? examinations;
   final String? errorMessage;
 
   const GetPatientExaminationsState({

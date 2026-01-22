@@ -90,7 +90,7 @@ class _SearchFieldState extends State<SearchField> {
                 fontWeight: FontWeight.w400,
               ),
               height: 7,
-              fillColor: Theme.of(context).primaryColor.withOpacity(0.03),
+              fillColor: Theme.of(context).primaryColor.withValues(alpha:0.03),
               radius: 30,
               isShadow: false,
               borderColor: Theme.of(context).primaryColor,

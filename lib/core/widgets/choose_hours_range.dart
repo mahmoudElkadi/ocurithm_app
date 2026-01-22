@@ -79,7 +79,7 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                 side:
                     BorderSide(color: Theme.of(context).primaryColor, width: 1),
               ),
-              hourMinuteColor: Theme.of(context).primaryColor.withOpacity(0.1),
+              hourMinuteColor: Theme.of(context).primaryColor.withValues(alpha:0.1),
               hourMinuteTextStyle: TextStyle(
                 color: Theme.of(context).primaryColor,
                 fontSize: 58,
@@ -89,7 +89,7 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                 isDark ? Colors.white : Colors.black,
               ),
               hourMinuteTextColor: Theme.of(context).primaryColor,
-              dayPeriodColor: Theme.of(context).primaryColor.withOpacity(0.1),
+              dayPeriodColor: Theme.of(context).primaryColor.withValues(alpha:0.1),
               dialHandColor: Theme.of(context).primaryColor,
               dayPeriodTextColor: Theme.of(context).primaryColor,
               cancelButtonStyle: TextButton.styleFrom(
@@ -207,8 +207,8 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
                 ? [
                     BoxShadow(
                       color: isDark
-                          ? Colors.black.withOpacity(0.3)
-                          : Colors.black.withOpacity(0.1),
+                          ? Colors.black.withValues(alpha:0.3)
+                          : Colors.black.withValues(alpha:0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),

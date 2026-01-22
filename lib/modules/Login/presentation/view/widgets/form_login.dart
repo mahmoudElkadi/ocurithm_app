@@ -140,7 +140,7 @@ class _LoginFormState extends State<LoginForm> {
                     },
                     boxShadow: [
                       BoxShadow(
-                        color: HexColor("#3E86DD").withOpacity(0.3),
+                        color: HexColor("#3E86DD").withValues(alpha:0.3),
                         spreadRadius: 2,
                         blurRadius: 4,
                         offset: const Offset(0, 3),
@@ -203,7 +203,7 @@ class _LoginFormState extends State<LoginForm> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha:0.2),
                   blurRadius: 10,
                   spreadRadius: 5,
                 ),

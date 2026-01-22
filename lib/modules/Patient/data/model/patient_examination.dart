@@ -1,39 +1,18 @@
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 
-class PatientExaminationModel {
-  PatientExaminationModel({
-    required this.examinations,
-    required this.error,
-    required this.message,
-  });
-
-  final Examinations? examinations;
-  final String? error;
-  final String? message;
-
-  factory PatientExaminationModel.fromJson(Map<String, dynamic> json) {
-    return PatientExaminationModel(
-      examinations: json["examinations"] == null ? null : Examinations.fromJson(json["examinations"]),
-      error: json["error"],
-      message: json["message"],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        "examinations": examinations?.toJson(),
-      };
-}
 
 class Examinations {
   Examinations({
     required this.examinations,
     required this.total,
     required this.totalPages,
+    required this.success,
   });
 
   final List<Examination> examinations;
   final int? total;
   final dynamic totalPages;
+  final bool success;
 
   factory Examinations.fromJson(Map<String, dynamic> json) {
     return Examinations(
@@ -42,6 +21,7 @@ class Examinations {
           : List<Examination>.from(json["examinations"]!.map((x) => Examination.fromJson(x))),
       total: json["total"],
       totalPages: json["totalPages"],
+      success: json["success"],
     );
   }
 
@@ -49,6 +29,7 @@ class Examinations {
         "examinations": examinations.map((x) => x?.toJson()).toList(),
         "total": total,
         "totalPages": totalPages,
+        "success": success,
       };
 }
 

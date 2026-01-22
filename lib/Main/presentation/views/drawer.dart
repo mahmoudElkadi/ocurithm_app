@@ -160,7 +160,7 @@ class CustomDrawer extends StatelessWidget {
           : EdgeInsets.zero,
       decoration: group.title != null && isSelected
           ? BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(8),
             )
           : null,
@@ -202,7 +202,7 @@ class CustomDrawer extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      color: Theme.of(context).primaryColor.withOpacity(0.1),
+      color: Theme.of(context).primaryColor.withValues(alpha:0.1),
       child: Padding(
         padding: EdgeInsets.only(
             top: MediaQuery.of(context).size.height * 0.07, bottom: 20),
@@ -224,7 +224,7 @@ class CustomDrawer extends StatelessWidget {
                               boxShadow: [
                                 BoxShadow(
                                     color: isDark
-                                        ? Colors.black.withOpacity(0.3)
+                                        ? Colors.black.withValues(alpha:0.3)
                                         : Colors.grey.shade200,
                                     spreadRadius: 1,
                                     blurRadius: 3,

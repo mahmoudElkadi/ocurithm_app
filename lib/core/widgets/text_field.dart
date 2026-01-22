@@ -92,7 +92,7 @@ class TextField2 extends StatelessWidget {
             boxShadow: isShadow != false
                 ? [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
+                      color: Colors.grey.withValues(alpha:0.2),
                       spreadRadius: 2,
                       blurRadius: 5,
                     ),
@@ -317,7 +317,7 @@ class CustomTextField extends StatelessWidget {
               boxShadow: [
                 if (errorText == null)
                   BoxShadow(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha:0.1),
                     blurRadius: 8,
                     spreadRadius: 2,
                     offset: const Offset(0, 0),
@@ -457,7 +457,7 @@ class EnhancedTextField extends StatelessWidget {
     final defaultTextColor = isDark ? Colors.white : Colors.black;
     final defaultFillColor = isDark
         ? const Color(0xFF2C2C2C)
-        : (Colors.grey[200]?.withOpacity(0.9) ?? Colors.grey);
+        : (Colors.grey[200]?.withValues(alpha:0.9) ?? Colors.grey);
     final defaultContainerColor =
         isDark ? const Color(0xFF2C2C2C) : Colors.white;
 
@@ -490,7 +490,7 @@ class EnhancedTextField extends StatelessWidget {
               // Only show shadow if isShadow is true AND there's no error
               if (isShadow == false && !isDark)
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha:0.2),
                   spreadRadius: 2,
                   blurRadius: 5,
                 ),
@@ -673,7 +673,7 @@ class _MultilineTextInputState extends State<MultilineTextInput> {
         boxShadow: widget.isShadow != false
             ? [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha:0.2),
                   spreadRadius: 2,
                   blurRadius: 5,
                 ),

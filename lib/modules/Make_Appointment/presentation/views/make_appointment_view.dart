@@ -92,7 +92,7 @@ class HorizontalStepper extends StatelessWidget {
                         Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colorz.primaryColor.withOpacity(0.1),
+                            color: Colorz.primaryColor.withValues(alpha:0.1),
                           ),
                         ),
                       Container(
@@ -112,7 +112,7 @@ class HorizontalStepper extends StatelessWidget {
                           boxShadow: isCurrent
                               ? [
                                   BoxShadow(
-                                    color: Colorz.primaryColor.withOpacity(0.3),
+                                    color: Colorz.primaryColor.withValues(alpha:0.3),
                                     blurRadius: 8,
                                     spreadRadius: 2,
                                   ),

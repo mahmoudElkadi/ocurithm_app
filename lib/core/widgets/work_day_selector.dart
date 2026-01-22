@@ -111,8 +111,8 @@ class _WorkDaysSelectorState extends State<WorkDaysSelector> {
                 ? [
                     BoxShadow(
                       color: isDark
-                          ? Colors.black.withOpacity(0.3)
-                          : Colors.black.withOpacity(0.1),
+                          ? Colors.black.withValues(alpha:0.3)
+                          : Colors.black.withValues(alpha:0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -246,7 +246,7 @@ class _WorkDaysSelectorState extends State<WorkDaysSelector> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
             color: isSelected
-                ? Theme.of(context).primaryColor.withOpacity(0.1)
+                ? Theme.of(context).primaryColor.withValues(alpha:0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(

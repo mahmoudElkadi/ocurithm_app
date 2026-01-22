@@ -47,7 +47,7 @@ Widget defaultTextFormField(
       isDense: true,
       focusColor: Colors.black,
       filled: true,
-      fillColor: fillColor ?? HexColor("#DEDEDE").withOpacity(0.9),
+      fillColor: fillColor ?? HexColor("#DEDEDE").withValues(alpha:0.9),
       iconColor: Colors.black,
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(radius ?? 10)), borderSide: BorderSide(color: borderColor ?? Colors.black, width: 1)),

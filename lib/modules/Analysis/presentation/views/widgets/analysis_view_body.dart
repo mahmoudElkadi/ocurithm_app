@@ -2,15 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'dart:math' as math;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shimmer/shimmer.dart';
+import '../../../data/models/analysis_model.dart' as model;
+import '../../manager/analysis_cubit/get_analysis_cubit.dart';
 
 enum EyeSelection { left, right, both }
 
 class AnalysisViewBody extends StatefulWidget {
   final EyeSelection selectedEye;
+  final int resetCounter;
 
   const AnalysisViewBody({
     super.key,
     required this.selectedEye,
+    required this.resetCounter,
   });
 
   @override
@@ -26,192 +32,217 @@ class _AnalysisViewBodyState extends State<AnalysisViewBody> {
     'iop',
   };
 
-  // Helper to generate a date N days ago
-  DateTime _daysAgo(int days) {
-    return DateTime.now().subtract(Duration(days: days));
-  }
-
-  // Sample data generator - generates a point for every day in the range
-  List<FlSpot> _generateSampleData(
-      int seed, double min, double max, DateTime minDate, DateTime maxDate) {
-    int totalDays = maxDate.difference(minDate).inDays;
-    if (totalDays <= 0) totalDays = 1;
-
-    return List.generate(totalDays + 1, (index) {
-      // Create some realistic-looking variations
-      double range = max - min;
-      double randomNoise = ((seed * index * 13) % 100) / 100.0; // Pseudo-random
-
-      double value = min +
-          (range * 0.5) +
-          (range * 0.3 * math.sin(index * 0.2)) + // Wave pattern
-          (range * 0.2 * (randomNoise - 0.5)); // Random jitter
-
-      return FlSpot(index.toDouble(), value.clamp(min, max));
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section 1: Autorefraction
-          _buildExpandableSection(
-            context: context,
-            sectionKey: 'autorefraction',
-            sectionTitle: 'Autorefraction',
-            charts: [
-              _buildChartConfig(
-                title: 'Spherical',
-                seed: 1,
-                minY: -10,
-                maxY: 6,
-                minDate: _daysAgo(90),
-                maxDate: _daysAgo(0),
+    return BlocBuilder<GetAnalysisCubit, GetAnalysisState>(
+      builder: (context, state) {
+        if (state.isLoading) {
+          return const _AnalysisShimmerLoading();
+        } else if (state.isError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 60),
+                  const SizedBox(height: 16),
+                  Text(
+                    state.errorMessage ?? 'Error loading analysis',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ],
               ),
-              _buildChartConfig(
-                title: 'Cylindrical',
-                seed: 3,
-                minY: -6,
-                maxY: 0.5,
-                minDate: _daysAgo(60),
-                maxDate: _daysAgo(0),
-              ),
-              _buildChartConfig(
-                title: 'Axis',
-                seed: 5,
-                minY: 0,
-                maxY: 200,
-                minDate: _daysAgo(14),
-                maxDate: _daysAgo(0),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+            ),
+          );
+        } else if (state.noConnection) {
+          return const Center(child: Text('No internet connection'));
+        } else if (state.isSuccess && state.analysis != null) {
+          final trends = state.analysis!.trends;
+          if (trends == null) {
+            return const Center(child: Text('No analysis data available'));
+          }
 
-          // Section 2: Refined Refraction
-          _buildExpandableSection(
-            context: context,
-            sectionKey: 'refined_refraction',
-            sectionTitle: 'Refined Refraction',
-            charts: [
-              _buildChartConfig(
-                title: 'Spherical',
-                seed: 7,
-                minY: -12,
-                maxY: 7,
-                minDate: _daysAgo(90),
-                maxDate: _daysAgo(0),
-              ),
-              _buildChartConfig(
-                title: 'Cylindrical',
-                seed: 9,
-                minY: -5,
-                maxY: 0.5,
-                minDate: _daysAgo(45),
-                maxDate: _daysAgo(0),
-              ),
-              _buildChartConfig(
-                title: 'Axis',
-                seed: 11,
-                minY: 0,
-                maxY: 180,
-                minDate: _daysAgo(10),
-                maxDate: _daysAgo(0),
-              ),
-              _buildChartConfig(
-                title: 'Near Vision Addition',
-                seed: 13,
-                minY: 0,
-                maxY: 4.0,
-                minDate: _daysAgo(180),
-                maxDate: _daysAgo(0),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Section 1: Autorefraction
+                if (trends.autoRefraction != null)
+                  _buildExpandableSection(
+                    context: context,
+                    sectionKey: 'autorefraction',
+                    sectionTitle: 'Autorefraction',
+                    charts: _buildRefractionCharts(trends.autoRefraction!),
+                  ),
+                const SizedBox(height: 16),
 
-          // Section 3: Visual Acuity
-          _buildExpandableSection(
-            context: context,
-            sectionKey: 'visual_acuity',
-            sectionTitle: 'Visual Acuity',
-            charts: [
-              _buildChartConfig(
-                title: 'UCVA',
-                seed: 15,
-                minY: 0.0,
-                maxY: 1.0,
-                minDate: _daysAgo(7),
-                maxDate: _daysAgo(0),
-              ),
-              _buildChartConfig(
-                title: 'BCVA',
-                seed: 17,
-                minY: 0.0,
-                maxY: 1.2,
-                minDate: _daysAgo(7),
-                maxDate: _daysAgo(0),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+                // Section 2: Refined Refraction
+                if (trends.refinedRefraction != null ||
+                    trends.nearVision != null)
+                  _buildExpandableSection(
+                    context: context,
+                    sectionKey: 'refined_refraction',
+                    sectionTitle: 'Refined Refraction',
+                    charts: [
+                      ..._buildRefractionCharts(trends.refinedRefraction),
+                      if (trends.nearVision?.addition != null)
+                        _buildChartConfigFromAxis(
+                          title: 'Near Vision Addition',
+                          axis: trends.nearVision!.addition!,
+                          defaultMinY: 0,
+                          defaultMaxY: 4.0,
+                        ),
+                    ],
+                  ),
+                const SizedBox(height: 16),
 
-          // Section 4: IOP (mmHg)
-          _buildExpandableSection(
-            context: context,
-            sectionKey: 'iop',
-            sectionTitle: 'IOP (mmHg)',
-            charts: [
-              _buildChartConfig(
-                title: 'IOP',
-                seed: 19,
-                minY: 8,
-                maxY: 30,
-                minDate: _daysAgo(20),
-                maxDate: _daysAgo(0),
-              ),
-              _buildChartConfig(
-                title: 'IOP Measurement',
-                seed: 21,
-                minY: 8,
-                maxY: 30,
-                minDate: _daysAgo(5),
-                maxDate: _daysAgo(0),
-              ),
-            ],
-          ),
-        ],
-      ),
+                // Section 4: IOP (mmHg)
+                if (trends.iop != null)
+                  _buildExpandableSection(
+                    context: context,
+                    sectionKey: 'iop',
+                    sectionTitle: 'IOP (mmHg)',
+                    charts: [
+                      if (trends.iop!.primary != null)
+                        _buildChartConfigFromAxis(
+                          title: 'IOP',
+                          axis: trends.iop!.primary!,
+                          defaultMinY: 8,
+                          defaultMaxY: 30,
+                        ),
+                      if (trends.iop!.secondary != null)
+                        _buildChartConfigFromAxis(
+                          title: 'IOP Measurement',
+                          axis: trends.iop!.secondary!,
+                          defaultMinY: 8,
+                          defaultMaxY: 30,
+                        ),
+                    ],
+                  ),
+              ],
+            ),
+          );
+        }
+        return const Center(child: Text('No data found'));
+      },
     );
   }
 
-  ChartConfig _buildChartConfig({
+  List<ChartConfig> _buildRefractionCharts(model.Refraction? refraction) {
+    if (refraction == null) return [];
+    List<ChartConfig> configs = [];
+
+    if (refraction.spherical != null) {
+      configs.add(_buildChartConfigFromAxis(
+        title: 'Spherical',
+        axis: refraction.spherical!,
+        defaultMinY: -10,
+        defaultMaxY: 6,
+      ));
+    }
+    if (refraction.cylindrical != null) {
+      configs.add(_buildChartConfigFromAxis(
+        title: 'Cylindrical',
+        axis: refraction.cylindrical!,
+        defaultMinY: -6,
+        defaultMaxY: 0.5,
+      ));
+    }
+    if (refraction.axis != null) {
+      configs.add(_buildChartConfigFromAxis(
+        title: 'Axis',
+        axis: refraction.axis!,
+        defaultMinY: 0,
+        defaultMaxY: 180,
+      ));
+    }
+
+    return configs;
+  }
+
+  ChartConfig _buildChartConfigFromAxis({
     required String title,
-    required int seed,
-    required double minY,
-    required double maxY,
-    required DateTime minDate,
-    required DateTime maxDate,
+    required model.Axis axis,
+    required double defaultMinY,
+    required double defaultMaxY,
   }) {
-    // Determine data range (slightly inside min/max Y for aesthetics)
-    double range = maxY - minY;
-    double dataMin = minY + (range * 0.2);
-    double dataMax = maxY - (range * 0.2);
+    // Collect all dates to find range
+    List<DateTime> allDates = [];
+    for (var m in axis.left) {
+      if (m.date != null) allDates.add(m.date!);
+    }
+    for (var m in axis.right) {
+      if (m.date != null) allDates.add(m.date!);
+    }
+
+    DateTime minDate = allDates.isEmpty
+        ? DateTime.now().subtract(const Duration(days: 30))
+        : allDates.reduce((a, b) => a.isBefore(b) ? a : b);
+    DateTime maxDate = allDates.isEmpty
+        ? DateTime.now()
+        : allDates.reduce((a, b) => a.isAfter(b) ? a : b);
+
+    // Ensure we have at least some range for the chart to look good
+    if (maxDate.difference(minDate).inDays < 7) {
+      minDate = minDate.subtract(const Duration(days: 3));
+      maxDate = maxDate.add(const Duration(days: 3));
+    }
+
+    // Convert measurements to spots
+    List<FlSpot> dataLeft = _convertToSpots(axis.left, minDate);
+    List<FlSpot> dataRight = _convertToSpots(axis.right, minDate);
+
+    // Dynamic Y bounds based on data
+    double minY = defaultMinY;
+    double maxY = defaultMaxY;
+
+    List<num> allValues = [];
+    for (var m in axis.left) {
+      if (m.value != null) allValues.add(m.value!);
+    }
+    for (var m in axis.right) {
+      if (m.value != null) allValues.add(m.value!);
+    }
+
+    if (allValues.isNotEmpty) {
+      double dataMin = allValues.reduce((a, b) => a < b ? a : b).toDouble();
+      double dataMax = allValues.reduce((a, b) => a > b ? a : b).toDouble();
+
+      // Add padding
+      double range = dataMax - dataMin;
+      double padding = range * 0.2;
+      if (padding == 0) padding = 1.0;
+
+      minY = math.min(defaultMinY, dataMin - padding);
+      maxY = math.max(defaultMaxY, dataMax + padding);
+    }
 
     return ChartConfig(
       title: title,
-      dataLeft: _generateSampleData(seed, dataMin, dataMax, minDate, maxDate),
-      dataRight:
-          _generateSampleData(seed + 1, dataMin, dataMax, minDate, maxDate),
+      dataLeft: dataLeft,
+      dataRight: dataRight,
       minY: minY,
       maxY: maxY,
       minDate: minDate,
       maxDate: maxDate,
     );
+  }
+
+  List<FlSpot> _convertToSpots(
+      List<model.Left> measurements, DateTime minDate) {
+    List<FlSpot> spots = [];
+    for (var m in measurements) {
+      if (m.value != null && m.date != null) {
+        double x = m.date!.difference(minDate).inDays.toDouble();
+        spots.add(FlSpot(x, m.value!.toDouble()));
+      }
+    }
+    // Sort spots by X to ensure correct line drawing
+    spots.sort((a, b) => a.x.compareTo(b.x));
+    return spots;
   }
 
   Widget _buildExpandableSection({
@@ -284,6 +315,7 @@ class _AnalysisViewBodyState extends State<AnalysisViewBody> {
                           child: ChartCard(
                             config: chartConfig,
                             selectedEye: widget.selectedEye,
+                            resetCounter: widget.resetCounter,
                           ),
                         ))
                     .toList(),
@@ -318,11 +350,13 @@ class ChartConfig {
 class ChartCard extends StatefulWidget {
   final ChartConfig config;
   final EyeSelection selectedEye;
+  final int resetCounter;
 
   const ChartCard({
     super.key,
     required this.config,
     required this.selectedEye,
+    required this.resetCounter,
   });
 
   @override
@@ -330,6 +364,29 @@ class ChartCard extends StatefulWidget {
 }
 
 class _ChartCardState extends State<ChartCard> {
+  // Local selection overrides global selection
+  EyeSelection? _localSelectedEye;
+  int? _lastResetCounter;
+
+  @override
+  void didUpdateWidget(ChartCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If resetCounter changed, clear local selection to use global
+    if (widget.resetCounter != _lastResetCounter) {
+      _lastResetCounter = widget.resetCounter;
+      if (_localSelectedEye != null) {
+        setState(() {
+          _localSelectedEye = null;
+        });
+      }
+    }
+  }
+
+  // Get the effective selection (local overrides global)
+  EyeSelection _getEffectiveSelection() {
+    return _localSelectedEye ?? widget.selectedEye;
+  }
+
   // Clamp data values to be within min/max bounds
   List<FlSpot> _clampData(List<FlSpot> data) {
     return data.map((spot) {
@@ -375,14 +432,20 @@ class _ChartCardState extends State<ChartCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Chart title
-          Text(
-            '${widget.config.title} - ${_getChartSubtitle()}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
+          // Chart title with menu
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${widget.config.title} - ${_getChartSubtitle()}',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+              _buildOptionsMenu(isDark),
+            ],
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -391,6 +454,86 @@ class _ChartCardState extends State<ChartCard> {
           ),
           const SizedBox(height: 12),
           _buildLegend(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionsMenu(bool isDark) {
+    return PopupMenuButton<EyeSelection>(
+      icon: Icon(
+        Icons.more_vert,
+        color: isDark ? Colors.white70 : Colors.black87,
+        size: 20,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: isDark ? Colors.grey[850] : Colors.white,
+      offset: const Offset(0, 40),
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<EyeSelection>>[
+        _buildMenuItem(
+          value: EyeSelection.left,
+          icon: Icons.visibility,
+          label: 'Left Eye',
+          isDark: isDark,
+        ),
+        _buildMenuItem(
+          value: EyeSelection.right,
+          icon: Icons.remove_red_eye,
+          label: 'Right Eye',
+          isDark: isDark,
+        ),
+        _buildMenuItem(
+          value: EyeSelection.both,
+          icon: Icons.compare_arrows,
+          label: 'Both Eyes',
+          isDark: isDark,
+        ),
+      ],
+      onSelected: (EyeSelection value) {
+        setState(() {
+          _localSelectedEye = value;
+        });
+      },
+    );
+  }
+
+  PopupMenuItem<EyeSelection> _buildMenuItem({
+    required EyeSelection value,
+    required IconData icon,
+    required String label,
+    required bool isDark,
+  }) {
+    final isSelected = _getEffectiveSelection() == value;
+    final primaryColor = Theme.of(context).primaryColor;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
+    return PopupMenuItem<EyeSelection>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: isSelected ? primaryColor : textColor,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              color: isSelected ? primaryColor : textColor,
+            ),
+          ),
+          const Spacer(),
+          if (isSelected)
+            Icon(
+              Icons.check,
+              size: 18,
+              color: primaryColor,
+            ),
         ],
       ),
     );
@@ -502,7 +645,8 @@ class _ChartCardState extends State<ChartCard> {
                 String eyeLabel = '';
                 Color color = Colors.blue;
 
-                if (widget.selectedEye == EyeSelection.both) {
+                final effectiveSelection = _getEffectiveSelection();
+                if (effectiveSelection == EyeSelection.both) {
                   if (barSpot.barIndex == 0) {
                     eyeLabel = 'Left Eye';
                     color = Colors.blue;
@@ -510,7 +654,7 @@ class _ChartCardState extends State<ChartCard> {
                     eyeLabel = 'Right Eye';
                     color = Colors.red;
                   }
-                } else if (widget.selectedEye == EyeSelection.left) {
+                } else if (effectiveSelection == EyeSelection.left) {
                   eyeLabel = 'Left Eye';
                   color = Colors.blue;
                 } else {
@@ -568,7 +712,8 @@ class _ChartCardState extends State<ChartCard> {
     final clampedLeftData = _clampData(widget.config.dataLeft);
     final clampedRightData = _clampData(widget.config.dataRight);
 
-    switch (widget.selectedEye) {
+    final effectiveSelection = _getEffectiveSelection();
+    switch (effectiveSelection) {
       case EyeSelection.left:
         return [
           _createLineChartBarData(
@@ -645,16 +790,17 @@ class _ChartCardState extends State<ChartCard> {
 
   Widget _buildLegend(bool isDark) {
     final textColor = isDark ? Colors.white70 : Colors.black87;
+    final effectiveSelection = _getEffectiveSelection();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (widget.selectedEye == EyeSelection.left ||
-            widget.selectedEye == EyeSelection.both)
+        if (effectiveSelection == EyeSelection.left ||
+            effectiveSelection == EyeSelection.both)
           _buildLegendItem('Left Eye', Colors.blue, textColor),
-        if (widget.selectedEye == EyeSelection.both) const SizedBox(width: 20),
-        if (widget.selectedEye == EyeSelection.right ||
-            widget.selectedEye == EyeSelection.both)
+        if (effectiveSelection == EyeSelection.both) const SizedBox(width: 20),
+        if (effectiveSelection == EyeSelection.right ||
+            effectiveSelection == EyeSelection.both)
           _buildLegendItem('Right Eye', Colors.red, textColor),
       ],
     );
@@ -685,7 +831,8 @@ class _ChartCardState extends State<ChartCard> {
   }
 
   String _getChartSubtitle() {
-    switch (widget.selectedEye) {
+    final effectiveSelection = _getEffectiveSelection();
+    switch (effectiveSelection) {
       case EyeSelection.left:
         return 'Left Eye';
       case EyeSelection.right:
@@ -693,5 +840,128 @@ class _ChartCardState extends State<ChartCard> {
       case EyeSelection.both:
         return 'Both Eyes';
     }
+  }
+}
+
+class _AnalysisShimmerLoading extends StatelessWidget {
+  const _AnalysisShimmerLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? Colors.grey[800] : Colors.grey[300];
+    final highlightColor = isDark ? Colors.grey[700] : Colors.grey[100];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Shimmer.fromColors(
+        baseColor: baseColor!,
+        highlightColor: highlightColor!,
+        child: Column(
+          children: List.generate(
+              3, (index) => _buildShimmerSection(context, isDark)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerSection(BuildContext context, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[850] : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  height: 20,
+                  width: 150,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Container(
+                  height: 20,
+                  width: 20,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+            child: Column(
+              children: List.generate(1, (index) => _buildShimmerChart(isDark)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerChart(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[800] : Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 16,
+            width: 120,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: 12,
+                width: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Container(
+                height: 12,
+                width: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

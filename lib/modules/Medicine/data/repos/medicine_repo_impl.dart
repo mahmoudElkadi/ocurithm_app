@@ -1,10 +1,7 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
-
+import '../../../../../core/api/api_constants.dart';
 import '../../../../../core/api/api_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/config.dart';
 import '../../../Branch/data/model/data.dart';
 import '../model/active_ingredient_model.dart';
 import '../model/medicine_model.dart';
@@ -24,12 +21,19 @@ class MedicineRepoImpl implements MedicineRepo {
   }
 
   @override
-  Future<Medicine> createMedicine({required Medicine medicine}) async {
-    final result = await _apiHandler.post<Medicine>(
-      Config.medicines,
-      data: medicine.toJson(),
+  Future<CommercialName> createMedicine(
+      {required CommercialName commercialName}) async {
+    String path = ApiConstants.medicines;
+    if (commercialName.parentId?.id != null) {
+      path =
+          "${ApiConstants.activeIngredients}/${commercialName.parentId!.id}/commercial-names";
+    }
+
+    final result = await _apiHandler.post<CommercialName>(
+      path,
+      data: commercialName.toJson(),
       options: _getOptions(),
-      fromJson: (json) => Medicine.fromJson(json),
+      fromJson: (json) => CommercialName.fromJson(json),
     );
 
     if (result.success && result.data != null) {
@@ -44,7 +48,7 @@ class MedicineRepoImpl implements MedicineRepo {
     Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
 
     final result = await _apiHandler.get<MedicinesModel>(
-      Config.medicines,
+      ApiConstants.medicines,
       queryParameters: query,
       options: _getOptions(),
       fromJson: (json) => MedicinesModel.fromJson(json),
@@ -58,11 +62,11 @@ class MedicineRepoImpl implements MedicineRepo {
   }
 
   @override
-  Future<Medicine> getMedicine({required String id}) async {
-    final result = await _apiHandler.get<Medicine>(
-      "${Config.medicines}/$id",
+  Future<CommercialName> getMedicine({required String id}) async {
+    final result = await _apiHandler.get<CommercialName>(
+      "${ApiConstants.medicines}/$id",
       options: _getOptions(),
-      fromJson: (json) => Medicine.fromJson(json),
+      fromJson: (json) => CommercialName.fromJson(json),
     );
 
     if (result.success && result.data != null) {
@@ -73,13 +77,13 @@ class MedicineRepoImpl implements MedicineRepo {
   }
 
   @override
-  Future<Medicine> updateMedicine(
-      {required String id, required Medicine medicine}) async {
-    final result = await _apiHandler.put<Medicine>(
-      "${Config.medicines}/$id",
-      data: medicine.toJson(),
+  Future<CommercialName> updateMedicine(
+      {required String id, required CommercialName commercialName}) async {
+    final result = await _apiHandler.put<CommercialName>(
+      "${ApiConstants.medicines}/$id",
+      data: commercialName.toJson(),
       options: _getOptions(),
-      fromJson: (json) => Medicine.fromJson(json),
+      fromJson: (json) => CommercialName.fromJson(json),
     );
 
     if (result.success && result.data != null) {
@@ -92,7 +96,7 @@ class MedicineRepoImpl implements MedicineRepo {
   @override
   Future<DataModel> deleteMedicine({required String id}) async {
     final result = await _apiHandler.delete<DataModel>(
-      "${Config.medicines}/$id",
+      "${ApiConstants.medicines}/$id",
       options: _getOptions(),
       fromJson: (json) => DataModel.fromJson(json),
     );
@@ -107,15 +111,21 @@ class MedicineRepoImpl implements MedicineRepo {
   // Active Ingredient Implementation
 
   @override
-  Future<ActiveIngredientsModel> getAllActiveIngredients(
-      {int? page, String? search}) async {
-    Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
+  Future<ActiveIngredientModel> getAllActiveIngredients(
+      {int? page, String? search, bool? pagination, String? clinic}) async {
+    Map<String, dynamic> query = {
+      "page": page,
+      'limit': 10,
+      "search": search,
+      if (pagination != null) "pagination": pagination,
+      if (clinic != null) "clinic": clinic
+    };
 
-    final result = await _apiHandler.get<ActiveIngredientsModel>(
-      Config.activeIngredients,
+    final result = await _apiHandler.get<ActiveIngredientModel>(
+      ApiConstants.activeIngredients,
       queryParameters: query,
       options: _getOptions(),
-      fromJson: (json) => ActiveIngredientsModel.fromJson(json),
+      fromJson: (json) => ActiveIngredientModel.fromJson(json),
     );
 
     if (result.success && result.data != null) {
@@ -129,7 +139,7 @@ class MedicineRepoImpl implements MedicineRepo {
   Future<ActiveIngredient> createActiveIngredient(
       {required ActiveIngredient activeIngredient}) async {
     final result = await _apiHandler.post<ActiveIngredient>(
-      Config.activeIngredients,
+      ApiConstants.activeIngredients,
       data: activeIngredient.toJson(),
       options: _getOptions(),
       fromJson: (json) => ActiveIngredient.fromJson(json),
@@ -146,7 +156,7 @@ class MedicineRepoImpl implements MedicineRepo {
   Future<ActiveIngredient> updateActiveIngredient(
       {required String id, required ActiveIngredient activeIngredient}) async {
     final result = await _apiHandler.put<ActiveIngredient>(
-      "${Config.activeIngredients}/$id",
+      "${ApiConstants.activeIngredients}/$id",
       data: activeIngredient.toJson(),
       options: _getOptions(),
       fromJson: (json) => ActiveIngredient.fromJson(json),
@@ -162,7 +172,7 @@ class MedicineRepoImpl implements MedicineRepo {
   @override
   Future<DataModel> deleteActiveIngredient({required String id}) async {
     final result = await _apiHandler.delete<DataModel>(
-      "${Config.activeIngredients}/$id",
+      "${ApiConstants.activeIngredients}/$id",
       options: _getOptions(),
       fromJson: (json) => DataModel.fromJson(json),
     );

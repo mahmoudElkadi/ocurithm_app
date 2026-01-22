@@ -222,12 +222,12 @@ class PatientRepoImpl implements PatientRepo {
   }
 
   @override
-  Future<PatientExaminationModel> getPatientExaminations(
+  Future<Examinations> getPatientExaminations(
       {required String id}) async {
     final url = "${Config.baseUrl}${Config.examination}";
     final String? token = CacheHelper.getData(key: "token");
 
-    final result = await ApiService.request<PatientExaminationModel>(
+    final result = await ApiService.request<Examinations>(
       url: url,
       method: 'GET',
       queryParameters: {"patient": id},
@@ -236,7 +236,7 @@ class PatientRepoImpl implements PatientRepo {
         if (token != null) 'Cookie': 'ocurithmToken=$token',
       },
       showError: true,
-      fromJson: (json) => PatientExaminationModel.fromJson(json),
+      fromJson: (json) => Examinations.fromJson(json),
     );
 
     if (result != null) {

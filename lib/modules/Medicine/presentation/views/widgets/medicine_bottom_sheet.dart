@@ -4,15 +4,22 @@ import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/text_field.dart';
 import '../../../../../core/widgets/height_spacer.dart';
+import '../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../data/model/active_ingredient_model.dart';
 import '../../../data/model/medicine_model.dart';
 import '../../manager/get_active_ingredients_cubit/get_active_ingredients_cubit.dart';
+
 import '../../manager/medicine_actions_cubit/medicine_actions_cubit.dart';
+
+import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart'
+    as clinic_model;
+import '../../../../../../core/Network/shared.dart';
 
 enum MedicineFormType { medicine, activeIngredient }
 
 class MedicineBottomSheet extends StatefulWidget {
-  final Medicine? medicine;
+  final CommercialName? medicine;
   final ActiveIngredient? activeIngredient;
   final bool isEdit;
   final bool isDetails;
@@ -44,6 +51,8 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
   // Active Ingredient Fields
   final TextEditingController _aiNameController = TextEditingController();
+  clinic_model.Clinic? _selectedClinic;
+  bool _clinicValidation = true;
 
   late MedicineFormType _visibleType;
 
@@ -56,10 +65,27 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
       _nameController.text = widget.medicine!.name ?? '';
       _descriptionController.text = widget.medicine!.description ?? '';
       _concentrationController.text = widget.medicine!.concentration ?? '';
-      _selectedActiveIngredient = widget.medicine!.activeIngredient;
+      if (widget.medicine!.parentId != null) {
+        _selectedActiveIngredient = ActiveIngredient(
+          id: widget.medicine!.parentId!.id,
+          name: widget.medicine!.parentId!.name,
+        );
+      }
+      if (widget.medicine!.clinic != null) {
+        _selectedClinic = clinic_model.Clinic(
+          id: widget.medicine!.clinic!.id,
+          name: widget.medicine!.clinic!.name,
+        );
+      }
     }
     if (widget.activeIngredient != null) {
       _aiNameController.text = widget.activeIngredient!.name ?? '';
+      if (widget.activeIngredient!.clinic != null) {
+        _selectedClinic = clinic_model.Clinic(
+          id: widget.activeIngredient!.clinic!.id,
+          name: widget.activeIngredient!.clinic!.name,
+        );
+      }
     }
 
     // Enforce type if in specific mode
@@ -69,9 +95,42 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
       _currentType = MedicineFormType.activeIngredient;
     }
 
-    // Fetch active ingredients for dropdown if needed
-    if (_currentType == MedicineFormType.medicine) {
-      context.read<GetActiveIngredientsCubit>().getActiveIngredients();
+    // Set clinic if user doesn't have manageCapability
+    if (!CacheHelper.getStringList(key: "capabilities")
+        .contains("manageCapability")) {
+      // Logic to fetch user's clinic or default behavior
+      // Note: Assuming CacheHelper handles retrieval if key exists or logic is handled elsewhere.
+      // If user has specific clinic assigned, we should potentially use it to fetch active ingredients.
+      // For now, if we cannot get the clinic ID easily without more context on user model,
+      // we might want to trigger fetching all active ingredients, or rely on backend to filter based on user context.
+
+      // However, the request specifically asks "based on choosen clinic set request".
+      // This implies user choice (manage capability) OR possibly forced choice.
+
+      // If NOT manageCapability, maybe we should fetch Active Ingredients without clinic filter or with user's implicit clinic?
+      // Since I can't determine user's clinic ID efficiently here without User model access (commented out in previous steps),
+      // I will keep standard fetch for now, BUT if we are adding clinic dropdown for 'manageCapability' users,
+      // it is critical to use IT to filter.
+
+      // Trigger fetch for Medicine form only if we are not waiting for manual clinic selection
+      if (_currentType == MedicineFormType.medicine) {
+        context.read<GetActiveIngredientsCubit>().getActiveIngredients();
+      }
+    } else {
+      // IF user has manageCapability, we do NOT fetch active ingredients immediately?
+      // Or we fetch all?
+      // "based on choosen clinic set request to ge active ingredient"
+      // This suggests we wait for clinic selection?
+      // But if we want to show *some* ingredients initially, we might fetch all (pagination=false?)
+      // User said: "send pagination false"
+
+      // Let's fetch all initially using pagination=false if no clinic selected yet, OR wait?
+      // Often better to show empty or all. Let's show all for now.
+      if (_currentType == MedicineFormType.medicine) {
+        context
+            .read<GetActiveIngredientsCubit>()
+            .getActiveIngredients(pagination: false);
+      }
     }
   }
 
@@ -82,7 +141,8 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
     return BlocConsumer<MedicineActionsCubit, MedicineActionsState>(
       listener: (context, state) {
         if (state is MedicineActionsSuccess) {
-          Navigator.pop(context);
+          Navigator.pop(context); // Pop loading
+          Navigator.pop(context); // Pop BottomSheet
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -90,6 +150,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
             ),
           );
         } else if (state is MedicineActionsError) {
+          Navigator.pop(context); // Pop loading
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
@@ -107,9 +168,6 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
-          ),
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
             child: Form(
@@ -121,20 +179,17 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
                     width: 60,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(8)
-                    ),
+                        color: Colors.grey,
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   Align(
-                    alignment: Alignment.centerRight ,
+                    alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: Container(
-                        padding:  EdgeInsets.all(4) ,
-                        decoration: BoxDecoration(
-                            color: Colors.grey,
-                            shape: BoxShape.circle
-                        ),
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                            color: Colors.grey, shape: BoxShape.circle),
                         child: Icon(
                           Icons.close,
                           size: 18,
@@ -143,21 +198,12 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
                       ),
                     ),
                   ),
-                  Stack(
-                    children: [
-                      // Only show toggle and padding if NOT edit/details
-                      if (!widget.isEdit && !widget.isDetails)
-                        _buildAnimatedToggle(isDark),
-                      // If it IS edit/details, we might need some top padding to avoid close button overlapping content,
-                      // or just the close button row.
-                      if (widget.isEdit || widget.isDetails)
-                        const SizedBox(
-                            height: 40,
-                            width: double
-                                .infinity), // Spacer for title/close button area
-                    ],
-                  ),
-                  const HeightSpacer(size: 20),
+
+                  // Only show toggle if NOT edit/details
+                  if (!widget.isEdit && !widget.isDetails) ...[
+                    _buildAnimatedToggle(isDark),
+                    const HeightSpacer(size: 20),
+                  ],
                   if (_visibleType == MedicineFormType.medicine)
                     _buildMedicineForm(isDark)
                   else
@@ -218,7 +264,8 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
                         });
                         context
                             .read<GetActiveIngredientsCubit>()
-                            .getActiveIngredients();
+                            .getActiveIngredients(
+                                pagination: false, clinic: _selectedClinic?.id);
                       }
                     });
                   },
@@ -272,6 +319,17 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
   Widget _buildMedicineForm(bool isDark) {
     return Column(
       children: [
+        if (CacheHelper.getStringList(key: "capabilities")
+            .contains("manageCapability")) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, bottom: 5),
+            child: Text("Clinic",
+                style: appStyle(context, 14,
+                    isDark ? Colors.white70 : Colors.black54, FontWeight.bold)),
+          ),
+          _buildClinicDropdown(isDark, onMedicineForm: true),
+          const HeightSpacer(size: 15),
+        ],
         BlocBuilder<GetActiveIngredientsCubit, GetActiveIngredientsState>(
           builder: (context, state) {
             List<ActiveIngredient> items = [];
@@ -348,6 +406,19 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
   Widget _buildActiveIngredientForm(bool isDark) {
     return Column(
       children: [
+        if (CacheHelper.getStringList(key: "capabilities")
+            .contains("manageCapability")) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, bottom: 5),
+            child: Text("Clinic",
+                style: appStyle(context, 14,
+                    isDark ? Colors.white70 : Colors.black54, FontWeight.bold)),
+          ),
+          _buildClinicDropdown(isDark),
+        ],
+        if (CacheHelper.getStringList(key: "capabilities")
+            .contains("manageCapability"))
+          const HeightSpacer(size: 15),
         _buildTextField(
           controller: _aiNameController,
           label: "Name",
@@ -413,19 +484,49 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      customLoading(context, widget.isEdit ? "Updating..." : "Adding...");
       if (_currentType == MedicineFormType.medicine) {
         if (_selectedActiveIngredient == null) {
+          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Please select an Active Ingredient")),
           );
           return;
         }
 
-        final medicine = Medicine(
+        bool needsClinic = CacheHelper.getStringList(key: "capabilities")
+            .contains("manageCapability");
+        if (needsClinic && _selectedClinic == null) {
+          Navigator.pop(context);
+          setState(() {
+            _clinicValidation = false;
+          });
+          return;
+        }
+
+        final medicine = CommercialName(
           name: _nameController.text,
           description: _descriptionController.text,
           concentration: _concentrationController.text,
-          parentId: _selectedActiveIngredient?.id,
+          parentId: _selectedActiveIngredient != null
+              ? ParentId(
+                  id: _selectedActiveIngredient!.id,
+                  name: _selectedActiveIngredient!.name,
+                  isActiveIngredient: true,
+                  isCommercialName: false,
+                )
+              : null,
+          deletedAt: null,
+          deletedBy: null,
+          clinic: _selectedClinic,
+          isActive: true,
+          createdAt: null,
+          updatedAt: null,
+          isActiveIngredient: false,
+          isCommercialName: true,
+          id: null,
+          createdBy: null,
+          updatedBy: null,
         );
 
         if (widget.isEdit && widget.medicine != null) {
@@ -436,8 +537,36 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           context.read<MedicineActionsCubit>().createMedicine(medicine);
         }
       } else {
+        bool needsClinic = CacheHelper.getStringList(key: "capabilities")
+            .contains("manageCapability");
+
+        if (needsClinic && _selectedClinic == null) {
+          Navigator.pop(context);
+          setState(() {
+            _clinicValidation = false;
+          });
+          return;
+        }
+
         final activeIngredient = ActiveIngredient(
           name: _aiNameController.text,
+          clinic: _selectedClinic != null
+              ? clinic_model.Clinic(
+                  id: _selectedClinic!.id, name: _selectedClinic!.name)
+              : null,
+          id: null,
+          createdBy: null,
+          updatedBy: null,
+          deletedAt: null,
+          deletedBy: null,
+          parentId: null,
+          concentration: null,
+          isActive: true,
+          createdAt: null,
+          updatedAt: null,
+          isActiveIngredient: true,
+          isCommercialName: false,
+          description: null,
         );
 
         if (widget.isEdit && widget.activeIngredient != null) {
@@ -450,5 +579,42 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
         }
       }
     }
+  }
+
+  Widget _buildClinicDropdown(bool isDark, {bool onMedicineForm = false}) {
+    return BlocConsumer<GetClinicsCubit, GetClinicsState>(
+      listener: (context, clinicsState) {
+        // Optional: Pre-select if only one clinic or something?
+      },
+      builder: (context, clinicsState) {
+        return DropdownItem<clinic_model.Clinic>(
+          radius: 10,
+          border: isDark ? Colors.grey[700] : Colors.grey[400],
+          color: isDark ? const Color(0xff2C2C2C) : Colors.white,
+          isShadow: false,
+          items: clinicsState.clinics?.clinics ?? [],
+          isValid: _clinicValidation,
+          validateText: 'Please choose a clinic',
+          selectedValue: _selectedClinic?.name,
+          hintText: 'Select Clinic',
+          itemAsString: (clinic_model.Clinic item) => item.name.toString(),
+          onItemSelected: (clinic_model.Clinic item) {
+            setState(() {
+              _selectedClinic = item;
+              _clinicValidation = true;
+              // If on Medicine Form, fetch Active Ingredients for this clinic
+              if (onMedicineForm) {
+                _selectedActiveIngredient = null; // Reset selection
+                context.read<GetActiveIngredientsCubit>().getActiveIngredients(
+                      pagination: false,
+                      clinic: item.id,
+                    );
+              }
+            });
+          },
+          isLoading: clinicsState.isLoading,
+        );
+      },
+    );
   }
 }

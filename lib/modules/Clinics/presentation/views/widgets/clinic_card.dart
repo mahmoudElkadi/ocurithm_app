@@ -81,13 +81,13 @@ class _ClinicCardState extends State<ClinicCard> {
               // Add subtle border in dark mode for better definition
               border: Theme.of(context).brightness == Brightness.dark
                   ? Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha:0.1),
                       width: 1,
                     )
                   : null,
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).shadowColor.withOpacity(0.15),
+                  color: Theme.of(context).shadowColor.withValues(alpha:0.15),
                   spreadRadius: 1,
                   blurRadius: 8,
                   offset: const Offset(0, 2),
@@ -278,7 +278,7 @@ class _ClinicListViewState extends State<ClinicListView> {
             const HeightSpacer(size: 30),
             Icon(Icons.inbox_outlined,
                 size: 70,
-                color: Theme.of(context).iconTheme.color?.withOpacity(0.4)),
+                color: Theme.of(context).iconTheme.color?.withValues(alpha:0.4)),
             const SizedBox(height: 16),
             Text(
               'No Clinic found',
@@ -288,7 +288,7 @@ class _ClinicListViewState extends State<ClinicListView> {
                       .textTheme
                       .bodyLarge
                       ?.color
-                      ?.withOpacity(0.7),
+                      ?.withValues(alpha:0.7),
                   fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
@@ -300,7 +300,7 @@ class _ClinicListViewState extends State<ClinicListView> {
                       .textTheme
                       .bodyMedium
                       ?.color
-                      ?.withOpacity(0.5),
+                      ?.withValues(alpha:0.5),
                   fontWeight: FontWeight.w600),
             ),
           ],

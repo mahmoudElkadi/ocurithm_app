@@ -22,6 +22,7 @@ import 'package:ocurithm/core/utils/constant.dart';
 import 'package:ocurithm/modules/Patient/data/model/nationality_model.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
+import '../../../../Analysis/presentation/views/analysis_view.dart';
 import '../examination_view/one_examination_view.dart';
 
 enum PatientFormMode { add, edit, view }
@@ -31,10 +32,10 @@ class PatientFormPage extends StatelessWidget {
   final String? patientId;
 
   const PatientFormPage({
-    Key? key,
+    super.key,
     required this.mode,
     this.patientId,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,8 +65,7 @@ class PatientFormView extends StatefulWidget {
   final PatientFormMode mode;
   final String? patientId;
 
-  const PatientFormView({Key? key, required this.mode, this.patientId})
-      : super(key: key);
+  const PatientFormView({super.key, required this.mode, this.patientId});
 
   @override
   State<PatientFormView> createState() => _PatientFormViewState();
@@ -195,6 +195,13 @@ class _PatientFormViewState extends State<PatientFormView> {
                 });
               },
               icon: Icon(_isReadOnly ? Icons.edit : Icons.close),
+            ),
+          if (widget.mode != PatientFormMode.add && widget.patientId!=null)
+            IconButton(
+              onPressed: () {
+                Get.to(()=>AnalysisView(patientId:widget.patientId.toString() ));
+              },
+              icon: const Icon(Icons.analytics_outlined),
             ),
         ],
       ),
@@ -385,8 +392,7 @@ class _PatientFormViewState extends State<PatientFormView> {
           children: [
             Text(_loadedPatient?.serialNumber ?? "N/A",
                 style: theme.textTheme.bodyLarge),
-            SvgPicture.asset("assets/icons/password.svg",
-                color: theme.primaryColor),
+            SvgPicture.asset("assets/icons/password.svg"),
           ],
         ));
   }
@@ -432,8 +438,7 @@ class _PatientFormViewState extends State<PatientFormView> {
         suffixIcon: suffixIcon ??
             Padding(
                 padding: EdgeInsets.symmetric(horizontal: 14.w),
-                child: SvgPicture.asset(icon,
-                    color: theme.primaryColor, height: 20, width: 20)),
+                child: SvgPicture.asset(icon, height: 20, width: 20)),
       ),
     );
   }
@@ -445,10 +450,10 @@ class _PatientFormViewState extends State<PatientFormView> {
         return const Center(child: CircularProgressIndicator());
       }
       if (state.examinations == null ||
-          (state.examinations?.examinations?.examinations.isEmpty ?? true)) {
+          (state.examinations?.examinations.isEmpty ?? true)) {
         return const SizedBox.shrink();
       }
-      final list = state.examinations!.examinations!.examinations;
+      final list = state.examinations!.examinations;
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Text("Examinations",
@@ -493,7 +498,7 @@ class _PatientFormViewState extends State<PatientFormView> {
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.primaryColor.withOpacity(0.3)),
+          border: Border.all(color: theme.primaryColor.withValues(alpha:0.3)),
         ),
         child: InkWell(
             onTap: () {
@@ -509,7 +514,7 @@ class _PatientFormViewState extends State<PatientFormView> {
                     width: 55,
                     height: 55,
                     decoration: BoxDecoration(
-                      color: theme.primaryColor.withOpacity(0.1),
+                      color: theme.primaryColor.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(Icons.visibility_outlined,
@@ -535,7 +540,6 @@ class _PatientFormViewState extends State<PatientFormView> {
   }
 
   Widget _buildPhoneField(ThemeData theme) {
-    final borderColor = theme.primaryColor;
     return IntlPhoneField(
       initialValue: _phoneNumber ?? '',
       decoration: InputDecoration(
@@ -558,8 +562,7 @@ class _PatientFormViewState extends State<PatientFormView> {
             borderSide: const BorderSide(color: Colors.red)),
         suffixIcon: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: SvgPicture.asset("assets/icons/phone_number.svg",
-              color: theme.primaryColor, height: 15, width: 15),
+          child: SvgPicture.asset("assets/icons/phone_number.svg", height: 15, width: 15),
         ),
       ),
       initialCountryCode: 'EG',
@@ -618,8 +621,7 @@ class _PatientFormViewState extends State<PatientFormView> {
               setState(() => _passwordController.text = generated);
             }
           },
-          icon: SvgPicture.asset('assets/icons/password.svg',
-              color: theme.primaryColor),
+          icon: SvgPicture.asset('assets/icons/password.svg'),
         ),
       ),
     );
@@ -704,7 +706,7 @@ class _PatientFormViewState extends State<PatientFormView> {
       validateText: 'Nationality must not be Empty',
       selectedValue: _selectedNationality?.name,
       hintText: 'Select Nationality',
-      itemAsString: (item) => item.name ?? '',
+      itemAsString: (item) => item.name,
       onItemSelected: (item) => setState(() => _selectedNationality = item),
       readOnly: _isReadOnly,
       isLoading: false,
@@ -806,8 +808,8 @@ class _PatientFormViewState extends State<PatientFormView> {
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: theme.cardColor,
-        boxShadow: [
-          const BoxShadow(
+        boxShadow: const [
+          BoxShadow(
               color: Colors.black12, blurRadius: 10, offset: Offset(0, -5))
         ],
       ),

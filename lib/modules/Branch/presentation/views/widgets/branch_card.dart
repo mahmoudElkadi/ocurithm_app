@@ -69,15 +69,15 @@ class _BranchCardState extends State<BranchCard> {
             // Add subtle border in dark mode for better definition
             border: isDark
                 ? Border.all(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha:0.1),
                     width: 1,
                   )
                 : null,
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.black.withOpacity(0.3)
-                    : Colors.grey.withOpacity(0.2),
+                    ? Colors.black.withValues(alpha:0.3)
+                    : Colors.grey.withValues(alpha:0.2),
                 spreadRadius: 2,
                 blurRadius: 5,
               ),
@@ -105,7 +105,7 @@ class _BranchCardState extends State<BranchCard> {
                           boxShadow: [
                             BoxShadow(
                               color: isDark
-                                  ? Colors.black.withOpacity(0.3)
+                                  ? Colors.black.withValues(alpha:0.3)
                                   : Colors.grey.shade200,
                               spreadRadius: 1,
                               blurRadius: 3,

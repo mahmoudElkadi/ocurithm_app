@@ -262,15 +262,15 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
         borderRadius: BorderRadius.circular(16),
         border: isDark
             ? Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha:0.1),
                 width: 1,
               )
             : null,
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.5)
-                : Colors.black.withOpacity(0.15),
+                ? Colors.black.withValues(alpha:0.5)
+                : Colors.black.withValues(alpha:0.15),
             blurRadius: 20,
             offset: const Offset(0, 4),
             spreadRadius: 2,
@@ -437,7 +437,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.payment,
-          color: Theme.of(context).iconTheme.color?.withOpacity(0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -470,7 +470,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.description,
-          color: Theme.of(context).iconTheme.color?.withOpacity(0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

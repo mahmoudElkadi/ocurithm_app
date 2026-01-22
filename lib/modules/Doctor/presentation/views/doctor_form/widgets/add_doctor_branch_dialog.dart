@@ -104,7 +104,7 @@ class _AddDoctorBranchDialogState extends State<AddDoctorBranchDialog> {
                       return DropdownItem(
                         radius: 30,
                         color: isDark
-                            ? Colors.grey[800]!.withOpacity(0.5)
+                            ? Colors.grey[800]!.withValues(alpha:0.5)
                             : Colorz.white,
                         isShadow: false,
                         border: theme.primaryColor,

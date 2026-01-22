@@ -17,15 +17,10 @@ class GetPatientExaminationsCubit extends Cubit<GetPatientExaminationsState> {
         status: GetPatientExaminationsStatus.loading));
     try {
       final result = await patientRepo.getPatientExaminations(id: patientId);
-      if (result.error == null) {
+      if (result.success == true) {
         emit(GetPatientExaminationsState(
           status: GetPatientExaminationsStatus.success,
           examinations: result,
-        ));
-      } else {
-        emit(GetPatientExaminationsState(
-          status: GetPatientExaminationsStatus.error,
-          errorMessage: result.error,
         ));
       }
     } catch (e) {

@@ -58,7 +58,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             spreadRadius: 5,
             blurRadius: 10,
             offset: const Offset(0, 3),
@@ -96,7 +96,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.1),
+              color: Colorz.primaryColor.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
@@ -222,7 +222,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Icon(
@@ -268,7 +268,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, 1),
@@ -318,7 +318,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -1),

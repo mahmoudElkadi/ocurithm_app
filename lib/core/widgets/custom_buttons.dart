@@ -93,10 +93,10 @@ class _CoolDownButtonState extends State<CoolDownButton> {
         borderRadius: BorderRadius.circular(8),
         gradient: LinearGradient(
           colors: [
-            _isInCooldown ? Colorz.primaryColor.withOpacity(0.5) : Colorz.primaryColor,
-            Color.lerp(_isInCooldown ? Colorz.primaryColor.withOpacity(0.5) : Colorz.primaryColor, Colors.black, 0.2)!,
-            Color.lerp(_isInCooldown ? Colorz.primaryColor.withOpacity(0.5) : Colorz.primaryColor, Colors.black, 0.3)!,
-            Color.lerp(_isInCooldown ? Colorz.primaryColor.withOpacity(0.5) : Colorz.primaryColor, Colors.black, 0.4)!,
+            _isInCooldown ? Colorz.primaryColor.withValues(alpha:0.5) : Colorz.primaryColor,
+            Color.lerp(_isInCooldown ? Colorz.primaryColor.withValues(alpha:0.5) : Colorz.primaryColor, Colors.black, 0.2)!,
+            Color.lerp(_isInCooldown ? Colorz.primaryColor.withValues(alpha:0.5) : Colorz.primaryColor, Colors.black, 0.3)!,
+            Color.lerp(_isInCooldown ? Colorz.primaryColor.withValues(alpha:0.5) : Colorz.primaryColor, Colors.black, 0.4)!,
           ],
         ),
       ),

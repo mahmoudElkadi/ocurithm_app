@@ -1,7 +1,7 @@
 class Config {
   // static String get baseUrl => "https://ocurithm.com/api/";
 
-  static String get baseUrl => "http://192.168.1.32:3000/api/";
+  static String get baseUrl => "http://192.168.1.8:3000/api/";
 
   static String get login => "auth/login";
 
@@ -25,7 +25,7 @@ class Config {
 
   static String get capabilities => "capabilities";
 
-  static String get medicines => "medicines";
+  static String get medicines => "medicines/commercial-names";
 
   static String get activeIngredients => "activeIngredients";
 }

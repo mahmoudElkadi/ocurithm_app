@@ -618,7 +618,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
           boxShadow: [
             BoxShadow(
               color:
-                  isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade200,
+                  isDark ? Colors.white.withValues(alpha:0.1) : Colors.grey.shade200,
               spreadRadius: 2,
               blurRadius: 3,
               offset: const Offset(0, 0),
@@ -1160,7 +1160,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
             color: theme.cardColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha:0.3),
                 spreadRadius: 2,
                 blurRadius: 5,
                 offset: const Offset(0, 3),

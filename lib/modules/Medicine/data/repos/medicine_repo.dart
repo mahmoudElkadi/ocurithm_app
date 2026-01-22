@@ -5,15 +5,16 @@ import '../model/medicine_model.dart';
 abstract class MedicineRepo {
   // Medicine
   Future<MedicinesModel> getAllMedicines({int? page, String? search});
-  Future<Medicine> createMedicine({required Medicine medicine});
-  Future<Medicine> getMedicine({required String id});
-  Future<Medicine> updateMedicine(
-      {required String id, required Medicine medicine});
+  Future<CommercialName> createMedicine(
+      {required CommercialName commercialName});
+  Future<CommercialName> getMedicine({required String id});
+  Future<CommercialName> updateMedicine(
+      {required String id, required CommercialName commercialName});
   Future<DataModel> deleteMedicine({required String id});
 
   // Active Ingredient
-  Future<ActiveIngredientsModel> getAllActiveIngredients(
-      {int? page, String? search});
+  Future<ActiveIngredientModel> getAllActiveIngredients(
+      {int? page, String? search, bool? pagination, String? clinic});
   Future<ActiveIngredient> createActiveIngredient(
       {required ActiveIngredient activeIngredient});
   Future<ActiveIngredient> updateActiveIngredient(

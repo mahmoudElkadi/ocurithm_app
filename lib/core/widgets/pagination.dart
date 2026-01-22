@@ -83,7 +83,7 @@ class CustomPagination extends StatelessWidget {
             color: onPressed != null ? Colors.white : Colors.grey[200],
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha:0.3),
                 spreadRadius: 1,
                 blurRadius: 3,
                 offset: const Offset(0, 2),
@@ -114,7 +114,7 @@ class CustomPagination extends StatelessWidget {
           border: Border.all(color: isCurrentPage ? Colorz.primaryColor : Colors.grey.shade300),
           // boxShadow: [
           //   BoxShadow(
-          //     color: Colors.grey.withOpacity(0.3),
+          //     color: Colors.grey.withValues(alpha:0.3),
           //     spreadRadius: 1,
           //     blurRadius: 3,
           //     offset: const Offset(0, 2),
@@ -263,7 +263,7 @@ class CustomPagination extends StatelessWidget {
 //             color: onPressed != null ? Colors.white : Colors.grey[200],
 //             boxShadow: [
 //               BoxShadow(
-//                 color: Colors.grey.withOpacity(0.3),
+//                 color: Colors.grey.withValues(alpha:0.3),
 //                 spreadRadius: 1,
 //                 blurRadius: 3,
 //                 offset: const Offset(0, 2),

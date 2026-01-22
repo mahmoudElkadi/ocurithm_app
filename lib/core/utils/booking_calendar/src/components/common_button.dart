@@ -58,9 +58,9 @@ class CommonButton extends StatelessWidget {
             end: Alignment.topCenter,
             colors: [
               Colorz.primaryColor,
-              Colorz.primaryColor.withOpacity(0.9),
-              Colorz.primaryColor.withOpacity(0.8),
-              Colorz.primaryColor.withOpacity(0.5)
+              Colorz.primaryColor.withValues(alpha:0.9),
+              Colorz.primaryColor.withValues(alpha:0.8),
+              Colorz.primaryColor.withValues(alpha:0.5)
             ],
           ),
           borderRadius: const BorderRadius.all(Radius.circular(16)),

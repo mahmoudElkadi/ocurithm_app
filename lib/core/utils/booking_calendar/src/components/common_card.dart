@@ -23,7 +23,7 @@ class CommonCard extends StatelessWidget {
           border: Border.all(color: color?? Colors.white, width: 1.0),
           boxShadow: [
             boxShadow ??
-                BoxShadow(blurRadius: 10.0, offset: const Offset(0, 5), color: const Color(0xff666666).withOpacity(0.2))
+                BoxShadow(blurRadius: 10.0, offset: const Offset(0, 5), color: const Color(0xff666666).withValues(alpha:0.2))
           ],
         ),
         child: child);

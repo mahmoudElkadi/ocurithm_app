@@ -158,7 +158,7 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection>
         borderRadius: BorderRadius.circular(_isExpanded ? 8 : 30),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha:0.2),
             spreadRadius: 1,
             blurRadius: 2,
           ),
@@ -230,7 +230,7 @@ class _CapabilitiesSectionState extends State<CapabilitiesSection>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             color: isSelected
-                                ? Colors.blue.withOpacity(0.1)
+                                ? Colors.blue.withValues(alpha:0.1)
                                 : Colors.transparent,
                           ),
                           child: Row(

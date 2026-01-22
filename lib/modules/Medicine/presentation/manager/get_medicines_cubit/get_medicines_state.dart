@@ -7,7 +7,7 @@ class GetMedicinesInitial extends GetMedicinesState {}
 class GetMedicinesLoading extends GetMedicinesState {}
 
 class GetMedicinesLoaded extends GetMedicinesState {
-  final List<Medicine> medicines;
+  final List<CommercialName> medicines;
   final bool hasMore;
   GetMedicinesLoaded({required this.medicines, required this.hasMore});
 }
@@ -18,6 +18,6 @@ class GetMedicinesError extends GetMedicinesState {
 }
 
 class GetMedicinesLoadingMore extends GetMedicinesState {
-  final List<Medicine> medicines;
+  final List<CommercialName> medicines;
   GetMedicinesLoadingMore({required this.medicines});
 }

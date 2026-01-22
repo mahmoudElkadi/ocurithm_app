@@ -680,7 +680,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
           boxShadow: [
             BoxShadow(
               color:
-                  isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade200,
+                  isDark ? Colors.white.withValues(alpha:0.1) : Colors.grey.shade200,
               spreadRadius: 2,
               blurRadius: 3,
               offset: const Offset(0, 0),
@@ -729,7 +729,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             decoration: InputDecoration(
               hintText: 'Qualifications',
               hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha:0.5),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -985,7 +985,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.white.withOpacity(0.05)
+                    ? Colors.white.withValues(alpha:0.05)
                     : Colors.grey.shade300,
                 spreadRadius: 1,
                 blurRadius: 5,
@@ -1211,7 +1211,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                   SvgPicture.asset(
                     "assets/icons/branch.svg",
                     colorFilter: ColorFilter.mode(
-                      theme.textTheme.bodyMedium?.color?.withOpacity(0.5) ??
+                      theme.textTheme.bodyMedium?.color?.withValues(alpha:0.5) ??
                           Colors.grey,
                       BlendMode.srcIn,
                     ),
@@ -1225,7 +1225,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                     style: TextStyle(
                       fontSize: 18,
                       color:
-                          theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                          theme.textTheme.bodyMedium?.color?.withValues(alpha:0.7),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1254,8 +1254,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                   boxShadow: [
                     BoxShadow(
                       color: isDark
-                          ? Colors.white.withOpacity(0.05)
-                          : Colors.grey.withOpacity(0.2),
+                          ? Colors.white.withValues(alpha:0.05)
+                          : Colors.grey.withValues(alpha:0.2),
                       spreadRadius: 2,
                       blurRadius: 5,
                     ),
@@ -1275,7 +1275,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.primaryColor.withOpacity(0.1),
+                              color: theme.primaryColor.withValues(alpha:0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -1354,14 +1354,14 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                             Icons.access_time,
                             size: 20,
                             color: theme.textTheme.bodyMedium?.color
-                                ?.withOpacity(0.7),
+                                ?.withValues(alpha:0.7),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Branch Hours:',
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color
-                                  ?.withOpacity(0.7),
+                                  ?.withValues(alpha:0.7),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1383,14 +1383,14 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                             Icons.schedule,
                             size: 20,
                             color: theme.textTheme.bodyMedium?.color
-                                ?.withOpacity(0.7),
+                                ?.withValues(alpha:0.7),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Available Hours:',
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color
-                                  ?.withOpacity(0.7),
+                                  ?.withValues(alpha:0.7),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1430,7 +1430,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                               color: isAvailable
                                   ? theme.primaryColor
                                   : theme.textTheme.bodyMedium?.color
-                                      ?.withOpacity(0.1),
+                                      ?.withValues(alpha:0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -1440,7 +1440,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                                 color: isAvailable
                                     ? Colors.white
                                     : theme.textTheme.bodyMedium?.color
-                                        ?.withOpacity(0.6),
+                                        ?.withValues(alpha:0.6),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -1589,13 +1589,13 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
             shape: BoxShape.circle,
             color: theme.cardColor,
             border: Border.all(
-              color: theme.primaryColor.withOpacity(0.3),
+              color: theme.primaryColor.withValues(alpha:0.3),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.white.withOpacity(0.1)
+                    ? Colors.white.withValues(alpha:0.1)
                     : Colors.grey.shade200,
                 spreadRadius: 2,
                 blurRadius: 5,
@@ -1655,7 +1655,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                         color: Colors.red,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
+                            color: Colors.black.withValues(alpha:0.2),
                             spreadRadius: 1,
                             blurRadius: 3,
                           ),
@@ -1678,7 +1678,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                       color: theme.primaryColor,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha:0.2),
                           spreadRadius: 1,
                           blurRadius: 3,
                         ),

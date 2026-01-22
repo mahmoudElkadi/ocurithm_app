@@ -12,7 +12,7 @@ class GetMedicinesCubit extends Cubit<GetMedicinesState> {
 
   static GetMedicinesCubit get(context) => BlocProvider.of(context);
 
-  List<Medicine> medicines = [];
+  List<CommercialName> medicines = [];
   int page = 1;
 
   Future<void> getMedicines({String? search, bool isRefresh = false}) async {
@@ -28,13 +28,13 @@ class GetMedicinesCubit extends Cubit<GetMedicinesState> {
       final result =
           await medicineRepo.getAllMedicines(page: page, search: search);
       if (isRefresh || page == 1) {
-        medicines = result.medicines;
+        medicines = result.commercialNames;
       } else {
-        medicines.addAll(result.medicines);
+        medicines.addAll(result.commercialNames);
       }
 
       bool hasMore = result.totalPages != null && page < result.totalPages!;
-      if (result.medicines.isNotEmpty) {
+      if (result.commercialNames.isNotEmpty) {
         page++;
       }
 

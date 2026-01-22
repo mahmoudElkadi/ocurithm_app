@@ -22,7 +22,7 @@ class LoggingInterceptor extends Interceptor {
       'RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}',
     );
     log('Data: ${response.data}');
-    log('Data: ${response.requestOptions.headers}');
+    log('headers: ${response.requestOptions.headers}');
     log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     super.onResponse(response, handler);
   }
@@ -84,6 +84,8 @@ class AuthInterceptor extends Interceptor {
     final token = await getToken();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
+      options.headers['Cookie'] = 'ocurithmToken=$token';
+
     }
     super.onRequest(options, handler);
   }
@@ -177,6 +179,7 @@ class AuthInterceptor extends Interceptor {
 
     // Update the authorization header with the new token
     requestOptions.headers['Authorization'] = 'Bearer $token';
+    requestOptions.headers['Cookie'] = 'ocurithmToken=$token';
 
     // Mark this as a retry to skip the auth interceptor
     requestOptions.extra['_is_retry'] = true;

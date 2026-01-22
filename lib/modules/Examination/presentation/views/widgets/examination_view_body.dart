@@ -156,7 +156,7 @@ class _HistoryDetails extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).shadowColor.withOpacity(0.05),
+                        color: Theme.of(context).shadowColor.withValues(alpha:0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -402,7 +402,7 @@ class _StepTwoContent extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadowColor.withOpacity(0.05),
+                      color: Theme.of(context).shadowColor.withValues(alpha:0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -1153,7 +1153,7 @@ class _ModifiedExpandableContainerState
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).shadowColor.withOpacity(0.1),
+              color: Theme.of(context).shadowColor.withValues(alpha:0.1),
               spreadRadius: 2,
               blurRadius: 4,
             ),

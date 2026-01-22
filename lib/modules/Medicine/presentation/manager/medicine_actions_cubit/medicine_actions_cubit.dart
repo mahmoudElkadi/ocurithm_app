@@ -13,20 +13,20 @@ class MedicineActionsCubit extends Cubit<MedicineActionsState> {
 
   static MedicineActionsCubit get(context) => BlocProvider.of(context);
 
-  Future<void> createMedicine(Medicine medicine) async {
+  Future<void> createMedicine(CommercialName commercialName) async {
     emit(MedicineActionsLoading());
     try {
-      await medicineRepo.createMedicine(medicine: medicine);
+      await medicineRepo.createMedicine(commercialName: commercialName);
       emit(MedicineActionsSuccess(message: "Medicine Added Successfully"));
     } catch (e) {
       emit(MedicineActionsError(error: e.toString()));
     }
   }
 
-  Future<void> updateMedicine(String id, Medicine medicine) async {
+  Future<void> updateMedicine(String id, CommercialName commercialName) async {
     emit(MedicineActionsLoading());
     try {
-      await medicineRepo.updateMedicine(id: id, medicine: medicine);
+      await medicineRepo.updateMedicine(id: id, commercialName: commercialName);
       emit(MedicineActionsSuccess(message: "Medicine Updated Successfully"));
     } catch (e) {
       emit(MedicineActionsError(error: e.toString()));

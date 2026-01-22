@@ -14,11 +14,12 @@ class GetActiveIngredientsCubit extends Cubit<GetActiveIngredientsState> {
 
   List<ActiveIngredient> activeIngredients = [];
 
-  Future<void> getActiveIngredients({String? search}) async {
+  Future<void> getActiveIngredients(
+      {String? search, bool? pagination, String? clinic}) async {
     emit(GetActiveIngredientsLoading());
     try {
-      final result =
-          await medicineRepo.getAllActiveIngredients(page: 1, search: search);
+      final result = await medicineRepo.getAllActiveIngredients(
+          page: 1, search: search, pagination: pagination, clinic: clinic);
       activeIngredients = result.activeIngredients;
       emit(GetActiveIngredientsLoaded(activeIngredients: activeIngredients));
     } catch (e) {

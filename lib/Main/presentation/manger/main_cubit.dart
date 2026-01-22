@@ -9,7 +9,6 @@ import 'package:ocurithm/modules/Examination%20Type/presentation/views/examinati
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
 import '../../../modules/Medicine/presentation/views/medicine_view.dart';
-import '../../../modules/Analysis/presentation/views/analysis_view.dart';
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
@@ -97,7 +96,7 @@ class MainCubit extends Cubit<MainState> {
   int notificationIndex = -1;
 
   Future<List<DrawerGroup>> getStatusList({context}) async {
-    List capabilities = CacheHelper.getStringList(key: "capabilities") ?? [];
+    List capabilities = CacheHelper.getStringList(key: "capabilities");
     capabilities.add("dashboard");
 
     Map<String, List<dynamic>> statusMappings = {
@@ -113,13 +112,8 @@ class MainCubit extends Cubit<MainState> {
       ],
       "showAppointments": [
         "Appointments",
-        const AppointmentView(),
+        const AppointmentView(), 
         "assets/icons/appointment.svg"
-      ],
-      "showAnalysis": [
-        "Analysis",
-        const AnalysisView(),
-        "assets/icons/examination.svg"
       ],
       "manageClinics": [
         "Clinics",
@@ -164,7 +158,6 @@ class MainCubit extends Cubit<MainState> {
       "Patient Management": [
         "showPatients",
         "showAppointments",
-        "showAnalysis"
       ],
       "Management": [
         "manageClinics",

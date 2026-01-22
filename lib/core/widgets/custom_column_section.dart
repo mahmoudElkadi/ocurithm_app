@@ -18,7 +18,7 @@ class _BuildExaminationSectionState extends State<BuildExaminationSection> {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: Colorz.primaryColor.withOpacity(0.2),
+      shadowColor: Colorz.primaryColor.withValues(alpha:0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -72,7 +72,7 @@ class _BuildExaminationSectionState extends State<BuildExaminationSection> {
           decoration: BoxDecoration(
             color: Colors.grey[100],
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withOpacity(0.2)),
+            border: Border.all(color: Colors.grey.withValues(alpha:0.2)),
           ),
           child: Text(
             displayValue,

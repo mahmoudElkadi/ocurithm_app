@@ -240,15 +240,15 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
         // Add subtle border in dark mode for better definition
         border: isDark
             ? Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha:0.1),
                 width: 1,
               )
             : null,
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.5)
-                : Colors.black.withOpacity(0.15),
+                ? Colors.black.withValues(alpha:0.5)
+                : Colors.black.withValues(alpha:0.15),
             blurRadius: 20,
             offset: const Offset(0, 4),
             spreadRadius: 2,
@@ -353,7 +353,7 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
           borderRadius: BorderRadius.circular(8),
         ),
         prefixIcon: Icon(Icons.business,
-            color: Theme.of(context).iconTheme.color?.withOpacity(0.6)),
+            color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Theme.of(context).primaryColor),
@@ -383,7 +383,7 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
           borderRadius: BorderRadius.circular(8),
         ),
         prefixIcon: Icon(Icons.description,
-            color: Theme.of(context).iconTheme.color?.withOpacity(0.6)),
+            color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Theme.of(context).primaryColor),

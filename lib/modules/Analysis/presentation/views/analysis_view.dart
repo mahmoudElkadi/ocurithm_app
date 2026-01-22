@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/scaffold_style.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/services_locator.dart';
+import '../manager/analysis_cubit/get_analysis_cubit.dart';
 import 'widgets/analysis_view_body.dart';
 
 class AnalysisView extends StatefulWidget {
-  const AnalysisView({super.key});
+  const AnalysisView({super.key, required this.patientId});
+  final String patientId;
 
   @override
   State<AnalysisView> createState() => _AnalysisViewState();
@@ -11,16 +14,22 @@ class AnalysisView extends StatefulWidget {
 
 class _AnalysisViewState extends State<AnalysisView> {
   EyeSelection _selectedEye = EyeSelection.both;
+  int _resetCounter =
+  0; // Used to signal charts to reset their local selections
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      title: "Analysis",
-      actions: [
-        _buildOptionsMenu(Theme.of(context).brightness == Brightness.dark),
-      ],
-      body: AnalysisViewBody(
-        selectedEye: _selectedEye,
+    return BlocProvider(
+      create: (context)=>sl<GetAnalysisCubit>()..add(GetPatientAnalysisEvent(patientId:widget.patientId)),
+      child: Scaffold(
+        appBar:AppBar(
+          title: const Text('Analysis',style: TextStyle(fontWeight: FontWeight.w600,fontSize: 16),),
+          actions: [_buildOptionsMenu(Theme.of(context).brightness==Brightness.dark)],
+        ) ,
+        body: AnalysisViewBody(
+          selectedEye: _selectedEye,
+          resetCounter: _resetCounter,
+        ),
       ),
     );
   }
@@ -59,6 +68,7 @@ class _AnalysisViewState extends State<AnalysisView> {
       onSelected: (EyeSelection value) {
         setState(() {
           _selectedEye = value;
+          _resetCounter++; // Increment to signal all charts to reset
         });
       },
     );

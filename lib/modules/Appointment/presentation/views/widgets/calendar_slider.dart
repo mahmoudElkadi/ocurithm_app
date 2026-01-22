@@ -112,7 +112,7 @@ class _CalendarSliderWidgetState extends State<CalendarSliderWidget> {
                 color: Colorz.white,
                 border: Border.all(color: isSelected ? Colorz.primaryColor : Colors.grey.shade400, width: 1),
                 borderRadius: BorderRadius.circular(13.0),
-                boxShadow: isSelected ? [BoxShadow(color: Colorz.primaryColor.withOpacity(0.1), blurRadius: 4, spreadRadius: 2)] : null,
+                boxShadow: isSelected ? [BoxShadow(color: Colorz.primaryColor.withValues(alpha:0.1), blurRadius: 4, spreadRadius: 2)] : null,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

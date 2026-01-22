@@ -91,15 +91,15 @@ class _ExaminationTypeCardState extends State<ExaminationTypeCard> {
               borderRadius: BorderRadius.circular(10),
               border: isDark
                   ? Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha:0.1),
                       width: 1,
                     )
                   : null,
               boxShadow: [
                 BoxShadow(
                   color: isDark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.grey.withOpacity(0.2),
+                      ? Colors.black.withValues(alpha:0.3)
+                      : Colors.grey.withValues(alpha:0.2),
                   spreadRadius: 2,
                   blurRadius: 5,
                 ),

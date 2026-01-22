@@ -92,7 +92,7 @@ class OneExaminationContent extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colorz.primaryColor.withOpacity(0.1),
+                    color: Colorz.primaryColor.withValues(alpha:0.1),
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(12)),
                   ),
@@ -506,7 +506,7 @@ class OneExaminationContent extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: Colorz.primaryColor.withOpacity(0.2),
+      shadowColor: Colorz.primaryColor.withValues(alpha:0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -856,7 +856,7 @@ class OneExaminationContent extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: Colorz.primaryColor.withOpacity(0.2),
+      shadowColor: Colorz.primaryColor.withValues(alpha:0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -909,7 +909,7 @@ class OneExaminationContent extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.grey[100],
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withOpacity(0.2)),
+            border: Border.all(color: Colors.grey.withValues(alpha:0.2)),
           ),
           child: Text(
             displayValue,
@@ -944,7 +944,7 @@ class OneExaminationContent extends StatelessWidget {
       BuildContext context, ExaminationModel examination) {
     return Card(
       elevation: 4,
-      shadowColor: Colorz.primaryColor.withOpacity(0.2),
+      shadowColor: Colorz.primaryColor.withValues(alpha:0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -956,7 +956,7 @@ class OneExaminationContent extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colorz.primaryColor.withOpacity(0.1),
+                  backgroundColor: Colorz.primaryColor.withValues(alpha:0.1),
                   child: Icon(Icons.person_outline, color: Colorz.primaryColor),
                 ),
                 const SizedBox(width: 12),
@@ -1025,7 +1025,7 @@ class OneExaminationContent extends StatelessWidget {
       required ExaminationModel examination}) {
     return Card(
       elevation: 3,
-      shadowColor: Colorz.primaryColor.withOpacity(0.3),
+      shadowColor: Colorz.primaryColor.withValues(alpha:0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -1033,7 +1033,7 @@ class OneExaminationContent extends StatelessWidget {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.1),
+              color: Colorz.primaryColor.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(Icons.medical_services, color: Colorz.primaryColor),
@@ -1224,7 +1224,7 @@ class OneExaminationContent extends StatelessWidget {
   }) {
     return Card(
       elevation: 3,
-      shadowColor: color.withOpacity(0.3),
+      shadowColor: color.withValues(alpha:0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -1232,7 +1232,7 @@ class OneExaminationContent extends StatelessWidget {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color),

@@ -71,8 +71,8 @@ class _DoctorCardState extends State<DoctorCard> {
                 boxShadow: [
                   BoxShadow(
                     color: isDark
-                        ? Colors.white.withOpacity(0.05)
-                        : Colors.grey.withOpacity(0.2),
+                        ? Colors.white.withValues(alpha:0.05)
+                        : Colors.grey.withValues(alpha:0.2),
                     spreadRadius: 2,
                     blurRadius: 5,
                   ),
@@ -122,7 +122,7 @@ class _DoctorCardState extends State<DoctorCard> {
                                 boxShadow: [
                                   BoxShadow(
                                       color: isDark
-                                          ? Colors.white.withOpacity(0.1)
+                                          ? Colors.white.withValues(alpha:0.1)
                                           : Colors.grey.shade200,
                                       spreadRadius: 1,
                                       blurRadius: 3,

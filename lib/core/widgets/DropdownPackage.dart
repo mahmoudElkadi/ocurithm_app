@@ -247,8 +247,8 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>>
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black.withOpacity(0.6)
-                        : Colors.grey.withOpacity(0.4),
+                        ? Colors.black.withValues(alpha:0.6)
+                        : Colors.grey.withValues(alpha:0.4),
                   ),
                 ),
               ),
@@ -406,7 +406,7 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>>
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.black.withOpacity(0.5)
+                    ? Colors.black.withValues(alpha:0.5)
                     : Colors.grey.shade300,
                 spreadRadius: 1,
                 blurRadius: 3,
@@ -561,8 +561,8 @@ class _FlutterDropdownSearchState<T> extends State<FlutterDropdownSearch<T>>
                     ? [
                         BoxShadow(
                           color: isDark
-                              ? Colors.black.withOpacity(0.3)
-                              : Colors.grey.withOpacity(0.2),
+                              ? Colors.black.withValues(alpha:0.3)
+                              : Colors.grey.withValues(alpha:0.2),
                           spreadRadius: 2,
                           blurRadius: 5,
                         ),
@@ -1037,7 +1037,7 @@ class _PopupDropdownSearchState<T> extends State<PopupDropdownSearch<T>> {
                 boxShadow: widget.isShadow == true
                     ? [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha:0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),

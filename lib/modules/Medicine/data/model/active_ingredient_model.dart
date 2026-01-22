@@ -1,58 +1,109 @@
-class ActiveIngredientsModel {
-  ActiveIngredientsModel({
-    required this.activeIngredients,
-    this.total,
-    this.totalPages,
-    this.error,
-  });
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 
-  List<ActiveIngredient> activeIngredients;
-  num? total;
-  num? totalPages;
-  String? error;
+class ActiveIngredientModel {
+    ActiveIngredientModel({
+         this.success,
+        required this.activeIngredients,
+         this.total,
+         this.totalPages,
+    });
 
-  factory ActiveIngredientsModel.fromJson(Map<String, dynamic> json) {
-    return ActiveIngredientsModel(
-      activeIngredients: json["activeIngredients"] == null
-          ? []
-          : List<ActiveIngredient>.from(json["activeIngredients"]!
-              .map((x) => ActiveIngredient.fromJson(x))),
-      total: json["total"],
-      totalPages: json["totalPages"],
-      error: json["error"],
-    );
-  }
+    final bool? success;
+    final List<ActiveIngredient> activeIngredients;
+    final num? total;
+    final num? totalPages;
 
-  Map<String, dynamic> toJson() => {
-        "activeIngredients": activeIngredients.map((x) => x.toJson()).toList(),
+    factory ActiveIngredientModel.fromJson(Map<String, dynamic> json){ 
+        return ActiveIngredientModel(
+            success: json["success"],
+            activeIngredients: json["activeIngredients"] == null ? [] : List<ActiveIngredient>.from(json["activeIngredients"]!.map((x) => ActiveIngredient.fromJson(x))),
+            total: json["total"],
+            totalPages: json["totalPages"],
+        );
+    }
+
+    Map<String, dynamic> toJson() => {
+        "success": success,
+        "activeIngredients": activeIngredients.map((x) => x?.toJson()).toList(),
         "total": total,
         "totalPages": totalPages,
-        "error": error,
-      };
+    };
+
 }
 
 class ActiveIngredient {
-  ActiveIngredient({
-    this.name,
-    this.id,
-    this.error,
-  });
+    ActiveIngredient({
+         this.createdBy,
+         this.updatedBy,
+         this.deletedAt,
+         this.deletedBy,
+         this.clinic,
+         this.parentId,
+         this.name,
+         this.concentration,
+         this.isActive,
+         this.createdAt,
+         this.updatedAt,
+         this.isActiveIngredient,
+         this.isCommercialName,
+         this.id,
+         this.description,
+    });
 
-  String? name;
-  String? id;
-  String? error;
+    final String? createdBy;
+    final String? updatedBy;
+    final dynamic deletedAt;
+    final dynamic deletedBy;
+    final Clinic? clinic;
+    final dynamic parentId;
+    final String? name;
+    final dynamic concentration;
+    final bool? isActive;
+    final DateTime? createdAt;
+    final DateTime? updatedAt;
+    final bool? isActiveIngredient;
+    final bool? isCommercialName;
+    final String? id;
+    final String? description;
 
-  factory ActiveIngredient.fromJson(Map<String, dynamic> json) {
-    return ActiveIngredient(
-      name: json["name"],
-      id: json["id"],
-      error: json["error"],
-    );
-  }
+    factory ActiveIngredient.fromJson(Map<String, dynamic> json){ 
+        return ActiveIngredient(
+            createdBy: json["createdBy"],
+            updatedBy: json["updatedBy"],
+            deletedAt: json["deletedAt"],
+            deletedBy: json["deletedBy"],
+            clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
+            parentId: json["parentId"],
+            name: json["name"],
+            concentration: json["concentration"],
+            isActive: json["isActive"],
+            createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+            updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
+            isActiveIngredient: json["isActiveIngredient"],
+            isCommercialName: json["isCommercialName"],
+            id: json["id"],
+            description: json["description"],
+        );
+    }
 
-  Map<String, dynamic> toJson() => {
+    Map<String, dynamic> toJson() => {
+        "createdBy": createdBy,
+        "updatedBy": updatedBy,
+        "deletedAt": deletedAt,
+        "deletedBy": deletedBy,
+        "clinic": clinic?.toJson(),
+        "parentId": parentId,
         "name": name,
+        "concentration": concentration,
+        "isActive": isActive,
+        "createdAt": createdAt?.toIso8601String(),
+        "updatedAt": updatedAt?.toIso8601String(),
+        "isActiveIngredient": isActiveIngredient,
+        "isCommercialName": isCommercialName,
         "id": id,
-        "error": error,
-      };
+        "description": description,
+    };
+
 }
+
+

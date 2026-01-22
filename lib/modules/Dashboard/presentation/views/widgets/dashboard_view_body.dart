@@ -114,7 +114,7 @@ class DashboardViewBody extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -341,7 +341,7 @@ class DashboardViewBody extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             spreadRadius: 1,
             blurRadius: 5,
           ),
@@ -360,7 +360,7 @@ class DashboardViewBody extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.2),
+              color: Colorz.primaryColor.withValues(alpha:0.2),
               shape: BoxShape.circle,
             ),
             child: Text(
@@ -386,7 +386,7 @@ class DashboardViewBody extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             spreadRadius: 1,
             blurRadius: 5,
           ),
@@ -419,7 +419,7 @@ class DashboardViewBody extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.2),
+              color: Colorz.primaryColor.withValues(alpha:0.2),
               shape: BoxShape.circle,
             ),
             child: Text(
