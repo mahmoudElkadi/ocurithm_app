@@ -143,7 +143,6 @@ class ApiHandler {
 
   // ==================== Authentication Methods ====================
 
-
   /// Check if user is authenticated
   Future<bool> isAuthenticated() async {
     final token = await _getToken();
@@ -436,6 +435,50 @@ class ApiHandler {
     }
   }
 
+  Future<ApiResponse<T>> uploadMultipleFiles<T>(
+    String path,
+    List<String> filePaths, {
+    required String fieldName ,
+    Map<String, dynamic>? additionalData,
+    ProgressCallback? onSendProgress,
+    String? cancelKey,
+    int? maxRetries,
+    T Function(dynamic)? fromJson,
+  }) async {
+    CancelToken? cancelToken;
+
+    try {
+      cancelToken = _getCancelToken(cancelKey);
+
+      final List<MultipartFile> files = [];
+      for (var path in filePaths) {
+        final fileName = path.split('/').last;
+        files.add(await MultipartFile.fromFile(path, filename: fileName));
+      }
+
+      final formData = FormData.fromMap({
+        fieldName: files,
+        ...?additionalData,
+      });
+
+      final options = _mergeOptions(null, maxRetries);
+
+      final response = await _dio.post(
+        path,
+        data: formData,
+        onSendProgress: onSendProgress,
+        cancelToken: cancelToken,
+        options: options,
+      );
+
+      _removeCancelToken(cancelKey);
+      return _handleResponse<T>(response, fromJson);
+    } catch (e) {
+      _removeCancelToken(cancelKey);
+      return _handleError<T>(e);
+    }
+  }
+
   // ==================== File Download ====================
 
   Future<ApiResponse<String>> downloadFile(
@@ -546,8 +589,7 @@ class ApiHandler {
             } else if (data is Map && data.containsKey('error')) {
               message = data['error'].toString();
             }
-          }
-         else if (statusCode == 401) {
+          } else if (statusCode == 401) {
             message = 'Unauthorized. Please login again.';
           } else if (statusCode == 403) {
             message = 'Access forbidden.';

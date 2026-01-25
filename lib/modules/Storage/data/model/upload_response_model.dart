@@ -1,23 +1,21 @@
 class UploadResponse {
   final String key;
-  final String publicUrl;
+  final String? localPath; // Added for local display
 
   UploadResponse({
     required this.key,
-    required this.publicUrl,
+    this.localPath,
   });
 
   factory UploadResponse.fromJson(Map<String, dynamic> json) {
     return UploadResponse(
       key: json['key'] ?? '',
-      publicUrl: json['publicUrl'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'key': key,
-      'publicUrl': publicUrl,
     };
   }
 }

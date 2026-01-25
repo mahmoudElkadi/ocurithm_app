@@ -1,6 +1,7 @@
 import 'package:ocurithm/core/api/api_handler.dart';
 import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
 import 'package:ocurithm/modules/Patient/data/model/patient_examination.dart';
+import 'package:ocurithm/modules/Patient/data/model/scan_records_model.dart';
 
 import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/branches_model.dart';
@@ -173,6 +174,92 @@ class PatientRepoImpl implements PatientRepo {
       return response.data!;
     } else {
       throw Exception(response.message ?? "Failed fetch examination");
+    }
+  }
+
+  @override
+  Future<void> createScanRecord({
+    required String patientId,
+    required String doctorId,
+    required String comment,
+    required String scanDate,
+    required List<String> files,
+  }) async {
+    Map<String, dynamic> data = {
+      "doctor": doctorId,
+      "comment": comment,
+      "scanDate": scanDate,
+      "files": files,
+    };
+
+    final response = await _apiHandler.post(
+      "${ApiConstants.patients}/$patientId/scans",
+      data: data,
+    );
+
+    if (!response.success) {
+      throw Exception(response.message ?? "Failed to create scan record");
+    }
+  }
+
+  @override
+  Future<ScanRecordsModel> getPatientScans({
+    required String patientId,
+    int? page,
+    int? limit,
+    String? doctorId,
+    String? fromDate,
+    String? toDate,
+  }) async {
+    Map<String, dynamic> query = {
+      "page": page ?? 1,
+      "limit": limit ?? 10,
+      if (doctorId != null && doctorId.isNotEmpty) "doctorId": doctorId,
+      if (fromDate != null && fromDate.isNotEmpty) "fromDate": fromDate,
+      if (toDate != null && toDate.isNotEmpty) "toDate": toDate,
+    };
+
+    final response = await _apiHandler.get<ScanRecordsModel>(
+      "${ApiConstants.patients}/$patientId/scans",
+      queryParameters: query,
+      fromJson: (json) => ScanRecordsModel.fromJson(json),
+    );
+
+    if (response.success && response.data != null) {
+      return response.data!;
+    } else {
+      throw Exception(response.message ?? "Failed to fetch scan records");
+    }
+  }
+
+  @override
+  Future<ScanRecord> getScanDetails({
+    required String patientId,
+    required String scanId,
+  }) async {
+    final response = await _apiHandler.get<ScanRecord>(
+      "${ApiConstants.patients}/$patientId/scans/$scanId",
+      fromJson: (json) => ScanRecord.fromJson(json),
+    );
+
+    if (response.success && response.data != null) {
+      return response.data!;
+    } else {
+      throw Exception(response.message ?? "Failed to fetch scan details");
+    }
+  }
+
+  @override
+  Future<void> deleteScan({
+    required String patientId,
+    required String scanId,
+  }) async {
+    final response = await _apiHandler.delete(
+      "${ApiConstants.patients}/$patientId/scans/$scanId",
+    );
+
+    if (!response.success) {
+      throw Exception(response.message ?? "Failed to delete scan");
     }
   }
 }

@@ -1,92 +1,136 @@
 import 'package:flutter/material.dart';
-import 'package:ocurithm/core/widgets/width_spacer.dart';
+import 'package:ocurithm/core/utils/colors.dart';
 
-import '../utils/app_style.dart';
-import '../utils/colors.dart';
-
-Future showConfirmationDialog({
+Future<void> showConfirmationDialog({
   required BuildContext context,
   String? message,
   Widget? text,
   String? title,
-  Function()? onConfirm,
-  Function()? onCancel,
+  String confirmText = 'Yes',
+  String cancelText = 'No',
+  Color? confirmColor,
+  IconData? icon,
+  VoidCallback? onConfirm,
+  VoidCallback? onCancel,
 }) async {
-  showDialog(
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+
+  await showDialog<bool>(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        insetPadding: EdgeInsets.symmetric(horizontal: 30),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+      return Dialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0), // Rounded corners
+          borderRadius: BorderRadius.circular(24.0),
         ),
-        title: Center(
-          child: Text(title ?? 'Confirmation', style: appStyle(context, 22, Colorz.black, FontWeight.w700)),
-        ),
-        content: text ??
-            Text(
-              message ?? 'Do you want to remove this item?',
-              style: appStyle(context, 18, Colorz.black, FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              children: [
-                // Yes button
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colorz.primaryColor),
-                      backgroundColor: Colorz.primaryColor, // Green border
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      ),
-                    ),
-                    onPressed: onConfirm,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: Text(
-                        'Yes',
-                        style: TextStyle(
-                          color: Colorz.white,
-                          fontSize: 18.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const WidthSpacer(size: 10),
-                // No button
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colorz.primaryColor), // Green border
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10.0),
-                      child: Text(
-                        'No',
-                        style: TextStyle(
-                          color: Colorz.primaryColor,
-                          fontSize: 18.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.5 : 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color:
+                        (confirmColor ?? Colorz.primaryColor).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 32,
+                    color: confirmColor ?? Colorz.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+              Text(
+                title ?? 'Confirmation',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              text ??
+                  Text(
+                    message ?? 'Do you want to proceed with this action?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      height: 1.5,
+                    ),
+                  ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onCancel?.call();
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        cancelText,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onConfirm?.call();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: confirmColor ?? Colorz.primaryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        confirmText,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       );
     },
   );

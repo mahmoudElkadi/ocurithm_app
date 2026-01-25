@@ -4,45 +4,32 @@ import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
-import 'package:ocurithm/core/widgets/DropdownPackage.dart';
 import 'package:ocurithm/core/widgets/pagination.dart';
 import 'package:ocurithm/core/widgets/custom_date_picker.dart';
 import 'package:ocurithm/modules/Doctor/data/model/doctor_model.dart';
 import 'package:ocurithm/modules/Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
-import 'package:ocurithm/core/widgets/confirmation_popuo.dart';
 import 'package:ocurithm/modules/Patient/data/model/scan_records_model.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_patient_scans_cubit/get_patient_scans_cubit.dart';
-import 'package:ocurithm/modules/Patient/presentation/manager/scan_actions_cubit/scan_actions_cubit.dart';
-import 'package:ocurithm/modules/Patient/presentation/views/examination_view/scan_details_page.dart';
 
-class ScannedListPage extends StatefulWidget {
+class PatientScansPage extends StatefulWidget {
   final String patientId;
-  final String? patientName;
+  final String patientName;
 
-  const ScannedListPage({
+  const PatientScansPage({
     super.key,
     required this.patientId,
-    this.patientName,
+    required this.patientName,
   });
 
   @override
-  State<ScannedListPage> createState() => _ScannedListPageState();
+  State<PatientScansPage> createState() => _PatientScansPageState();
 }
 
-class _ScannedListPageState extends State<ScannedListPage> {
+class _PatientScansPageState extends State<PatientScansPage> {
   Doctor? _selectedDoctor;
   DateTime? _fromDate;
   DateTime? _toDate;
   bool _showFilters = false;
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,106 +45,84 @@ class _ScannedListPageState extends State<ScannedListPage> {
         BlocProvider(
           create: (context) => sl<GetDoctorsCubit>()..add(GetAllDoctorsEvent()),
         ),
-        BlocProvider(create: (context) => sl<ScanActionsCubit>()),
       ],
       child: Scaffold(
         backgroundColor:
             isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FE),
         appBar: _buildAppBar(isDark),
-        body: BlocListener<ScanActionsCubit, ScanActionsState>(
-          listener: (context, state) {
-            if (state.state == ScanActionsStatus.loading) {
-              customLoading(context, "Deleting Scan...");
-            } else if (state.state == ScanActionsStatus.success) {
-              Navigator.of(context, rootNavigator: true).pop();
-              context.read<GetPatientScansCubit>().add(
-                    FetchPatientScansEvent(
-                        patientId: widget.patientId, page: 1),
-                  );
-              SnackbarService.showSuccess(context,
-                  message: state.successMessage ?? "Scan deleted");
-            } else if (state.state == ScanActionsStatus.error) {
-              Navigator.of(context, rootNavigator: true).pop();
-              SnackbarService.showError(context,
-                  message: state.errorMessage ?? "Delete failed");
-            }
-          },
-          child: Builder(builder: (context) {
-            return Column(
-              children: [
-                _buildFilterSection(context, isDark),
-                Expanded(
-                  child:
-                      BlocBuilder<GetPatientScansCubit, GetPatientScansState>(
-                    builder: (context, state) {
-                      if (state.state == GetPatientScansStatus.loading) {
-                        return _buildShimmerList(isDark);
-                      }
+        body: Builder(builder: (context) {
+          return Column(
+            children: [
+              _buildFilterSection(context, isDark),
+              Expanded(
+                child: BlocBuilder<GetPatientScansCubit, GetPatientScansState>(
+                  builder: (context, state) {
+                    if (state.state == GetPatientScansStatus.loading) {
+                      return _buildShimmerList(isDark);
+                    }
 
-                      if (state.state == GetPatientScansStatus.error) {
-                        return _buildErrorState(
-                            context, state.errorMessage, isDark);
-                      }
+                    if (state.state == GetPatientScansStatus.error) {
+                      return _buildErrorState(
+                          context, state.errorMessage, isDark);
+                    }
 
-                      if (state.state == GetPatientScansStatus.noConnection) {
-                        return _buildNoConnectionState(context, isDark);
-                      }
+                    if (state.state == GetPatientScansStatus.noConnection) {
+                      return _buildNoConnectionState(context, isDark);
+                    }
 
-                      final scans = state.scanRecords?.scans ?? [];
+                    final scans = state.scanRecords?.scans ?? [];
 
-                      if (scans.isEmpty) {
-                        return _buildEmptyState(isDark);
-                      }
+                    if (scans.isEmpty) {
+                      return _buildEmptyState(isDark);
+                    }
 
-                      return Column(
-                        children: [
-                          Expanded(
-                            child: RefreshIndicator(
-                              onRefresh: () async {
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: RefreshIndicator(
+                            onRefresh: () async {
+                              context.read<GetPatientScansCubit>().add(
+                                    FetchPatientScansEvent(
+                                      patientId: widget.patientId,
+                                      page: 1,
+                                    ),
+                                  );
+                            },
+                            child: ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: scans.length,
+                              itemBuilder: (context, index) {
+                                return _buildScanCard(
+                                    context, scans[index], isDark);
+                              },
+                            ),
+                          ),
+                        ),
+                        if ((state.scanRecords?.totalPages ?? 1) > 1)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: CustomPagination(
+                              currentPage: state.currentPage,
+                              totalPages: state.scanRecords?.totalPages ?? 1,
+                              onPageChanged: (page) {
                                 context.read<GetPatientScansCubit>().add(
                                       FetchPatientScansEvent(
                                         patientId: widget.patientId,
-                                        page: 1,
+                                        page: page,
                                       ),
                                     );
                               },
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                padding: const EdgeInsets.all(16),
-                                physics: const BouncingScrollPhysics(),
-                                itemCount: scans.length,
-                                itemBuilder: (context, index) {
-                                  return _buildScanCard(
-                                      context, scans[index], isDark);
-                                },
-                              ),
                             ),
                           ),
-                          if ((state.scanRecords?.totalPages ?? 1) > 1)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: CustomPagination(
-                                currentPage: state.currentPage,
-                                totalPages: state.scanRecords?.totalPages ?? 1,
-                                onPageChanged: (page) {
-                                  context.read<GetPatientScansCubit>().add(
-                                        FetchPatientScansEvent(
-                                          patientId: widget.patientId,
-                                          page: page,
-                                        ),
-                                      );
-                                },
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
+                      ],
+                    );
+                  },
                 ),
-              ],
-            );
-          }),
-        ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -171,14 +136,13 @@ class _ScannedListPageState extends State<ScannedListPage> {
             "Scan Records",
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
-          if (widget.patientName != null)
-            Text(
-              widget.patientName!,
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
+          Text(
+            widget.patientName,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
+          ),
         ],
       ),
       centerTitle: false,
@@ -195,13 +159,6 @@ class _ScannedListPageState extends State<ScannedListPage> {
             setState(() {
               _showFilters = !_showFilters;
             });
-            if (_showFilters && _scrollController.hasClients) {
-              _scrollController.animateTo(
-                0.0,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            }
           },
           tooltip: "Toggle Filters",
         ),
@@ -271,21 +228,38 @@ class _ScannedListPageState extends State<ScannedListPage> {
                 BlocBuilder<GetDoctorsCubit, GetDoctorsState>(
                   builder: (context, state) {
                     final doctors = state.doctors?.doctors ?? [];
-                    return DropdownItem<Doctor>(
-                      hintText: "Filter by Doctor",
-                      items: doctors,
-                      isLoading: state.state == GetDoctorsStatus.loading,
-                      itemAsString: (doctor) => doctor.name ?? "",
-                      selectedValue: _selectedDoctor?.name,
-                      onItemSelected: (doctor) {
+                    return DropdownButtonFormField<Doctor>(
+                      value: _selectedDoctor,
+                      decoration: InputDecoration(
+                        labelText: "Filter by Doctor",
+                        prefixIcon: Icon(Icons.person_outline,
+                            color: Colorz.primaryColor),
+                        filled: true,
+                        fillColor: isDark ? Colors.grey[850] : Colors.grey[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                      ),
+                      items: [
+                        const DropdownMenuItem<Doctor>(
+                          value: null,
+                          child: Text("All Doctors"),
+                        ),
+                        ...doctors.map((doctor) => DropdownMenuItem<Doctor>(
+                              value: doctor,
+                              child: Text(doctor.name ?? ""),
+                            )),
+                      ],
+                      onChanged: (value) {
                         setState(() {
-                          _selectedDoctor = doctor;
+                          _selectedDoctor = value;
                         });
                       },
-                      prefixIcon: Icon(Icons.person_outline,
-                          color: Colorz.primaryColor),
-                      isShadow: false,
-                      color: isDark ? Colors.grey[850] : Colors.grey[50],
                     );
                   },
                 ),
@@ -418,7 +392,7 @@ class _ScannedListPageState extends State<ScannedListPage> {
             if (date != null)
               GestureDetector(
                 onTap: onClear,
-                child: const Icon(Icons.close, size: 18, color: Colors.grey),
+                child: Icon(Icons.close, size: 18, color: Colors.grey),
               ),
           ],
         ),
@@ -503,30 +477,6 @@ class _ScannedListPageState extends State<ScannedListPage> {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline,
-                      color: Colors.redAccent, size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () {
-                    showConfirmationDialog(
-                      context: context,
-                      title: "Delete Scan Record?",
-                      message: "Are you sure you want to delete this scan?",
-                      confirmText: "Delete",
-                      confirmColor: Colors.redAccent,
-                      icon: Icons.delete_forever,
-                      onConfirm: () {
-                        context.read<ScanActionsCubit>().add(
-                              DeleteScanEvent(
-                                  patientId: widget.patientId,
-                                  scanId: scan.id ?? ""),
-                            );
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(width: 8),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -597,57 +547,12 @@ class _ScannedListPageState extends State<ScannedListPage> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                // Images Preview
-                if (scan.files.isNotEmpty) ...[
-                  SizedBox(
-                    height: 80,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: scan.files.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 10),
-                      itemBuilder: (context, index) {
-                        return Container(
-                          width: 80,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            image: DecorationImage(
-                              image: NetworkImage(scan.files[index].url ?? ""),
-                              fit: BoxFit.cover,
-                            ),
-                            border: Border.all(
-                                color: isDark
-                                    ? Colors.grey[800]!
-                                    : Colors.grey[200]!),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
                 // View Details Button
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () async {
-                      final result = await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ScanDetailsPage(
-                            patientId: widget.patientId,
-                            scanId: scan.id ?? "",
-                          ),
-                        ),
-                      );
-
-                      if (result == true && context.mounted) {
-                        context.read<GetPatientScansCubit>().add(
-                              FetchPatientScansEvent(
-                                patientId: widget.patientId,
-                                page: 1,
-                              ),
-                            );
-                      }
+                    onPressed: () {
+                      // TODO: Navigate to scan details page
                     },
                     icon: const Icon(Icons.visibility_outlined, size: 18),
                     label: const Text("View Scan Details"),
@@ -689,9 +594,9 @@ class _ScannedListPageState extends State<ScannedListPage> {
               children: [
                 Container(
                   height: 70,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.grey,
-                    borderRadius: BorderRadius.only(
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),
                     ),

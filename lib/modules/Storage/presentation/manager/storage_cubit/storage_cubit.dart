@@ -21,31 +21,16 @@ class StorageCubit extends Cubit<StorageState> {
       uploadedFiles: [],
     ));
 
-    List<UploadResponse> results = [];
-
     try {
-      for (int i = 0; i < filePaths.length; i++) {
-        emit(state.copyWith(currentFileIndex: i + 1, progress: 0.0));
-
-        double lastEmittedProgress = 0.0;
-
-        final result = await storageRepo.uploadFile(
-          filePath: filePaths[i],
-          category: category,
-          onSendProgress: (sent, total) {
-            if (total > 0) {
-              double currentProgress = sent / total;
-              // Only emit if progress has increased by at least 1%
-              if ((currentProgress - lastEmittedProgress).abs() > 0.01 ||
-                  currentProgress == 1.0) {
-                lastEmittedProgress = currentProgress;
-                emit(state.copyWith(progress: currentProgress));
-              }
-            }
-          },
-        );
-        results.add(result);
-      }
+      final results = await storageRepo.uploadMultipleFiles(
+        filePaths: filePaths,
+        category: category,
+        onSendProgress: (sent, total) {
+          if (total > 0) {
+            emit(state.copyWith(progress: sent / total));
+          }
+        },
+      );
 
       emit(state.copyWith(
         status: StorageStatus.success,
@@ -75,6 +60,19 @@ class StorageCubit extends Cubit<StorageState> {
         status: StorageStatus.initial, // Or another relevant status
         uploadedFiles: updatedList,
       ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: StorageStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> deleteFiles(List<String> keys) async {
+    try {
+      emit(state.copyWith(status: StorageStatus.deleting));
+      await storageRepo.deleteFiles(keys: keys);
+      emit(state.copyWith(status: StorageStatus.initial));
     } catch (e) {
       emit(state.copyWith(
         status: StorageStatus.error,

@@ -371,8 +371,8 @@ class _PatientFormViewState extends State<PatientFormView> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => Get.to(
-                            () => ScannedListPage(patientId: p.id ?? '')),
+                        onPressed: () => Get.to(() => ScannedListPage(
+                            patientId: p.id ?? '', patientName: p.name)),
                         icon: const Icon(Icons.image_outlined, size: 20),
                         label: const Text("Show Scanned"),
                         style: OutlinedButton.styleFrom(

@@ -31,7 +31,7 @@ class DashboardCubit extends Cubit<DashboardState> {
         emit(DashboardError());
       } else {
         dashboard = await dashboardRepo.getDashboard(start: start, end: end);
-        isDateRangeSelected = start != null && end != null;
+        isDateRangeSelected = start != null && end != null;  
         if (dashboard?.error == null && dashboard != null) {
           emit(DashboardSuccess());
         } else {
