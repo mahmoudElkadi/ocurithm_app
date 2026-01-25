@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/widgets/confirmation_popuo.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/pagination.dart';
@@ -69,15 +70,15 @@ class _BranchCardState extends State<BranchCard> {
             // Add subtle border in dark mode for better definition
             border: isDark
                 ? Border.all(
-                    color: Colors.white.withValues(alpha:0.1),
+                    color: Colors.white.withOpacity(0.1),
                     width: 1,
                   )
                 : null,
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.black.withValues(alpha:0.3)
-                    : Colors.grey.withValues(alpha:0.2),
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : Colors.grey.withValues(alpha: 0.2),
                 spreadRadius: 2,
                 blurRadius: 5,
               ),
@@ -105,7 +106,7 @@ class _BranchCardState extends State<BranchCard> {
                           boxShadow: [
                             BoxShadow(
                               color: isDark
-                                  ? Colors.black.withValues(alpha:0.3)
+                                  ? Colors.black.withValues(alpha: 0.3)
                                   : Colors.grey.shade200,
                               spreadRadius: 1,
                               blurRadius: 3,
@@ -202,43 +203,26 @@ class _BranchCardState extends State<BranchCard> {
               ),
               if (CacheHelper.getStringList(key: "capabilities")
                   .contains("manageBranches"))
-                BlocListener<BranchActionsCubit, BranchActionsState>(
-                  listener: (context, state) {
-                    if (state.isDeleteSuccess) {
-                      SnackbarService.showSuccess(
-                        context,
-                        message: state.successMessage ??
-                            'Branch deleted successfully',
-                      );
-                    } else if (state.isDeleteError) {
-                      SnackbarService.showError(
-                        context,
-                        message:
-                            state.errorMessage ?? 'Failed to delete branch',
-                      );
-                    }
+                IconButton(
+                  onPressed: () async {
+                    showConfirmationDialog(
+                      context: context,
+                      title: "Delete Branch?",
+                      message:
+                          "This action cannot be undone. Are you sure you want to permanently delete this branch?",
+                      confirmText: "Delete",
+                      confirmColor: Colors.redAccent,
+                      icon: Icons.delete_forever,
+                      onConfirm: () {
+                        customLoading(context, "Deleting Branch...");
+                        actionsCubit.add(DeleteBranchEvent(widget.branch!.id!));
+                      },
+                    );
                   },
-                  child: IconButton(
-                    onPressed: () async {
-                      showConfirmationDialog(
-                        context: context,
-                        title: "Delete Branch",
-                        message: "Do you want to Delete this Branch?",
-                        onConfirm: () {
-                          Navigator.pop(context); // Close confirmation dialog
-                          actionsCubit
-                              .add(DeleteBranchEvent(widget.branch!.id!));
-                        },
-                        onCancel: () {
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
-                    icon: Icon(
-                      Icons.delete_forever,
-                      color: Colors.red,
-                      size: 30.w,
-                    ),
+                  icon: Icon(
+                    Icons.delete_forever,
+                    color: Colors.red,
+                    size: 30.w,
                   ),
                 ),
             ],
@@ -307,7 +291,7 @@ class _BranchListViewState extends State<BranchListView> {
                           .copyWith(bottom: 20),
                       child: CustomPagination(
                         currentPage: state.page,
-                        totalPages:  0,
+                        totalPages: 0,
                         onPageChanged: (int newPage) {
                           cubit.add(SetPageEvent(newPage));
                           cubit.add(GetAllBranchesEvent());

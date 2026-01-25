@@ -4,6 +4,7 @@ import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
@@ -58,8 +59,26 @@ class AdminBranchView extends StatelessWidget {
                   if (actionState.isAddSuccess ||
                       actionState.isUpdateSuccess ||
                       actionState.isDeleteSuccess) {
+                    if (actionState.isDeleteSuccess) {
+                      Navigator.of(context, rootNavigator: true)
+                          .pop(); // Close loading dialog
+                      SnackbarService.showSuccess(
+                        context,
+                        message: actionState.successMessage ??
+                            'Branch deleted successfully',
+                      );
+                    }
+
                     // Refresh the branches list
                     context.read<GetBranchesCubit>().add(GetAllBranchesEvent());
+                  } else if (actionState.isDeleteError) {
+                    Navigator.of(context, rootNavigator: true)
+                        .pop(); // Close loading dialog
+                    SnackbarService.showError(
+                      context,
+                      message:
+                          actionState.errorMessage ?? 'Failed to delete branch',
+                    );
                   }
                 },
               ),

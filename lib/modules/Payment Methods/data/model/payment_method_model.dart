@@ -23,7 +23,7 @@ class PaymentMethodsModel {
   }
 
   Map<String, dynamic> toJson() => {
-        "paymentMethods": paymentMethods?.map((x) => x?.toJson()).toList(),
+        "paymentMethods": paymentMethods?.map((x) => x.toJson()).toList(),
         "total": total,
         "totalPages": totalPages,
       };

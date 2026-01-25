@@ -12,6 +12,7 @@ import 'core/theme/theme_cubit.dart';
 import 'core/theme/theme_state.dart';
 import 'core/utils/services_locator.dart';
 import 'modules/Splash/splash_screen.dart';
+import 'modules/Chat/presentation/widgets/floating_chat_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,11 +50,14 @@ class MyApp extends StatelessWidget {
               ],
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-              themeMode:ThemeMode.dark ,// themeState.themeMode,
+              themeMode: themeState.themeMode, // themeState.themeMode,
               supportedLocales: S.delegate.supportedLocales,
               debugShowCheckedModeBanner: false,
               title: 'Ocurithm',
               home: const LoadingScreen(),
+              builder: (context, child) {
+                return FloatingChatWrapper(child: child!);
+              },
             );
           },
         ),

@@ -208,37 +208,39 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
         BlocListener<BranchActionsCubit, BranchActionsState>(
           bloc: widget.actionsCubit,
           listener: (context, state) {
-            // Close loading dialog if it's open
-            if (state.isSuccess || state.isError) {
-              Navigator.of(context).pop(); // Close loading dialog
-            }
+            // Check if we are in a final state (success, error, or no connection)
+              // 1. Pop the loading dialog (customLoading)
+              // Use rootNavigator: true if customLoading was opened that way,
+              // but here we just pop the topmost route.
+              Navigator.of(context).pop();
 
-            // Handle success
-            if (state.isAddSuccess || state.isUpdateSuccess) {
-              SnackbarService.showSuccess(
-                context,
-                message:
-                    state.successMessage ?? 'Operation completed successfully',
-              );
-              Navigator.of(context).pop(); // Close form dialog
-              Navigator.of(context).pop(); // Go back to list
-            }
+              // 2. Handle Success
+              if (state.isAddSuccess || state.isUpdateSuccess) {
+                SnackbarService.showSuccess(
+                  context,
+                  message: state.successMessage ??
+                      'Operation completed successfully',
+                );
+                // 3. Pop the Form Dialog itself
+                Navigator.of(context).pop();
+              }
 
-            // Handle error
-            if (state.isAddError || state.isUpdateError) {
-              SnackbarService.showError(
-                context,
-                message: state.errorMessage ?? 'An error occurred',
-              );
-            }
+              // 3. Handle Error
+              if (state.isError) {
+                SnackbarService.showError(
+                  context,
+                  message: state.errorMessage ?? 'An error occurred',
+                );
+              }
 
-            // Handle no connection
-            if (state.noConnection) {
-              SnackbarService.showWarning(
-                context,
-                message: state.errorMessage ?? 'No internet connection',
-              );
-            }
+              // 4. Handle No Connection
+              if (state.noConnection) {
+                SnackbarService.showWarning(
+                  context,
+                  message: state.errorMessage ?? 'No internet connection',
+                );
+              }
+
           },
         ),
 
@@ -289,15 +291,15 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
         // Add subtle border in dark mode for better definition
         border: isDark
             ? Border.all(
-                color: Colors.white.withValues(alpha:0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               )
             : null,
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withValues(alpha:0.5)
-                : Colors.black.withValues(alpha:0.15),
+                ? Colors.black.withValues(alpha: 0.5)
+                : Colors.black.withValues(alpha: 0.15),
             blurRadius: 20,
             offset: const Offset(0, 4),
             spreadRadius: 2,
@@ -505,7 +507,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.code,
-          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -537,7 +539,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.person,
-          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -569,7 +571,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.location_on,
-          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -601,7 +603,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.phone,
-          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

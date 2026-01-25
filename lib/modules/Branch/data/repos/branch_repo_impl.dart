@@ -1,5 +1,4 @@
-import '../../../../../core/Network/dio_handler.dart';
-import '../../../../../core/Network/shared.dart';
+import '../../../../core/api/api_handler.dart';
 import '../../../../core/api/api_constants.dart';
 import '../model/add_branch_model.dart';
 import '../model/branches_model.dart';
@@ -7,35 +6,27 @@ import '../model/data.dart';
 import 'branch_repo.dart';
 
 class BranchRepoImpl implements BranchRepo {
-  @override
-  Future<AddBranchModel> createBranch({required AddBranchModel addBranchModel}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}";
-    final String? token = CacheHelper.getData(key: "token");
+  final ApiHandler _apiHandler = ApiHandler();
 
-    final result = await ApiService.request<AddBranchModel>(
-      url: url,
+  @override
+  Future<AddBranchModel> createBranch(
+      {required AddBranchModel addBranchModel}) async {
+    final response = await _apiHandler.post<AddBranchModel>(
+      ApiConstants.branches,
       data: addBranchModel.toJson(),
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
       fromJson: (json) => AddBranchModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed to add branch");
+      throw Exception(response.message ?? "Failed to add branch");
     }
   }
 
   @override
-  Future<BranchesModel> getAllBranches({int? page, String? search, String? clinic}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}";
-    final String? token = CacheHelper.getData(key: "token");
-
+  Future<BranchesModel> getAllBranches(
+      {int? page, String? search, String? clinic}) async {
     Map<String, dynamic> query = {
       if (page != null) "page": page,
       if (page != null) 'limit': 10,
@@ -43,92 +34,60 @@ class BranchRepoImpl implements BranchRepo {
       if (clinic != null) "clinic": clinic
     };
 
-    final result = await ApiService.request<BranchesModel>(
-      url: url,
-      method: 'GET',
+    final response = await _apiHandler.get<BranchesModel>(
+      ApiConstants.branches,
       queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
       fromJson: (json) => BranchesModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed fetch branches");
+      throw Exception(response.message ?? "Failed fetch branches");
     }
   }
 
   @override
   Future<AddBranchModel> getBranch({required String id}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}/$id";
-    final String? token = CacheHelper.getData(key: "token");
-
-    final result = await ApiService.request<AddBranchModel>(
-      url: url,
-      method: 'GET',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
+    final response = await _apiHandler.get<AddBranchModel>(
+      "${ApiConstants.branches}/$id",
       fromJson: (json) => AddBranchModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed fetch branches");
+      throw Exception(response.message ?? "Failed fetch branches");
     }
   }
 
   @override
-  Future<AddBranchModel> updateBranch({required String id, required AddBranchModel addBranchModel}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}/$id";
-    final String? token = CacheHelper.getData(key: "token");
-
-    final result = await ApiService.request<AddBranchModel>(
-      url: url,
-      method: 'PUT',
+  Future<AddBranchModel> updateBranch(
+      {required String id, required AddBranchModel addBranchModel}) async {
+    final response = await _apiHandler.put<AddBranchModel>(
+      "${ApiConstants.branches}/$id",
       data: addBranchModel.toJson(),
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
       fromJson: (json) => AddBranchModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed fetch branches");
+      throw Exception(response.message ?? "Failed fetch branches");
     }
   }
 
   @override
   Future<DataModel> deleteBranch({required String id}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}/$id";
-    final String? token = CacheHelper.getData(key: "token");
-
-    final result = await ApiService.request<DataModel>(
-      url: url,
-      method: 'DELETE',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
+    final response = await _apiHandler.delete<DataModel>(
+      "${ApiConstants.branches}/$id",
       fromJson: (json) => DataModel.fromJson(json),
     );
 
-    if (result != null) {
-      return result;
+    if (response.success && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception("Failed fetch branches");
+      throw Exception(response.message ?? "Failed fetch branches");
     }
   }
 }
