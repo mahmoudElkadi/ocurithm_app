@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -31,6 +32,21 @@ import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../../../../modules/Login/data/model/login_response.dart';
 import '../../manager/doctor_branch_actions_cubit/doctor_branch_actions_cubit.dart';
 import 'widgets/add_doctor_branch_dialog.dart';
+import 'widgets/doctor_examinations_section.dart';
+import '../../manager/get_doctor_examinations_cubit/get_doctor_examinations_cubit.dart';
+
+// Helper class for info items
+class _InfoItemData {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  _InfoItemData({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+}
 
 /// Form mode enum
 enum DoctorFormMode { add, edit, view }
@@ -107,6 +123,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   DateTime? _birthDate;
   String? _selectedClinicId;
   List<Capability> _selectedCapabilities = [];
+  bool _isConsultant = false;
 
   bool _obscurePassword = true;
   late bool _isReadOnlyState;
@@ -323,7 +340,12 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                     );
                   }
 
-                  return _buildForm(context, theme, isDark);
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _isReadOnly
+                        ? _buildDoctorDetailView(theme, isDark)
+                        : _buildForm(context, theme, isDark),
+                  );
                 },
               ),
       ),
@@ -552,6 +574,10 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             _buildQualificationsField(theme),
             const HeightSpacer(size: 20),
 
+            // Is Consultant Checkbox
+            _buildIsConsultantCheckbox(theme, isDark),
+            const HeightSpacer(size: 20),
+
             // Clinic Dropdown (if user has permission)
             if (CacheHelper.getStringList(key: "capabilities")
                 .contains("manageCapability"))
@@ -569,9 +595,6 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             // Birth Date Picker
             _buildBirthDatePicker(context, theme, isDark),
             const HeightSpacer(size: 24),
-
-            // Branches Section (only in edit/view modes)
-            if (!_isAddMode) ..._buildBranchesSection(context, theme, isDark),
           ],
         ),
       ),
@@ -679,8 +702,9 @@ class _DoctorFormViewState extends State<DoctorFormView> {
           color: theme.cardColor,
           boxShadow: [
             BoxShadow(
-              color:
-                  isDark ? Colors.white.withValues(alpha:0.1) : Colors.grey.shade200,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.grey.shade200,
               spreadRadius: 2,
               blurRadius: 3,
               offset: const Offset(0, 0),
@@ -729,7 +753,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             decoration: InputDecoration(
               hintText: 'Qualifications',
               hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha:0.5),
+                color:
+                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -754,6 +779,48 @@ class _DoctorFormViewState extends State<DoctorFormView> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildIsConsultantCheckbox(ThemeData theme, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.primaryColor.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: CheckboxListTile(
+        value: _isConsultant,
+        onChanged: _isReadOnly
+            ? null
+            : (bool? value) {
+                setState(() {
+                  _isConsultant = value ?? false;
+                });
+              },
+        title: Text(
+          'Is Consultant',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: _isReadOnly
+                ? theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5)
+                : null,
+          ),
+        ),
+        subtitle: Text(
+          'Mark this doctor as a consultant',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+          ),
+        ),
+        activeColor: theme.primaryColor,
+        checkColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
     );
   }
 
@@ -985,7 +1052,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.white.withValues(alpha:0.05)
+                    ? Colors.white.withValues(alpha: 0.05)
                     : Colors.grey.shade300,
                 spreadRadius: 1,
                 blurRadius: 5,
@@ -1068,6 +1135,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
           ? Clinic(id: _selectedClinicId, name: null)
           : null,
       capability: _selectedCapabilities.map((c) => c.id).toList(),
+      isConsultant: _isConsultant,
     );
 
     // Dispatch appropriate event
@@ -1092,6 +1160,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
       _birthDate = doctor.birthDate;
       _imageUrl = doctor.image;
       _selectedClinicId = doctor.clinic?.id;
+      _isConsultant = doctor.isConsultant ?? false;
 
       // Load branches if clinic is selected
       if (_selectedClinicId != null) {
@@ -1211,7 +1280,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                   SvgPicture.asset(
                     "assets/icons/branch.svg",
                     colorFilter: ColorFilter.mode(
-                      theme.textTheme.bodyMedium?.color?.withValues(alpha:0.5) ??
+                      theme.textTheme.bodyMedium?.color
+                              ?.withValues(alpha: 0.5) ??
                           Colors.grey,
                       BlendMode.srcIn,
                     ),
@@ -1224,8 +1294,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 18,
-                      color:
-                          theme.textTheme.bodyMedium?.color?.withValues(alpha:0.7),
+                      color: theme.textTheme.bodyMedium?.color
+                          ?.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1254,8 +1324,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                   boxShadow: [
                     BoxShadow(
                       color: isDark
-                          ? Colors.white.withValues(alpha:0.05)
-                          : Colors.grey.withValues(alpha:0.2),
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.grey.withValues(alpha: 0.2),
                       spreadRadius: 2,
                       blurRadius: 5,
                     ),
@@ -1275,7 +1345,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.primaryColor.withValues(alpha:0.1),
+                              color: theme.primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -1354,14 +1424,14 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                             Icons.access_time,
                             size: 20,
                             color: theme.textTheme.bodyMedium?.color
-                                ?.withValues(alpha:0.7),
+                                ?.withValues(alpha: 0.7),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Branch Hours:',
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color
-                                  ?.withValues(alpha:0.7),
+                                  ?.withValues(alpha: 0.7),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1383,14 +1453,14 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                             Icons.schedule,
                             size: 20,
                             color: theme.textTheme.bodyMedium?.color
-                                ?.withValues(alpha:0.7),
+                                ?.withValues(alpha: 0.7),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Available Hours:',
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color
-                                  ?.withValues(alpha:0.7),
+                                  ?.withValues(alpha: 0.7),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1430,7 +1500,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                               color: isAvailable
                                   ? theme.primaryColor
                                   : theme.textTheme.bodyMedium?.color
-                                      ?.withValues(alpha:0.1),
+                                      ?.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -1440,7 +1510,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                                 color: isAvailable
                                     ? Colors.white
                                     : theme.textTheme.bodyMedium?.color
-                                        ?.withValues(alpha:0.6),
+                                        ?.withValues(alpha: 0.6),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -1458,6 +1528,266 @@ class _DoctorFormViewState extends State<DoctorFormView> {
       ),
       const HeightSpacer(size: 20),
     ];
+  }
+
+  Widget _buildDoctorDetailView(ThemeData theme, bool isDark) {
+    if (_loadedDoctor == null) return const SizedBox.shrink();
+    final doctor = _loadedDoctor!;
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          _buildDetailHeader(doctor, theme, isDark),
+          Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoSection(
+                  title: 'Personal Information',
+                  items: [
+                    _InfoItemData(
+                      label: 'Phone',
+                      value: doctor.phone ?? 'N/A',
+                      icon: Icons.phone_outlined,
+                    ),
+                    _InfoItemData(
+                      label: 'Birth Date',
+                      value: doctor.birthDate != null
+                          ? DateFormat('MMM dd, yyyy').format(doctor.birthDate!)
+                          : 'N/A',
+                      icon: Icons.cake_outlined,
+                    ),
+                    _InfoItemData(
+                      label: 'Is Consultant',
+                      value: doctor.isConsultant == true ? 'Yes' : 'No',
+                      icon: Icons.work_outline,
+                    ),
+                  ],
+                  theme: theme,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildInfoSection(
+                  title: 'Professional Information',
+                  items: [
+                    _InfoItemData(
+                      label: 'Qualifications',
+                      value: doctor.qualifications ?? 'N/A',
+                      icon: Icons.school_outlined,
+                    ),
+                    _InfoItemData(
+                      label: 'Clinic',
+                      value: doctor.clinic?.name ?? 'N/A',
+                      icon: Icons.local_hospital_outlined,
+                    ),
+                  ],
+                  theme: theme,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                // Branches Section
+                ..._buildBranchesSection(context, theme, isDark),
+
+                // Examinations Section (Only for Consultants)
+                if (doctor.isConsultant == true) ...[
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  const SizedBox(height: 20),
+                  BlocProvider(
+                    create: (_) => sl<GetDoctorExaminationsBloc>()
+                      ..add(SetDoctorIdEvent(doctor.id!)),
+                    child: const DoctorExaminationsSection(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailHeader(Doctor doctor, ThemeData theme, bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 30.h, horizontal: 16.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [theme.primaryColor.withValues(alpha: 0.2), theme.cardColor]
+              : [
+                  theme.primaryColor.withValues(alpha: 0.1),
+                  theme.primaryColor.withValues(alpha: 0.02)
+                ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 80.w,
+            height: 80.w,
+            decoration: BoxDecoration(
+              color: theme.primaryColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: theme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: doctor.image != null && doctor.image!.isNotEmpty
+                  ? Image.network(
+                      doctor.image!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Text(
+                            doctor.name?.isNotEmpty == true
+                                ? doctor.name![0].toUpperCase()
+                                : 'D',
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : Center(
+                      child: Text(
+                        doctor.name?.isNotEmpty == true
+                            ? doctor.name![0].toUpperCase()
+                            : 'D',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            doctor.name ?? 'Unknown Doctor',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              doctor.isConsultant == true ? 'Consultant' : 'Doctor',
+              style: TextStyle(
+                color: theme.primaryColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoSection({
+    required String title,
+    required List<_InfoItemData> items,
+    required ThemeData theme,
+    required bool isDark,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[900] : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...items.map((item) => _buildInfoRow(item, theme, isDark)).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(_InfoItemData item, ThemeData theme, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(item.icon, size: 18, color: theme.primaryColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1589,13 +1919,13 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
             shape: BoxShape.circle,
             color: theme.cardColor,
             border: Border.all(
-              color: theme.primaryColor.withValues(alpha:0.3),
+              color: theme.primaryColor.withValues(alpha: 0.3),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.white.withValues(alpha:0.1)
+                    ? Colors.white.withValues(alpha: 0.1)
                     : Colors.grey.shade200,
                 spreadRadius: 2,
                 blurRadius: 5,
@@ -1655,7 +1985,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                         color: Colors.red,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha:0.2),
+                            color: Colors.black.withValues(alpha: 0.2),
                             spreadRadius: 1,
                             blurRadius: 3,
                           ),
@@ -1678,7 +2008,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                       color: theme.primaryColor,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha:0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           spreadRadius: 1,
                           blurRadius: 3,
                         ),

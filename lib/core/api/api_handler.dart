@@ -5,6 +5,7 @@ import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 
 import '../../modules/Login/presentation/view/login_view.dart';
 import '../Network/shared.dart';
+import '../utils/network_connection.dart';
 import 'api_constants.dart';
 import 'api_interceptor.dart';
 import 'api_model.dart';
@@ -567,7 +568,7 @@ class ApiHandler {
     }
   }
 
-  ApiResponse<T> _handleError<T>(dynamic error) {
+  Future<ApiResponse<T>> _handleError<T>(dynamic error) async{
     if (error is DioException) {
       switch (error.type) {
         case DioExceptionType.connectionTimeout:
@@ -613,10 +614,11 @@ class ApiHandler {
           return ApiResponse.error('Request cancelled', statusCode: 499);
 
         case DioExceptionType.connectionError:
-          return ApiResponse.error(
-            'No internet connection. Please check your network.',
-            statusCode: 503,
-          );
+          final hasInternet = await NetworkStatus().hasInternetConnection();
+          if (!hasInternet) {
+            return ApiResponse.error('No internet connection. Please check your network.', statusCode: 503);
+          }
+          return ApiResponse.error('Server error. Please try again later.', statusCode: 503);
 
         default:
           return ApiResponse.error(

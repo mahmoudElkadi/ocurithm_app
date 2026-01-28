@@ -5,13 +5,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../../../../core/utils/app_style.dart';
 import '../../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../../core/widgets/confirmation_popuo.dart';
-import '../../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../../core/widgets/pagination.dart';
 import '../../../../../../../../../core/widgets/width_spacer.dart';
@@ -71,8 +69,8 @@ class _DoctorCardState extends State<DoctorCard> {
                 boxShadow: [
                   BoxShadow(
                     color: isDark
-                        ? Colors.white.withValues(alpha:0.05)
-                        : Colors.grey.withValues(alpha:0.2),
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.grey.withValues(alpha: 0.2),
                     spreadRadius: 2,
                     blurRadius: 5,
                   ),
@@ -122,7 +120,7 @@ class _DoctorCardState extends State<DoctorCard> {
                                 boxShadow: [
                                   BoxShadow(
                                       color: isDark
-                                          ? Colors.white.withValues(alpha:0.1)
+                                          ? Colors.white.withValues(alpha: 0.1)
                                           : Colors.grey.shade200,
                                       spreadRadius: 1,
                                       blurRadius: 3,
@@ -235,29 +233,14 @@ class _DoctorCardState extends State<DoctorCard> {
                             context: context,
                             title: "Delete Doctor",
                             message:
-                                "Do you want to Delete ${widget.doctor?.name ?? "this Doctor"}?",
+                                "Are you sure you want to delete ${widget.doctor?.name ?? "this doctor"}?",
                             onConfirm: () async {
                               Navigator.pop(
                                   context); // Close confirmation dialog
-                              customLoading(context, "");
-                              bool connection =
-                                  await InternetConnection().hasInternetAccess;
-                              if (!connection) {
-                                Navigator.pop(context);
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  content: Text(
-                                    "No Internet Connection",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ));
-                              } else {
-                                // Use DoctorActionsCubit for delete
-                                context.read<DoctorActionsCubit>().add(
-                                      DeleteDoctorEvent(widget.doctor!.id!),
-                                    );
-                              }
+                              // Use DoctorActionsCubit for delete
+                              context.read<DoctorActionsCubit>().add(
+                                    DeleteDoctorEvent(widget.doctor!.id!),
+                                  );
                             },
                             onCancel: () {
                               Navigator.pop(context);
@@ -290,7 +273,6 @@ class _DoctorListViewState extends State<DoctorListView> {
       listener: (context, actionsState) {
         if (actionsState.isSuccess &&
             actionsState.actionType == DoctorActionType.delete) {
-          Navigator.pop(context); // Close loading dialog
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(actionsState.successMessage ?? 'Doctor deleted'),
@@ -300,7 +282,6 @@ class _DoctorListViewState extends State<DoctorListView> {
           // Refresh the list
           context.read<GetDoctorsCubit>().add(GetAllDoctorsEvent());
         } else if (actionsState.isError) {
-          Navigator.pop(context); // Close loading dialog
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(actionsState.errorMessage ?? 'Failed to delete'),

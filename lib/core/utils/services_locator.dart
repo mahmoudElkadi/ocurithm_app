@@ -35,6 +35,7 @@ import '../../modules/Doctor/presentation/manager/doctor_actions_cubit/doctor_ac
 import '../../modules/Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart';
 import '../../modules/Doctor/presentation/manager/get_single_doctor_cubit/get_single_doctor_cubit.dart';
 import '../../modules/Doctor/presentation/manager/doctor_branch_actions_cubit/doctor_branch_actions_cubit.dart';
+import 'package:ocurithm/modules/Doctor/presentation/manager/get_doctor_examinations_cubit/get_doctor_examinations_cubit.dart';
 import '../../modules/Patient/data/repos/patient_repo.dart';
 import '../../modules/Patient/data/repos/patient_repo_impl.dart';
 import '../../modules/Patient/presentation/manager/get_patients_cubit/get_patients_cubit.dart';
@@ -116,6 +117,7 @@ class ServiceLocator {
     sl.registerFactory(() => DoctorActionsCubit(sl.call<DoctorRepo>()));
     sl.registerFactory(() => GetSingleDoctorCubit(sl.call<DoctorRepo>()));
     sl.registerFactory(() => DoctorBranchActionsCubit(sl.call<DoctorRepo>()));
+    sl.registerFactory(() => GetDoctorExaminationsBloc(sl.call<DoctorRepo>()));
 
     ///Patients
     sl.registerLazySingleton<PatientRepo>(() => PatientRepoImpl());

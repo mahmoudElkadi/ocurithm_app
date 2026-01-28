@@ -6,6 +6,7 @@ import '../../../../../../../../../core/utils/services_locator.dart';
 import '../../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../../../../../core/widgets/manage_capabilities.dart';
 import '../../../../../../../../core/widgets/search_fileld.dart';
 import '../../../../../../../../../modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import '../../../../../../../../../modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart'
@@ -51,7 +52,7 @@ class _DoctorViewBodyState extends State<DoctorViewBody> {
       children: [
         Expanded(
           child: SearchField(
-            onTextFieldChanged: ()async {
+            onTextFieldChanged: () async {
               cubit.onSearchChanged(_searchController.text);
             },
             searchController: _searchController,
@@ -78,12 +79,13 @@ class _DoctorViewBodyState extends State<DoctorViewBody> {
   }
 
   void showFilterBottomSheet(BuildContext context) {
+    final cubit = context.read<doctor_cubit.GetDoctorsCubit>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => FilterBottomSheet(
-        getDoctorsCubit: context.read<doctor_cubit.GetDoctorsCubit>(),
+        getDoctorsCubit: cubit,
       ),
     );
   }
@@ -165,6 +167,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _clinicsCubit),
@@ -173,63 +178,64 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       child: Container(
         padding: EdgeInsets.fromLTRB(
             20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapability"))
-              BlocBuilder<GetClinicsCubit, GetClinicsState>(
+            manageCapability(
+              capability: 'manageCapability',
+              child: BlocBuilder<GetClinicsCubit, GetClinicsState>(
                 builder: (context, clinicsState) {
-                  return DropdownItem(
-                    radius: 8,
-                    border: Colorz.grey,
-                    color: Colorz.white,
-                    isShadow: false,
-                    height: 14,
-                    iconData: Icon(Icons.keyboard_arrow_down_rounded,
-                        color: Colorz.grey),
-                    items: clinicsState.clinics?.clinics ?? [],
-                    validateText: 'Please choose a clinic',
-                    selectedValue: widget.getDoctorsCubit.state.clinicFilter !=
-                            null
-                        ? clinicsState.clinics?.clinics
-                            .firstWhere((c) =>
-                                c.id ==
-                                widget.getDoctorsCubit.state.clinicFilter)
-                            .name
-                        : null,
-                    hintText: 'Select Clinic',
-                    itemAsString: (item) => item.name.toString(),
-                    onItemSelected: (item) {
-                      if (item != "Not Found") {
-                        widget.getDoctorsCubit
-                            .add(doctor_cubit.SetClinicFilterEvent(item.id));
-                        _branchesCubit
-                            .add(branch_cubit.SetClinicFilterEvent(item.id));
-                      }
-                    },
-                    isLoading: clinicsState.isLoading,
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: DropdownItem(
+                      radius: 8,
+                      border: isDark ? theme.dividerColor : Colorz.grey,
+                      color: theme.cardColor,
+                      isShadow: false,
+                      height: 14,
+                      iconData: Icon(Icons.keyboard_arrow_down_rounded,
+                          color: isDark ? Colors.white70 : Colorz.grey),
+                      items: clinicsState.clinics?.clinics ?? [],
+                      validateText: 'Please choose a clinic',
+                      selectedValue:
+                          widget.getDoctorsCubit.state.clinicFilter != null
+                              ? clinicsState.clinics?.clinics
+                                  .firstWhere((c) =>
+                                      c.id ==
+                                      widget.getDoctorsCubit.state.clinicFilter)
+                                  .name
+                              : null,
+                      hintText: 'Select Clinic',
+                      itemAsString: (item) => item.name.toString(),
+                      onItemSelected: (item) {
+                        if (item != "Not Found") {
+                          widget.getDoctorsCubit
+                              .add(doctor_cubit.SetClinicFilterEvent(item.id));
+                          _branchesCubit
+                              .add(branch_cubit.SetClinicFilterEvent(item.id));
+                        }
+                      },
+                      isLoading: clinicsState.isLoading,
+                    ),
                   );
                 },
               ),
-            if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapability"))
-              const SizedBox(height: 20),
+            ),
             BlocBuilder<branch_cubit.GetBranchesCubit,
                 branch_cubit.GetBranchesState>(
               builder: (context, branchesState) {
                 return DropdownItem(
                   radius: 8,
-                  border: Colorz.grey,
-                  color: Colorz.white,
+                  border: isDark ? theme.dividerColor : Colorz.grey,
+                  color: theme.cardColor,
                   isShadow: false,
                   height: 14,
                   iconData: Icon(Icons.keyboard_arrow_down_rounded,
-                      color: Colorz.grey),
+                      color: isDark ? Colors.white70 : Colorz.grey),
                   items: branchesState.branches?.branches ?? [],
                   validateText: 'Please choose a branch',
                   selectedValue: widget.getDoctorsCubit.state.branchFilter !=
@@ -257,7 +263,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colorz.primaryColor,
+                      backgroundColor: theme.primaryColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -290,8 +296,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colorz.primaryColor,
+                      backgroundColor: isDark ? theme.cardColor : Colors.white,
+                      foregroundColor: theme.primaryColor,
                       side: BorderSide(color: Colorz.redColor),
                       elevation: 0,
                       shape: RoundedRectangleBorder(

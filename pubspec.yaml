@@ -60,7 +60,7 @@ dependencies:
   intl: ^0.20.2
   url_launcher: ^6.3.0
   password_generator: ^1.0.0
-  printing: ^5.13.0
+  ++: ^5.13.0
   pdf: ^3.11.1
   flutter_svg_provider: ^1.0.7
   draggable_scrollbar: ^0.1.0

@@ -2,6 +2,7 @@ import '../../../../../core/api/api_constants.dart';
 import '../../../../../core/api/api_handler.dart';
 import '../../../Branch/data/model/branches_model.dart';
 import '../../../Branch/data/model/data.dart';
+import '../../../Patient/data/model/patient_examination.dart';
 import '../model/doctor_model.dart';
 import 'doctor_repo.dart';
 
@@ -24,6 +25,7 @@ class DoctorRepoImpl implements DoctorRepo {
           "qualifications": doctor.qualifications,
         if (doctor.image != null && doctor.image!.isNotEmpty)
           "image": doctor.image,
+        if (doctor.isConsultant != null) "isConsultant": doctor.isConsultant,
       };
 
       final response = await _apiHandler.post<Doctor>(
@@ -118,6 +120,7 @@ class DoctorRepoImpl implements DoctorRepo {
           "qualifications": doctor.qualifications,
         if (doctor.image != null && doctor.image!.isNotEmpty)
           "image": doctor.image,
+        if (doctor.isConsultant != null) "isConsultant": doctor.isConsultant,
       };
 
       final response = await _apiHandler.put<Doctor>(
@@ -277,6 +280,41 @@ class DoctorRepoImpl implements DoctorRepo {
       } else {
         // Handle error case
         throw Exception(response.message ?? 'Failed to delete branch');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Examinations> getDoctorExaminations({
+    required String doctorId,
+    int? page,
+    int? limit,
+    String? patientId,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      Map<String, dynamic> query = {
+        if (page != null) "page": page,
+        if (limit != null) "limit": limit,
+        if (patientId != null && patientId.isNotEmpty) "patientId": patientId,
+        if (startDate != null && startDate.isNotEmpty) "startDate": startDate,
+        if (endDate != null && endDate.isNotEmpty) "endDate": endDate,
+      };
+
+      final response = await _apiHandler.get<Examinations>(
+        '${ApiConstants.doctors}/$doctorId/examinations',
+        queryParameters: query,
+        cancelKey: 'getDoctorExaminations',
+        fromJson: (json) => Examinations.fromJson(json),
+      );
+
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        throw Exception(response.message ?? 'Failed to fetch examinations');
       }
     } catch (e) {
       rethrow;

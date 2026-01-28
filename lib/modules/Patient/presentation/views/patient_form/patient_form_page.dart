@@ -11,8 +11,10 @@ import 'package:ocurithm/generated/l10n.dart';
 import 'package:ocurithm/modules/Branch/data/model/branches_model.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
-import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
+
 import 'package:ocurithm/modules/Patient/data/model/patient_examination.dart';
+import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
+
 import 'package:ocurithm/modules/Patient/presentation/manager/get_single_patient_cubit/get_single_patient_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/patient_actions_cubit/patient_actions_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_patient_examinations_cubit/get_patient_examinations_cubit.dart';
@@ -790,16 +792,6 @@ class _PatientFormViewState extends State<PatientFormView> {
     });
   }
 
-  String _formatDateTime(String? dateTimeStr) {
-    if (dateTimeStr == null || dateTimeStr.isEmpty) return 'N/A';
-    try {
-      final dateTime = DateTime.parse(dateTimeStr);
-      return DateFormat('MMM dd, yyyy • hh:mm a').format(dateTime);
-    } catch (_) {
-      return dateTimeStr;
-    }
-  }
-
   Widget _buildExaminationCard(Examination exam, ThemeData theme) {
     return Container(
         decoration: BoxDecoration(
@@ -843,6 +835,16 @@ class _PatientFormViewState extends State<PatientFormView> {
                   ),
                   const Icon(Icons.chevron_right_rounded, color: Colors.grey),
                 ]))));
+  }
+
+  String _formatDateTime(String? dateTimeStr) {
+    if (dateTimeStr == null || dateTimeStr.isEmpty) return 'N/A';
+    try {
+      final dateTime = DateTime.parse(dateTimeStr);
+      return DateFormat('MMM dd, yyyy • hh:mm a').format(dateTime);
+    } catch (_) {
+      return dateTimeStr;
+    }
   }
 
   Widget _buildPhoneField(ThemeData theme) {

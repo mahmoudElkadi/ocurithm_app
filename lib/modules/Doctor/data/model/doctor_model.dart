@@ -51,7 +51,8 @@ class Doctor {
       this.id,
       this.error,
       this.password,
-      this.capability});
+      this.capability,
+      this.isConsultant});
 
   String? name;
   String? image;
@@ -66,6 +67,7 @@ class Doctor {
   List<String?>? capability;
   DateTime? createdAt;
   DateTime? updatedAt;
+  bool? isConsultant;
 
   String? id;
   String? error;
@@ -92,6 +94,7 @@ class Doctor {
       clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       id: json["id"],
       error: json["error"],
+      isConsultant: json["isConsultant"],
     );
   }
 
@@ -109,6 +112,7 @@ class Doctor {
         "password": password,
         "clinic": clinic?.id,
         "error": error,
+        "isConsultant": isConsultant,
       };
 }
 
