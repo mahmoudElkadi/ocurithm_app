@@ -1,0 +1,883 @@
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:ocurithm/core/widgets/no_internet.dart';
+import '../../../../core/utils/app_style.dart';
+import '../../../../core/utils/colors.dart';
+import '../../../../core/utils/services_locator.dart';
+import '../../data/models/profile_models.dart';
+import '../manager/get_profile_cubit/get_profile_cubit.dart';
+import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
+import 'package:shimmer/shimmer.dart';
+import '../../../../core/utils/snackbar_service.dart';
+import '../manager/profile_actions_cubit/profile_actions_cubit.dart';
+
+class ProfileView extends StatelessWidget {
+  const ProfileView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+            create: (context) =>
+                sl<GetProfileCubit>()..add(FetchProfileEvent())),
+        BlocProvider(create: (context) => sl<ProfileActionsCubit>()),
+      ],
+      child: const ProfileViewBody(),
+    );
+  }
+}
+
+class ProfileViewBody extends StatefulWidget {
+  const ProfileViewBody({super.key});
+
+  @override
+  State<ProfileViewBody> createState() => _ProfileViewBodyState();
+}
+
+class _ProfileViewBodyState extends State<ProfileViewBody> {
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final cardColor =
+        Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.grey;
+
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: Text(
+          "My Profile",
+          style: appStyle(context, 20, textColor, FontWeight.w600),
+        ),
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: textColor),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: BlocListener<ProfileActionsCubit, ProfileActionsState>(
+        listener: (context, state) {
+          if (state.isSuccess) {
+            SnackbarService.showSuccess(
+              context,
+              message: state.successMessage ?? "Operation successful",
+            );
+            // Refresh profile data if update was successful
+            if (state.actionType == ProfileActionType.updateProfile &&
+                state.profile != null) {
+              context
+                  .read<GetProfileCubit>()
+                  .add(UpdateProfileSuccessEvent(state.profile!));
+            }
+            context.read<ProfileActionsCubit>().add(ResetProfileActionsEvent());
+          } else if (state.isError) {
+            SnackbarService.showError(
+              context,
+              message: state.errorMessage ?? "Operation failed",
+            );
+            context.read<ProfileActionsCubit>().add(ResetProfileActionsEvent());
+          }
+        },
+        child: CustomMaterialIndicator(
+          onRefresh: () async {
+            context.read<GetProfileCubit>().add(FetchProfileEvent());
+          },
+          indicatorBuilder:
+              (BuildContext context, IndicatorController controller) {
+            return const Image(image: AssetImage("assets/icons/logo.png"));
+          },
+          child: BlocBuilder<GetProfileCubit, GetProfileState>(
+            builder: (context, state) {
+              if (state.isLoading) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: _buildProfileLoadingState(context),
+                );
+              } else if (state.isError) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height - 100,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(state.errorMessage ?? "Something went wrong",
+                              style: appStyle(
+                                  context, 16, textColor, FontWeight.w500)),
+                          SizedBox(height: 10.h),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colorz.primaryColor),
+                            onPressed: () => context
+                                .read<GetProfileCubit>()
+                                .add(FetchProfileEvent()),
+                            child: const Text("Retry"),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else if (state.noConnection) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height - 100,
+                    child: NoInternet(
+                      onPressed: () => context
+                          .read<GetProfileCubit>()
+                          .add(FetchProfileEvent()),
+                    ),
+                  ),
+                );
+              } else if (state.profile != null) {
+                final profile = state.profile!;
+                return SingleChildScrollView(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Profile Header
+                      _buildProfileHeader(
+                          context, profile, cardColor, textColor, subTextColor),
+                      SizedBox(height: 25.h),
+
+                      // Info Cards
+                      _buildSectionTitle(
+                          context, "Personal Information", textColor),
+                      SizedBox(height: 10.h),
+                      _buildInfoCard(
+                          context, profile, cardColor, textColor, subTextColor),
+
+                      SizedBox(height: 25.h),
+                      _buildSectionTitle(
+                          context, "Account Settings", textColor),
+                      SizedBox(height: 10.h),
+                      _buildSettingsCard(
+                          context, profile, cardColor, textColor),
+
+                      SizedBox(height: 25.h),
+                      _buildSectionTitle(
+                          context, "Organization Info", textColor),
+                      SizedBox(height: 10.h),
+                      _buildOrganizationCard(
+                          context, profile, cardColor, textColor, subTextColor),
+
+                      SizedBox(height: 40.h),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(BuildContext context, ProfileModel profile,
+      Color cardColor, Color textColor, Color subTextColor) {
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colorz.primaryColor, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colorz.primaryColor.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10))
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 50.r,
+                backgroundColor: Colorz.grey200,
+                child: Text(
+                  profile.name?.substring(0, 1).toUpperCase() ?? "U",
+                  style: appStyle(
+                      context, 40, Colorz.primaryColor, FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 15.h),
+        Text(
+          profile.name ?? "User Name",
+          style: appStyle(context, 22, textColor, FontWeight.bold),
+        ),
+        SizedBox(height: 5.h),
+        Text(
+          profile.userType?.toUpperCase() ?? "USER",
+          style: appStyle(context, 14, Colorz.primaryColor, FontWeight.w600),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(
+      BuildContext context, String title, Color textColor) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style:
+            appStyle(context, 16, textColor.withOpacity(0.8), FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(BuildContext context, ProfileModel profile,
+      Color cardColor, Color textColor, Color subTextColor) {
+    return Container(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5))
+        ],
+      ),
+      padding: EdgeInsets.all(20.r),
+      child: Column(
+        children: [
+          _buildInfoRow(context, Icons.person_outline, "Username",
+              profile.username ?? "-", textColor, subTextColor),
+          Divider(color: Colors.grey.withOpacity(0.2), height: 30.h),
+          _buildInfoRow(context, Icons.phone_outlined, "Phone",
+              profile.phone?.toString() ?? "-", textColor, subTextColor),
+          Divider(color: Colors.grey.withOpacity(0.2), height: 30.h),
+          _buildInfoRow(context, Icons.email_outlined, "Email",
+              profile.email ?? "-", textColor, subTextColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label,
+      String value, Color textColor, Color subTextColor) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(10.r),
+          decoration: BoxDecoration(
+            color: Colorz.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(icon, color: Colorz.primaryColor, size: 20.sp),
+        ),
+        SizedBox(width: 15.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style:
+                      appStyle(context, 12, subTextColor, FontWeight.normal)),
+              SizedBox(height: 2.h),
+              Text(value,
+                  style: appStyle(context, 15, textColor, FontWeight.w500)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingsCard(BuildContext context, ProfileModel profile,
+      Color cardColor, Color textColor) {
+    return Container(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5))
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildSettingTile(
+            context,
+            Icons.edit_note,
+            "Edit Profile Details",
+            textColor,
+            onTap: () => _showEditProfileDialog(context, profile),
+          ),
+          Divider(color: Colors.grey.withOpacity(0.1), height: 1),
+          _buildSettingTile(
+            context,
+            Icons.lock_outline,
+            "Change Password",
+            textColor,
+            onTap: () => _showChangePasswordDialog(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrganizationCard(BuildContext context, ProfileModel profile,
+      Color cardColor, Color textColor, Color subTextColor) {
+    return Container(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5))
+        ],
+      ),
+      padding: EdgeInsets.all(20.r),
+      child: Column(
+        children: [
+          if (profile.clinic != null)
+            _buildInfoRow(context, Icons.local_hospital_outlined, "Clinic",
+                profile.clinic!.name ?? "-", textColor, subTextColor),
+          if (profile.clinic != null && (profile.branch != null))
+            Divider(color: Colors.grey.withOpacity(0.2), height: 30.h),
+          if (profile.branch != null)
+            _buildInfoRow(
+                context,
+                Icons.location_on_outlined,
+                "Branch",
+                profile.branch.toString(),
+                textColor,
+                subTextColor), // branch is dynamic in model
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingTile(
+      BuildContext context, IconData icon, String title, Color textColor,
+      {required VoidCallback onTap}) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: EdgeInsets.all(8.r),
+        decoration: BoxDecoration(
+          color: Colorz.grey200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.black54, size: 20.sp),
+      ),
+      title:
+          Text(title, style: appStyle(context, 15, textColor, FontWeight.w500)),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16.sp, color: Colors.grey),
+      contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 5.h),
+    );
+  }
+
+  void _showEditProfileDialog(BuildContext context, ProfileModel profile) {
+    final nameController = TextEditingController(text: profile.name);
+    final emailController = TextEditingController(text: profile.email);
+    String? phoneNumber = profile.phone?.toString();
+    final formKey = GlobalKey<FormState>();
+
+    final cubit = context.read<ProfileActionsCubit>();
+    Get.bottomSheet(
+      BlocProvider.value(
+        value: cubit,
+        child: Container(
+          padding: EdgeInsets.all(20.r),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
+          ),
+          child: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: StatefulBuilder(builder: (context, setState) {
+                bool hasDataToUpdate = nameController.text != profile.name ||
+                    emailController.text != profile.email ||
+                    (phoneNumber != profile.phone?.toString());
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 50.w,
+                      height: 5.h,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    Text("Edit Profile",
+                        style: appStyle(
+                            context,
+                            20,
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black,
+                            FontWeight.bold)),
+                    SizedBox(height: 20.h),
+                    _buildTextField(
+                        context, nameController, "Full Name", Icons.person,
+                        onChanged: (_) => setState(() {})),
+                    SizedBox(height: 15.h),
+                    _buildTextField(
+                        context, emailController, "Email", Icons.email,
+                        isEmail: true, onChanged: (_) => setState(() {})),
+                    SizedBox(height: 15.h),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildLabel(context, "Phone Number"),
+                        _buildPhoneField(context, phoneNumber, (val) {
+                          setState(() {
+                            phoneNumber = val;
+                          });
+                        }),
+                      ],
+                    ),
+                    SizedBox(height: 30.h),
+                    SizedBox(
+                      width: double.infinity,
+                      child:
+                          BlocBuilder<ProfileActionsCubit, ProfileActionsState>(
+                        builder: (context, state) {
+                          if (state.isLoading) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+                          return ElevatedButton(
+                            onPressed: (hasDataToUpdate && !state.isLoading)
+                                ? () {
+                                    if (formKey.currentState!.validate()) {
+                                      cubit.add(
+                                        UpdateProfileEvent(
+                                          name: nameController.text,
+                                          email: emailController.text,
+                                          phone: phoneNumber,
+                                        ),
+                                      );
+                                      Navigator.pop(context);
+                                    }
+                                  }
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colorz.primaryColor,
+                              disabledBackgroundColor: Colorz.grey200,
+                              padding: EdgeInsets.symmetric(vertical: 15.h),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.r)),
+                            ),
+                            child: Text("Save Changes",
+                                style: appStyle(context, 16, Colors.white,
+                                    FontWeight.w600)),
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                  ],
+                );
+              }),
+            ),
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context) {
+    final currentPassController = TextEditingController();
+    final newPassController = TextEditingController();
+    final confirmPassController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final cubit = context.read<ProfileActionsCubit>();
+    Get.bottomSheet(
+      BlocProvider.value(
+        value: cubit,
+        child: BlocListener<ProfileActionsCubit, ProfileActionsState>(
+          listener: (context, state) {
+            if (state.isSuccess &&
+                state.actionType == ProfileActionType.changePassword) {
+              Navigator.pop(context);
+            }
+          },
+          child: Container(
+            padding: EdgeInsets.all(20.r),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 50.w,
+                      height: 5.h,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    Text("Change Password",
+                        style: appStyle(
+                            context,
+                            20,
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black,
+                            FontWeight.bold)),
+                    SizedBox(height: 20.h),
+                    _buildTextField(context, currentPassController,
+                        "Current Password", Icons.lock_outline,
+                        isPassword: true, isRequired: true),
+                    SizedBox(height: 15.h),
+                    _buildTextField(
+                        context, newPassController, "New Password", Icons.lock,
+                        isPassword: true, isRequired: true),
+                    SizedBox(height: 15.h),
+                    _buildTextField(context, confirmPassController,
+                        "Confirm Password", Icons.lock_reset,
+                        isPassword: true, isRequired: true, validator: (val) {
+                      if (val != newPassController.text) {
+                        return "Passwords do not match";
+                      }
+                      return null;
+                    }),
+                    SizedBox(height: 30.h),
+                    SizedBox(
+                      width: double.infinity,
+                      child:
+                          BlocBuilder<ProfileActionsCubit, ProfileActionsState>(
+                        builder: (context, state) {
+                          return ElevatedButton(
+                            onPressed: state.isLoading
+                                ? () {}
+                                : () {
+                                    if (formKey.currentState!.validate()) {
+                                      cubit.add(
+                                        ChangePasswordEvent(
+                                          currentPassword:
+                                              currentPassController.text,
+                                          newPassword: newPassController.text,
+                                          confirmPassword:
+                                              confirmPassController.text,
+                                        ),
+                                      );
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colorz.primaryColor,
+                              padding: EdgeInsets.symmetric(vertical: 15.h),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.r)),
+                            ),
+                            child: state.isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text("Change Password",
+                                    style: appStyle(context, 16, Colors.white,
+                                        FontWeight.w600)),
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  Widget _buildLabel(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
+      child: Text(
+        text,
+        style: appStyle(
+          context,
+          14,
+          Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey
+              : Colors.grey,
+          FontWeight.normal,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhoneField(
+      BuildContext context, String? initialValue, Function(String) onChanged) {
+    final cardColor =
+        Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor;
+
+    return IntlPhoneField(
+      initialValue: initialValue ?? '',
+      decoration: InputDecoration(
+        hintText: "Phone Number",
+        fillColor: cardColor,
+        filled: true,
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 15.w),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.r),
+            borderSide: BorderSide(color: Colorz.primaryColor)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.r),
+            borderSide: BorderSide(color: Colorz.primaryColor)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.r),
+            borderSide: BorderSide(color: Colorz.primaryColor)),
+        errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.r),
+            borderSide: BorderSide(color: Colorz.errorColor)),
+        suffixIcon: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Icon(Icons.phone_iphone, color: Colorz.primaryColor, size: 20),
+        ),
+      ),
+      initialCountryCode: 'EG',
+      dropdownIconPosition: IconPosition.leading,
+      languageCode: "en",
+      validator: (phone) {
+        if (phone == null || phone.number.isEmpty) return null;
+        try {
+          if (phone.isValidNumber()) return null;
+          return "Invalid phone number";
+        } catch (e) {
+          return null;
+        }
+      },
+      onChanged: (phone) {
+        onChanged(phone.completeNumber);
+      },
+    );
+  }
+
+  Widget _buildTextField(BuildContext context, TextEditingController controller,
+      String label, IconData icon,
+      {bool isPassword = false,
+      bool isEmail = false,
+      bool isRequired = false,
+      void Function(String)? onChanged,
+      String? Function(String?)? validator}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor =
+        Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(context, label),
+        TextFormField(
+          controller: controller,
+          obscureText: isPassword,
+          style: appStyle(context, 15, isDark ? Colors.white : Colors.black,
+              FontWeight.normal),
+          onChanged: onChanged,
+          validator: (value) {
+            if (isRequired && (value == null || value.isEmpty)) {
+              return "$label cannot be empty";
+            }
+            if (isEmail &&
+                value != null &&
+                value.isNotEmpty &&
+                !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+              return "Invalid email address";
+            }
+            if (validator != null) {
+              return validator(value);
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            hintText: label,
+            hintStyle: appStyle(context, 14, isDark ? Colors.grey : Colors.grey,
+                FontWeight.normal),
+            prefixIcon: Icon(icon, color: Colorz.primaryColor),
+            filled: true,
+            fillColor: cardColor,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15.r),
+                borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15.r),
+                borderSide: BorderSide(color: Colorz.primaryColor)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShimmer(BuildContext context, Widget child) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Shimmer.fromColors(
+      baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+      child: child,
+    );
+  }
+
+  Widget _buildProfileLoadingState(BuildContext context) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Profile Header Shimmer
+          Column(
+            children: [
+              _buildShimmer(
+                context,
+                Container(
+                  width: 100.r,
+                  height: 100.r,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              SizedBox(height: 15.h),
+              _buildShimmer(
+                context,
+                Container(
+                  width: 150.w,
+                  height: 24.h,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 5.h),
+              _buildShimmer(
+                context,
+                Container(
+                  width: 80.w,
+                  height: 16.h,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 5.h),
+              _buildShimmer(
+                context,
+                Container(
+                  width: 180.w,
+                  height: 16.h,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 25.h),
+
+          // Info Cards Shimmer
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _buildShimmer(
+              context,
+              Container(
+                width: 150.w,
+                height: 20.h,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          SizedBox(height: 10.h),
+          _buildShimmer(
+            context,
+            Container(
+              height: 180.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+            ),
+          ),
+
+          SizedBox(height: 25.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _buildShimmer(
+              context,
+              Container(
+                width: 150.w,
+                height: 20.h,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          SizedBox(height: 10.h),
+          _buildShimmer(
+            context,
+            Container(
+              height: 120.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+            ),
+          ),
+
+          SizedBox(height: 25.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _buildShimmer(
+              context,
+              Container(
+                width: 150.w,
+                height: 20.h,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          SizedBox(height: 10.h),
+          _buildShimmer(
+            context,
+            Container(
+              height: 100.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+            ),
+          ),
+          SizedBox(height: 40.h),
+        ],
+      ),
+    );
+  }
+}

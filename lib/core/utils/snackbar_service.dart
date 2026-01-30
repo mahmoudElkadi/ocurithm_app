@@ -1,8 +1,10 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
+import 'colors.dart';
 
 /// A service class to show consistent snackbars throughout the app
 class SnackbarService {
-  /// Shows a success snackbar with a green background
+  /// Shows a success snackbar
   static void showSuccess(
     BuildContext context, {
     required String message,
@@ -10,16 +12,17 @@ class SnackbarService {
     SnackBarAction? action,
   }) {
     _showSnackbar(
-      context,
+      context: context,
+      title: "Success",
       message: message,
-      backgroundColor: Colors.green,
-      icon: Icons.check_circle,
+      contentType: ContentType.success,
+      color: Colorz.primaryColor,
       duration: duration,
       action: action,
     );
   }
 
-  /// Shows an error snackbar with a red background
+  /// Shows an error snackbar
   static void showError(
     BuildContext context, {
     required String message,
@@ -27,16 +30,16 @@ class SnackbarService {
     SnackBarAction? action,
   }) {
     _showSnackbar(
-      context,
+      context: context,
+      title: "Error",
       message: message,
-      backgroundColor: Colors.red,
-      icon: Icons.error,
+      contentType: ContentType.failure,
       duration: duration,
       action: action,
     );
   }
 
-  /// Shows an info snackbar with a blue background
+  /// Shows an info snackbar
   static void showInfo(
     BuildContext context, {
     required String message,
@@ -44,16 +47,16 @@ class SnackbarService {
     SnackBarAction? action,
   }) {
     _showSnackbar(
-      context,
+      context: context,
+      title: "Info",
       message: message,
-      backgroundColor: Colors.blue,
-      icon: Icons.info,
+      contentType: ContentType.help,
       duration: duration,
       action: action,
     );
   }
 
-  /// Shows a warning snackbar with an orange background
+  /// Shows a warning snackbar
   static void showWarning(
     BuildContext context, {
     required String message,
@@ -61,79 +64,160 @@ class SnackbarService {
     SnackBarAction? action,
   }) {
     _showSnackbar(
-      context,
+      context: context,
+      title: "Warning",
       message: message,
-      backgroundColor: Colors.orange,
-      icon: Icons.warning,
+      contentType: ContentType.warning,
       duration: duration,
       action: action,
     );
   }
 
-  /// Shows a custom snackbar
+  /// Shows a custom snackbar (defaults to Help type)
   static void showCustom(
     BuildContext context, {
+    String title = "Notification",
     required String message,
-    required Color backgroundColor,
-    IconData? icon,
+    required Color backgroundColor, // Ignored by AwesomeSnackbarContent usually
+    IconData? icon, // Ignored as ContentType dictates icon
     Duration duration = const Duration(seconds: 3),
     SnackBarAction? action,
   }) {
     _showSnackbar(
-      context,
+      context: context,
+      title: title,
       message: message,
-      backgroundColor: backgroundColor,
-      icon: icon,
+      contentType: ContentType.help,
       duration: duration,
       action: action,
     );
   }
 
-  /// Internal method to show the snackbar
-  static void _showSnackbar(
-    BuildContext context, {
+  /// Internal method to show the snackbar using custom OverlayEntry for Top position
+  static void _showSnackbar({
+    required BuildContext context,
+    required String title,
     required String message,
-    required Color backgroundColor,
-    IconData? icon,
+    required ContentType contentType,
+    Color? color,
     required Duration duration,
     SnackBarAction? action,
   }) {
-    // Clear any existing snackbars
-    ScaffoldMessenger.of(context).clearSnackBars();
+    // Find the Overlay
+    final overlay = Overlay.of(context);
+    if (overlay == null) {
+      // Fallback if no overlay found (unlikely in standard app structure)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("$title: $message"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-    // Show the new snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                color: Colors.white,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => _TopSnackBar(
+        title: title,
+        message: message,
+        contentType: contentType,
+        color: color,
+        duration: duration,
+        onDismiss: () {
+          overlayEntry.remove();
+        },
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+  }
+}
+
+class _TopSnackBar extends StatefulWidget {
+  final String title;
+  final String message;
+  final ContentType contentType;
+  final Color? color;
+  final Duration duration;
+  final VoidCallback onDismiss;
+
+  const _TopSnackBar({
+    Key? key,
+    required this.title,
+    required this.message,
+    required this.contentType,
+    this.color,
+    required this.duration,
+    required this.onDismiss,
+  }) : super(key: key);
+
+  @override
+  State<_TopSnackBar> createState() => _TopSnackBarState();
+}
+
+class _TopSnackBarState extends State<_TopSnackBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _offsetAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 700),
+      reverseDuration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(0.0, -1.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.elasticOut,
+    ));
+
+    // Start animation
+    _controller.forward();
+
+    // Schedule dismissal
+    Future.delayed(widget.duration, () {
+      if (mounted) {
+        _controller.reverse().then((_) => widget.onDismiss());
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SlideTransition(
+        position: _offsetAnimation,
+        child: SafeArea(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              margin: const EdgeInsets.all(16),
+              child: AwesomeSnackbarContent(
+                title: widget.title,
+                message: widget.message,
+                contentType: widget.contentType,
+                color: widget.color,
               ),
             ),
-          ],
+          ),
         ),
-        backgroundColor: backgroundColor,
-        duration: duration,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        margin: const EdgeInsets.all(16),
-        action: action,
       ),
     );
   }

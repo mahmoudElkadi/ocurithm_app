@@ -38,7 +38,11 @@ class ApiConstants {
   static String get activeIngredients => "medicines/active-ingredients";
 
   static String get analysis => "measurement-trends";
+
   static String get storageUpload => "storage/upload-multiple/patient-scan";
+
   static String get storageDelete => "storage";
+
   static String get storageBulkDelete => "storage/bulk";
+
 }

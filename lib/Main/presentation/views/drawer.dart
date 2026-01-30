@@ -10,6 +10,7 @@ import 'package:ocurithm/core/widgets/width_spacer.dart';
 
 import '../manger/main_cubit.dart';
 import '../manger/main_state.dart';
+import '../../../modules/profile/presentation/views/profile_view.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -63,6 +64,7 @@ class CustomDrawer extends StatelessWidget {
                   },
                 ),
               ),
+              _buildProfileButton(context),
               _buildThemeToggle(context),
               _buildLogoutButton(context, mainCubit),
             ],
@@ -160,7 +162,7 @@ class CustomDrawer extends StatelessWidget {
           : EdgeInsets.zero,
       decoration: group.title != null && isSelected
           ? BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha:0.1),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             )
           : null,
@@ -202,7 +204,7 @@ class CustomDrawer extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      color: Theme.of(context).primaryColor.withValues(alpha:0.1),
+      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
       child: Padding(
         padding: EdgeInsets.only(
             top: MediaQuery.of(context).size.height * 0.07, bottom: 20),
@@ -214,39 +216,38 @@ class CustomDrawer extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                     Container(
-                            height: 70,
-                            width: 70,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  isDark ? Colors.grey.shade800 : Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                    color: isDark
-                                        ? Colors.black.withValues(alpha:0.3)
-                                        : Colors.grey.shade200,
-                                    spreadRadius: 1,
-                                    blurRadius: 3,
-                                    offset: const Offset(0, 0))
-                              ],
-                            ),
-                            child: CacheHelper.getUser("user")?.name != null
-                                ? Center(
-                                    child: Text(
-                                        CacheHelper.getUser("user")
-                                            ?.name
-                                            ?.split("")[0]
-                                            .toUpperCase() as String,
-                                        style: appStyle(
-                                            context,
-                                            50,
-                                            isDark
-                                                ? Colors.grey.shade300
-                                                : Colors.grey.shade700,
-                                            FontWeight.bold)))
-                                : null,
-                          ),
+                    Container(
+                      height: 70,
+                      width: 70,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark ? Colors.grey.shade800 : Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                              color: isDark
+                                  ? Colors.black.withValues(alpha: 0.3)
+                                  : Colors.grey.shade200,
+                              spreadRadius: 1,
+                              blurRadius: 3,
+                              offset: const Offset(0, 0))
+                        ],
+                      ),
+                      child: CacheHelper.getUser("user")?.name != null
+                          ? Center(
+                              child: Text(
+                                  CacheHelper.getUser("user")
+                                      ?.name
+                                      ?.split("")[0]
+                                      .toUpperCase() as String,
+                                  style: appStyle(
+                                      context,
+                                      50,
+                                      isDark
+                                          ? Colors.grey.shade300
+                                          : Colors.grey.shade700,
+                                      FontWeight.bold)))
+                          : null,
+                    ),
                     const WidthSpacer(size: 10),
                     Column(
                       children: [
@@ -330,6 +331,36 @@ class CustomDrawer extends StatelessWidget {
               "Log Out",
               style: appStyle(
                   context, 16, Theme.of(context).primaryColor, FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileButton(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileView()),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        child: Row(
+          children: [
+            Icon(Icons.person_outline, color: Theme.of(context).primaryColor),
+            const SizedBox(width: 10),
+            Text(
+              "Profile",
+              style: appStyle(
+                context,
+                16,
+                Theme.of(context).primaryColor,
+                FontWeight.w600,
+              ),
             ),
           ],
         ),

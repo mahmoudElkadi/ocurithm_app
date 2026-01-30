@@ -62,6 +62,11 @@ import '../../modules/Login/presentation/manger/login_cubit/login_cubit.dart';
 import '../../modules/Storage/data/repos/storage_repo.dart';
 import '../../modules/Storage/presentation/manager/storage_cubit/storage_cubit.dart';
 
+import '../../modules/profile/data/repos/profile_repo.dart';
+import '../../modules/profile/data/repos/profile_repo_impl.dart';
+import '../../modules/profile/presentation/manager/get_profile_cubit/get_profile_cubit.dart';
+import '../../modules/profile/presentation/manager/profile_actions_cubit/profile_actions_cubit.dart';
+
 final sl = GetIt.instance;
 
 class ServiceLocator {
@@ -155,5 +160,10 @@ class ServiceLocator {
     ///Storage
     sl.registerLazySingleton<StorageRepo>(() => StorageRepoImpl());
     sl.registerFactory(() => StorageCubit(sl.call<StorageRepo>()));
+
+    ///Profile
+    sl.registerLazySingleton<ProfileRepo>(() => ProfileRepoImpl());
+    sl.registerFactory(() => GetProfileCubit(sl.call<ProfileRepo>()));
+    sl.registerFactory(() => ProfileActionsCubit(sl.call<ProfileRepo>()));
   }
 }

@@ -7,13 +7,16 @@ import '../utils/app_style.dart';
 import '../utils/colors.dart';
 
 class NoInternet extends StatelessWidget {
-  const NoInternet({super.key, this.onPressed, this.withImage = true, this.fromTop});
+  const NoInternet(
+      {super.key, this.onPressed, this.withImage = true, this.fromTop});
   final void Function()? onPressed;
   final bool withImage;
   final double? fromTop;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: EdgeInsets.only(top: fromTop ?? 80),
       child: SizedBox(
@@ -24,7 +27,8 @@ class NoInternet extends StatelessWidget {
           children: [
             Text(
               "Oops!",
-              style: appStyle(context, 24, Colors.black, FontWeight.w700),
+              style: appStyle(context, 24, isDark ? Colors.white : Colors.black,
+                  FontWeight.w700),
             ),
             HeightSpacer(size: 20.h),
             if (withImage)
@@ -36,13 +40,18 @@ class NoInternet extends StatelessWidget {
             const HeightSpacer(size: 20),
             Text(
               "You Are Offline ",
-              style: appStyle(context, 20, Colors.black, FontWeight.w600),
+              style: appStyle(context, 20, isDark ? Colors.white : Colors.black,
+                  FontWeight.w600),
             ),
             const HeightSpacer(size: 20),
             Text(
               textAlign: TextAlign.center,
               "Something Went Wrong. \n Try Refreshing The Page Or Checking \nYour Internet Connection. \n We'll See You in A Moment!",
-              style: appStyle(context, 20, Colors.grey.shade600, FontWeight.w500),
+              style: appStyle(
+                  context,
+                  20,
+                  isDark ? Colors.white70 : Colors.grey.shade600,
+                  FontWeight.w500),
             ),
             const HeightSpacer(size: 20),
             AnimatedButton(
@@ -62,10 +71,12 @@ class AnimatedButton extends StatefulWidget {
   const AnimatedButton({Key? key, required this.onPressed}) : super(key: key);
 
   @override
-  AnimatedButtonState createState() => AnimatedButtonState(); // Removed asterisk
+  AnimatedButtonState createState() =>
+      AnimatedButtonState(); // Removed asterisk
 }
 
-class AnimatedButtonState extends State<AnimatedButton> with SingleTickerProviderStateMixin {
+class AnimatedButtonState extends State<AnimatedButton>
+    with SingleTickerProviderStateMixin {
   // Removed asterisk
   late AnimationController controller; // Removed asterisk
   late Animation<double> scale; // Removed asterisk
@@ -107,8 +118,10 @@ class AnimatedButtonState extends State<AnimatedButton> with SingleTickerProvide
       scale: scale, // Removed underscore
       child: ElevatedButton(
         style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.all(Colorz.blue), // Fixed MaterialStateProperty
-          padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.symmetric(horizontal: 20.w, vertical: 5.h)),
+          backgroundColor: MaterialStateProperty.all(
+              Colorz.blue), // Fixed MaterialStateProperty
+          padding: MaterialStateProperty.all<EdgeInsets>(
+              EdgeInsets.symmetric(horizontal: 20.w, vertical: 5.h)),
           shape: MaterialStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(6.0),
@@ -116,7 +129,8 @@ class AnimatedButtonState extends State<AnimatedButton> with SingleTickerProvide
           ),
         ),
         onPressed: _animateButton,
-        child: Text("Try Again", style: appStyle(context, 20, Colors.white, FontWeight.w600)),
+        child: Text("Try Again",
+            style: appStyle(context, 20, Colors.white, FontWeight.w600)),
       ),
     );
   }

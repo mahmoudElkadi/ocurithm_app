@@ -54,13 +54,14 @@ dependencies:
   hexcolor: ^3.0.1
   internet_connection_checker_plus: ^2.7.2
   dio: ^5.4.3+1
+  awesome_snackbar_content: ^0.1.8
   upgrader: ^11.3.1
   text_form_field_wrapper: ^1.0.0
   custom_refresh_indicator: ^3.1.0
   intl: ^0.20.2
   url_launcher: ^6.3.0
   password_generator: ^1.0.0
-  ++: ^5.13.0
+  printing: ^5.14.2
   pdf: ^3.11.1
   flutter_svg_provider: ^1.0.7
   draggable_scrollbar: ^0.1.0
