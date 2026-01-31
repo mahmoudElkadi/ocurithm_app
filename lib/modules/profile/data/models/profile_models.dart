@@ -14,6 +14,7 @@ class ProfileModel {
     required this.isActive,
     required this.lastLogin,
     required this.capabilities,
+    required this.image,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -29,10 +30,11 @@ class ProfileModel {
   final bool? isActive;
   final DateTime? lastLogin;
   final List<String> capabilities;
+  final String? image;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  factory ProfileModel.fromJson(Map<String, dynamic> json){
+  factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(
       id: json["id"],
       userType: json["userType"],
@@ -44,27 +46,29 @@ class ProfileModel {
       branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
       isActive: json["isActive"],
       lastLogin: DateTime.tryParse(json["lastLogin"] ?? ""),
-      capabilities: json["capabilities"] == null ? [] : List<String>.from(json["capabilities"]!.map((x) => x)),
+      capabilities: json["capabilities"] == null
+          ? []
+          : List<String>.from(json["capabilities"]!.map((x) => x)),
+      image: json["image"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
     );
   }
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "userType": userType,
-    "name": name,
-    "username": username,
-    "phone": phone,
-    "email": email,
-    "clinic": clinic?.toJson(),
-    "branch": branch,
-    "isActive": isActive,
-    "lastLogin": lastLogin?.toIso8601String(),
-    "capabilities": capabilities.map((x) => x).toList(),
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-  };
-
+        "id": id,
+        "userType": userType,
+        "name": name,
+        "username": username,
+        "phone": phone,
+        "email": email,
+        "clinic": clinic?.toJson(),
+        "branch": branch,
+        "isActive": isActive,
+        "lastLogin": lastLogin?.toIso8601String(),
+        "capabilities": capabilities.map((x) => x).toList(),
+        "image": image,
+        "createdAt": createdAt?.toIso8601String(),
+        "updatedAt": updatedAt?.toIso8601String(),
+      };
 }
-

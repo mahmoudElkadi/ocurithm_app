@@ -29,6 +29,7 @@ class ChatMessagesState {
   final bool hasMore;
   final String? nextCursor;
   final bool isLoadingMore;
+  final DateTime? lastReadAt;
 
   const ChatMessagesState({
     this.status = ChatMessagesStatus.initial,
@@ -40,6 +41,7 @@ class ChatMessagesState {
     this.hasMore = false,
     this.nextCursor,
     this.isLoadingMore = false,
+    this.lastReadAt,
   });
 
   ChatMessagesState copyWith({
@@ -52,6 +54,7 @@ class ChatMessagesState {
     bool? hasMore,
     String? nextCursor,
     bool? isLoadingMore,
+    DateTime? lastReadAt,
   }) {
     return ChatMessagesState(
       status: status ?? this.status,
@@ -63,6 +66,7 @@ class ChatMessagesState {
       hasMore: hasMore ?? this.hasMore,
       nextCursor: nextCursor ?? this.nextCursor,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      lastReadAt: lastReadAt ?? this.lastReadAt,
     );
   }
 }

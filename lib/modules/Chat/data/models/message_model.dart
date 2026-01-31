@@ -1,10 +1,16 @@
+import '../../../../core/utils/format_helper.dart';
+
 /// Message status enum matching backend
-enum MessageStatus { sent, delivered, read }
+enum MessageStatus { pending, sent, delivered, read, error }
 
 /// Extension to convert string to MessageStatus
 extension MessageStatusExtension on String {
   MessageStatus toMessageStatus() {
     switch (toLowerCase()) {
+      case 'pending':
+        return MessageStatus.pending;
+      case 'error':
+        return MessageStatus.error;
       case 'delivered':
         return MessageStatus.delivered;
       case 'read':
@@ -20,6 +26,10 @@ extension MessageStatusExtension on String {
 extension MessageStatusToString on MessageStatus {
   String toStatusString() {
     switch (this) {
+      case MessageStatus.pending:
+        return 'pending';
+      case MessageStatus.error:
+        return 'error';
       case MessageStatus.delivered:
         return 'delivered';
       case MessageStatus.read:
@@ -53,6 +63,13 @@ class MessageModel {
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
+    DateTime? parsedDate;
+    final dateValue = json['createdAt'];
+    if (dateValue is String) {
+      parsedDate = DateTime.tryParse(dateValue);
+      parsedDate ??= FormatHelper.formatUtcTime(dateValue);
+    }
+
     return MessageModel(
       id: json['id'] ?? '',
       content: json['content'] ?? '',
@@ -60,9 +77,7 @@ class MessageModel {
       isMine: json['isMine'] ?? false,
       status:
           (json['status'] as String?)?.toMessageStatus() ?? MessageStatus.sent,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : DateTime.now(),
+      createdAt: parsedDate ?? DateTime.now(),
       threadId: json['threadId'],
       senderName: json['senderName'],
     );

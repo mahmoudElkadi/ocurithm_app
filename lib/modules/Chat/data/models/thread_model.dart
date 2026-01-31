@@ -1,3 +1,4 @@
+import '../../../../core/utils/format_helper.dart';
 import 'participant_model.dart';
 import 'last_message_model.dart';
 
@@ -30,11 +31,9 @@ class ThreadModel {
           : null,
       unreadCount: json['unreadCount'] ?? 0,
       isActive: json['isActive'] ?? true,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'])
-          : DateTime.now(),
-      createdAt:
-          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt:
+          FormatHelper.formatUtcTime(json['updatedAt']) ?? DateTime.now(),
+      createdAt: FormatHelper.formatUtcTime(json['createdAt']),
     );
   }
 

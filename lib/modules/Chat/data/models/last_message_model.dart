@@ -1,3 +1,4 @@
+import '../../../../core/utils/format_helper.dart';
 import 'message_model.dart';
 
 /// Model representing the last message preview in a thread
@@ -26,9 +27,8 @@ class LastMessageModel {
       isMine: json['isMine'] ?? false,
       status:
           (json['status'] as String?)?.toMessageStatus() ?? MessageStatus.sent,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : DateTime.now(),
+      createdAt:
+          FormatHelper.formatUtcTime(json['createdAt']) ?? DateTime.now(),
     );
   }
 

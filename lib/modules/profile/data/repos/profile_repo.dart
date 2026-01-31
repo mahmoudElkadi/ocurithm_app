@@ -7,6 +7,8 @@ abstract class ProfileRepo {
     String? name,
     String? email,
     String? phone,
+    String? image,
+    bool removeImage = false,
   });
   Future<ApiResponse<dynamic>> changePassword({
     required String currentPassword,

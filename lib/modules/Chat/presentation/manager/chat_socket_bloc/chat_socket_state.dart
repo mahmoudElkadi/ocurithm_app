@@ -30,6 +30,7 @@ class ChatSocketState {
   // Last received events data
   final MessageModel? lastNewMessage;
   final MessageModel? lastSentMessage;
+  final String? lastSentTempId;
   final Map<String, dynamic>? lastStatusUpdate;
   final Map<String, dynamic>? lastMessagesRead;
   final Map<String, dynamic>? lastThreadUpdate;
@@ -40,6 +41,12 @@ class ChatSocketState {
   // Currently opened thread ID (null if chat is closed or on chat list)
   final String? activeThreadId;
 
+  // Queue of messages waiting for connection to send
+  final List<MessageModel> pendingMessages;
+
+  // Track messages currently being emitted to avoid rapid duplicate sends
+  final Set<String> sendingMessageIds;
+
   const ChatSocketState({
     this.status = ChatSocketStatus.disconnected,
     this.errorMessage,
@@ -47,11 +54,14 @@ class ChatSocketState {
     this.lastEventType,
     this.lastNewMessage,
     this.lastSentMessage,
+    this.lastSentTempId,
     this.lastStatusUpdate,
     this.lastMessagesRead,
     this.lastThreadUpdate,
     this.lastEventTimestamp,
     this.activeThreadId,
+    this.pendingMessages = const [],
+    this.sendingMessageIds = const {},
   });
 
   ChatSocketState copyWith({
@@ -61,10 +71,13 @@ class ChatSocketState {
     ChatSocketEventType? lastEventType,
     MessageModel? lastNewMessage,
     MessageModel? lastSentMessage,
+    String? lastSentTempId,
     Map<String, dynamic>? lastStatusUpdate,
     Map<String, dynamic>? lastMessagesRead,
     Map<String, dynamic>? lastThreadUpdate,
     String? activeThreadId,
+    List<MessageModel>? pendingMessages,
+    Set<String>? sendingMessageIds,
     bool clearEvent = false,
     bool clearActiveThread = false,
   }) {
@@ -77,6 +90,8 @@ class ChatSocketState {
           clearEvent ? null : (lastNewMessage ?? this.lastNewMessage),
       lastSentMessage:
           clearEvent ? null : (lastSentMessage ?? this.lastSentMessage),
+      lastSentTempId:
+          clearEvent ? null : (lastSentTempId ?? this.lastSentTempId),
       lastStatusUpdate:
           clearEvent ? null : (lastStatusUpdate ?? this.lastStatusUpdate),
       lastMessagesRead:
@@ -88,6 +103,8 @@ class ChatSocketState {
           : (lastEventType != null ? DateTime.now() : lastEventTimestamp),
       activeThreadId:
           clearActiveThread ? null : (activeThreadId ?? this.activeThreadId),
+      pendingMessages: pendingMessages ?? this.pendingMessages,
+      sendingMessageIds: sendingMessageIds ?? this.sendingMessageIds,
     );
   }
 

@@ -102,4 +102,21 @@ class FormatHelper {
 
     return age.toString();
   }
+
+  static DateTime? formatUtcTime(String? utcTimeString) {
+    try {
+      // Validate input format
+      if (utcTimeString == null || utcTimeString.isEmpty) {
+        return null;
+      }
+
+      // Replace space with 'T' and add 'Z' suffix
+      final formattedTime = '${utcTimeString.replaceFirst(' ', 'T')}Z';
+
+      // Parse and convert to local time
+      return DateTime.parse(formattedTime).toLocal();
+    } catch (e) {
+      return null;
+    }
+  }
 }

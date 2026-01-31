@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/views/Reception%20Dashboard/presentation/views/widgets/receptionist_view_body.dart';
@@ -35,30 +36,31 @@ class ReceptionistView extends StatelessWidget {
           return CustomScaffold(
             title: "Receptionists",
             actions: [
-              if (CacheHelper.getStringList(key: "capabilities")
-                  .contains("manageReciptionists"))
-                IconButton(
-                  onPressed: () async {
-                    // Navigate to add receptionist form
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ReceptionistFormPage(
-                          mode: ReceptionistFormMode.add,
+                manageCapability(
+                  capability: "manageReciptionists",
+                  child: IconButton(
+                    onPressed: () async {
+                      // Navigate to add receptionist form
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ReceptionistFormPage(
+                            mode: ReceptionistFormMode.add,
+                          ),
                         ),
-                      ),
-                    );
+                      );
 
-                    // Refresh list if receptionist was added
-                    if (result == true) {
-                      context.read<GetReceptionistsCubit>().add(
-                            GetAllReceptionistsEvent(),
-                          );
-                    }
-                  },
-                  icon: SvgPicture.asset(
-                    "assets/icons/add_user.svg",
-                    color: theme.primaryColor,
+                      // Refresh list if receptionist was added
+                      if (result == true) {
+                        context.read<GetReceptionistsCubit>().add(
+                              GetAllReceptionistsEvent(),
+                            );
+                      }
+                    },
+                    icon: SvgPicture.asset(
+                      "assets/icons/add_user.svg",
+                      color: theme.primaryColor,
+                    ),
                   ),
                 ),
             ],

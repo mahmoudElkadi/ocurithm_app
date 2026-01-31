@@ -17,12 +17,19 @@ class SendMessageEvent extends ChatMessagesEvent {
 
 class AddOptimisticMessageEvent extends ChatMessagesEvent {
   final String content;
-  AddOptimisticMessageEvent({required this.content});
+  final String? tempId;
+  AddOptimisticMessageEvent({required this.content, this.tempId});
+}
+
+class AddPendingMessagesEvent extends ChatMessagesEvent {
+  final List<MessageModel> messages;
+  AddPendingMessagesEvent({required this.messages});
 }
 
 class AddMessageEvent extends ChatMessagesEvent {
   final MessageModel message;
-  AddMessageEvent({required this.message});
+  final String? tempId;
+  AddMessageEvent({required this.message, this.tempId});
 }
 
 class UpdateMessageStatusEvent extends ChatMessagesEvent {

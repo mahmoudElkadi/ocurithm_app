@@ -57,8 +57,8 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // Clear active thread when leaving
-    context.read<ChatSocketBloc>().add(ClearActiveThreadEvent());
+    // Clear active thread when leaving - use sl instead of context in dispose
+    sl<ChatSocketBloc>().add(ClearActiveThreadEvent());
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -108,9 +108,11 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
     final content = _controller.text.trim();
     if (content.isEmpty) return;
 
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+
     // 1. Optimistic update in messages list
     context.read<ChatMessagesBloc>().add(
-          AddOptimisticMessageEvent(content: content),
+          AddOptimisticMessageEvent(content: content, tempId: tempId),
         );
 
     // 2. Send via socket
@@ -118,6 +120,7 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
           SendMessageViaSocketEvent(
             threadId: widget.thread.id,
             content: content,
+            tempId: tempId,
           ),
         );
 
@@ -165,9 +168,13 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
             socketState.lastSentMessage != null) {
           final message = socketState.lastSentMessage!;
           if (message.threadId == widget.thread.id) {
-            context
-                .read<ChatMessagesBloc>()
-                .add(AddMessageEvent(message: message));
+            context.read<ChatMessagesBloc>().add(
+                  AddMessageEvent(
+                    message: message,
+                    tempId: socketState.lastSentTempId,
+                  ),
+                );
+            context.read<ChatSocketBloc>().add(ClearSocketEventsEvent());
             _scrollToBottom();
           }
         }
@@ -375,19 +382,29 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (!isConnected)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(strokeWidth: 2)),
+                        Icon(Icons.cloud_off,
+                            size: 14, color: Colors.red.shade700),
                         const SizedBox(width: 8),
-                        Text('Connecting...',
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.orange.shade700)),
+                        Text(
+                          'Offline - Messages will send when connected',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.red.shade800,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -397,27 +414,52 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).scaffoldBackgroundColor,
+                          color: isConnected
+                              ? Theme.of(context).scaffoldBackgroundColor
+                              : Theme.of(context)
+                                  .scaffoldBackgroundColor
+                                  .withOpacity(0.5),
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: TextField(
                           controller: _controller,
+                          enabled: isConnected,
                           textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _sendMessage(),
-                          decoration: const InputDecoration(
-                            hintText: 'Type a message...',
+                          onSubmitted:
+                              isConnected ? (_) => _sendMessage() : null,
+                          style: TextStyle(
+                            color: isConnected ? null : Colors.grey,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: isConnected
+                                ? 'Type a message...'
+                                : 'Waiting for connection...',
+                            hintStyle: TextStyle(
+                              color: isConnected ? null : Colors.grey.shade400,
+                            ),
                             border: InputBorder.none,
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    IconButton(
-                      icon: Icon(Icons.send,
+                    InkWell(
+                      onTap: isConnected ? _sendMessage : null,
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
                           color: isConnected
                               ? Theme.of(context).primaryColor
-                              : Colors.grey),
-                      onPressed: isConnected ? _sendMessage : null,
+                              : Colors.grey.shade300,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.send,
+                          size: 20,
+                          color: isConnected ? Colors.white : Colors.grey,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -505,6 +547,14 @@ class _MessageBubble extends StatelessWidget {
     Color color = Colors.white70;
 
     switch (status) {
+      case MessageStatus.pending:
+        icon = Icons.access_time;
+        color = Colors.white60;
+        break;
+      case MessageStatus.error:
+        icon = Icons.error_outline;
+        color = Colors.redAccent;
+        break;
       case MessageStatus.sent:
         icon = Icons.done;
         break;

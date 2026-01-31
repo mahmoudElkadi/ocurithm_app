@@ -28,6 +28,8 @@ class ProfileRepoImpl implements ProfileRepo {
     String? name,
     String? email,
     String? phone,
+    String? image,
+    bool removeImage = false,
   }) async {
     try {
       final response = await _apiHandler.patch<ProfileModel>(
@@ -36,6 +38,7 @@ class ProfileRepoImpl implements ProfileRepo {
           if (name != null && name.isNotEmpty) "name": name,
           if (email != null && email.isNotEmpty) "email": email,
           if (phone != null && phone.isNotEmpty) "phone": phone,
+          if (removeImage) "image": null else if (image != null) "image": image,
         },
         fromJson: (json) => ProfileModel.fromJson(json),
       );

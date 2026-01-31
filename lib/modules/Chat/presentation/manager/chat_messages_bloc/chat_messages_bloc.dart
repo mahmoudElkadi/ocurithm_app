@@ -19,7 +19,12 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
     on<UpdateMessageStatusEvent>(_onUpdateMessageStatus);
     on<MarkMessagesAsReadEvent>(_onMarkMessagesAsRead);
     on<ClearMessagesEvent>(_onClearMessages);
-    on<ResetMessagesEvent>(_onReset);
+    on<ResetMessagesEvent>(_onResetMessages);
+    on<AddPendingMessagesEvent>(_onAddPendingMessages);
+  }
+
+  void _sortMessages(List<MessageModel> messages) {
+    messages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
   static ChatMessagesBloc get(BuildContext context) => BlocProvider.of(context);
@@ -49,11 +54,45 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
         final hasMore = data['hasMore'] as bool? ?? false;
         final nextCursor = data['nextCursor'] as String?;
 
+        // Find the latest read timestamp from history
+        DateTime? historicalReadAt;
+        for (final m in messages) {
+          if (m.status == MessageStatus.read) {
+            if (historicalReadAt == null ||
+                m.createdAt.isAfter(historicalReadAt)) {
+              historicalReadAt = m.createdAt;
+            }
+          }
+        }
+
+        // Merge with existing pending messages to preserve local-only state
+        final List<MessageModel> mergedMessages =
+            List<MessageModel>.from(messages);
+        final pendingMessages =
+            state.messages.where((m) => m.status == MessageStatus.pending);
+
+        for (final pending in pendingMessages) {
+          bool alreadyExists = mergedMessages.any((m) => m.id == pending.id);
+          if (!alreadyExists) {
+            alreadyExists = mergedMessages.any((m) =>
+                m.content == pending.content &&
+                m.isMine &&
+                m.createdAt.difference(pending.createdAt).inMinutes.abs() < 1);
+          }
+          if (!alreadyExists) {
+            mergedMessages.insert(0, pending);
+          }
+        }
+
+        // Sort: Newest first (index 0)
+        _sortMessages(mergedMessages);
+
         emit(state.copyWith(
           status: ChatMessagesStatus.success,
-          messages: messages,
+          messages: mergedMessages,
           hasMore: hasMore,
           nextCursor: nextCursor,
+          lastReadAt: historicalReadAt,
         ));
       } else {
         emit(state.copyWith(
@@ -97,7 +136,13 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
         final hasMore = data['hasMore'] as bool? ?? false;
         final nextCursor = data['nextCursor'] as String?;
 
-        final allMessages = [...state.messages, ...newMessages];
+        final allMessages = List<MessageModel>.from(state.messages);
+        for (final msg in newMessages) {
+          if (!allMessages.any((m) => m.id == msg.id)) {
+            allMessages.add(msg);
+          }
+        }
+        _sortMessages(allMessages);
 
         emit(state.copyWith(
           messages: allMessages,
@@ -134,6 +179,7 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
       );
 
       final messagesWithTemp = [tempMessage, ...state.messages];
+      _sortMessages(messagesWithTemp);
       emit(state.copyWith(messages: messagesWithTemp));
 
       final result = await chatRepo.sendMessage(
@@ -177,16 +223,44 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
     Emitter<ChatMessagesState> emit,
   ) async {
     final tempMessage = MessageModel(
-      id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+      id: event.tempId ?? 'temp_${DateTime.now().millisecondsSinceEpoch}',
       content: event.content,
       senderId: '',
       isMine: true,
-      status: MessageStatus.sent,
+      status: MessageStatus.pending,
       createdAt: DateTime.now(),
       threadId: state.threadId,
     );
 
     final updatedMessages = [tempMessage, ...state.messages];
+    _sortMessages(updatedMessages);
+    emit(state.copyWith(messages: updatedMessages));
+  }
+
+  Future<void> _onAddPendingMessages(
+    AddPendingMessagesEvent event,
+    Emitter<ChatMessagesState> emit,
+  ) async {
+    final updatedMessages = List<MessageModel>.from(state.messages);
+
+    for (final pending in event.messages) {
+      // Deduplicate by ID OR (content + proximity)
+      bool exists = updatedMessages.any((m) => m.id == pending.id);
+      if (!exists && pending.id.startsWith('temp_')) {
+        exists = updatedMessages.any((m) =>
+            m.content == pending.content &&
+            m.isMine &&
+            m.createdAt.difference(pending.createdAt).inMinutes.abs() < 1);
+      }
+
+      if (!exists) {
+        updatedMessages.insert(0, pending);
+      }
+    }
+
+    // Sort: Newest first (index 0)
+    _sortMessages(updatedMessages);
+
     emit(state.copyWith(messages: updatedMessages));
   }
 
@@ -194,26 +268,46 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
     AddMessageEvent event,
     Emitter<ChatMessagesState> emit,
   ) async {
-    // Check if it replaces an optimistic message (by content and proximity)
-    // Actually, usually socket returns the full message including the temp ID if handled correctly,
-    // but here we'll just check if a message with same content and isMine:true exists within last 5 seconds.
+    MessageModel messageToAdd = event.message;
 
-    // Better logic: if event.message.isMine is true, try to replace a 'temp_' message.
-    if (event.message.isMine) {
-      final tempIndex =
-          state.messages.indexWhere((m) => m.id.startsWith('temp_'));
+    // Apply global read status if this message is mine and sent AFTER a read event was already processed
+    if (messageToAdd.isMine && state.lastReadAt != null) {
+      if (messageToAdd.createdAt.isBefore(state.lastReadAt!) ||
+          messageToAdd.createdAt.isAtSameMomentAs(state.lastReadAt!)) {
+        messageToAdd = messageToAdd.copyWith(status: MessageStatus.read);
+      }
+    }
+
+    // Check if it replaces an optimistic message (by specific tempId or content proximity)
+    if (messageToAdd.isMine) {
+      int tempIndex = -1;
+
+      if (event.tempId != null) {
+        tempIndex = state.messages.indexWhere((m) => m.id == event.tempId);
+      }
+
+      // Fallback: search by content if tempId not found (for robustness)
+      if (tempIndex == -1) {
+        tempIndex = state.messages.indexWhere((m) =>
+            m.id.startsWith('temp_') && m.content == messageToAdd.content);
+      }
+
       if (tempIndex >= 0) {
         final updatedMessages = List<MessageModel>.from(state.messages);
-        updatedMessages[tempIndex] = event.message;
+        updatedMessages[tempIndex] = messageToAdd;
+        _sortMessages(updatedMessages);
         emit(state.copyWith(messages: updatedMessages));
         return;
       }
     }
 
-    // Check if message already exists by ID
-    if (state.messages.any((m) => m.id == event.message.id)) return;
+    // Check if message already exists by ID (to avoid duplicates from multiple listeners)
+    if (state.messages.any((m) => m.id == messageToAdd.id)) return;
 
-    final updatedMessages = [event.message, ...state.messages];
+    final updatedMessages = [messageToAdd, ...state.messages];
+    // Sort to handle out-of-order socket events
+    _sortMessages(updatedMessages);
+
     emit(state.copyWith(messages: updatedMessages));
   }
 
@@ -222,13 +316,15 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
     Emitter<ChatMessagesState> emit,
   ) async {
     final bool isRead = event.status == MessageStatus.read;
-    DateTime? readUntil;
+    DateTime? readUntil = state.lastReadAt;
 
     if (isRead) {
       final target =
           state.messages.where((m) => m.id == event.messageId).firstOrNull;
       if (target != null) {
-        readUntil = target.createdAt;
+        if (readUntil == null || target.createdAt.isAfter(readUntil)) {
+          readUntil = target.createdAt;
+        }
       }
     }
 
@@ -241,14 +337,18 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
           m.isMine &&
           readUntil != null &&
           m.status != MessageStatus.read) {
-        if (m.createdAt.isBefore(readUntil)) {
+        if (m.createdAt.isBefore(readUntil) ||
+            m.createdAt.isAtSameMomentAs(readUntil)) {
           return m.copyWith(status: MessageStatus.read);
         }
       }
       return m;
     }).toList();
 
-    emit(state.copyWith(messages: updatedMessages));
+    emit(state.copyWith(
+      messages: updatedMessages,
+      lastReadAt: readUntil,
+    ));
   }
 
   Future<void> _onMarkMessagesAsRead(
@@ -256,7 +356,7 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
     Emitter<ChatMessagesState> emit,
   ) async {
     // Find the latest message timestamp in the read set to apply cascade
-    DateTime? latestReadTime;
+    DateTime? latestReadTime = state.lastReadAt;
     for (final id in event.messageIds) {
       final msg = state.messages.where((m) => m.id == id).firstOrNull;
       if (msg != null) {
@@ -274,14 +374,18 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
       if (latestReadTime != null &&
           m.isMine &&
           m.status != MessageStatus.read) {
-        if (m.createdAt.isBefore(latestReadTime)) {
+        if (m.createdAt.isBefore(latestReadTime) ||
+            m.createdAt.isAtSameMomentAs(latestReadTime)) {
           return m.copyWith(status: MessageStatus.read);
         }
       }
       return m;
     }).toList();
 
-    emit(state.copyWith(messages: updatedMessages));
+    emit(state.copyWith(
+      messages: updatedMessages,
+      lastReadAt: latestReadTime,
+    ));
   }
 
   Future<void> _onClearMessages(
@@ -296,7 +400,7 @@ class ChatMessagesBloc extends Bloc<ChatMessagesEvent, ChatMessagesState> {
     ));
   }
 
-  Future<void> _onReset(
+  Future<void> _onResetMessages(
     ResetMessagesEvent event,
     Emitter<ChatMessagesState> emit,
   ) async {

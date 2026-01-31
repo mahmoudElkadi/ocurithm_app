@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 import '../../../../../core/utils/audio_services.dart';
 import '../../../../../core/Network/shared.dart';
@@ -16,6 +17,7 @@ part 'chat_socket_state.dart';
 class ChatSocketBloc extends Bloc<ChatSocketEvent, ChatSocketState> {
   IO.Socket? _socket;
   String? _currentUserId;
+  StreamSubscription<InternetStatus>? _connectivitySubscription;
 
   ChatSocketBloc() : super(const ChatSocketState()) {
     on<ConnectSocketEvent>(_onConnect);
@@ -26,14 +28,24 @@ class ChatSocketBloc extends Bloc<ChatSocketEvent, ChatSocketState> {
     on<ClearSocketEventsEvent>(_onClearEvents);
     on<SetActiveThreadEvent>(_onSetActiveThread);
     on<ClearActiveThreadEvent>(_onClearActiveThread);
+    on<RetryPendingMessagesEvent>(_onRetryPendingMessages);
+    on<_LoadPendingMessagesEvent>(_onLoadPendingMessages);
+
+    // Initial load of pending messages
+    add(const _LoadPendingMessagesEvent());
 
     // Internal socket events
-    on<_SocketConnectedEvent>((event, emit) =>
-        emit(state.copyWith(status: ChatSocketStatus.connected)));
+    on<_SocketConnectedEvent>((event, emit) {
+      emit(state.copyWith(status: ChatSocketStatus.connected));
+      // Auto-retry pending messages on connection
+      add(RetryPendingMessagesEvent());
+    });
     on<_SocketDisconnectedEvent>((event, emit) => emit(state.copyWith(
         status: ChatSocketStatus.disconnected, clearEvent: true)));
     on<_SocketErrorEvent>((event, emit) => emit(state.copyWith(
-        status: ChatSocketStatus.error, errorMessage: event.error)));
+        status: ChatSocketStatus.error,
+        errorMessage: event.error,
+        sendingMessageIds: {}))); // Clear sending queue on error to allow retry
     on<SocketNewMessageEvent>(_onNewMessage);
     on<SocketMessageSentEvent>(_onMessageSent);
     on<SocketMessageStatusEvent>(_onMessageStatus);
@@ -41,10 +53,25 @@ class ChatSocketBloc extends Bloc<ChatSocketEvent, ChatSocketState> {
     on<SocketUserOnlineEvent>(_onUserOnline);
     on<SocketUserOfflineEvent>(_onUserOffline);
     on<SocketThreadUpdatedEvent>(_onThreadUpdated);
+
+    // Initial load of pending messages
+    add(const _LoadPendingMessagesEvent());
+
+    // Listen for internet connection changes to auto-reconnect
+    _connectivitySubscription =
+        InternetConnection().onStatusChange.listen((status) {
+      if (status == InternetStatus.connected) {
+        if (_socket == null || !_socket!.connected) {
+          print('🌐 [ChatSocket] Internet restored, attempting reconnection');
+          add(ConnectSocketEvent());
+        }
+      }
+    });
   }
 
   @override
   Future<void> close() {
+    _connectivitySubscription?.cancel();
     _socket?.disconnect();
     _socket?.dispose();
     return super.close();
@@ -214,19 +241,77 @@ class ChatSocketBloc extends Bloc<ChatSocketEvent, ChatSocketState> {
     SendMessageViaSocketEvent event,
     Emitter<ChatSocketState> emit,
   ) async {
+    // Generate a temporary message for pending tracking
+    final tempId =
+        event.tempId ?? 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    final pendingMsg = MessageModel(
+      id: tempId,
+      content: event.content,
+      senderId: _currentUserId ?? '',
+      isMine: true,
+      status: MessageStatus.pending,
+      createdAt: DateTime.now(),
+      threadId: event.threadId,
+    );
+
     if (_socket == null || !_socket!.connected) {
-      print('⚠️ [ChatSocket] Cannot send message: socket not connected');
-      log('[ChatSocket] Cannot send message: socket not connected');
+      print('⚠️ [ChatSocket] Socket not connected, adding to pending queue');
+      log('[ChatSocket] Socket not connected, adding to pending queue');
+
+      final updatedPending = List<MessageModel>.from(state.pendingMessages)
+        ..add(pendingMsg);
+      emit(state.copyWith(pendingMessages: updatedPending));
+      _savePendingMessages(updatedPending);
+
       add(ConnectSocketEvent());
       return;
     }
 
+    // Prevent duplicate emits if already sending
+    if (state.sendingMessageIds.contains(tempId)) return;
+
     print('📤 [ChatSocket] SENDING message to thread: ${event.threadId}');
     log('[ChatSocket] Sending message to thread: ${event.threadId}');
+
+    final newSendingIds = Set<String>.from(state.sendingMessageIds)
+      ..add(tempId);
+    emit(state.copyWith(sendingMessageIds: newSendingIds));
+
     _socket!.emit('send_message', {
       'threadId': event.threadId,
       'content': event.content,
+      'tempId': tempId, // Use the same tempId
     });
+  }
+
+  Future<void> _onRetryPendingMessages(
+    RetryPendingMessagesEvent event,
+    Emitter<ChatSocketState> emit,
+  ) async {
+    if (_socket == null || !_socket!.connected || state.pendingMessages.isEmpty)
+      return;
+
+    print(
+        '🔄 [ChatSocket] RETRYING ${state.pendingMessages.length} pending messages');
+
+    final updatedSendingIds = Set<String>.from(state.sendingMessageIds);
+    bool shouldEmit = false;
+
+    for (final msg in state.pendingMessages) {
+      if (!updatedSendingIds.contains(msg.id)) {
+        updatedSendingIds.add(msg.id);
+        shouldEmit = true;
+        _socket!.emit('send_message', {
+          'threadId': msg.threadId,
+          'content': msg.content,
+          'tempId': msg.id,
+        });
+      }
+    }
+
+    if (shouldEmit) {
+      emit(state.copyWith(sendingMessageIds: updatedSendingIds));
+    }
   }
 
   Future<void> _onMarkRead(
@@ -293,12 +378,67 @@ class ChatSocketBloc extends Bloc<ChatSocketEvent, ChatSocketState> {
     Emitter<ChatSocketState> emit,
   ) async {
     final message = MessageModel.fromJson(event.payload);
-    final updatedMessage = message.copyWith(isMine: true);
+
+    // Check if this matches a pending message and remove it
+    final tempId = event.payload['tempId'];
+    List<MessageModel> updatedPending =
+        List<MessageModel>.from(state.pendingMessages);
+    final updatedSendingIds = Set<String>.from(state.sendingMessageIds);
+
+    if (tempId != null) {
+      updatedPending.removeWhere((m) => m.id == tempId);
+      updatedSendingIds.remove(tempId);
+    } else {
+      // Robust Fallback: Match by content, thread, and sender if tempId not provided
+      // Use a timestamp margin of 1 minute to avoid matching very old messages
+      final toRemove = updatedPending
+          .where((m) =>
+              m.threadId == message.threadId &&
+              m.content == message.content &&
+              m.isMine == true &&
+              m.createdAt.difference(message.createdAt).inMinutes.abs() < 1)
+          .toList();
+
+      for (var f in toRemove) {
+        updatedPending.remove(f);
+        updatedSendingIds.remove(f.id);
+      }
+    }
 
     emit(state.copyWith(
-      lastSentMessage: updatedMessage,
+      pendingMessages: updatedPending,
+      sendingMessageIds: updatedSendingIds,
+      lastSentMessage: message.copyWith(isMine: true),
+      lastSentTempId: tempId,
       lastEventType: ChatSocketEventType.messageSent,
     ));
+
+    if (updatedPending.length != state.pendingMessages.length) {
+      _savePendingMessages(updatedPending);
+    }
+  }
+
+  Future<void> _onLoadPendingMessages(
+    _LoadPendingMessagesEvent event,
+    Emitter<ChatSocketState> emit,
+  ) async {
+    try {
+      final pendingData = CacheHelper.getListOfMaps('pending_chat_messages');
+      final pendingMessages =
+          pendingData.map((m) => MessageModel.fromJson(m)).toList();
+      emit(state.copyWith(pendingMessages: pendingMessages));
+    } catch (e) {
+      log('Error loading pending messages: $e');
+    }
+  }
+
+  void _savePendingMessages(List<MessageModel> messages) {
+    try {
+      final data = messages.map((m) => m.toJson()).toList();
+      CacheHelper.saveListOfMaps('pending_chat_messages', data);
+    } catch (e) {
+      log('Error saving pending messages: $e');
+    }
   }
 
   Future<void> _onMessageStatus(

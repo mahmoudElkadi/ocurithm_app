@@ -483,6 +483,11 @@ class _ThreadTile extends StatelessWidget {
 
   Widget _buildStatusIcon(BuildContext context, MessageStatus status) {
     switch (status) {
+      case MessageStatus.pending:
+        return Icon(Icons.access_time, size: 14, color: Colors.grey.shade400);
+      case MessageStatus.error:
+        return const Icon(Icons.error_outline,
+            size: 14, color: Colors.redAccent);
       case MessageStatus.sent:
         return Icon(Icons.done, size: 16, color: Colors.grey.shade500);
       case MessageStatus.delivered:

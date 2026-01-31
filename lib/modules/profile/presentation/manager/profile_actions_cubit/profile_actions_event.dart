@@ -7,11 +7,15 @@ class UpdateProfileEvent extends ProfileActionsEvent {
   final String? name;
   final String? email;
   final String? phone;
+  final String? image;
+  final bool removeImage;
 
   UpdateProfileEvent({
-     this.name,
-     this.email,
-     this.phone,
+    this.name,
+    this.email,
+    this.phone,
+    this.image,
+    this.removeImage = false,
   });
 }
 

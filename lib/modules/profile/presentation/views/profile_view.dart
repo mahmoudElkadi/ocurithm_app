@@ -1,8 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import '../../../../core/utils/app_style.dart';
 import '../../../../core/utils/colors.dart';
@@ -208,11 +214,17 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
               child: CircleAvatar(
                 radius: 50.r,
                 backgroundColor: Colorz.grey200,
-                child: Text(
-                  profile.name?.substring(0, 1).toUpperCase() ?? "U",
-                  style: appStyle(
-                      context, 40, Colorz.primaryColor, FontWeight.bold),
-                ),
+                backgroundImage:
+                    (profile.image != null && profile.image!.isNotEmpty)
+                        ? NetworkImage(profile.image!)
+                        : null,
+                child: (profile.image != null && profile.image!.isNotEmpty)
+                    ? null
+                    : Text(
+                        profile.name?.substring(0, 1).toUpperCase() ?? "U",
+                        style: appStyle(
+                            context, 40, Colorz.primaryColor, FontWeight.bold),
+                      ),
               ),
             ),
           ],
@@ -395,6 +407,8 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
     final nameController = TextEditingController(text: profile.name);
     final emailController = TextEditingController(text: profile.email);
     String? phoneNumber = profile.phone?.toString();
+    String? currentImageUrl = profile.image;
+    bool isImageRemoved = false;
     final formKey = GlobalKey<FormState>();
 
     final cubit = context.read<ProfileActionsCubit>();
@@ -411,9 +425,12 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
             child: Form(
               key: formKey,
               child: StatefulBuilder(builder: (context, setState) {
+                final bool imageChanged =
+                    currentImageUrl != profile.image || isImageRemoved;
                 bool hasDataToUpdate = nameController.text != profile.name ||
                     emailController.text != profile.email ||
-                    (phoneNumber != profile.phone?.toString());
+                    (phoneNumber != profile.phone?.toString()) ||
+                    imageChanged;
 
                 return Column(
                   mainAxisSize: MainAxisSize.min,
@@ -435,6 +452,22 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                                 ? Colors.white
                                 : Colors.black,
                             FontWeight.bold)),
+                    SizedBox(height: 20.h),
+                    ProfileImagePicker(
+                      initialImageUrl: currentImageUrl,
+                      onImageUploaded: (url) {
+                        setState(() {
+                          currentImageUrl = url;
+                          isImageRemoved = false;
+                        });
+                      },
+                      onDelete: () {
+                        setState(() {
+                          currentImageUrl = null;
+                          isImageRemoved = true;
+                        });
+                      },
+                    ),
                     SizedBox(height: 20.h),
                     _buildTextField(
                         context, nameController, "Full Name", Icons.person,
@@ -470,9 +503,23 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                                     if (formKey.currentState!.validate()) {
                                       cubit.add(
                                         UpdateProfileEvent(
-                                          name: nameController.text,
-                                          email: emailController.text,
-                                          phone: phoneNumber,
+                                          name: nameController.text !=
+                                                  profile.name
+                                              ? nameController.text
+                                              : null,
+                                          email: emailController.text !=
+                                                  profile.email
+                                              ? emailController.text
+                                              : null,
+                                          phone: phoneNumber !=
+                                                  profile.phone?.toString()
+                                              ? phoneNumber
+                                              : null,
+                                          image:
+                                              (imageChanged && !isImageRemoved)
+                                                  ? currentImageUrl
+                                                  : null,
+                                          removeImage: isImageRemoved,
                                         ),
                                       );
                                       Navigator.pop(context);
@@ -879,5 +926,297 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
         ],
       ),
     );
+  }
+}
+
+// Profile Image Picker Widget (reused from Receptionist)
+class ProfileImagePicker extends StatefulWidget {
+  final Function(String) onImageUploaded;
+  final String? initialImageUrl;
+  final bool? readOnly;
+  final Function() onDelete;
+
+  const ProfileImagePicker({
+    Key? key,
+    required this.onImageUploaded,
+    this.initialImageUrl,
+    this.readOnly = false,
+    required this.onDelete,
+  }) : super(key: key);
+
+  @override
+  State<ProfileImagePicker> createState() => _ProfileImagePickerState();
+}
+
+class _ProfileImagePickerState extends State<ProfileImagePicker> {
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploading = false;
+  bool _isImageDeleted = false;
+
+  void _handleDelete() {
+    setState(() {
+      _imageFile = null;
+      _isImageDeleted = true;
+    });
+    widget.onDelete();
+  }
+
+  Future<void> _uploadImage() async {
+    if (_imageFile == null) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      final url = await CloudinaryService.uploadImage(_imageFile!);
+
+      if (url != null) {
+        widget.onImageUploaded(url);
+      } else {
+        _showError('Failed to upload image');
+      }
+    } catch (e) {
+      _showError('Error uploading image: $e');
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        action: SnackBarAction(
+          label: 'Retry',
+          textColor: Colors.white,
+          onPressed: _uploadImage,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final file = File(pickedFile.path);
+        final sizeInBytes = await file.length();
+        final sizeInMb = sizeInBytes / (1024 * 1024);
+
+        if (sizeInMb > 10) {
+          _showError('Image size should be less than 10MB');
+          return;
+        }
+
+        setState(() {
+          _imageFile = file;
+          _isImageDeleted = false;
+        });
+        await _uploadImage();
+      }
+    } catch (e) {
+      _showError('Failed to pick image: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: theme.cardColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: _isUploading
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(color: theme.primaryColor),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Uploading...',
+                        style: TextStyle(
+                          color: theme.textTheme.bodySmall?.color,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ClipOval(
+                  child: _imageFile != null
+                      ? Image.file(
+                          _imageFile!,
+                          fit: BoxFit.cover,
+                          width: 120,
+                          height: 120,
+                        )
+                      : (!_isImageDeleted && widget.initialImageUrl != null)
+                          ? Image.network(
+                              widget.initialImageUrl!,
+                              fit: BoxFit.cover,
+                              width: 120,
+                              height: 120,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.person,
+                                      size: 60, color: Colors.grey),
+                            )
+                          : const Icon(Icons.person,
+                              size: 60, color: Colors.grey),
+                ),
+        ),
+        if (!_isUploading && widget.readOnly != true)
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: () => _showImageSourceDialog(_handleDelete),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colorz.primaryColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _showImageSourceDialog(Function() onDelete) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
+        title: const Text('Select Image Source'),
+        actions: <CupertinoActionSheetAction>[
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickImage(ImageSource.gallery);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.photo, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Choose from Gallery'),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickImage(ImageSource.camera);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.camera, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Take a Photo'),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              onDelete();
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.delete, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Delete Photo'),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text(
+            'Cancel',
+            style: TextStyle(
+              color: CupertinoColors.destructiveRed,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CloudinaryService {
+  static const String cloudName = 'dxsrhu3ku';
+  static const String uploadPreset = 'ocurithm';
+  static const String _baseUrl = 'https://api.cloudinary.com/v1_1/$cloudName';
+
+  static Future<String?> uploadImage(File imageFile) async {
+    try {
+      final url = Uri.parse('$_baseUrl/image/upload');
+      final request = http.MultipartRequest('POST', url);
+
+      request.fields['upload_preset'] = uploadPreset;
+      request.fields['folder'] = 'public';
+      request.fields['timestamp'] =
+          DateTime.now().millisecondsSinceEpoch.toString();
+
+      final bytes = await imageFile.readAsBytes();
+      final multipartFile = http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: imageFile.path.split('/').last,
+      );
+      request.files.add(multipartFile);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        return jsonResponse['secure_url'] as String;
+      } else {
+        throw Exception('Failed to upload image: ${response.body}');
+      }
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
   }
 }

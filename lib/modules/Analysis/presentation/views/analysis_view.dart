@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/services_locator.dart';
 import '../manager/analysis_cubit/get_analysis_cubit.dart';
 import 'widgets/analysis_view_body.dart';
+import 'widgets/chart_selection_dialog.dart';
+import '../../data/models/analysis_model.dart';
 
 class AnalysisView extends StatefulWidget {
   const AnalysisView({super.key, required this.patientId});
@@ -15,21 +17,53 @@ class AnalysisView extends StatefulWidget {
 class _AnalysisViewState extends State<AnalysisView> {
   EyeSelection _selectedEye = EyeSelection.both;
   int _resetCounter =
-  0; // Used to signal charts to reset their local selections
+      0; // Used to signal charts to reset their local selections
+
+  void _showPrintSelectionDialog(BuildContext context, AnalysisModel analysis) {
+    showDialog(
+      context: context,
+      builder: (context) => ChartSelectionDialog(
+        analysis: analysis,
+        currentEyeSelection: _selectedEye,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context)=>sl<GetAnalysisCubit>()..add(GetPatientAnalysisEvent(patientId:widget.patientId)),
-      child: Scaffold(
-        appBar:AppBar(
-          title: const Text('Analysis',style: TextStyle(fontWeight: FontWeight.w600,fontSize: 16),),
-          actions: [_buildOptionsMenu(Theme.of(context).brightness==Brightness.dark)],
-        ) ,
-        body: AnalysisViewBody(
-          selectedEye: _selectedEye,
-          resetCounter: _resetCounter,
-        ),
+      create: (context) => sl<GetAnalysisCubit>()
+        ..add(GetPatientAnalysisEvent(patientId: widget.patientId)),
+      child: BlocBuilder<GetAnalysisCubit, GetAnalysisState>(
+        builder: (context, state) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                'Analysis',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              ),
+              actions: [
+                if (state.isSuccess && state.analysis != null)
+                  IconButton(
+                    icon: Icon(
+                      Icons.print,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black87,
+                    ),
+                    onPressed: () =>
+                        _showPrintSelectionDialog(context, state.analysis!),
+                  ),
+                _buildOptionsMenu(
+                    Theme.of(context).brightness == Brightness.dark)
+              ],
+            ),
+            body: AnalysisViewBody(
+              selectedEye: _selectedEye,
+              resetCounter: _resetCounter,
+            ),
+          );
+        },
       ),
     );
   }

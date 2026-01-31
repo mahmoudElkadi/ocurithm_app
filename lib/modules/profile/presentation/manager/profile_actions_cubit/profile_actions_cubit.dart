@@ -31,6 +31,8 @@ class ProfileActionsCubit
         name: event.name,
         email: event.email,
         phone: event.phone,
+        image: event.image,
+        removeImage: event.removeImage,
       );
 
       if (result.success) {
@@ -95,7 +97,7 @@ class ProfileActionsCubit
       if (e.toString().toLowerCase().contains('no internet connection')) {
         emit(state.copyWith(
           state: ProfileActionsStatus.noConnection,
-          actionType: ProfileActionType.changePassword, 
+          actionType: ProfileActionType.changePassword,
           errorMessage: e.toString(),
         ));
         return;

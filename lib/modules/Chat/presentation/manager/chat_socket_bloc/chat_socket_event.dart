@@ -15,9 +15,11 @@ class DisconnectSocketEvent extends ChatSocketEvent {}
 class SendMessageViaSocketEvent extends ChatSocketEvent {
   final String threadId;
   final String content;
+  final String? tempId;
   const SendMessageViaSocketEvent({
     required this.threadId,
     required this.content,
+    this.tempId,
   });
 }
 
@@ -86,6 +88,13 @@ class SetActiveThreadEvent extends ChatSocketEvent {
 
 /// Event to clear the currently active thread
 class ClearActiveThreadEvent extends ChatSocketEvent {}
+
+/// Event to retry sending messages that failed due to connection issues
+class RetryPendingMessagesEvent extends ChatSocketEvent {}
+
+class _LoadPendingMessagesEvent extends ChatSocketEvent {
+  const _LoadPendingMessagesEvent();
+}
 
 // --- Internal Socket Events ---
 
