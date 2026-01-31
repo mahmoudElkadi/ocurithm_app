@@ -80,6 +80,9 @@ dependencies:
   get_it: ^9.1.1
   rxdart: ^0.28.0
   fl_chart: ^0.69.0
+  socket_io_client: ^3.0.2
+  audioplayers: ^6.5.1
+
 
   flutter_localizations:
     sdk: flutter
@@ -108,6 +111,8 @@ flutter:
   assets:
     - assets/files/
     - assets/icons/
+    - assets/sounds/notification.mp3
+    - assets/sounds/msg.mp3
     # - packages/booking_calendar/assets/name_icon.svg
     # - packages/booking_calendar/assets/examination.svg
     # - packages/booking_calendar/assets/id.svg

@@ -45,4 +45,14 @@ class ApiConstants {
 
   static String get storageBulkDelete => "storage/bulk";
 
+  // Chat Module
+  static String get chatUsers => "chat/users";
+  static String get chatThreads => "chat/threads";
+  static String chatThread(String threadId) => "chat/threads/$threadId";
+  static String chatMessages(String threadId) =>
+      "chat/threads/$threadId/messages";
+
+  // WebSocket
+  static String get chatSocketUrl => baseUrl.replaceFirst('/api/', '');
+  static String get chatSocketNamespace => "/chat";
 }

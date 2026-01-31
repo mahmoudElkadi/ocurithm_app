@@ -13,6 +13,7 @@ import '../manager/medicine_actions_cubit/medicine_actions_cubit.dart';
 import 'widgets/medicine_bottom_sheet.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
+import '../../../../../core/utils/snackbar_service.dart';
 
 class MedicineView extends StatelessWidget {
   const MedicineView({super.key});
@@ -237,7 +238,10 @@ class _ActiveIngredientsList extends StatelessWidget {
     return BlocConsumer<MedicineActionsCubit, MedicineActionsState>(
       listener: (context, actionState) {
         if (actionState is MedicineActionsSuccess) {
+          SnackbarService.showSuccess(context, message: actionState.message);
           context.read<GetActiveIngredientsCubit>().getActiveIngredients();
+        } else if (actionState is MedicineActionsError) {
+          SnackbarService.showError(context, message: actionState.error);
         }
       },
       builder: (context, actionState) {

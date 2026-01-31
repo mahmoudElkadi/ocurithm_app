@@ -9,6 +9,7 @@ class ChatMockData {
       time: '12:30 PM',
       avatar: 'https://i.pravatar.cc/150?u=ahmed',
       unreadCount: 2,
+      status: null, // Received message
     ),
     ChatModel(
       id: '2',
@@ -17,14 +18,16 @@ class ChatMockData {
       time: '11:45 AM',
       avatar: 'https://i.pravatar.cc/150?u=sarah',
       unreadCount: 0,
+      status: MessageStatus.seen, // Sent and seen
     ),
     ChatModel(
       id: '3',
       name: 'Dr. Khaled',
       lastMessage: 'Please check the patient status.',
-      time: '昨天',
+      time: 'Yesterday',
       avatar: 'https://i.pravatar.cc/150?u=khaled',
       unreadCount: 5,
+      status: null, // Received message
     ),
     ChatModel(
       id: '4',
@@ -33,6 +36,7 @@ class ChatMockData {
       time: 'Monday',
       avatar: 'https://i.pravatar.cc/150?u=team',
       unreadCount: 0,
+      status: MessageStatus.delivered, // Sent and delivered
     ),
   ];
 
@@ -41,7 +45,8 @@ class ChatMockData {
         id: '1',
         text: 'Hi Sarah!',
         time: DateTime.now().subtract(const Duration(minutes: 10)),
-        isMe: true),
+        isMe: true,
+        status: MessageStatus.seen),
     MessageModel(
         id: '2',
         text: 'Hello! How is it going?',
@@ -51,7 +56,8 @@ class ChatMockData {
         id: '3',
         text: 'Great, I finished the design for the new chat module.',
         time: DateTime.now().subtract(const Duration(minutes: 8)),
-        isMe: true),
+        isMe: true,
+        status: MessageStatus.seen),
     MessageModel(
         id: '4',
         text: 'Awesome! Can I see it?',
@@ -61,11 +67,18 @@ class ChatMockData {
         id: '5',
         text: 'Sure, I will send you the prototype link shortly.',
         time: DateTime.now().subtract(const Duration(minutes: 5)),
-        isMe: true),
+        isMe: true,
+        status: MessageStatus.delivered),
     MessageModel(
         id: '6',
         text: 'Perfect, waiting for it.',
         time: DateTime.now().subtract(const Duration(minutes: 2)),
         isMe: false),
+    MessageModel(
+        id: '7',
+        text: 'Sending it now...',
+        time: DateTime.now().subtract(const Duration(minutes: 1)),
+        isMe: true,
+        status: MessageStatus.sent),
   ];
 }

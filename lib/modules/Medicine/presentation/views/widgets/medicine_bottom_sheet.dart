@@ -15,6 +15,7 @@ import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart'
     as clinic_model;
 import '../../../../../../core/Network/shared.dart';
+import '../../../../../core/utils/snackbar_service.dart';
 
 enum MedicineFormType { medicine, activeIngredient }
 
@@ -143,20 +144,10 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
         if (state is MedicineActionsSuccess) {
           Navigator.pop(context); // Pop loading
           Navigator.pop(context); // Pop BottomSheet
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
-          );
+          SnackbarService.showSuccess(context, message: state.message);
         } else if (state is MedicineActionsError) {
           Navigator.pop(context); // Pop loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.error),
-              backgroundColor: Colors.red,
-            ),
-          );
+          SnackbarService.showError(context, message: state.error);
         }
       },
       builder: (context, state) {
@@ -488,9 +479,8 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
       if (_currentType == MedicineFormType.medicine) {
         if (_selectedActiveIngredient == null) {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please select an Active Ingredient")),
-          );
+          SnackbarService.showWarning(context,
+              message: "Please select an Active Ingredient");
           return;
         }
 

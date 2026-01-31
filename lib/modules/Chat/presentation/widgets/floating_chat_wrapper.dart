@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+
+import '../../../../core/Network/shared.dart';
+import '../../../../core/utils/services_locator.dart';
+import '../manager/chat_threads_bloc/chat_threads_bloc.dart';
+import '../manager/chat_socket_bloc/chat_socket_bloc.dart';
 import '../views/chat_list_view.dart';
-import '../../data/mock_data.dart';
 
 class FloatingChatWrapper extends StatefulWidget {
   final Widget child;
@@ -16,6 +21,22 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper> {
   bool isDragging = false;
   bool isInitialized = false;
   bool isChatOpen = false;
+
+  late ChatThreadsBloc _threadsBloc;
+  late ChatSocketBloc _socketBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _threadsBloc = sl<ChatThreadsBloc>();
+    _socketBloc = sl<ChatSocketBloc>();
+
+    // Connect to socket
+    _socketBloc.add(ConnectSocketEvent());
+
+    // Initial fetch
+    _threadsBloc.add(FetchThreadsEvent());
+  }
 
   @override
   void didChangeDependencies() {
@@ -43,54 +64,112 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper> {
 
     if (mounted) {
       setState(() => isChatOpen = false);
+      // Optional: clear socket events when closing list to avoid re-triggering
+      _socketBloc.add(ClearSocketEventsEvent());
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final unreadCount =
-        ChatMockData.chats.fold<int>(0, (sum, item) => sum + item.unreadCount);
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: _threadsBloc),
+        BlocProvider.value(value: _socketBloc),
+      ],
+      child: BlocListener<ChatSocketBloc, ChatSocketState>(
+        listener: (context, socketState) {
+          // Listen for new messages to update the badge in real-time
+          if (socketState.lastEventType == ChatSocketEventType.newMessage &&
+              socketState.lastNewMessage != null) {
+            _threadsBloc.add(HandleSocketNewMessageEvent(
+              message: socketState.lastNewMessage!,
+            ));
+          }
 
-    return Material(
-      color: Colors.transparent,
-      child: Stack(
-        children: [
-          widget.child,
-          AnimatedPositioned(
-            duration:
-                isDragging ? Duration.zero : const Duration(milliseconds: 300),
-            curve: Curves.easeOutBack,
-            left: position.dx,
-            top: position.dy,
-            child: IgnorePointer(
-              ignoring: isChatOpen,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: isChatOpen ? 0.0 : 1.0,
-                child: GestureDetector(
-                  onPanStart: (_) => setState(() => isDragging = true),
-                  onPanUpdate: (details) {
-                    setState(() {
-                      position += details.delta;
-                    });
-                  },
-                  onPanEnd: (details) {
-                    setState(() => isDragging = false);
-                    _snapToEdge();
-                  },
-                  onTap: _showChatList,
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: _ChatBubble(
-                      isDragging: isDragging,
-                      unreadCount: unreadCount,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          // Handle thread updates from socket
+          if (socketState.lastEventType == ChatSocketEventType.threadUpdated) {
+            _threadsBloc.add(RefreshThreadsEvent());
+          }
+
+          // Handle messages read
+          if (socketState.lastEventType == ChatSocketEventType.messagesRead) {
+            _threadsBloc.add(RefreshThreadsEvent());
+          }
+        },
+        child: Material(
+          color: Colors.transparent,
+          child: Stack(
+            children: [
+              widget.child,
+              StreamBuilder<void>(
+                  stream: Stream.periodic(const Duration(seconds: 1)),
+                  builder: (context, _) {
+                    final token = CacheHelper.getData(key: 'token');
+                    final currentRoute = Get.currentRoute;
+
+                    final bool isAuthScreen = currentRoute == '/LoginView' ||
+                        currentRoute == '/SplashScreen' ||
+                        currentRoute == '/LoadingScreen' ||
+                        currentRoute == '' ||
+                        currentRoute == '/';
+
+                    if (token != null && _socketBloc.state.isDisconnected) {
+                      _socketBloc.add(ConnectSocketEvent());
+                    }
+
+                    if (token == null || isAuthScreen) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return AnimatedPositioned(
+                      duration: isDragging
+                          ? Duration.zero
+                          : const Duration(milliseconds: 300),
+                      curve: Curves.easeOutBack,
+                      left: position.dx,
+                      top: position.dy,
+                      child: IgnorePointer(
+                        ignoring: isChatOpen,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: isChatOpen ? 0.0 : 1.0,
+                          child: GestureDetector(
+                            onPanStart: (_) =>
+                                setState(() => isDragging = true),
+                            onPanUpdate: (details) {
+                              setState(() {
+                                position += details.delta;
+                              });
+                            },
+                            onPanEnd: (details) {
+                              setState(() => isDragging = false);
+                              _snapToEdge();
+                            },
+                            onTap: _showChatList,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: BlocBuilder<ChatThreadsBloc,
+                                  ChatThreadsState>(
+                                builder: (context, state) {
+                                  final unreadCount = state.threads.fold<int>(
+                                    0,
+                                    (sum, thread) => sum + thread.unreadCount,
+                                  );
+                                  return _ChatBubble(
+                                    isDragging: isDragging,
+                                    unreadCount: unreadCount,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -168,14 +247,16 @@ class _ChatBubble extends StatelessWidget {
                   minWidth: 20,
                   minHeight: 20,
                 ),
-                child: Text(
-                  unreadCount > 9 ? '9+' : unreadCount.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                child: Center(
+                  child: Text(
+                    unreadCount > 9 ? '9+' : unreadCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
             ),

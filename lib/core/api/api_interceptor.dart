@@ -85,7 +85,6 @@ class AuthInterceptor extends Interceptor {
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
       options.headers['Cookie'] = 'ocurithmToken=$token';
-
     }
     super.onRequest(options, handler);
   }

@@ -439,7 +439,7 @@ class ApiHandler {
   Future<ApiResponse<T>> uploadMultipleFiles<T>(
     String path,
     List<String> filePaths, {
-    required String fieldName ,
+    required String fieldName,
     Map<String, dynamic>? additionalData,
     ProgressCallback? onSendProgress,
     String? cancelKey,
@@ -568,7 +568,7 @@ class ApiHandler {
     }
   }
 
-  Future<ApiResponse<T>> _handleError<T>(dynamic error) async{
+  Future<ApiResponse<T>> _handleError<T>(dynamic error) async {
     if (error is DioException) {
       switch (error.type) {
         case DioExceptionType.connectionTimeout:
@@ -619,9 +619,12 @@ class ApiHandler {
           if (!hasInternet) {
             log('HERE222');
 
-            return ApiResponse.error('No internet connection. Please check your network.', statusCode: 503);
+            return ApiResponse.error(
+                'No internet connection. Please check your network.',
+                statusCode: 503);
           }
-          return ApiResponse.error('Server error. Please try again later.', statusCode: 503);
+          return ApiResponse.error('Server error. Please try again later.',
+              statusCode: 503);
 
         default:
           return ApiResponse.error(

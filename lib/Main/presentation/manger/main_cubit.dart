@@ -18,6 +18,9 @@ import '../../../modules/Dashboard/presentation/views/dashboard_view.dart';
 import '../../../modules/Doctor/presentation/views/Doctor Dashboard/presentation/views/doctor_view.dart';
 import '../../../modules/Login/presentation/view/login_view.dart';
 import '../../../modules/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
+import 'dart:developer';
+import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/modules/Chat/presentation/manager/chat_socket_bloc/chat_socket_bloc.dart';
 import 'main_state.dart';
 
 class MainCubit extends Cubit<MainState> {
@@ -112,7 +115,7 @@ class MainCubit extends Cubit<MainState> {
       ],
       "showAppointments": [
         "Appointments",
-        const AppointmentView(), 
+        const AppointmentView(),
         "assets/icons/appointment.svg"
       ],
       "manageClinics": [
@@ -264,6 +267,13 @@ class MainCubit extends Cubit<MainState> {
 
   Future<void> logOut() async {
     emit(LogOutUserLoading());
+
+    // Disconnect chat socket
+    try {
+      sl<ChatSocketBloc>().add(DisconnectSocketEvent());
+    } catch (e) {
+      log('Error disconnecting socket during logout: $e');
+    }
 
     getx.Get.offAll(() => const LoginView());
     await CacheHelper.removeData(key: "token");

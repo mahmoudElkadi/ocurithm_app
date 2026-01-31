@@ -67,6 +67,14 @@ import '../../modules/profile/data/repos/profile_repo_impl.dart';
 import '../../modules/profile/presentation/manager/get_profile_cubit/get_profile_cubit.dart';
 import '../../modules/profile/presentation/manager/profile_actions_cubit/profile_actions_cubit.dart';
 
+// Chat Module
+import '../../modules/Chat/data/repos/chat_repo.dart';
+import '../../modules/Chat/data/repos/chat_repo_impl.dart';
+import '../../modules/Chat/presentation/manager/get_chat_users_bloc/get_chat_users_bloc.dart';
+import '../../modules/Chat/presentation/manager/chat_threads_bloc/chat_threads_bloc.dart';
+import '../../modules/Chat/presentation/manager/chat_messages_bloc/chat_messages_bloc.dart';
+import '../../modules/Chat/presentation/manager/chat_socket_bloc/chat_socket_bloc.dart';
+
 final sl = GetIt.instance;
 
 class ServiceLocator {
@@ -165,5 +173,13 @@ class ServiceLocator {
     sl.registerLazySingleton<ProfileRepo>(() => ProfileRepoImpl());
     sl.registerFactory(() => GetProfileCubit(sl.call<ProfileRepo>()));
     sl.registerFactory(() => ProfileActionsCubit(sl.call<ProfileRepo>()));
+
+    ///Chat
+    sl.registerLazySingleton<ChatRepo>(() => ChatRepoImpl());
+    sl.registerFactory(() => GetChatUsersBloc(sl.call<ChatRepo>()));
+    sl.registerLazySingleton(() => ChatThreadsBloc(
+        sl.call<ChatRepo>())); // Singleton to share unread counts
+    sl.registerFactory(() => ChatMessagesBloc(sl.call<ChatRepo>()));
+    sl.registerLazySingleton(() => ChatSocketBloc()); // Singleton for socket
   }
 }
