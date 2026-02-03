@@ -29,82 +29,112 @@ class MedicineRepoImpl implements MedicineRepo {
           "${ApiConstants.activeIngredients}/${commercialName.parentId!.id}/commercial-names";
     }
 
-    final result = await _apiHandler.post<CommercialName>(
-      path,
-      data: commercialName.toJson(),
-      options: _getOptions(),
-      fromJson: (json) => CommercialName.fromJson(json),
-    );
+    try {
+      final result = await _apiHandler.post<CommercialName>(
+        path,
+        data: {
+          "clinic": commercialName.clinic?.id,
+          "name": commercialName.name,
+          "description": commercialName.description,
+          "concentration": commercialName.concentration,
+        },
+        options: _getOptions(),
+        fromJson: (json) => CommercialName.fromJson(json),
+      );
 
-    if (result.success && result.data != null) {
-      return result.data!;
-    } else {
-      throw Exception(result.message ?? "Failed to add Medicine");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed to add Medicine");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<MedicinesModel> getAllMedicines({int? page, String? search}) async {
-    Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
+    Map<String, dynamic> query = {"page": page, 'limit': 25, "search": search};
+    try {
+      final result = await _apiHandler.get<MedicinesModel>(
+        ApiConstants.medicines,
+        queryParameters: query,
+        options: _getOptions(),
+        fromJson: (json) => MedicinesModel.fromJson(json),
+      );
 
-    final result = await _apiHandler.get<MedicinesModel>(
-      ApiConstants.medicines,
-      queryParameters: query,
-      options: _getOptions(),
-      fromJson: (json) => MedicinesModel.fromJson(json),
-    );
-
-    if (result.success && result.data != null) {
-      return result.data!;
-    } else {
-      throw Exception(result.message ?? "Failed fetch medicines");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed fetch medicines");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<CommercialName> getMedicine({required String id}) async {
-    final result = await _apiHandler.get<CommercialName>(
-      "${ApiConstants.medicines}/$id",
-      options: _getOptions(),
-      fromJson: (json) => CommercialName.fromJson(json),
-    );
+    try {
+      final result = await _apiHandler.get<CommercialName>(
+        "${ApiConstants.medicines}/$id",
+        options: _getOptions(),
+        fromJson: (json) => CommercialName.fromJson(json),
+      );
 
-    if (result.success && result.data != null) {
-      return result.data!;
-    } else {
-      throw Exception(result.message ?? "Failed fetch medicine");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed fetch medicine");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<CommercialName> updateMedicine(
       {required String id, required CommercialName commercialName}) async {
-    final result = await _apiHandler.put<CommercialName>(
-      "${ApiConstants.medicines}/$id",
-      data: commercialName.toJson(),
-      options: _getOptions(),
-      fromJson: (json) => CommercialName.fromJson(json),
-    );
+    try {
+      final result = await _apiHandler.put<CommercialName>(
+        "${ApiConstants.medicines}/$id",
+        data: {
+          "clinic": commercialName.clinic?.id,
+          "name": commercialName.name,
+          "description": commercialName.description,
+          "concentration": commercialName.concentration,
+          "parentId": commercialName.parentId?.id,
+        },
+        options: _getOptions(),
+        fromJson: (json) => CommercialName.fromJson(json),
+      );
 
-    if (result.success && result.data != null) {
-      return result.data!;
-    } else {
-      throw Exception(result.message ?? "Failed update medicine");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed update medicine");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<DataModel> deleteMedicine({required String id}) async {
-    final result = await _apiHandler.delete<DataModel>(
-      "${ApiConstants.medicines}/$id",
-      options: _getOptions(),
-      fromJson: (json) => DataModel.fromJson(json),
-    );
+    try {
+      final result = await _apiHandler.delete<DataModel>(
+        "${ApiConstants.medicines}/$id",
+        options: _getOptions(),
+        fromJson: (json) => DataModel.fromJson(json),
+      );
 
-    if (result.success && result.data != null) {
-      return result.data!;
-    } else {
-      throw Exception(result.message ?? "Failed delete medicine");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed delete medicine");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -115,72 +145,93 @@ class MedicineRepoImpl implements MedicineRepo {
       {int? page, String? search, bool? pagination, String? clinic}) async {
     Map<String, dynamic> query = {
       "page": page,
-      'limit': 10,
+      'limit': 25,
       "search": search,
       if (pagination != null) "pagination": pagination,
       if (clinic != null) "clinic": clinic
     };
+    try {
+      final result = await _apiHandler.get<ActiveIngredientModel>(
+        ApiConstants.activeIngredients,
+        queryParameters: query,
+        options: _getOptions(),
+        fromJson: (json) => ActiveIngredientModel.fromJson(json),
+      );
 
-    final result = await _apiHandler.get<ActiveIngredientModel>(
-      ApiConstants.activeIngredients,
-      queryParameters: query,
-      options: _getOptions(),
-      fromJson: (json) => ActiveIngredientModel.fromJson(json),
-    );
-
-    if (result.success && result.data != null) {
-      return result.data!;
-    } else {
-      throw Exception(result.message ?? "Failed fetch active ingredients");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed fetch active ingredients");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<ActiveIngredient> createActiveIngredient(
       {required ActiveIngredient activeIngredient}) async {
-    final result = await _apiHandler.post<ActiveIngredient>(
-      ApiConstants.activeIngredients,
-      data: activeIngredient.toJson(),
-      options: _getOptions(),
-      fromJson: (json) => ActiveIngredient.fromJson(json),
-    );
+    try {
+      final result = await _apiHandler.post<ActiveIngredient>(
+        ApiConstants.activeIngredients,
+        data: {
+          "clinic": activeIngredient.clinic?.id,
+          "name": activeIngredient.name,
+        },
+        options: _getOptions(),
+        fromJson: (json) => ActiveIngredient.fromJson(json),
+      );
 
-    if (result.success && result.data != null) {
-      return result.data!;
-    } else {
-      throw Exception(result.message ?? "Failed create active ingredient");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed create active ingredient");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<ActiveIngredient> updateActiveIngredient(
       {required String id, required ActiveIngredient activeIngredient}) async {
-    final result = await _apiHandler.put<ActiveIngredient>(
-      "${ApiConstants.activeIngredients}/$id",
-      data: activeIngredient.toJson(),
-      options: _getOptions(),
-      fromJson: (json) => ActiveIngredient.fromJson(json),
-    );
+    try {
+      final result = await _apiHandler.put<ActiveIngredient>(
+        "${ApiConstants.activeIngredients}/$id",
+        data: {
+          "clinic": activeIngredient.clinic?.id,
+          "name": activeIngredient.name,
+        },
+        options: _getOptions(),
+        fromJson: (json) => ActiveIngredient.fromJson(json),
+      );
 
-    if (result.success && result.data != null) {
-      return result.data!;
-    } else {
-      throw Exception(result.message ?? "Failed update active ingredient");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed update active ingredient");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<DataModel> deleteActiveIngredient({required String id}) async {
-    final result = await _apiHandler.delete<DataModel>(
-      "${ApiConstants.activeIngredients}/$id",
-      options: _getOptions(),
-      fromJson: (json) => DataModel.fromJson(json),
-    );
+    try {
+      final result = await _apiHandler.delete<DataModel>(
+        "${ApiConstants.activeIngredients}/$id",
+        options: _getOptions(),
+        fromJson: (json) => DataModel.fromJson(json),
+      );
 
-    if (result.success && result.data != null) {
-      return result.data!;
-    } else {
-      throw Exception(result.message ?? "Failed delete active ingredient");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed delete active ingredient");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

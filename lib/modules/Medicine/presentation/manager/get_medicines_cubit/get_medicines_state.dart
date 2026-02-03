@@ -1,23 +1,43 @@
 part of 'get_medicines_cubit.dart';
 
-abstract class GetMedicinesState {}
+enum GetMedicinesStatus { initial, loading, success, error, noConnection }
 
-class GetMedicinesInitial extends GetMedicinesState {}
-
-class GetMedicinesLoading extends GetMedicinesState {}
-
-class GetMedicinesLoaded extends GetMedicinesState {
+class GetMedicinesState {
+  final GetMedicinesStatus status;
   final List<CommercialName> medicines;
+  final int page;
+  final String search;
+  final String? errorMessage;
   final bool hasMore;
-  GetMedicinesLoaded({required this.medicines, required this.hasMore});
-}
+  final int totalPages;
 
-class GetMedicinesError extends GetMedicinesState {
-  final String error;
-  GetMedicinesError({required this.error});
-}
+  const GetMedicinesState({
+    this.status = GetMedicinesStatus.initial,
+    this.medicines = const [],
+    this.page = 1,
+    this.search = '',
+    this.errorMessage,
+    this.hasMore = false,
+    this.totalPages = 1,
+  });
 
-class GetMedicinesLoadingMore extends GetMedicinesState {
-  final List<CommercialName> medicines;
-  GetMedicinesLoadingMore({required this.medicines});
+  GetMedicinesState copyWith({
+    GetMedicinesStatus? status,
+    List<CommercialName>? medicines,
+    int? page,
+    String? search,
+    String? errorMessage,
+    bool? hasMore,
+    int? totalPages,
+  }) {
+    return GetMedicinesState(
+      status: status ?? this.status,
+      medicines: medicines ?? this.medicines,
+      page: page ?? this.page,
+      search: search ?? this.search,
+      errorMessage: errorMessage ?? this.errorMessage,
+      hasMore: hasMore ?? this.hasMore,
+      totalPages: totalPages ?? this.totalPages,
+    );
+  }
 }

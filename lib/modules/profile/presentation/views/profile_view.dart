@@ -163,22 +163,22 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                       _buildSectionTitle(
                           context, "Personal Information", textColor),
                       SizedBox(height: 10.h),
-                      _buildInfoCard(
-                          context, profile, cardColor, textColor, subTextColor),
+                      _buildInfoCard(context, profile, cardColor, textColor,
+                          subTextColor, isDark),
 
                       SizedBox(height: 25.h),
                       _buildSectionTitle(
                           context, "Account Settings", textColor),
                       SizedBox(height: 10.h),
                       _buildSettingsCard(
-                          context, profile, cardColor, textColor),
+                          context, profile, cardColor, textColor, isDark),
 
                       SizedBox(height: 25.h),
                       _buildSectionTitle(
                           context, "Organization Info", textColor),
                       SizedBox(height: 10.h),
-                      _buildOrganizationCard(
-                          context, profile, cardColor, textColor, subTextColor),
+                      _buildOrganizationCard(context, profile, cardColor,
+                          textColor, subTextColor, isDark),
 
                       SizedBox(height: 40.h),
                     ],
@@ -195,6 +195,14 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
 
   Widget _buildProfileHeader(BuildContext context, ProfileModel profile,
       Color cardColor, Color textColor, Color subTextColor) {
+    final displayImage = (profile.image != null && profile.image!.isNotEmpty)
+        ? profile.image
+        : (profile.metadata?.image != null &&
+                profile.metadata!.image is String &&
+                profile.metadata!.image.isNotEmpty)
+            ? profile.metadata!.image as String
+            : null;
+
     return Column(
       children: [
         Stack(
@@ -215,10 +223,8 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                 radius: 50.r,
                 backgroundColor: Colorz.grey200,
                 backgroundImage:
-                    (profile.image != null && profile.image!.isNotEmpty)
-                        ? NetworkImage(profile.image!)
-                        : null,
-                child: (profile.image != null && profile.image!.isNotEmpty)
+                    (displayImage != null) ? NetworkImage(displayImage) : null,
+                child: (displayImage != null)
                     ? null
                     : Text(
                         profile.name?.substring(0, 1).toUpperCase() ?? "U",
@@ -230,9 +236,30 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
           ],
         ),
         SizedBox(height: 15.h),
-        Text(
-          profile.name ?? "User Name",
-          style: appStyle(context, 22, textColor, FontWeight.bold),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              profile.name ?? "User Name",
+              style: appStyle(context, 22, textColor, FontWeight.bold),
+            ),
+            if (profile.metadata?.isConsultant == true) ...[
+              SizedBox(width: 8.w),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: Colors.amber, width: 1),
+                ),
+                child: Text(
+                  "Consultant",
+                  style: appStyle(
+                      context, 10, Colors.amber[800]!, FontWeight.bold),
+                ),
+              ),
+            ],
+          ],
         ),
         SizedBox(height: 5.h),
         Text(
@@ -256,29 +283,44 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
   }
 
   Widget _buildInfoCard(BuildContext context, ProfileModel profile,
-      Color cardColor, Color textColor, Color subTextColor) {
+      Color cardColor, Color textColor, Color subTextColor, bool isDark) {
+    final dividerColor =
+        isDark ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.4);
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5))
+              color: isDark
+                  ? Colors.black.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 8))
         ],
+        border: isDark ? null : Border.all(color: Colors.grey.withOpacity(0.2)),
       ),
       padding: EdgeInsets.all(20.r),
       child: Column(
         children: [
           _buildInfoRow(context, Icons.person_outline, "Username",
               profile.username ?? "-", textColor, subTextColor),
-          Divider(color: Colors.grey.withOpacity(0.2), height: 30.h),
+          Divider(color: dividerColor, height: 30.h),
           _buildInfoRow(context, Icons.phone_outlined, "Phone",
               profile.phone?.toString() ?? "-", textColor, subTextColor),
-          Divider(color: Colors.grey.withOpacity(0.2), height: 30.h),
+          Divider(color: dividerColor, height: 30.h),
           _buildInfoRow(context, Icons.email_outlined, "Email",
               profile.email ?? "-", textColor, subTextColor),
+          if (profile.metadata?.reminder != null) ...[
+            Divider(color: dividerColor, height: 30.h),
+            _buildInfoRow(
+                context,
+                Icons.notification_important_outlined,
+                "Reminder",
+                profile.metadata!.reminder!,
+                textColor,
+                subTextColor),
+          ],
         ],
       ),
     );
@@ -315,17 +357,20 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
   }
 
   Widget _buildSettingsCard(BuildContext context, ProfileModel profile,
-      Color cardColor, Color textColor) {
+      Color cardColor, Color textColor, bool isDark) {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5))
+              color: isDark
+                  ? Colors.black.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 8))
         ],
+        border: isDark ? null : Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
       child: Column(
         children: [
@@ -334,14 +379,20 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
             Icons.edit_note,
             "Edit Profile Details",
             textColor,
+            isDark,
             onTap: () => _showEditProfileDialog(context, profile),
           ),
-          Divider(color: Colors.grey.withOpacity(0.1), height: 1),
+          Divider(
+              color: isDark
+                  ? Colors.grey.withOpacity(0.1)
+                  : Colors.grey.withOpacity(0.3),
+              height: 1),
           _buildSettingTile(
             context,
             Icons.lock_outline,
             "Change Password",
             textColor,
+            isDark,
             onTap: () => _showChangePasswordDialog(context),
           ),
         ],
@@ -350,17 +401,22 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
   }
 
   Widget _buildOrganizationCard(BuildContext context, ProfileModel profile,
-      Color cardColor, Color textColor, Color subTextColor) {
+      Color cardColor, Color textColor, Color subTextColor, bool isDark) {
+    final dividerColor =
+        isDark ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.4);
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5))
+              color: isDark
+                  ? Colors.black.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 8))
         ],
+        border: isDark ? null : Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
       padding: EdgeInsets.all(20.r),
       child: Column(
@@ -369,7 +425,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
             _buildInfoRow(context, Icons.local_hospital_outlined, "Clinic",
                 profile.clinic!.name ?? "-", textColor, subTextColor),
           if (profile.clinic != null && (profile.branch != null))
-            Divider(color: Colors.grey.withOpacity(0.2), height: 30.h),
+            Divider(color: dividerColor, height: 30.h),
           if (profile.branch != null)
             _buildInfoRow(
                 context,
@@ -383,18 +439,19 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
     );
   }
 
-  Widget _buildSettingTile(
-      BuildContext context, IconData icon, String title, Color textColor,
+  Widget _buildSettingTile(BuildContext context, IconData icon, String title,
+      Color textColor, bool isDark,
       {required VoidCallback onTap}) {
     return ListTile(
       onTap: onTap,
       leading: Container(
         padding: EdgeInsets.all(8.r),
         decoration: BoxDecoration(
-          color: Colorz.grey200,
+          color: isDark ? Colorz.grey200.withOpacity(0.1) : Colorz.grey200,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.black54, size: 20.sp),
+        child: Icon(icon,
+            color: isDark ? Colors.white70 : Colors.black54, size: 20.sp),
       ),
       title:
           Text(title, style: appStyle(context, 15, textColor, FontWeight.w500)),
@@ -703,13 +760,14 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
         contentPadding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 15.w),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.r),
-            borderSide: BorderSide(color: Colorz.primaryColor)),
+            borderSide:
+                BorderSide(color: Colorz.primaryColor.withOpacity(0.5))),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.r),
-            borderSide: BorderSide(color: Colorz.primaryColor)),
+            borderSide: BorderSide(color: Colorz.grey.withOpacity(0.3))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.r),
-            borderSide: BorderSide(color: Colorz.primaryColor)),
+            borderSide: BorderSide(color: Colorz.primaryColor, width: 1.5)),
         errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.r),
             borderSide: BorderSide(color: Colorz.errorColor)),
@@ -781,10 +839,13 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
             fillColor: cardColor,
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15.r),
-                borderSide: BorderSide.none),
+                borderSide: BorderSide(color: Colorz.grey.withOpacity(0.1))),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15.r),
+                borderSide: BorderSide(color: Colorz.grey.withOpacity(0.3))),
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15.r),
-                borderSide: BorderSide(color: Colorz.primaryColor)),
+                borderSide: BorderSide(color: Colorz.primaryColor, width: 1.5)),
           ),
         ),
       ],

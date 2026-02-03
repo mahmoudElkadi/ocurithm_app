@@ -10,6 +10,7 @@ import '../../manager/examination_form_cubit/examination_form_cubit.dart';
 import '../../manager/examination_actions_cubit/examination_actions_cubit.dart';
 import 'circle_view.dart';
 import 'navigation_view.dart';
+import 'examination_pdf_service.dart';
 
 class ExaminationReviewScreen extends StatefulWidget {
   const ExaminationReviewScreen({super.key, required this.appointment});
@@ -55,6 +56,38 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
           child: Column(
             spacing: 16,
             children: [
+              // Print Button Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Examination Review',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      ExaminationPdfService.generateAndPrintExamination(
+                        appointment: widget.appointment,
+                        cubit: cubit,
+                      );
+                    },
+                    icon: const Icon(Icons.print),
+                    label: const Text('Print PDF'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colorz.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
               // Patient Info and History Section
               Column(
                 children: [
@@ -140,7 +173,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: Theme.of(context).shadowColor.withValues(alpha:0.2),
+      shadowColor: Theme.of(context).shadowColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -411,7 +444,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: Theme.of(context).shadowColor.withValues(alpha:0.2),
+      shadowColor: Theme.of(context).shadowColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -472,7 +505,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withValues(alpha:0.2)),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
           ),
           child: Text(
             displayValue,
@@ -517,7 +550,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
 
     return Card(
       elevation: 4,
-      shadowColor: Theme.of(context).shadowColor.withValues(alpha:0.2),
+      shadowColor: Theme.of(context).shadowColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -531,7 +564,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                 CircleAvatar(
                   radius: 24,
                   backgroundColor:
-                      Theme.of(context).primaryColor.withValues(alpha:0.1),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.1),
                   child: Icon(Icons.person_outline,
                       color: Theme.of(context).primaryColor),
                 ),
@@ -667,7 +700,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
   }) {
     return Card(
       elevation: 3,
-      shadowColor: color.withValues(alpha:0.3),
+      shadowColor: color.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -677,7 +710,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha:0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color),

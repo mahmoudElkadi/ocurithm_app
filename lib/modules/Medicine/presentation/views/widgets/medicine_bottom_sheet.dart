@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/text_field.dart';
@@ -10,6 +11,7 @@ import '../../../data/model/medicine_model.dart';
 import '../../manager/get_active_ingredients_cubit/get_active_ingredients_cubit.dart';
 
 import '../../manager/medicine_actions_cubit/medicine_actions_cubit.dart';
+import '../../manager/get_medicines_cubit/get_medicines_cubit.dart';
 
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart'
@@ -57,6 +59,10 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
   late MedicineFormType _visibleType;
 
+  void _onTextChanged() {
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -96,42 +102,45 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
       _currentType = MedicineFormType.activeIngredient;
     }
 
-    // Set clinic if user doesn't have manageCapability
-    if (!CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability")) {
-      // Logic to fetch user's clinic or default behavior
-      // Note: Assuming CacheHelper handles retrieval if key exists or logic is handled elsewhere.
-      // If user has specific clinic assigned, we should potentially use it to fetch active ingredients.
-      // For now, if we cannot get the clinic ID easily without more context on user model,
-      // we might want to trigger fetching all active ingredients, or rely on backend to filter based on user context.
+    _nameController.addListener(_onTextChanged);
+    _concentrationController.addListener(_onTextChanged);
+    _aiNameController.addListener(_onTextChanged);
 
-      // However, the request specifically asks "based on choosen clinic set request".
-      // This implies user choice (manage capability) OR possibly forced choice.
+    // Fetch active ingredients for the dropdown (non-paginated)
+    if (_visibleType == MedicineFormType.medicine) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<GetActiveIngredientsCubit>().getActiveIngredients(
+              pagination: false,
+              clinic: _selectedClinic?.id,
+            );
+      });
+    }
+  }
 
-      // If NOT manageCapability, maybe we should fetch Active Ingredients without clinic filter or with user's implicit clinic?
-      // Since I can't determine user's clinic ID efficiently here without User model access (commented out in previous steps),
-      // I will keep standard fetch for now, BUT if we are adding clinic dropdown for 'manageCapability' users,
-      // it is critical to use IT to filter.
+  @override
+  void dispose() {
+    _nameController.removeListener(_onTextChanged);
+    _concentrationController.removeListener(_onTextChanged);
+    _aiNameController.removeListener(_onTextChanged);
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _concentrationController.dispose();
+    _aiNameController.dispose();
+    super.dispose();
+  }
 
-      // Trigger fetch for Medicine form only if we are not waiting for manual clinic selection
-      if (_currentType == MedicineFormType.medicine) {
-        context.read<GetActiveIngredientsCubit>().getActiveIngredients();
-      }
+  bool get _hasManageCapability =>
+      CapabilityServices.hasCapability("manageCapability");
+
+  bool _isFormValid() {
+    if (_visibleType == MedicineFormType.medicine) {
+      return (!_hasManageCapability || _selectedClinic != null) &&
+          _selectedActiveIngredient != null &&
+          _nameController.text.trim().isNotEmpty &&
+          _concentrationController.text.trim().isNotEmpty;
     } else {
-      // IF user has manageCapability, we do NOT fetch active ingredients immediately?
-      // Or we fetch all?
-      // "based on choosen clinic set request to ge active ingredient"
-      // This suggests we wait for clinic selection?
-      // But if we want to show *some* ingredients initially, we might fetch all (pagination=false?)
-      // User said: "send pagination false"
-
-      // Let's fetch all initially using pagination=false if no clinic selected yet, OR wait?
-      // Often better to show empty or all. Let's show all for now.
-      if (_currentType == MedicineFormType.medicine) {
-        context
-            .read<GetActiveIngredientsCubit>()
-            .getActiveIngredients(pagination: false);
-      }
+      return (!_hasManageCapability || _selectedClinic != null) &&
+          _aiNameController.text.trim().isNotEmpty;
     }
   }
 
@@ -141,13 +150,23 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
     return BlocConsumer<MedicineActionsCubit, MedicineActionsState>(
       listener: (context, state) {
-        if (state is MedicineActionsSuccess) {
+        if (state.status == MedicineActionsStatus.success) {
+          // Trigger refreshes before popping
+          context.read<GetMedicinesCubit>().getMedicines(isRefresh: true);
+          context.read<GetActiveIngredientsCubit>().getActiveIngredients(
+                pagination: false,
+                clinic: _selectedClinic?.id,
+              );
+
           Navigator.pop(context); // Pop loading
           Navigator.pop(context); // Pop BottomSheet
-          SnackbarService.showSuccess(context, message: state.message);
-        } else if (state is MedicineActionsError) {
+          SnackbarService.showSuccess(context,
+              message: state.successMessage ?? "Success");
+        } else if (state.status == MedicineActionsStatus.error ||
+            state.status == MedicineActionsStatus.noConnection) {
           Navigator.pop(context); // Pop loading
-          SnackbarService.showError(context, message: state.error);
+          SnackbarService.showError(context,
+              message: state.errorMessage ?? "An error occurred");
         }
       },
       builder: (context, state) {
@@ -253,10 +272,6 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
                         setState(() {
                           _visibleType = MedicineFormType.medicine;
                         });
-                        context
-                            .read<GetActiveIngredientsCubit>()
-                            .getActiveIngredients(
-                                pagination: false, clinic: _selectedClinic?.id);
                       }
                     });
                   },
@@ -309,9 +324,9 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
   Widget _buildMedicineForm(bool isDark) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (CacheHelper.getStringList(key: "capabilities")
-            .contains("manageCapability")) ...[
+        if (CapabilityServices.hasCapability('manageCapability')) ...[
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 5),
             child: Text("Clinic",
@@ -325,9 +340,9 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           builder: (context, state) {
             List<ActiveIngredient> items = [];
             bool isLoading = false;
-            if (state is GetActiveIngredientsLoaded) {
+            if (state.status == GetActiveIngredientsStatus.success) {
               items = state.activeIngredients;
-            } else if (state is GetActiveIngredientsLoading) {
+            } else if (state.status == GetActiveIngredientsStatus.loading) {
               isLoading = true;
             }
 
@@ -389,6 +404,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           label: "Concentration",
           hintText: "Enter concentration",
           isDark: isDark,
+          required: true,
         ),
       ],
     );
@@ -396,9 +412,9 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
   Widget _buildActiveIngredientForm(bool isDark) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (CacheHelper.getStringList(key: "capabilities")
-            .contains("manageCapability")) ...[
+        if (CapabilityServices.hasCapability('manageCapability')) ...[
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 5),
             child: Text("Clinic",
@@ -407,8 +423,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           ),
           _buildClinicDropdown(isDark),
         ],
-        if (CacheHelper.getStringList(key: "capabilities")
-            .contains("manageCapability"))
+        if (CapabilityServices.hasCapability('manageCapability'))
           const HeightSpacer(size: 15),
         _buildTextField(
           controller: _aiNameController,
@@ -445,13 +460,13 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
   }
 
   Widget _buildSubmitButton(MedicineActionsState state, bool isDark) {
-    bool isLoading = state is MedicineActionsLoading;
+    bool isLoading = state.status == MedicineActionsStatus.loading;
     String text = widget.isEdit ? "Update" : "Add";
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: isLoading ? null : _submit,
+        onPressed: (isLoading || !_isFormValid()) ? null : _submit,
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).primaryColor,
           padding: const EdgeInsets.symmetric(vertical: 15),
@@ -544,19 +559,6 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
               ? clinic_model.Clinic(
                   id: _selectedClinic!.id, name: _selectedClinic!.name)
               : null,
-          id: null,
-          createdBy: null,
-          updatedBy: null,
-          deletedAt: null,
-          deletedBy: null,
-          parentId: null,
-          concentration: null,
-          isActive: true,
-          createdAt: null,
-          updatedAt: null,
-          isActiveIngredient: true,
-          isCommercialName: false,
-          description: null,
         );
 
         if (widget.isEdit && widget.activeIngredient != null) {

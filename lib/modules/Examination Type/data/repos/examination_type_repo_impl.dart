@@ -1,4 +1,5 @@
-import '../../../../../core/Network/dio_handler.dart';
+import 'package:dio/dio.dart';
+import '../../../../../core/api/api_handler.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/data.dart';
@@ -6,122 +7,118 @@ import '../model/examination_type_model.dart';
 import 'examination_type_repo.dart';
 
 class ExaminationTypeRepoImpl implements ExaminationTypeRepo {
-  @override
-  Future<ExaminationType> createExaminationType({required ExaminationType examinationType}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}";
-    final String? token = CacheHelper.getData(key: "token");
+  final ApiHandler _apiHandler = ApiHandler();
 
-    final result = await ApiService.request<ExaminationType>(
-      url: url,
-      data: examinationType.toJson(),
-      method: 'POST',
+  Options _getOptions() {
+    final String? token = CacheHelper.getData(key: "token");
+    return Options(
       headers: {
         "Content-Type": "application/json",
         if (token != null) 'Cookie': 'ocurithmToken=$token',
       },
-      showError: true,
-      fromJson: (json) => ExaminationType.fromJson(json),
     );
+  }
 
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to add ExaminationType");
+  @override
+  Future<ExaminationType> createExaminationType(
+      {required ExaminationType examinationType}) async {
+    try {
+      final result = await _apiHandler.post<ExaminationType>(
+        ApiConstants.examinationTypes,
+        data: examinationType.toJson(),
+        options: _getOptions(),
+        fromJson: (json) => ExaminationType.fromJson(json),
+      );
+
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed to add ExaminationType");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
-  Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? search}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}";
-    final String? token = CacheHelper.getData(key: "token");
+  Future<ExaminationTypesModel> getAllExaminationTypes(
+      {int? page, String? search}) async {
     Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
 
-    final result = await ApiService.request<ExaminationTypesModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => ExaminationTypesModel.fromJson(json),
-    );
+    try {
+      final result = await _apiHandler.get<ExaminationTypesModel>(
+        ApiConstants.examinationTypes,
+        queryParameters: query,
+        options: _getOptions(),
+        fromJson: (json) => ExaminationTypesModel.fromJson(json),
+      );
 
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch examinationTypes");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed fetch examinationTypes");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<ExaminationType> getExaminationType({required String id}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}/$id";
-    final String? token = CacheHelper.getData(key: "token");
+    try {
+      final result = await _apiHandler.get<ExaminationType>(
+        "${ApiConstants.examinationTypes}/$id",
+        options: _getOptions(),
+        fromJson: (json) => ExaminationType.fromJson(json),
+      );
 
-    final result = await ApiService.request<ExaminationType>(
-      url: url,
-      method: 'GET',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => ExaminationType.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch examinationTypes");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed fetch examinationTypes");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
-  Future<ExaminationType> updateExaminationType({required String id, required ExaminationType examinationType}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}/$id";
-    final String? token = CacheHelper.getData(key: "token");
+  Future<ExaminationType> updateExaminationType(
+      {required String id, required ExaminationType examinationType}) async {
+    try {
+      final result = await _apiHandler.put<ExaminationType>(
+        "${ApiConstants.examinationTypes}/$id",
+        data: examinationType.toJson(),
+        options: _getOptions(),
+        fromJson: (json) => ExaminationType.fromJson(json),
+      );
 
-    final result = await ApiService.request<ExaminationType>(
-      url: url,
-      method: 'PUT',
-      data: examinationType.toJson(),
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => ExaminationType.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch examinationTypes");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed update examinationType");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<DataModel> deleteExaminationType({required String id}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}/$id";
-    final String? token = CacheHelper.getData(key: "token");
+    try {
+      final result = await _apiHandler.delete<DataModel>(
+        "${ApiConstants.examinationTypes}/$id",
+        options: _getOptions(),
+        fromJson: (json) => DataModel.fromJson(json),
+      );
 
-    final result = await ApiService.request<DataModel>(
-      url: url,
-      method: 'DELETE',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => DataModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch examinationTypes");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed delete examinationType");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

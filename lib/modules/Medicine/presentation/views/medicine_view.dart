@@ -13,7 +13,8 @@ import '../manager/medicine_actions_cubit/medicine_actions_cubit.dart';
 import 'widgets/medicine_bottom_sheet.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
-import '../../../../../core/utils/snackbar_service.dart';
+import '../../../../core/widgets/no_internet.dart';
+import '../../../../core/widgets/pagination.dart';
 
 class MedicineView extends StatelessWidget {
   const MedicineView({super.key});
@@ -24,9 +25,7 @@ class MedicineView extends StatelessWidget {
       providers: [
         BlocProvider(
             create: (context) => sl<GetMedicinesCubit>()..getMedicines()),
-        BlocProvider(
-            create: (context) =>
-                sl<GetActiveIngredientsCubit>()..getActiveIngredients()),
+        BlocProvider(create: (context) => sl<GetActiveIngredientsCubit>()),
         BlocProvider(create: (context) => sl<MedicineActionsCubit>()),
       ],
       child: BlocBuilder<GetMedicinesCubit, GetMedicinesState>(
@@ -55,11 +54,7 @@ class MedicineView extends StatelessWidget {
                       ],
                       child: const MedicineBottomSheet(),
                     ),
-                  ).then((_) {
-                    context
-                        .read<GetMedicinesCubit>()
-                        .getMedicines(isRefresh: true);
-                  });
+                  );
                 },
                 icon: SvgPicture.asset(
                   "assets/icons/add_branch.svg",
@@ -97,11 +92,19 @@ class _MedicineViewBodyState extends State<_MedicineViewBody> {
     setState(() {
       _isMedicines = isMedicines;
     });
-    // Trigger initial fetch if switching
+
     if (isMedicines) {
-      context.read<GetMedicinesCubit>().getMedicines(isRefresh: true);
+      final state = context.read<GetMedicinesCubit>().state;
+      if (state.status == GetMedicinesStatus.initial ||
+          state.status == GetMedicinesStatus.error) {
+        context.read<GetMedicinesCubit>().getMedicines();
+      }
     } else {
-      context.read<GetActiveIngredientsCubit>().getActiveIngredients();
+      final state = context.read<GetActiveIngredientsCubit>().state;
+      if (state.status == GetActiveIngredientsStatus.initial ||
+          state.status == GetActiveIngredientsStatus.error) {
+        context.read<GetActiveIngredientsCubit>().getActiveIngredients();
+      }
     }
   }
 
@@ -113,92 +116,118 @@ class _MedicineViewBodyState extends State<_MedicineViewBody> {
 
   @override
   Widget build(BuildContext context) {
+    bool isNoConnection = false;
+    if (_isMedicines) {
+      isNoConnection = context.watch<GetMedicinesCubit>().state.status ==
+          GetMedicinesStatus.noConnection;
+    } else {
+      isNoConnection =
+          context.watch<GetActiveIngredientsCubit>().state.status ==
+              GetActiveIngredientsStatus.noConnection;
+    }
+
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Container(
-            height: 45,
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: Colors.grey.withOpacity(0.3)),
-            ),
-            child: Stack(
-              children: [
-                AnimatedAlign(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  alignment: _isMedicines
-                      ? Alignment.centerLeft
-                      : Alignment.centerRight,
-                  child: FractionallySizedBox(
-                    widthFactor: 0.5,
-                    child: Container(
-                      margin: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        borderRadius: BorderRadius.circular(25),
+        if (!isNoConnection) ...[
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Container(
+              height: 45,
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              ),
+              child: Stack(
+                children: [
+                  AnimatedAlign(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    alignment: _isMedicines
+                        ? Alignment.centerLeft
+                        : Alignment.centerRight,
+                    child: FractionallySizedBox(
+                      widthFactor: 0.5,
+                      child: Container(
+                        margin: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => _onToggle(true),
-                        borderRadius: BorderRadius.circular(25),
-                        child: Center(
-                          child: Text(
-                            "Medicines",
-                            style: TextStyle(
-                              color: _isMedicines ? Colors.white : Colors.grey,
-                              fontWeight: FontWeight.bold,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => _onToggle(true),
+                          borderRadius: BorderRadius.circular(25),
+                          child: Center(
+                            child: Text(
+                              "Medicines",
+                              style: TextStyle(
+                                color:
+                                    _isMedicines ? Colors.white : Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => _onToggle(false),
-                        borderRadius: BorderRadius.circular(25),
-                        child: Center(
-                          child: Text(
-                            "Active Ingredients",
-                            style: TextStyle(
-                              color: !_isMedicines ? Colors.white : Colors.grey,
-                              fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => _onToggle(false),
+                          borderRadius: BorderRadius.circular(25),
+                          child: Center(
+                            child: Text(
+                              "Active Ingredients",
+                              style: TextStyle(
+                                color:
+                                    !_isMedicines ? Colors.white : Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        _buildSearchField(context),
-        const SizedBox(height: 10),
+          _buildSearchField(context),
+          const SizedBox(height: 10),
+        ],
         Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              if (_isMedicines) {
-                await context
-                    .read<GetMedicinesCubit>()
-                    .getMedicines(isRefresh: true);
-              } else {
-                await context
+          child: BlocListener<MedicineActionsCubit, MedicineActionsState>(
+            listener: (context, state) {
+              if (state.status == MedicineActionsStatus.success) {
+                context.read<GetMedicinesCubit>().getMedicines(isRefresh: true);
+                context
                     .read<GetActiveIngredientsCubit>()
                     .getActiveIngredients();
               }
             },
-            child: _isMedicines
-                ? const _MedicinesList()
-                : const _ActiveIngredientsList(),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                if (_isMedicines) {
+                  context
+                      .read<GetMedicinesCubit>()
+                      .getMedicines(isRefresh: true);
+                } else {
+                  context
+                      .read<GetActiveIngredientsCubit>()
+                      .getActiveIngredients();
+                }
+                return;
+              },
+              child: _isMedicines
+                  ? const _MedicinesList()
+                  : const _ActiveIngredientsList(),
+            ),
           ),
         ),
       ],
@@ -206,24 +235,29 @@ class _MedicineViewBodyState extends State<_MedicineViewBody> {
   }
 
   Widget _buildSearchField(BuildContext context) {
-    final cubit = context.read<GetMedicinesCubit>();
     return SearchField(
       onTextFieldChanged: () async {
         if (_isMedicines) {
-          cubit.getMedicines(search: searchController.text, isRefresh: true);
+          context.read<GetMedicinesCubit>().getMedicines(
+                search: searchController.text,
+                isRefresh: true,
+              );
         } else {
-          context
-              .read<GetActiveIngredientsCubit>()
-              .getActiveIngredients(search: searchController.text);
+          context.read<GetActiveIngredientsCubit>().getActiveIngredients(
+                search: searchController.text,
+                page: 1,
+              );
         }
       },
       searchController: searchController,
       onClose: () {
         searchController.clear();
         if (_isMedicines) {
-          cubit.getMedicines(isRefresh: true);
+          context.read<GetMedicinesCubit>().getMedicines(isRefresh: true);
         } else {
-          context.read<GetActiveIngredientsCubit>().getActiveIngredients();
+          context
+              .read<GetActiveIngredientsCubit>()
+              .getActiveIngredients(page: 1);
         }
       },
     );
@@ -235,41 +269,101 @@ class _ActiveIngredientsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<MedicineActionsCubit, MedicineActionsState>(
-      listener: (context, actionState) {
-        if (actionState is MedicineActionsSuccess) {
-          SnackbarService.showSuccess(context, message: actionState.message);
-          context.read<GetActiveIngredientsCubit>().getActiveIngredients();
-        } else if (actionState is MedicineActionsError) {
-          SnackbarService.showError(context, message: actionState.error);
-        }
-      },
-      builder: (context, actionState) {
-        return BlocBuilder<GetActiveIngredientsCubit,
-            GetActiveIngredientsState>(
-          builder: (context, state) {
-            if (state is GetActiveIngredientsLoading) {
-              return const _MedicineShimmerLoading();
-            } else if (state is GetActiveIngredientsError) {
-              return Center(child: Text(state.error));
-            } else if (state is GetActiveIngredientsLoaded) {
-              if (state.activeIngredients.isEmpty) {
-                return const Center(child: Text("No Active Ingredients Found"));
+    return BlocBuilder<GetActiveIngredientsCubit, GetActiveIngredientsState>(
+      builder: (context, state) {
+        if (state.status == GetActiveIngredientsStatus.loading) {
+          return const _MedicineShimmerLoading();
+        } else if (state.status == GetActiveIngredientsStatus.noConnection) {
+          return NoInternet(
+            fromTop: 20,
+            onPressed: () {
+              context.read<GetActiveIngredientsCubit>().getActiveIngredients();
+            },
+          );
+        } else if (state.status == GetActiveIngredientsStatus.error) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 60, color: Colors.orange),
+                        const SizedBox(height: 16),
+                        Text(
+                          state.errorMessage ?? "An error occurred",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context
+                                .read<GetActiveIngredientsCubit>()
+                                .getActiveIngredients(page: 1);
+                          },
+                          child: const Text("Retry"),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Or pull down to refresh",
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        } else if (state.status == GetActiveIngredientsStatus.success) {
+          if (state.activeIngredients.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  child:
+                      const Center(child: Text("No Active Ingredients Found")),
+                ),
+              ],
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount:
+                state.activeIngredients.length + (state.totalPages > 1 ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index < state.activeIngredients.length) {
+                final activeIngredient = state.activeIngredients[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child:
+                      _ActiveIngredientCard(activeIngredient: activeIngredient),
+                );
+              } else {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: CustomPagination(
+                    currentPage: state.page,
+                    totalPages: state.totalPages,
+                    onPageChanged: (page) {
+                      context
+                          .read<GetActiveIngredientsCubit>()
+                          .getActiveIngredients(page: page);
+                    },
+                  ),
+                );
               }
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: state.activeIngredients.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final activeIngredient = state.activeIngredients[index];
-                  return _ActiveIngredientCard(
-                      activeIngredient: activeIngredient);
-                },
-              );
-            }
-            return const SizedBox();
-          },
-        );
+            },
+          );
+        }
+        return const SizedBox();
       },
     );
   }
@@ -310,6 +404,8 @@ class _ActiveIngredientCard extends StatelessWidget {
                           value: context.read<MedicineActionsCubit>()),
                       BlocProvider.value(
                           value: context.read<GetActiveIngredientsCubit>()),
+                      BlocProvider.value(
+                          value: context.read<GetMedicinesCubit>()),
                       BlocProvider(
                         create: (context) =>
                             sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),
@@ -321,11 +417,7 @@ class _ActiveIngredientCard extends StatelessWidget {
                       initialType: MedicineFormType.activeIngredient,
                     ),
                   ),
-                ).then((_) {
-                  context
-                      .read<GetActiveIngredientsCubit>()
-                      .getActiveIngredients();
-                });
+                );
               },
             ),
             IconButton(
@@ -351,6 +443,7 @@ class _ActiveIngredientCard extends StatelessWidget {
                 BlocProvider.value(value: context.read<MedicineActionsCubit>()),
                 BlocProvider.value(
                     value: context.read<GetActiveIngredientsCubit>()),
+                BlocProvider.value(value: context.read<GetMedicinesCubit>()),
                 BlocProvider(
                   create: (context) =>
                       sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),
@@ -376,21 +469,92 @@ class _MedicinesList extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<GetMedicinesCubit, GetMedicinesState>(
       builder: (context, state) {
-        if (state is GetMedicinesLoading) {
+        if (state.status == GetMedicinesStatus.loading) {
           return const _MedicineShimmerLoading();
-        } else if (state is GetMedicinesError) {
-          return Center(child: Text(state.error));
-        } else if (state is GetMedicinesLoaded) {
+        } else if (state.status == GetMedicinesStatus.noConnection) {
+          return NoInternet(
+            fromTop: 20,
+            onPressed: () {
+              context.read<GetMedicinesCubit>().getMedicines(isRefresh: true);
+            },
+          );
+        } else if (state.status == GetMedicinesStatus.error) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 60, color: Colors.orange),
+                        const SizedBox(height: 16),
+                        Text(
+                          state.errorMessage ?? "An error occurred",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context
+                                .read<GetMedicinesCubit>()
+                                .getMedicines(isRefresh: true);
+                          },
+                          child: const Text("Retry"),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Or pull down to refresh",
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        } else if (state.status == GetMedicinesStatus.success) {
           if (state.medicines.isEmpty) {
-            return const Center(child: Text("No Medicines Found"));
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  child: const Center(child: Text("No Medicines Found")),
+                ),
+              ],
+            );
           }
-          return ListView.separated(
+          return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: state.medicines.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemCount: state.medicines.length + (state.totalPages > 1 ? 1 : 0),
             itemBuilder: (context, index) {
-              final medicine = state.medicines[index];
-              return _MedicineCard(medicine: medicine);
+              if (index < state.medicines.length) {
+                final medicine = state.medicines[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _MedicineCard(medicine: medicine),
+                );
+              } else {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: CustomPagination(
+                    currentPage: state.page,
+                    totalPages: state.totalPages,
+                    onPageChanged: (page) {
+                      context
+                          .read<GetMedicinesCubit>()
+                          .getMedicines(page: page);
+                    },
+                  ),
+                );
+              }
             },
           );
         }
@@ -435,6 +599,8 @@ class _MedicineCard extends StatelessWidget {
                           value: context.read<MedicineActionsCubit>()),
                       BlocProvider.value(
                           value: context.read<GetActiveIngredientsCubit>()),
+                      BlocProvider.value(
+                          value: context.read<GetMedicinesCubit>()),
                       BlocProvider(
                         create: (context) =>
                             sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),
@@ -446,9 +612,7 @@ class _MedicineCard extends StatelessWidget {
                       initialType: MedicineFormType.medicine,
                     ),
                   ),
-                ).then((_) => context
-                    .read<GetMedicinesCubit>()
-                    .getMedicines(isRefresh: true));
+                );
               },
             ),
             IconButton(
@@ -459,11 +623,6 @@ class _MedicineCard extends StatelessWidget {
                   context
                       .read<MedicineActionsCubit>()
                       .deleteMedicine(medicine.id!);
-                  Future.delayed(const Duration(milliseconds: 500), () {
-                    context
-                        .read<GetMedicinesCubit>()
-                        .getMedicines(isRefresh: true);
-                  });
                 });
               },
             ),
@@ -479,6 +638,7 @@ class _MedicineCard extends StatelessWidget {
                 BlocProvider.value(value: context.read<MedicineActionsCubit>()),
                 BlocProvider.value(
                     value: context.read<GetActiveIngredientsCubit>()),
+                BlocProvider.value(value: context.read<GetMedicinesCubit>()),
                 BlocProvider(
                   create: (context) =>
                       sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),

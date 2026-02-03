@@ -1,17 +1,41 @@
 part of 'medicine_actions_cubit.dart';
 
-abstract class MedicineActionsState {}
+enum MedicineActionsStatus { initial, loading, success, error, noConnection }
 
-class MedicineActionsInitial extends MedicineActionsState {}
-
-class MedicineActionsLoading extends MedicineActionsState {}
-
-class MedicineActionsSuccess extends MedicineActionsState {
-  final String message;
-  MedicineActionsSuccess({required this.message});
+enum MedicineActionType {
+  createMedicine,
+  updateMedicine,
+  deleteMedicine,
+  createActiveIngredient,
+  updateActiveIngredient,
+  deleteActiveIngredient,
+  none
 }
 
-class MedicineActionsError extends MedicineActionsState {
-  final String error;
-  MedicineActionsError({required this.error});
+class MedicineActionsState {
+  final MedicineActionsStatus status;
+  final MedicineActionType actionType;
+  final String? successMessage;
+  final String? errorMessage;
+
+  const MedicineActionsState({
+    this.status = MedicineActionsStatus.initial,
+    this.actionType = MedicineActionType.none,
+    this.successMessage,
+    this.errorMessage,
+  });
+
+  MedicineActionsState copyWith({
+    MedicineActionsStatus? status,
+    MedicineActionType? actionType,
+    String? successMessage,
+    String? errorMessage,
+  }) {
+    return MedicineActionsState(
+      status: status ?? this.status,
+      actionType: actionType ?? this.actionType,
+      successMessage: successMessage ?? this.successMessage,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
 }

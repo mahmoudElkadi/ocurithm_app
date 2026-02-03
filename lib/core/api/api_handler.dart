@@ -614,11 +614,8 @@ class ApiHandler {
           return ApiResponse.error('Request cancelled', statusCode: 499);
 
         case DioExceptionType.connectionError:
-          log('HERE');
           final hasInternet = await NetworkStatus().hasInternetConnection();
           if (!hasInternet) {
-            log('HERE222');
-
             return ApiResponse.error(
                 'No internet connection. Please check your network.',
                 statusCode: 503);
