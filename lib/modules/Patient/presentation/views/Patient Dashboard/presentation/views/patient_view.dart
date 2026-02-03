@@ -12,6 +12,7 @@ import '../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../core/widgets/no_internet.dart';
 import '../../../../../../../core/Network/shared.dart';
 import '../../../../../../../core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import '../../../../manager/get_patients_cubit/get_patients_cubit.dart';
 import '../../../../manager/patient_actions_cubit/patient_actions_cubit.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
@@ -48,9 +49,10 @@ class AdminPatientView extends StatelessWidget {
               Navigator.pop(context);
 
               if (state.successMessage != null) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(state.successMessage!),
-                    backgroundColor: Colors.green));
+                SnackbarService.showSuccess(
+                  context,
+                  message: state.successMessage!,
+                );
               }
               // Refresh list
               context.read<GetPatientsCubit>().add(GetAllPatientsEvent());
@@ -61,9 +63,10 @@ class AdminPatientView extends StatelessWidget {
               }
 
               if (state.errorMessage != null) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(state.errorMessage!),
-                    backgroundColor: Colors.red));
+                SnackbarService.showError(
+                  context,
+                  message: state.errorMessage!,
+                );
               }
             }
           },

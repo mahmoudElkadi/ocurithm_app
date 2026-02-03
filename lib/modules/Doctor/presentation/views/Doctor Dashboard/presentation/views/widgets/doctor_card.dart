@@ -12,8 +12,10 @@ import '../../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../../core/widgets/pagination.dart';
+import '../../../../../../../../../core/utils/snackbar_service.dart';
 import '../../../../../../../../../core/widgets/width_spacer.dart';
 import '../../../../../../../../core/Network/shared.dart';
+import '../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../data/model/doctor_model.dart';
 import '../../../../../manager/get_doctors_cubit/get_doctors_cubit.dart';
 import '../../../../../manager/doctor_actions_cubit/doctor_actions_cubit.dart';
@@ -181,10 +183,9 @@ class _DoctorCardState extends State<DoctorCard> {
                           onLongPress: () async {
                             await Clipboard.setData(ClipboardData(
                                 text: "widget.item!.sku.toString()"));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Copied"),
-                              ),
+                            SnackbarService.showSuccess(
+                              context,
+                              message: "Copied",
                             );
                           },
                           child: widget.isLoading
@@ -235,8 +236,7 @@ class _DoctorCardState extends State<DoctorCard> {
                             message:
                                 "Are you sure you want to delete ${widget.doctor?.name ?? "this doctor"}?",
                             onConfirm: () async {
-                              Navigator.pop(
-                                  context); // Close confirmation dialog
+                              customLoading(context, "Deleting Doctor...");
                               // Use DoctorActionsCubit for delete
                               context.read<DoctorActionsCubit>().add(
                                     DeleteDoctorEvent(widget.doctor!.id!),
@@ -269,28 +269,7 @@ class DoctorListView extends StatefulWidget {
 class _DoctorListViewState extends State<DoctorListView> {
   @override
   Widget build(BuildContext context) {
-    return BlocListener<DoctorActionsCubit, DoctorActionsState>(
-      listener: (context, actionsState) {
-        if (actionsState.isSuccess &&
-            actionsState.actionType == DoctorActionType.delete) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(actionsState.successMessage ?? 'Doctor deleted'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Refresh the list
-          context.read<GetDoctorsCubit>().add(GetAllDoctorsEvent());
-        } else if (actionsState.isError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(actionsState.errorMessage ?? 'Failed to delete'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
-      child: BlocBuilder<GetDoctorsCubit, GetDoctorsState>(
+    return BlocBuilder<GetDoctorsCubit, GetDoctorsState>(
         builder: (context, state) {
           bool isLoading = state.isLoading;
           bool isEmpty = state.doctors?.doctors.isEmpty ?? true;
@@ -315,8 +294,7 @@ class _DoctorListViewState extends State<DoctorListView> {
           }
           return const SizedBox.shrink();
         },
-      ),
-    );
+      );
   }
 
   Widget _buildLoadingList() {

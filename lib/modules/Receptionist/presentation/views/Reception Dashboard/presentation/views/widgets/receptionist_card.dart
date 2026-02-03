@@ -15,6 +15,7 @@ import 'package:ocurithm/modules/Receptionist/data/models/receptionists_model.da
 import 'package:ocurithm/modules/Receptionist/presentation/manager/get_receptionists_cubit/get_receptionists_cubit.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/manager/receptionist_actions_cubit/receptionist_actions_cubit.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/views/receptionist_form/receptionist_form_page.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 class ReceptionistCard extends StatefulWidget {
   const ReceptionistCard({
@@ -179,8 +180,9 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                                   text: widget.receptionist?.phone ?? "N/A"),
                             );
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Copied")),
+                              SnackbarService.showSuccess(
+                                context,
+                                message: "Copied",
                               );
                             }
                           },
@@ -215,12 +217,9 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                   listener: (context, state) {
                     if (state.isDeleteSuccess) {
                       Navigator.pop(context); // Close loading
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              state.successMessage ?? 'Deleted successfully'),
-                          backgroundColor: Colors.green,
-                        ),
+                      SnackbarService.showSuccess(
+                        context,
+                        message: state.successMessage ?? 'Deleted successfully',
                       );
                       // Refresh list
                       context
@@ -228,12 +227,9 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                           .add(GetAllReceptionistsEvent());
                     } else if (state.isDeleteError) {
                       Navigator.pop(context); // Close loading
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content:
-                              Text(state.errorMessage ?? 'Failed to delete'),
-                          backgroundColor: Colors.red,
-                        ),
+                      SnackbarService.showError(
+                        context,
+                        message: state.errorMessage ?? 'Failed to delete',
                       );
                     }
                   },
@@ -251,14 +247,9 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                           if (!connection) {
                             Navigator.pop(context);
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "No Internet Connection",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
+                              SnackbarService.showError(
+                                context,
+                                message: "No Internet Connection",
                               );
                             }
                           } else {

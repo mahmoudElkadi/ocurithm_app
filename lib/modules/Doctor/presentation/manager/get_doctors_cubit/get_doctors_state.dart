@@ -48,8 +48,8 @@ class GetDoctorsState {
     String? errorMessage,
     String? search,
     int? page,
-    String? clinicFilter,
-    String? branchFilter,
+    Object? clinicFilter = _sentinel,
+    Object? branchFilter = _sentinel,
     DoctorModel? doctors,
   }) {
     return GetDoctorsState(
@@ -57,9 +57,11 @@ class GetDoctorsState {
       search: search ?? this.search,
       errorMessage: errorMessage ?? this.errorMessage,
       page: page ?? this.page,
-      clinicFilter: clinicFilter ?? this.clinicFilter,
-      branchFilter: branchFilter ?? this.branchFilter,
+      clinicFilter: clinicFilter == _sentinel ? this.clinicFilter : clinicFilter as String?,
+      branchFilter: branchFilter == _sentinel ? this.branchFilter : branchFilter as String?,
       doctors: doctors ?? this.doctors,
     );
   }
+
+  static const _sentinel = Object();
 }

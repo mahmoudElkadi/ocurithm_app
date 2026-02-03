@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../utils/snackbar_service.dart';
 import 'height_spacer.dart';
 
 class BusinessHoursSelector extends StatefulWidget {
@@ -112,13 +113,9 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
 
     if (picked != null) {
       if (!_isTimeInRange(picked)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Please select a time between ${_formatTime(widget.startEnabledTime!)} and ${_formatTime(widget.endEnabledTime!)}',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        SnackbarService.showError(
+          context,
+          message: 'Please select a time between ${_formatTime(widget.startEnabledTime!)} and ${_formatTime(widget.endEnabledTime!)}',
         );
         return;
       }
@@ -128,11 +125,9 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
         int pickedMinutes = picked.hour * 60 + picked.minute;
         int closeMinutes = _closeTime.hour * 60 + _closeTime.minute;
         if (pickedMinutes >= closeMinutes) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Opening time must be before closing time'),
-              backgroundColor: Colors.red,
-            ),
+          SnackbarService.showError(
+            context,
+            message: 'Opening time must be before closing time',
           );
           return;
         }
@@ -142,11 +137,9 @@ class _BusinessHoursSelectorState extends State<BusinessHoursSelector> {
         int pickedMinutes = picked.hour * 60 + picked.minute;
         int openMinutes = _openTime.hour * 60 + _openTime.minute;
         if (pickedMinutes <= openMinutes) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Closing time must be after opening time'),
-              backgroundColor: Colors.red,
-            ),
+          SnackbarService.showError(
+            context,
+            message: 'Closing time must be after opening time',
           );
           return;
         }

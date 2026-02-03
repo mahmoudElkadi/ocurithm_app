@@ -1048,16 +1048,9 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        action: SnackBarAction(
-          label: 'Retry',
-          textColor: Colors.white,
-          onPressed: _uploadImage,
-        ),
-      ),
+    SnackbarService.showError(
+      context,
+      message: message,
     );
   }
 

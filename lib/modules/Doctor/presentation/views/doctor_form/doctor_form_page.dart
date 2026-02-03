@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -266,22 +267,18 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                   );
                 }
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.successMessage ?? 'Success'),
-                    backgroundColor: Colors.green,
-                  ),
+                SnackbarService.showSuccess(
+                  context,
+                  message: state.successMessage ?? 'Success',
                 );
 
                 // Refresh list if manager is available in context (it might not be if we popped)
                 // But usually we return result
                 Navigator.of(context).pop(true);
               } else if (state.isError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.errorMessage ?? 'Error occurred'),
-                    backgroundColor: Colors.red,
-                  ),
+                SnackbarService.showError(
+                  context,
+                  message: state.errorMessage ?? 'Error occurred',
                 );
               }
             },
@@ -291,18 +288,14 @@ class _DoctorFormViewState extends State<DoctorFormView> {
               if (state.isSuccess) {
                 // Refresh doctor data
                 _loadDoctorData();
-                getx.Get.snackbar(
-                  "Success",
-                  state.successMessage ?? "Branch operation successful",
-                  backgroundColor: theme.primaryColor,
-                  colorText: Colors.white,
+                SnackbarService.showSuccess(
+                  context,
+                  message: state.successMessage ?? "Branch operation successful",
                 );
               } else if (state.isError) {
-                getx.Get.snackbar(
-                  "Error",
-                  state.errorMessage ?? "An error occurred",
-                  backgroundColor: Colors.red,
-                  colorText: Colors.white,
+                SnackbarService.showError(
+                  context,
+                  message: state.errorMessage ?? "An error occurred",
                 );
               }
             },
@@ -1101,11 +1094,9 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     // Validate birth date
     if (_birthDate == null) {
       setState(() => _isBirthDateValid = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select birth date'),
-          backgroundColor: Colors.red,
-        ),
+      SnackbarService.showError(
+        context,
+        message: 'Please select birth date',
       );
       return;
     }
@@ -1114,11 +1105,9 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     if (CacheHelper.getStringList(key: "capabilities")
             .contains("manageCapability") &&
         _selectedClinicId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a clinic'),
-          backgroundColor: Colors.red,
-        ),
+      SnackbarService.showError(
+        context,
+        message: 'Please select a clinic',
       );
       return;
     }
@@ -1195,8 +1184,10 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   void _showAddBranchDialog(BuildContext context,
       {BranchElement? branchToEdit}) {
     if (_loadedDoctor?.clinic?.id == null) {
-      getx.Get.snackbar("Error", "Doctor clinic not found",
-          backgroundColor: Colors.red, colorText: Colors.white);
+      SnackbarService.showError(
+        context,
+        message: "Doctor clinic not found",
+      );
       return;
     }
 
@@ -1885,11 +1876,9 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
         _isUploading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to upload image: $e'),
-            backgroundColor: Colors.red,
-          ),
+        SnackbarService.showError(
+          context,
+          message: 'Failed to upload image: $e',
         );
       }
     }

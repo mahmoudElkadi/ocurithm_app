@@ -96,11 +96,13 @@ class FilterBottomSheet extends StatefulWidget {
 class _FilterBottomSheetState extends State<FilterBottomSheet> {
   bool _isFilterLoading = false;
   bool _isResetLoading = false;
-  Clinic? _selectedClinic;
+  String? _selectedClinicId;
 
   @override
   void initState() {
     super.initState();
+    // Initialize selected clinic ID from cubit state
+    _selectedClinicId = widget.cubit.state.clinicFilter;
   }
 
   Future<void> _handleFilter() async {
@@ -108,7 +110,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
     setState(() => _isFilterLoading = true);
     try {
-      widget.cubit.add(SetClinicFilterEvent(_selectedClinic?.id));
+      widget.cubit.add(SetClinicFilterEvent(_selectedClinicId));
       if (mounted) Navigator.pop(context, true);
     } finally {
       if (mounted) {
@@ -122,7 +124,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
     setState(() => _isResetLoading = true);
     try {
-      _selectedClinic = null;
+      _selectedClinicId = null;
       widget.cubit.add(ResetBranchFilters());
       if (mounted) Navigator.pop(context, true);
     } finally {
@@ -166,12 +168,17 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               ),
               items: state.clinics?.clinics ?? [],
               validateText: 'Please choose a clinic',
-              selectedValue: _selectedClinic?.name,
+              selectedValue: _selectedClinicId != null
+                  ? state.clinics?.clinics
+                      .where((c) => c.id == _selectedClinicId)
+                      .firstOrNull
+                      ?.name
+                  : null,
               hintText: 'Select Clinic',
               itemAsString: (item) => item.name.toString(),
               onItemSelected: (item) {
                 if (item != "Not Found") {
-                  setState(() => _selectedClinic = item);
+                  setState(() => _selectedClinicId = item.id);
                 }
               },
               isLoading: state.clinics == null,

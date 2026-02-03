@@ -14,6 +14,7 @@ import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../Patient/data/model/patients_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
 import '../../manager/Make Appointment cubit/make_appointment_state.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 class MakeAppointmentViewBody extends StatefulWidget {
   const MakeAppointmentViewBody({super.key, this.isUpdate = false});
@@ -379,28 +380,18 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                         onPressed: () async {
                           if (cubit.selectedTime != null) {
                             if (cubit.selectedTime!.isBefore(DateTime.now())) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  backgroundColor: Colors.red,
-                                  content: Text(
-                                    'Please select a valid date',
-                                    style: TextStyle(color: Colors.white, fontSize: 16),
-                                  ),
-                                ),
+                              SnackbarService.showError(
+                                context,
+                                message: 'Please select a valid date',
                               );
                               return;
                             } else {
                               cubit.changeStep(2);
                             }
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                backgroundColor: Colors.red,
-                                content: Text(
-                                  'Please select date',
-                                  style: TextStyle(color: Colors.white, fontSize: 16),
-                                ),
-                              ),
+                            SnackbarService.showError(
+                              context,
+                              message: 'Please select date',
                             );
                             return;
                           }

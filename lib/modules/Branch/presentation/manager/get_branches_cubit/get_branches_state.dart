@@ -29,10 +29,10 @@ class GetBranchesState {
   final String? errorMessage;
   final String? search;
   final int page;
-  final String? clinicFilter;
+   String? clinicFilter;
   final BranchesModel? branches;
 
-  const GetBranchesState(
+   GetBranchesState(
       {this.state = GetBranchesStatus.initial,
       this.errorMessage,
       this.search,

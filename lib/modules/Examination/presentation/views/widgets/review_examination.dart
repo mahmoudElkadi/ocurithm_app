@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/utils/format_helper.dart';
@@ -126,11 +127,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                           .read<ExaminationActionsCubit>()
                           .createExamination(data: cubit.examinationData());
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: const Text('No Internet Connection',
-                            style: TextStyle(color: Colors.white)),
-                        backgroundColor: Colorz.redColor,
-                      ));
+                      SnackbarService.showWarning(context, message: 'No Internet Connection');
                     }
                   }
                 },
@@ -144,11 +141,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                           .read<ExaminationActionsCubit>()
                           .createExamination(data: cubit.examinationData());
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: const Text('No Internet Connection',
-                            style: TextStyle(color: Colors.white)),
-                        backgroundColor: Colorz.redColor,
-                      ));
+                      SnackbarService.showWarning(context, message: 'No Internet Connection');
                     }
                   }
                 },

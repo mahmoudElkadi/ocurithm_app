@@ -1,6 +1,10 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:ocurithm/core/widgets/fullscreen_image_viewer.dart';
+import 'package:ocurithm/modules/Patient/presentation/views/examination_view/scan_details_page.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
@@ -547,12 +551,89 @@ class _PatientScansPageState extends State<PatientScansPage> {
                   ),
                 ],
                 const SizedBox(height: 16),
+                // Images Section
+                if (scan.files.isNotEmpty) ...[
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: scan.files.length,
+                      itemBuilder: (context, fileIndex) {
+                        final file = scan.files[fileIndex];
+                        final allUrls = scan.files
+                            .where((f) => f.url != null)
+                            .map((f) => f.url!)
+                            .toList();
+
+                        return Container(
+                          width: 100,
+                          margin: const EdgeInsets.only(right: 12),
+                          child: Stack(
+                            children: [
+                              Hero(
+                                tag: file.url ?? "scan_${scan.id}_$fileIndex",
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    file.url ?? "",
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, _, __) => Container(
+                                      color: isDark ? Colors.grey[850] : Colors.grey[200],
+                                      child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned.fill(
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(12),
+                                    onTap: () {
+                                      print('--- Tapped Image: ${file.url} ---');
+                                      if (file.url != null) {
+                                        Navigator.push(
+                                          context,
+                                          PageRouteBuilder(
+                                            opaque: false,
+                                            barrierColor: Colors.transparent,
+                                            pageBuilder: (context, _, __) =>
+                                                FullscreenImageViewer(
+                                              imageUrls: allUrls,
+                                              initialIndex:
+                                                  allUrls.indexOf(file.url!),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 // View Details Button
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // TODO: Navigate to scan details page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScanDetailsPage(
+                            patientId: widget.patientId,
+                            scanId: scan.id!,
+                          ),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.visibility_outlined, size: 18),
                     label: const Text("View Scan Details"),

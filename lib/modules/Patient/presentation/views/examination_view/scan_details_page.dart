@@ -10,6 +10,7 @@ import 'package:ocurithm/modules/Patient/data/model/scan_records_model.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_scan_details_cubit/get_scan_details_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/scan_actions_cubit/scan_actions_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/scan_pdf_service.dart';
+import 'package:ocurithm/core/widgets/fullscreen_image_viewer.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ScanDetailsPage extends StatelessWidget {
@@ -322,48 +323,73 @@ class ScanDetailsPage extends StatelessWidget {
       itemCount: scan.files.length,
       itemBuilder: (context, index) {
         final file = scan.files[index];
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Image.network(
-                file.url ?? "",
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return _buildImagePlaceholder(isDark);
-                },
-                errorBuilder: (context, error, stackTrace) =>
-                    _buildErrorPlaceholder(isDark),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.7),
-                        Colors.transparent
-                      ],
-                    ),
-                  ),
-                  child: Text(
-                    "Image ${index + 1}",
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold),
+        final allImageUrls = scan.files
+            .where((f) => f.url != null)
+            .map((f) => f.url!)
+            .toList();
+        
+        return GestureDetector(
+          onTap: () {
+            if (file.url != null) {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  opaque: false,
+                  barrierColor: Colors.transparent,
+                  pageBuilder: (context, _, __) => FullscreenImageViewer(
+                    imageUrls: allImageUrls,
+                    initialIndex: allImageUrls.indexOf(file.url!),
                   ),
                 ),
-              ),
-            ],
+              );
+            }
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Hero(
+                  tag: file.url ?? "scan_image_$index",
+                  child: Image.network(
+                    file.url ?? "",
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return _buildImagePlaceholder(isDark);
+                    },
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildErrorPlaceholder(isDark),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.7),
+                          Colors.transparent
+                        ],
+                      ),
+                    ),
+                    child: Text(
+                      "Image ${index + 1}",
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import '../../../../../core/utils/colors.dart';
 import '../../../../Branch/data/model/branches_model.dart' as branch;
@@ -31,13 +32,12 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     emit(AdminDoctorLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
+        if (Get.context != null) {
+          SnackbarService.showError(
+            Get.context!,
+            message: "No Internet Connection",
+          );
+        }
         emit(AdminDoctorError());
       } else {
         doctors = await appointmentRepo.getAllDoctors();
@@ -73,13 +73,12 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     emit(GetBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
-        );
+        if (Get.context != null) {
+          SnackbarService.showError(
+            Get.context!,
+            message: "No Internet Connection",
+          );
+        }
         loading = false;
         emit(GetBranchError());
       } else {
@@ -146,12 +145,9 @@ class AppointmentCubit extends Cubit<AppointmentState> {
       var result = await appointmentRepo.editAppointment(
           id: id, action: action, date: date, doctor: doctor);
       if (result != null && result.error == null) {
-        Get.snackbar(
-          "Success",
-          "Appointment Updated successfully",
-          backgroundColor: Colorz.primaryColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.check, color: Colorz.white),
+        SnackbarService.showSuccess(
+          context,
+          message: "Appointment Updated successfully",
         );
         int? index = appointments?.appointments.indexWhere((e) => e.id == id);
         if (index != null && index != -1) {
@@ -161,23 +157,17 @@ class AppointmentCubit extends Cubit<AppointmentState> {
         Navigator.pop(context, true);
         emit(EditAppointmentSuccess());
       } else if (result != null && result.error != null) {
-        Get.snackbar(
-          result.error!,
-          "Failed to $action appointment",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          context,
+          message: result.error ?? "Failed to $action appointment",
         );
         Navigator.pop(context);
 
         emit(EditAppointmentError());
       } else {
-        Get.snackbar(
-          "Error",
-          "Failed to $action appointment",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          context,
+          message: "Failed to $action appointment",
         );
         Navigator.pop(context);
         emit(EditAppointmentError());

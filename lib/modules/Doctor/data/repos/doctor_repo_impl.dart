@@ -58,7 +58,7 @@ class DoctorRepoImpl implements DoctorRepo {
     try {
       Map<String, dynamic> query = {
         if (page != null) "page": page,
-        if (page != null) 'limit': 10,
+        if (page != null) 'limit': 25,
         if (search != null && search.isNotEmpty) "search": search,
         if (clinic != null && clinic.isNotEmpty) "clinic": clinic,
         if (branch != null && branch.isNotEmpty) "branch": branch,

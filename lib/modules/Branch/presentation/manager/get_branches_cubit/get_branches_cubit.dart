@@ -106,7 +106,8 @@ class GetBranchesCubit extends Bloc<GetBranchesEvent, GetBranchesState> {
   // Reset filters
   Future<void> _onResetFilters(
       ResetBranchFilters event, Emitter<GetBranchesState> emit) async {
-    emit(state.copyWith(page: 1, search: '', clinicFilter: null));
+    state.clinicFilter=null;
+    emit(state.copyWith(page: 1, search: '', clinicFilter: null)); 
     add(GetAllBranchesEvent());
   }
 

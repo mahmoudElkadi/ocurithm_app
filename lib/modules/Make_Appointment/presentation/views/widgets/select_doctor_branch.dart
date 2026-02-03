@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_cubit.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_state.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
@@ -128,11 +129,9 @@ class _SelectDoctorBranchState extends State<SelectDoctorBranch> {
                             if (widget.cubit.selectedDoctor != null && widget.cubit.selectedBranch != null) {
                               Navigator.pop(context, true);
                             } else {
-                              Get.snackbar(
-                                'Error',
-                                'Please select doctor and branch',
-                                backgroundColor: Colors.red,
-                                colorText: Colors.white,
+                              SnackbarService.showError(
+                                context,
+                                message: 'Please select doctor and branch',
                               );
                             }
                           },

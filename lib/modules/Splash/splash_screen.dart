@@ -20,6 +20,7 @@ import '../../core/widgets/height_spacer.dart';
 import '../../core/widgets/no_internet.dart';
 import '../Login/presentation/view/login_view.dart';
 import '../On boarding/presentation/onBoarding.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -126,11 +127,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       if (!mounted) return;
 
       // Handle network or other errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error checking authentication: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
+      SnackbarService.showError(
+        context,
+        message: 'Error checking authentication: ${e.toString()}',
       );
 
       // Navigate to login view in case of error

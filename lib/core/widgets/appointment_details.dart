@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../utils/app_style.dart';
+import '../utils/snackbar_service.dart';
 import 'height_spacer.dart';
 
 Future<String?> showAppointmentDetails(context, Map<String, dynamic> patientData) {
@@ -92,10 +93,9 @@ Future<String?> showAppointmentDetails(context, Map<String, dynamic> patientData
                             if (!kIsWeb && await canLaunchUrl(Uri.parse(url))) {
                               await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Could not call ${patientData["phoneNumber"]}'),
-                                ),
+                              SnackbarService.showError(
+                                context,
+                                message: 'Could not call ${patientData["phoneNumber"]}',
                               );
                             }
                           },

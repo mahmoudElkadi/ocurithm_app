@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/modules/Make_Appointment/data/models/make_appointment_model.dart';
 
 import '../../../../../Services/services_api.dart';
@@ -57,12 +58,9 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     emit(AdminClinicLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          Get.context!,
+          message: "No Internet Connection",
         );
         emit(AdminClinicError());
       } else {
@@ -92,12 +90,9 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     emit(AdminDoctorLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          Get.context!,
+          message: "No Internet Connection",
         );
         emit(AdminDoctorError());
       } else {
@@ -126,12 +121,9 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     emit(GetBranchLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          Get.context!,
+          message: "No Internet Connection",
         );
         loading = false;
         emit(GetBranchError());
@@ -167,12 +159,9 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     emit(AdminPatientLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          Get.context!,
+          message: "No Internet Connection",
         );
         loadPatients = false;
         emit(AdminPatientError());
@@ -203,12 +192,9 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     emit(PaymentMethodLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          Get.context!,
+          message: "No Internet Connection",
         );
         emit(PaymentMethodError());
       } else {
@@ -234,12 +220,9 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     emit(ExaminationTypeLoading());
     try {
       if (connection == false) {
-        Get.snackbar(
-          "Error",
-          "No Internet Connection",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          Get.context!,
+          message: "No Internet Connection",
         );
         emit(ExaminationTypeError());
       } else {
@@ -388,35 +371,26 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
               clinic: selectedClinic?.id,
               note: noteController.text));
       if (result.error == null) {
-        Get.snackbar(
-          "Success",
-          "Appointment created successfully",
-          backgroundColor: Colorz.primaryColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.check, color: Colorz.white),
+        SnackbarService.showSuccess(
+          context,
+          message: "Appointment created successfully",
         );
         currentStep = 0;
         Navigator.pop(context);
         Navigator.pop(context, true);
         emit(MakeAppointmentSuccess());
       } else if (result.error != null) {
-        Get.snackbar(
-          result.error!,
-          "Failed to create appointment",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          context,
+          message: result.error ?? "Failed to create appointment",
         );
         Navigator.pop(context);
 
         emit(MakeAppointmentError());
       } else {
-        Get.snackbar(
-          "Error",
-          "Failed to create appointment",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          context,
+          message: "Failed to create appointment",
         );
         Navigator.pop(context);
 
@@ -433,34 +407,25 @@ class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
     try {
       var result = await makeAppointmentRepo.editAppointment(model: model, id: model.id.toString());
       if (result != null && result.error == null) {
-        Get.snackbar(
-          "Success",
-          "Appointment Updated successfully",
-          backgroundColor: Colorz.primaryColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.check, color: Colorz.white),
+        SnackbarService.showSuccess(
+          context,
+          message: "Appointment Updated successfully",
         );
         Navigator.pop(context);
         Navigator.pop(context, true);
         emit(MakeAppointmentSuccess());
       } else if (result != null && result.error != null) {
-        Get.snackbar(
-          result.error!,
-          "Failed to create appointment",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          context,
+          message: result.error ?? "Failed to update appointment",
         );
         Navigator.pop(context);
 
         emit(MakeAppointmentError());
       } else {
-        Get.snackbar(
-          "Error",
-          "Failed to create appointment",
-          backgroundColor: Colorz.errorColor,
-          colorText: Colorz.white,
-          icon: Icon(Icons.error, color: Colorz.white),
+        SnackbarService.showError(
+          context,
+          message: "Failed to update appointment",
         );
         Navigator.pop(context);
 

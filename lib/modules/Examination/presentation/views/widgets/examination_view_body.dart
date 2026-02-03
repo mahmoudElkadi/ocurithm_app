@@ -6,6 +6,7 @@ import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/patient_bottom_sheet.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/review_examination.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
@@ -50,18 +51,18 @@ class MultiStepFormView extends StatelessWidget {
             } else {
               // Fallback if result is empty? usually means just close.
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(state.message ?? "Success"),
-                backgroundColor: Colors.green,
-              ));
+              SnackbarService.showSuccess(
+                context,
+                message: state.message ?? "Success",
+              );
             }
           } else if (state.status == ExaminationActionsStatus.error ||
               state.status == ExaminationActionsStatus.noConnection) {
             Navigator.pop(context); // Close loading
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(state.error ?? "Error"),
-              backgroundColor: Colorz.redColor,
-            ));
+            SnackbarService.showError(
+              context,
+              message: state.error ?? "Error",
+            );
           }
         },
         child: BlocBuilder<ExaminationFormCubit, ExaminationFormState>(
@@ -333,11 +334,7 @@ class _HistoryDetails extends StatelessWidget {
                             .read<ExaminationActionsCubit>()
                             .createExamination(data: cubit.examinationData());
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: const Text('No Internet Connection',
-                              style: TextStyle(color: Colors.white)),
-                          backgroundColor: Colorz.redColor,
-                        ));
+                      SnackbarService.showWarning(context, message: 'No Internet Connection');
                       }
                     }
                   },
@@ -351,11 +348,7 @@ class _HistoryDetails extends StatelessWidget {
                             .read<ExaminationActionsCubit>()
                             .createExamination(data: cubit.examinationData());
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: const Text('No Internet Connection',
-                              style: TextStyle(color: Colors.white)),
-                          backgroundColor: Colorz.redColor,
-                        ));
+                      SnackbarService.showWarning(context, message: 'No Internet Connection');
                       }
                     }
                   },
@@ -535,11 +528,7 @@ class _StepTwoContent extends StatelessWidget {
                           .read<ExaminationActionsCubit>()
                           .createExamination(data: cubit.examinationData());
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: const Text('No Internet Connection',
-                            style: TextStyle(color: Colors.white)),
-                        backgroundColor: Colorz.redColor,
-                      ));
+                      SnackbarService.showWarning(context, message: 'No Internet Connection');
                     }
                   }
                 },
@@ -554,11 +543,7 @@ class _StepTwoContent extends StatelessWidget {
                           .read<ExaminationActionsCubit>()
                           .createExamination(data: cubit.examinationData());
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: const Text('No Internet Connection',
-                            style: TextStyle(color: Colors.white)),
-                        backgroundColor: Colorz.redColor,
-                      ));
+                      SnackbarService.showWarning(context, message: 'No Internet Connection');
                     }
                   }
                 },

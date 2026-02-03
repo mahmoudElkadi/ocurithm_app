@@ -13,6 +13,7 @@ import 'package:ocurithm/generated/l10n.dart';
 import 'package:ocurithm/modules/Doctor/presentation/manager/doctor_branch_actions_cubit/doctor_branch_actions_cubit.dart';
 import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
 import 'package:ocurithm/Services/time_parser.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 class AddDoctorBranchDialog extends StatefulWidget {
   final String doctorId;
@@ -225,12 +226,9 @@ class _AddDoctorBranchDialogState extends State<AddDoctorBranchDialog> {
                     if (state.isSuccess) {
                       Navigator.pop(context); // Close dialog
                     } else if (state.isError) {
-                      Get.snackbar(
-                        "Error",
-                        state.errorMessage ?? "An error occurred",
-                        backgroundColor: Colorz.errorColor,
-                        colorText: Colorz.white,
-                        icon: const Icon(Icons.error, color: Colors.white),
+                      SnackbarService.showError(
+                        context,
+                        message: state.errorMessage ?? "An error occurred",
                       );
                     }
                   },
@@ -283,12 +281,9 @@ class _AddDoctorBranchDialogState extends State<AddDoctorBranchDialog> {
     // Check internet
     bool connection = await InternetConnection().hasInternetAccess;
     if (!connection) {
-      Get.snackbar(
-        "Error",
-        "No Internet Connection",
-        backgroundColor: Colorz.errorColor,
-        colorText: Colorz.white,
-        icon: const Icon(Icons.error, color: Colors.white),
+      SnackbarService.showError(
+        context,
+        message: "No Internet Connection",
       );
       return;
     }
@@ -310,12 +305,9 @@ class _AddDoctorBranchDialogState extends State<AddDoctorBranchDialog> {
 
     if (BranchScheduleValidator.hasScheduleConflict(
         otherBranches, newBranchSchedule)) {
-      Get.snackbar(
-        "Schedule Conflict",
-        "This schedule overlaps with existing branch assignments",
-        backgroundColor: Colorz.errorColor,
-        colorText: Colorz.white,
-        icon: const Icon(Icons.error, color: Colors.white),
+      SnackbarService.showError(
+        context,
+        message: "This schedule overlaps with existing branch assignments",
       );
       return;
     }
@@ -331,12 +323,9 @@ class _AddDoctorBranchDialogState extends State<AddDoctorBranchDialog> {
     if (TimeComparer.compareTimeOfDay(doctorAvailableFrom, branchOpenTime) <
             0 ||
         TimeComparer.compareTimeOfDay(doctorAvailableTo, branchCloseTime) > 0) {
-      Get.snackbar(
-        "Invalid Time",
-        "Please select a time between ${_formatTime(branchOpenTime)} and ${_formatTime(branchCloseTime)}",
-        backgroundColor: Colorz.errorColor,
-        colorText: Colorz.white,
-        icon: const Icon(Icons.error, color: Colors.white),
+      SnackbarService.showError(
+        context,
+        message: "Please select a time between ${_formatTime(branchOpenTime)} and ${_formatTime(branchCloseTime)}",
       );
       return;
     }

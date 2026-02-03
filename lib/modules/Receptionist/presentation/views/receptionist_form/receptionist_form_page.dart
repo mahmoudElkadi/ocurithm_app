@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -227,27 +228,21 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
                   );
                 }
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.successMessage ?? 'Success'),
-                    backgroundColor: Colors.green,
-                  ),
+                SnackbarService.showSuccess(
+                  context,
+                  message: state.successMessage ?? 'Success',
                 );
                 Navigator.of(context)
                     .pop(true); // Return true to indicate success
               } else if (state.isAddError || state.isUpdateError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.errorMessage ?? 'Error occurred'),
-                    backgroundColor: Colors.red,
-                  ),
+                SnackbarService.showError(
+                  context,
+                  message: state.errorMessage ?? 'Error occurred',
                 );
               } else if (state.noConnection) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('No internet connection'),
-                    backgroundColor: Colors.orange,
-                  ),
+                SnackbarService.showWarning(
+                  context,
+                  message: 'No internet connection',
                 );
               }
             },
@@ -967,11 +962,9 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
 
     // Validate branch selection
     if (selectedBranch == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a branch'),
-          backgroundColor: Colors.red,
-        ),
+      SnackbarService.showError(
+        context,
+        message: 'Please select a branch',
       );
       return;
     }
@@ -1103,16 +1096,9 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        action: SnackBarAction(
-          label: 'Retry',
-          textColor: Colors.white,
-          onPressed: _uploadImage,
-        ),
-      ),
+    SnackbarService.showError(
+      context,
+      message: message,
     );
   }
 

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/api/api_constants.dart';
@@ -341,10 +342,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
                             bool value = await InternetConnection().hasInternetAccess;
                             if (!value) {
                               Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
-                                backgroundColor: Colors.red,
-                              ));
+                              SnackbarService.showWarning(context, message: 'No Internet Connection');
                               return;
                             }
                             widget.cubit.editAppointment(
@@ -354,11 +352,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
                                 date: widget.cubit.selectedTime!.toUtc(),
                                 doctor: widget.appointment.doctor?.id.toString());
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content: Text('Please select a time', style: TextStyle(color: Colors.white)),
-                              backgroundColor: Colors.red,
-                              behavior: SnackBarBehavior.floating,
-                            ));
+                            SnackbarService.showError(context, message: 'Please select a time');
                           }
                         },
                         style: ElevatedButton.styleFrom(

@@ -11,6 +11,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/utils/format_helper.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/calendar_slider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -566,10 +567,9 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                     if (!kIsWeb && await canLaunchUrl(Uri.parse(url))) {
                       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Could not call ${appointment.patient?.phone}'),
-                        ),
+                      SnackbarService.showError(
+                        context,
+                        message: 'Could not call ${appointment.patient?.phone}',
                       );
                     }
                   }
@@ -645,10 +645,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                                     bool value = await InternetConnection().hasInternetAccess;
                                     if (!value) {
                                       Navigator.pop(context);
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                        content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
-                                        backgroundColor: Colors.red,
-                                      ));
+                                      SnackbarService.showWarning(context, message: 'No Internet Connection');
                                       return;
                                     }
                                     cubit.editAppointment(
@@ -722,10 +719,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                                       bool value = await InternetConnection().hasInternetAccess;
                                       if (!value) {
                                         Navigator.pop(context);
-                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                          content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
-                                          backgroundColor: Colors.red,
-                                        ));
+                                        SnackbarService.showWarning(context, message: 'No Internet Connection');
                                         return;
                                       }
                                       cubit.editAppointment(
@@ -762,10 +756,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                                     bool value = await InternetConnection().hasInternetAccess;
                                     if (!value) {
                                       Navigator.pop(context);
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                        content: Text('No Internet Connection', style: TextStyle(color: Colors.white)),
-                                        backgroundColor: Colors.red,
-                                      ));
+                                      SnackbarService.showWarning(context, message: 'No Internet Connection');
                                       return;
                                     }
                                     cubit.editAppointment(

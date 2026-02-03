@@ -17,7 +17,8 @@ import '../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Doctor/data/model/doctor_model.dart';
 import 'package:ocurithm/modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
-import 'package:ocurithm/core/utils/services_locator.dart'; // Ensure sl is available
+import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 class MedicalTreeForm extends StatefulWidget {
   const MedicalTreeForm(
@@ -425,17 +426,17 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           } else if (state.status == ExaminationActionsStatus.success) {
             Navigator.pop(context); // Pop loading
             Navigator.pop(context); // Pop screen
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(state.message ?? "Finalized Successfully"),
-              backgroundColor: Colors.green,
-            ));
+            SnackbarService.showSuccess(
+              context,
+              message: state.message ?? "Finalized Successfully",
+            );
           } else if (state.status == ExaminationActionsStatus.error ||
               state.status == ExaminationActionsStatus.noConnection) {
             Navigator.pop(context); // Pop loading
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(state.error ?? "proccess failed"),
-              backgroundColor: Colors.red,
-            ));
+            SnackbarService.showError(
+              context,
+              message: state.error ?? "proccess failed",
+            );
           }
         },
         child: Scaffold(
@@ -1731,11 +1732,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                   bool value = await InternetConnection().hasInternetAccess;
                   if (!value) {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('No Internet Connection',
-                          style: TextStyle(color: Colors.white)),
-                      backgroundColor: Colors.red,
-                    ));
+                    SnackbarService.showWarning(context, message: 'No Internet Connection');
                     return;
                   }
 

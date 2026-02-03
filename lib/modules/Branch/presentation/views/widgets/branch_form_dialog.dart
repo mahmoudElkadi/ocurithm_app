@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
@@ -126,20 +125,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
     }
 
     // Show loading dialog
-    customLoading(context, "");
-
-    // Check internet connection
-    final hasConnection = await InternetConnection().hasInternetAccess;
-    if (!mounted) return;
-
-    if (!hasConnection) {
-      Navigator.of(context).pop(); // Close loading dialog
-      SnackbarService.showError(
-        context,
-        message: "No Internet Connection",
-      );
-      return;
-    }
+    customLoading(context, widget.mode == BranchFormMode.add ? "Adding Branch..." : "Updating Branch...");
 
     // Create branch model
     final branchModel = AddBranchModel(
@@ -208,39 +194,42 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
         BlocListener<BranchActionsCubit, BranchActionsState>(
           bloc: widget.actionsCubit,
           listener: (context, state) {
-            // Check if we are in a final state (success, error, or no connection)
-              // 1. Pop the loading dialog (customLoading)
-              // Use rootNavigator: true if customLoading was opened that way,
-              // but here we just pop the topmost route.
+            // Only handle success, error, and noConnection states to dismiss loading
+            if (state.state == BranchActionsStatus.loading) {
+              return;
+            }
+
+            // Pop the loading dialog if it's open
+            // We check if the state is NOT initial and NOT loading
+            if (state.state != BranchActionsStatus.initial) {
               Navigator.of(context).pop();
+            }
 
-              // 2. Handle Success
-              if (state.isAddSuccess || state.isUpdateSuccess) {
-                SnackbarService.showSuccess(
-                  context,
-                  message: state.successMessage ??
-                      'Operation completed successfully',
-                );
-                // 3. Pop the Form Dialog itself
-                Navigator.of(context).pop();
-              }
+            // Handle Success
+            if (state.isSuccess) {
+              SnackbarService.showSuccess(
+                context,
+                message: state.successMessage ?? 'Operation completed successfully',
+              );
+              // Pop the Form Dialog with true to indicate success
+              Navigator.of(context).pop(true);
+            }
 
-              // 3. Handle Error
-              if (state.isError) {
-                SnackbarService.showError(
-                  context,
-                  message: state.errorMessage ?? 'An error occurred',
-                );
-              }
+            // Handle Error
+            if (state.isError) {
+              SnackbarService.showError(
+                context,
+                message: state.errorMessage ?? 'An error occurred',
+              );
+            }
 
-              // 4. Handle No Connection
-              if (state.noConnection) {
-                SnackbarService.showWarning(
-                  context,
-                  message: state.errorMessage ?? 'No internet connection',
-                );
-              }
-
+            // Handle No Connection
+            if (state.noConnection) {
+              SnackbarService.showWarning(
+                context,
+                message: state.errorMessage ?? 'No internet connection',
+              );
+            }
           },
         ),
 

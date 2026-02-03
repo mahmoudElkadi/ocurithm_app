@@ -11,6 +11,7 @@ import 'package:ocurithm/generated/l10n.dart';
 import 'package:ocurithm/modules/Branch/data/model/branches_model.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import 'package:ocurithm/modules/Patient/data/model/patient_examination.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
@@ -234,17 +235,19 @@ class _PatientFormViewState extends State<PatientFormView> {
                 // Pop the loading dialog
                 Navigator.pop(context);
 
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(state.successMessage ?? 'Success'),
-                    backgroundColor: Colors.green));
+                SnackbarService.showSuccess(
+                  context,
+                  message: state.successMessage ?? 'Success',
+                );
                 Navigator.pop(context, true);
               } else if (state.isError || state.noConnection) {
                 // Pop the loading dialog
                 Navigator.pop(context);
 
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(state.errorMessage ?? 'Error'),
-                    backgroundColor: Colors.red));
+                SnackbarService.showError(
+                  context,
+                  message: state.errorMessage ?? 'Error',
+                );
               }
             },
           )

@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart';
 
 import '../../../../../core/utils/colors.dart';
@@ -358,14 +359,9 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
                 customLoading(context, "");
                 bool connection = await InternetConnection().hasInternetAccess;
                 if (!connection) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "No internet connection",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
+                  SnackbarService.showError(
+                    context,
+                    message: "No internet connection",
                   );
                 } else {
                   if (widget.isUpdated == true) {

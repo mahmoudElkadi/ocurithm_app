@@ -30,26 +30,8 @@ class OneExaminationContent extends StatelessWidget {
             ],
           ),
 
-          Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildEyeExaminationContent(context,
-                      isLeft: false,
-                      examination: examination,
-                      isDark: isDark,
-                      theme: theme),
-                  const SizedBox(width: 10),
-                  _buildEyeExaminationContent(context,
-                      isLeft: true,
-                      examination: examination,
-                      isDark: isDark,
-                      theme: theme),
-                ],
-              )
-            ],
-          )
+          _buildEyeComparisonSection(context,
+              examination: examination, isDark: isDark, theme: theme),
         ],
       ),
     );
@@ -588,308 +570,6 @@ class OneExaminationContent extends StatelessWidget {
     );
   }
 
-  Widget _buildEyeExaminationContent(BuildContext context,
-      {required bool isLeft,
-      required ExaminationModel examination,
-      required bool isDark,
-      required ThemeData theme}) {
-    if (examination.examination?.measurements.isEmpty ?? true) {
-      return const SizedBox.shrink();
-    }
-
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            isLeft ? 'Left Eye' : 'Right Eye',
-            style: TextStyle(
-                color: Colorz.primaryColor,
-                fontWeight: FontWeight.w500,
-                fontSize: 16),
-          ),
-          const HeightSpacer(size: 12),
-          _buildQuadrantSection(context,
-              isLeft: isLeft, examinationModel: examination),
-          _buildExaminationSection(
-            context,
-            title: 'Old Glasses',
-            icon: Icons.remove_red_eye,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 0,
-            data: {
-              'Spherical': isLeft
-                  ? FormatHelper.formatPositiveValue(examination
-                          .examination?.measurements[0].oldSpherical) ??
-                      '-'
-                  : FormatHelper.formatPositiveValue(examination
-                          .examination?.measurements[1].oldSpherical) ??
-                      '-',
-              'Cylindrical': isLeft
-                  ? FormatHelper.formatPositiveValue(examination
-                          .examination?.measurements[0].oldCylindrical) ??
-                      '-'
-                  : FormatHelper.formatPositiveValue(
-                      examination.examination?.measurements[1].oldCylindrical),
-              'Axis': isLeft
-                  ? examination.examination?.measurements[0].oldAxis
-                  : examination.examination?.measurements[1].oldAxis,
-            },
-          ),
-          _buildExaminationSection(
-            context,
-            title: 'Autorefraction',
-            icon: Icons.remove_red_eye,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 0,
-            data: {
-              'Spherical': isLeft
-                  ? FormatHelper.formatPositiveValue(examination
-                          .examination?.measurements[0].autorefSpherical) ??
-                      '-'
-                  : FormatHelper.formatPositiveValue(examination
-                          .examination?.measurements[1].autorefSpherical) ??
-                      '-',
-              'Cylindrical': isLeft
-                  ? FormatHelper.formatPositiveValue(examination
-                          .examination?.measurements[0].autorefCylindrical) ??
-                      '-'
-                  : FormatHelper.formatPositiveValue(examination
-                      .examination?.measurements[1].autorefCylindrical),
-              'Axis': isLeft
-                  ? examination.examination?.measurements[0].autorefAxis
-                  : examination.examination?.measurements[1].autorefAxis,
-            },
-          ),
-          _buildExaminationSection(
-            context,
-            title: 'Refined Refraction',
-            icon: Icons.science,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 2,
-            data: {
-              'Spherical': isLeft
-                  ? FormatHelper.formatPositiveValue(examination
-                      .examination?.measurements[0].refinedRefractionSpherical)
-                  : FormatHelper.formatPositiveValue(examination
-                      .examination?.measurements[1].refinedRefractionSpherical),
-              'Cylindrical': isLeft
-                  ? FormatHelper.formatPositiveValue(examination.examination
-                      ?.measurements[0].refinedRefractionCylindrical)
-                  : FormatHelper.formatPositiveValue(examination.examination
-                      ?.measurements[1].refinedRefractionCylindrical),
-              'Axis': isLeft
-                  ? examination
-                      .examination?.measurements[0].refinedRefractionAxis
-                  : examination
-                      .examination?.measurements[1].refinedRefractionAxis,
-              'Near Vision': isLeft
-                  ? FormatHelper.formatPositiveValue(examination
-                      .examination?.measurements[0].nearVisionAddition)
-                  : FormatHelper.formatPositiveValue(examination
-                      .examination?.measurements[1].nearVisionAddition),
-            },
-          ),
-          _buildExaminationSection(
-            context,
-            title: 'Visual Acuity',
-            icon: Icons.visibility,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 1,
-            data: {
-              'UCVA': isLeft
-                  ? examination.examination?.measurements[0].ucva
-                  : examination.examination?.measurements[1].ucva,
-              'BCVA': isLeft
-                  ? examination.examination?.measurements[0].bcva
-                  : examination.examination?.measurements[1].bcva,
-            },
-          ),
-          _buildExaminationSection(
-            context,
-            title: 'IOP',
-            icon: Icons.opacity,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 3,
-            data: {
-              'IOP Value': isLeft
-                  ? examination.examination?.measurements[0].iop
-                  : examination.examination?.measurements[1].iop,
-              'Measurement Method': isLeft
-                  ? examination.examination?.measurements[0].meansOfMeasurement
-                  : examination.examination?.measurements[1].meansOfMeasurement,
-              'Acquire Another IOP Measurement': isLeft
-                  ? examination
-                      .examination?.measurements[0].acquireAnotherIopMeasurement
-                  : examination.examination?.measurements[1]
-                      .acquireAnotherIopMeasurement,
-            },
-          ),
-          _buildExaminationSection(
-            context,
-            title: 'Pupils',
-            icon: Icons.lens_blur,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 4,
-            data: {
-              'Shape': isLeft
-                  ? examination.examination?.measurements[0].pupilsShape
-                  : examination.examination?.measurements[1].pupilsShape,
-              'Light Reflex': isLeft
-                  ? examination
-                      .examination?.measurements[0].pupilsLightReflexTest
-                  : examination
-                      .examination?.measurements[1].pupilsLightReflexTest,
-              'Near Reflex': isLeft
-                  ? examination
-                      .examination?.measurements[0].pupilsNearReflexTest
-                  : examination
-                      .examination?.measurements[1].pupilsNearReflexTest,
-              'Swinging Flashlight': isLeft
-                  ? examination
-                      .examination?.measurements[0].pupilsSwingingFlashLightTest
-                  : examination.examination?.measurements[1]
-                      .pupilsSwingingFlashLightTest,
-              'Other Disorders': isLeft
-                  ? examination
-                      .examination?.measurements[0].pupilsOtherDisorders
-                  : examination
-                      .examination?.measurements[1].pupilsOtherDisorders,
-            },
-          ),
-          _buildExaminationSection(
-            context,
-            title: 'Eyelid & Physical',
-            icon: Icons.visibility_outlined,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 5,
-            data: {
-              'Eyelid Ptosis': isLeft
-                  ? examination.examination?.measurements[0].eyelidPtosis
-                  : examination.examination?.measurements[1].eyelidPtosis,
-              'Lagophthalmos': isLeft
-                  ? examination.examination?.measurements[0].eyelidLagophthalmos
-                  : examination
-                      .examination?.measurements[1].eyelidLagophthalmos,
-              'Palpable Lymph Nodes': isLeft
-                  ? examination.examination?.measurements[0].palpableLymphNodes
-                  : examination.examination?.measurements[1].palpableLymphNodes,
-              'Papable Temporal Artery': isLeft
-                  ? examination
-                      .examination?.measurements[0].palpableTemporalArtery
-                  : examination
-                      .examination?.measurements[1].palpableTemporalArtery,
-            },
-          ),
-          _buildExaminationSection(
-            context,
-            title: 'Eye Structure',
-            icon: Icons.add_circle_outline,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 7,
-            data: {
-              'Cornea': (isLeft
-                      ? examination.examination?.measurements[0].cornea
-                      : examination.examination?.measurements[1].cornea)
-                  .join(', '),
-              'Anterior Chambre': (isLeft
-                      ? examination.examination?.measurements[0].anteriorChamber
-                      : examination
-                          .examination?.measurements[1].anteriorChamber)
-                  .join(', '),
-              'Iris': (isLeft
-                      ? examination.examination?.measurements[0].iris
-                      : examination.examination?.measurements[1].iris)
-                  .join(', '),
-              'Lens': (isLeft
-                      ? examination.examination?.measurements[0].lens
-                      : examination.examination?.measurements[1].lens)
-                  .join(', '),
-              'Anterior Vitreous': (isLeft
-                      ? examination
-                          .examination?.measurements[0].anteriorVitreous
-                      : examination
-                          .examination?.measurements[1].anteriorVitreous)
-                  .join(', '),
-            },
-          ),
-          _buildExaminationSection(
-            context,
-            title: 'Fundus Examination',
-            icon: Icons.center_focus_strong,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 8,
-            data: {
-              'Optic Disc': (isLeft
-                      ? examination.examination?.measurements[0].fundusOpticDisc
-                      : examination
-                          .examination?.measurements[1].fundusOpticDisc)
-                  .join(', '),
-              'Macula': (isLeft
-                      ? examination.examination?.measurements[0].fundusMacula
-                      : examination.examination?.measurements[1].fundusMacula)
-                  .join(', '),
-              'Vessels': (isLeft
-                      ? examination.examination?.measurements[0].fundusVessels
-                      : examination.examination?.measurements[1].fundusVessels)
-                  .join(', '),
-              'Periphery': (isLeft
-                      ? examination.examination?.measurements[0].fundusPeriphery
-                      : examination
-                          .examination?.measurements[1].fundusPeriphery)
-                  .join(', '),
-            },
-          ),
-          _buildExaminationSection(
-            context,
-            title: 'External Features',
-            icon: Icons.biotech,
-            isLeft: isLeft,
-            isDark: isDark,
-            theme: theme,
-            sectionIndex: 6,
-            data: {
-              'Lids': isLeft
-                  ? examination.examination?.measurements[0].lids
-                  : examination.examination?.measurements[1].lids,
-              'Lashes': isLeft
-                  ? examination.examination?.measurements[0].lashes
-                  : examination.examination?.measurements[1].lashes,
-              'Lacrimal': isLeft
-                  ? examination.examination?.measurements[0].lacrimalSystem
-                  : examination.examination?.measurements[1].lacrimalSystem,
-              'Conjunctiva': isLeft
-                  ? examination.examination?.measurements[0].conjunctiva
-                  : examination.examination?.measurements[1].conjunctiva,
-              'Sclera': isLeft
-                  ? examination.examination?.measurements[0].sclera
-                  : examination.examination?.measurements[1].sclera,
-            },
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
 
   Widget _buildExaminationSection(
     BuildContext context, {
@@ -1261,6 +941,373 @@ class OneExaminationContent extends StatelessWidget {
             isComplaintCard: true,
           ),
       ],
+    );
+  }
+
+  Widget _buildComparisonRow(
+    BuildContext context, {
+    required Widget leftChild,
+    required Widget rightChild,
+  }) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: rightChild),
+          const SizedBox(width: 10),
+          Expanded(child: leftChild),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEyeLabel(bool isLeft) {
+    return Text(
+      isLeft ? '   Left Eye' : '   Right Eye',
+      style: TextStyle(
+          color: Colorz.primaryColor,
+          fontWeight: FontWeight.w500,
+          fontSize: 16),
+    );
+  }
+
+  Widget _buildSectionComparison(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required ExaminationModel examination,
+    required bool isDark,
+    required ThemeData theme,
+    required int sectionIndex,
+    required Map<String, dynamic> Function(bool isLeft) dataMapper,
+  }) {
+    return _buildComparisonRow(
+      context,
+      rightChild: _buildExaminationSection(
+        context,
+        title: title,
+        icon: icon,
+        isLeft: false,
+        isDark: isDark,
+        theme: theme,
+        sectionIndex: sectionIndex,
+        data: dataMapper(false),
+      ),
+      leftChild: _buildExaminationSection(
+        context,
+        title: title,
+        icon: icon,
+        isLeft: true,
+        isDark: isDark,
+        theme: theme,
+        sectionIndex: sectionIndex,
+        data: dataMapper(true),
+      ),
+    );
+  }
+
+  Widget _buildEyeComparisonSection(BuildContext context,
+      {required ExaminationModel examination,
+      required bool isDark,
+      required ThemeData theme}) {
+    if (examination.examination?.measurements.isEmpty ?? true) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildComparisonRow(
+            context,
+            rightChild: _buildEyeLabel(false),
+            leftChild: _buildEyeLabel(true),
+          ),
+          const HeightSpacer(size: 12),
+          _buildComparisonRow(
+            context,
+            rightChild: _buildQuadrantSection(context,
+                isLeft: false, examinationModel: examination),
+            leftChild: _buildQuadrantSection(context,
+                isLeft: true, examinationModel: examination),
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'Old Glasses',
+            icon: Icons.remove_red_eye,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 0,
+            dataMapper: (isLeft) => {
+              'Spherical': isLeft
+                  ? FormatHelper.formatPositiveValue(examination
+                          .examination?.measurements[0].oldSpherical) ??
+                      '-'
+                  : FormatHelper.formatPositiveValue(examination
+                          .examination?.measurements[1].oldSpherical) ??
+                      '-',
+              'Cylindrical': isLeft
+                  ? FormatHelper.formatPositiveValue(examination
+                          .examination?.measurements[0].oldCylindrical) ??
+                      '-'
+                  : FormatHelper.formatPositiveValue(examination
+                          .examination?.measurements[1].oldCylindrical) ??
+                      '-',
+              'Axis': isLeft
+                  ? examination.examination?.measurements[0].oldAxis
+                  : examination.examination?.measurements[1].oldAxis,
+            },
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'Autorefraction',
+            icon: Icons.remove_red_eye,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 0,
+            dataMapper: (isLeft) => {
+              'Spherical': isLeft
+                  ? FormatHelper.formatPositiveValue(examination
+                          .examination?.measurements[0].autorefSpherical) ??
+                      '-'
+                  : FormatHelper.formatPositiveValue(examination
+                          .examination?.measurements[1].autorefSpherical) ??
+                      '-',
+              'Cylindrical': isLeft
+                  ? FormatHelper.formatPositiveValue(examination
+                          .examination?.measurements[0].autorefCylindrical) ??
+                      '-'
+                  : FormatHelper.formatPositiveValue(examination
+                          .examination?.measurements[1].autorefCylindrical) ??
+                      '-',
+              'Axis': isLeft
+                  ? examination.examination?.measurements[0].autorefAxis
+                  : examination.examination?.measurements[1].autorefAxis,
+            },
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'Refined Refraction',
+            icon: Icons.science,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 2,
+            dataMapper: (isLeft) => {
+              'Spherical': isLeft
+                  ? FormatHelper.formatPositiveValue(examination.examination
+                      ?.measurements[0].refinedRefractionSpherical)
+                  : FormatHelper.formatPositiveValue(examination.examination
+                      ?.measurements[1].refinedRefractionSpherical),
+              'Cylindrical': isLeft
+                  ? FormatHelper.formatPositiveValue(examination.examination
+                      ?.measurements[0].refinedRefractionCylindrical)
+                  : FormatHelper.formatPositiveValue(examination.examination
+                      ?.measurements[1].refinedRefractionCylindrical),
+              'Axis': isLeft
+                  ? examination
+                      .examination?.measurements[0].refinedRefractionAxis
+                  : examination
+                      .examination?.measurements[1].refinedRefractionAxis,
+              'Near Vision': isLeft
+                  ? FormatHelper.formatPositiveValue(examination
+                      .examination?.measurements[0].nearVisionAddition)
+                  : FormatHelper.formatPositiveValue(examination
+                      .examination?.measurements[1].nearVisionAddition),
+            },
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'Visual Acuity',
+            icon: Icons.visibility,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 1,
+            dataMapper: (isLeft) => {
+              'UCVA': isLeft
+                  ? examination.examination?.measurements[0].ucva
+                  : examination.examination?.measurements[1].ucva,
+              'BCVA': isLeft
+                  ? examination.examination?.measurements[0].bcva
+                  : examination.examination?.measurements[1].bcva,
+            },
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'IOP',
+            icon: Icons.opacity,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 3,
+            dataMapper: (isLeft) => {
+              'IOP Value': isLeft
+                  ? examination.examination?.measurements[0].iop
+                  : examination.examination?.measurements[1].iop,
+              'Measurement Method': isLeft
+                  ? examination.examination?.measurements[0].meansOfMeasurement
+                  : examination.examination?.measurements[1].meansOfMeasurement,
+              'Acquire Another IOP Measurement': isLeft
+                  ? examination.examination?.measurements[0]
+                      .acquireAnotherIopMeasurement
+                  : examination.examination?.measurements[1]
+                      .acquireAnotherIopMeasurement,
+            },
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'Pupils',
+            icon: Icons.lens_blur,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 4,
+            dataMapper: (isLeft) => {
+              'Shape': isLeft
+                  ? examination.examination?.measurements[0].pupilsShape
+                  : examination.examination?.measurements[1].pupilsShape,
+              'Light Reflex': isLeft
+                  ? examination
+                      .examination?.measurements[0].pupilsLightReflexTest
+                  : examination
+                      .examination?.measurements[1].pupilsLightReflexTest,
+              'Near Reflex': isLeft
+                  ? examination.examination?.measurements[0].pupilsNearReflexTest
+                  : examination
+                      .examination?.measurements[1].pupilsNearReflexTest,
+              'Swinging Flashlight': isLeft
+                  ? examination.examination?.measurements[0]
+                      .pupilsSwingingFlashLightTest
+                  : examination.examination?.measurements[1]
+                      .pupilsSwingingFlashLightTest,
+              'Other Disorders': isLeft
+                  ? examination
+                      .examination?.measurements[0].pupilsOtherDisorders
+                  : examination
+                      .examination?.measurements[1].pupilsOtherDisorders,
+            },
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'Eyelid & Physical',
+            icon: Icons.visibility_outlined,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 5,
+            dataMapper: (isLeft) => {
+              'Eyelid Ptosis': isLeft
+                  ? examination.examination?.measurements[0].eyelidPtosis
+                  : examination.examination?.measurements[1].eyelidPtosis,
+              'Lagophthalmos': isLeft
+                  ? examination.examination?.measurements[0].eyelidLagophthalmos
+                  : examination
+                      .examination?.measurements[1].eyelidLagophthalmos,
+              'Palpable Lymph Nodes': isLeft
+                  ? examination.examination?.measurements[0].palpableLymphNodes
+                  : examination.examination?.measurements[1].palpableLymphNodes,
+              'Papable Temporal Artery': isLeft
+                  ? examination
+                      .examination?.measurements[0].palpableTemporalArtery
+                  : examination
+                      .examination?.measurements[1].palpableTemporalArtery,
+            },
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'Eye Structure',
+            icon: Icons.add_circle_outline,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 7,
+            dataMapper: (isLeft) => {
+              'Cornea': (isLeft
+                      ? examination.examination?.measurements[0].cornea
+                      : examination.examination?.measurements[1].cornea)
+                  .join(', '),
+              'Anterior Chambre': (isLeft
+                      ? examination.examination?.measurements[0].anteriorChamber
+                      : examination
+                          .examination?.measurements[1].anteriorChamber)
+                  .join(', '),
+              'Iris': (isLeft
+                      ? examination.examination?.measurements[0].iris
+                      : examination.examination?.measurements[1].iris)
+                  .join(', '),
+              'Lens': (isLeft
+                      ? examination.examination?.measurements[0].lens
+                      : examination.examination?.measurements[1].lens)
+                  .join(', '),
+              'Anterior Vitreous': (isLeft
+                      ? examination.examination?.measurements[0].anteriorVitreous
+                      : examination
+                          .examination?.measurements[1].anteriorVitreous)
+                  .join(', '),
+            },
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'Fundus Examination',
+            icon: Icons.center_focus_strong,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 8,
+            dataMapper: (isLeft) => {
+              'Optic Disc': (isLeft
+                      ? examination.examination?.measurements[0].fundusOpticDisc
+                      : examination
+                          .examination?.measurements[1].fundusOpticDisc)
+                  .join(', '),
+              'Macula': (isLeft
+                      ? examination.examination?.measurements[0].fundusMacula
+                      : examination.examination?.measurements[1].fundusMacula)
+                  .join(', '),
+              'Vessels': (isLeft
+                      ? examination.examination?.measurements[0].fundusVessels
+                      : examination.examination?.measurements[1].fundusVessels)
+                  .join(', '),
+              'Periphery': (isLeft
+                      ? examination.examination?.measurements[0].fundusPeriphery
+                      : examination
+                          .examination?.measurements[1].fundusPeriphery)
+                  .join(', '),
+            },
+          ),
+          _buildSectionComparison(
+            context,
+            title: 'External Features',
+            icon: Icons.biotech,
+            examination: examination,
+            isDark: isDark,
+            theme: theme,
+            sectionIndex: 6,
+            dataMapper: (isLeft) => {
+              'Lids': isLeft
+                  ? examination.examination?.measurements[0].lids
+                  : examination.examination?.measurements[1].lids,
+              'Lashes': isLeft
+                  ? examination.examination?.measurements[0].lashes
+                  : examination.examination?.measurements[1].lashes,
+              'Lacrimal': isLeft
+                  ? examination.examination?.measurements[0].lacrimalSystem
+                  : examination.examination?.measurements[1].lacrimalSystem,
+              'Conjunctiva': isLeft
+                  ? examination.examination?.measurements[0].conjunctiva
+                  : examination.examination?.measurements[1].conjunctiva,
+              'Sclera': isLeft
+                  ? examination.examination?.measurements[0].sclera
+                  : examination.examination?.measurements[1].sclera,
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 
