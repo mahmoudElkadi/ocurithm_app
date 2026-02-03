@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../../../data/model/examination_type_model.dart';
@@ -23,16 +22,14 @@ class GetExaminationTypesCubit
       : super(const GetExaminationTypesState()) {
     // Register event handlers
     on<GetAllExaminationTypesEvent>(_onGetAllExaminationTypes);
-    on<LoadMoreExaminationTypesEvent>(_onLoadMoreExaminationTypes);
     on<SetSearchEvent>(_onSetSearch);
-    on<SearchExaminationTypesEvent>(_onSearchExaminationTypes);
 
-    // Setup debounced search
+    // Setup debounced search - always resets to page 1
     _searchSubscription = _searchSubject
         .debounceTime(const Duration(milliseconds: 500))
         .distinct()
-        .listen((query) {
-      add(SearchExaminationTypesEvent(query));
+        .listen((_) {
+      add(const GetAllExaminationTypesEvent(page: 1));
     });
   }
 
@@ -42,83 +39,56 @@ class GetExaminationTypesCubit
     add(SetSearchEvent(query));
   }
 
-  /// Fetch all examination types (first page)
+  /// Change page public function
+  void changePage(int page) {
+    add(GetAllExaminationTypesEvent(page: page));
+  }
+
+  /// Fetch examination types (unified for initial load, search, and pagination)
   Future<void> _onGetAllExaminationTypes(
     GetAllExaminationTypesEvent event,
     Emitter<GetExaminationTypesState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(state.copyWith(
+      status: GetExaminationTypesStatus.loading,
+      currentPage: event.page,
+      errorMessage: null,
+    ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          isLoading: false,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
-      // Fetch examination types
       final result = await examinationTypeRepo.getAllExaminationTypes(
-        page: 1,
+        page: event.page,
         search: state.searchQuery,
       );
 
       if (result.error == null && result.examinationTypes != null) {
         emit(state.copyWith(
-          isLoading: false,
+          status: GetExaminationTypesStatus.success,
           examinationTypes: result,
-          currentPage: 1,
+          currentPage: event.page,
           hasReachedMax: result.examinationTypes!.isEmpty,
         ));
       } else {
         emit(state.copyWith(
-          isLoading: false,
+          status: GetExaminationTypesStatus.error,
           errorMessage: result.error ?? 'Failed to load examination types',
         ));
       }
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'An error occurred: ${e.toString()}',
-      ));
-    }
-  }
-
-  /// Load more examination types (next page)
-  Future<void> _onLoadMoreExaminationTypes(
-    LoadMoreExaminationTypesEvent event,
-    Emitter<GetExaminationTypesState> emit,
-  ) async {
-    if (state.isLoadingMore || state.hasReachedMax) return;
-
-    emit(state.copyWith(isLoadingMore: true));
-
-    try {
-      final nextPage = state.currentPage + 1;
-      final result = await examinationTypeRepo.getAllExaminationTypes(
-        page: nextPage,
-        search: state.searchQuery,
-      );
-
-      if (result.error == null && result.examinationTypes != null) {
-        // Merge new examination types with existing ones
-        final updatedExaminationTypes =
-            state.examinationTypes?.examinationTypes ?? [];
-        updatedExaminationTypes.addAll(result.examinationTypes!);
-
+      if (e.toString().toLowerCase().contains('no internet connection')) {
         emit(state.copyWith(
-          isLoadingMore: false,
-          currentPage: nextPage,
-          hasReachedMax: result.examinationTypes!.isEmpty,
+          status: GetExaminationTypesStatus.noConnection,
+          errorMessage: e.toString(),
         ));
-      } else {
-        emit(state.copyWith(isLoadingMore: false));
+        return;
       }
-    } catch (e) {
-      emit(state.copyWith(isLoadingMore: false));
+      if (e.toString().toLowerCase().contains('request cancelled')) {
+        return;
+      }
+      emit(state.copyWith(
+        status: GetExaminationTypesStatus.error,
+        errorMessage: e.toString(),
+      ));
     }
   }
 
@@ -128,49 +98,6 @@ class GetExaminationTypesCubit
     Emitter<GetExaminationTypesState> emit,
   ) {
     emit(state.copyWith(searchQuery: event.query));
-  }
-
-  /// Search examination types (triggered after debounce)
-  Future<void> _onSearchExaminationTypes(
-    SearchExaminationTypesEvent event,
-    Emitter<GetExaminationTypesState> emit,
-  ) async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
-
-    try {
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          isLoading: false,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
-      final result = await examinationTypeRepo.getAllExaminationTypes(
-        page: 1,
-        search: event.query,
-      );
-
-      if (result.error == null && result.examinationTypes != null) {
-        emit(state.copyWith(
-          isLoading: false,
-          examinationTypes: result,
-          currentPage: 1,
-          hasReachedMax: result.examinationTypes!.isEmpty,
-        ));
-      } else {
-        emit(state.copyWith(
-          isLoading: false,
-          errorMessage: result.error ?? 'Failed to search examination types',
-        ));
-      }
-    } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'An error occurred: ${e.toString()}',
-      ));
-    }
   }
 
   @override

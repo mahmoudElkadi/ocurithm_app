@@ -1,6 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-
 import '../../../data/model/examination_type_model.dart';
 import '../../../data/repos/examination_type_repo.dart';
 
@@ -31,16 +29,6 @@ class ExaminationTypeActionsCubit
     ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          status: ExaminationTypeActionStatus.noConnection,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       // Create examination type
       final result = await examinationTypeRepo.createExaminationType(
         examinationType: event.examinationType,
@@ -58,9 +46,19 @@ class ExaminationTypeActionsCubit
         ));
       }
     } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
+        emit(state.copyWith(
+          status: ExaminationTypeActionStatus.noConnection,
+          errorMessage: e.toString(),
+        ));
+        return;
+      }
+      if (e.toString().toLowerCase().contains('request cancelled')) {
+        return;
+      }
       emit(state.copyWith(
         status: ExaminationTypeActionStatus.error,
-        errorMessage: 'An error occurred: ${e.toString()}',
+        errorMessage: e.toString(),
       ));
     }
   }
@@ -76,16 +74,6 @@ class ExaminationTypeActionsCubit
     ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          status: ExaminationTypeActionStatus.noConnection,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       // Update examination type
       final result = await examinationTypeRepo.updateExaminationType(
         id: event.examinationTypeId,
@@ -104,9 +92,19 @@ class ExaminationTypeActionsCubit
         ));
       }
     } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
+        emit(state.copyWith(
+          status: ExaminationTypeActionStatus.noConnection,
+          errorMessage: e.toString(),
+        ));
+        return;
+      }
+      if (e.toString().toLowerCase().contains('request cancelled')) {
+        return;
+      }
       emit(state.copyWith(
         status: ExaminationTypeActionStatus.error,
-        errorMessage: 'An error occurred: ${e.toString()}',
+        errorMessage: e.toString(),
       ));
     }
   }
@@ -122,16 +120,6 @@ class ExaminationTypeActionsCubit
     ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          status: ExaminationTypeActionStatus.noConnection,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       // Delete examination type
       final result = await examinationTypeRepo.deleteExaminationType(
         id: event.examinationTypeId,
@@ -149,9 +137,19 @@ class ExaminationTypeActionsCubit
         ));
       }
     } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
+        emit(state.copyWith(
+          status: ExaminationTypeActionStatus.noConnection,
+          errorMessage: e.toString(),
+        ));
+        return;
+      }
+      if (e.toString().toLowerCase().contains('request cancelled')) {
+        return;
+      }
       emit(state.copyWith(
         status: ExaminationTypeActionStatus.error,
-        errorMessage: 'An error occurred: ${e.toString()}',
+        errorMessage: e.toString(),
       ));
     }
   }

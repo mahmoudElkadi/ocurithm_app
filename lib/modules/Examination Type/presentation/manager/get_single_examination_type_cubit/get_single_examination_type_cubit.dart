@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 import '../../../data/model/examination_type_model.dart';
 import '../../../data/repos/examination_type_repo.dart';
@@ -29,16 +28,6 @@ class GetSingleExaminationTypeCubit
     ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          status: SingleExaminationTypeStatus.noConnection,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       // Fetch examination type
       final result = await examinationTypeRepo.getExaminationType(
         id: event.examinationTypeId,
@@ -56,9 +45,19 @@ class GetSingleExaminationTypeCubit
         ));
       }
     } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
+        emit(state.copyWith(
+          status: SingleExaminationTypeStatus.noConnection,
+          errorMessage: e.toString(),
+        ));
+        return;
+      }
+      if (e.toString().toLowerCase().contains('request cancelled')) {
+        return;
+      }
       emit(state.copyWith(
         status: SingleExaminationTypeStatus.error,
-        errorMessage: 'An error occurred: ${e.toString()}',
+        errorMessage: e.toString(),
       ));
     }
   }

@@ -43,7 +43,7 @@ class ExaminationTypeRepoImpl implements ExaminationTypeRepo {
   @override
   Future<ExaminationTypesModel> getAllExaminationTypes(
       {int? page, String? search}) async {
-    Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
+    Map<String, dynamic> query = {"page": page, 'limit': 25, "search": search};
 
     try {
       final result = await _apiHandler.get<ExaminationTypesModel>(

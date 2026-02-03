@@ -10,9 +10,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../../../../../../../core/widgets/confirmation_popuo.dart';
+import '../../../../../../../../../core/widgets/custom_freeze_loading.dart';
 
 import '../../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../../core/widgets/pagination.dart';
+import '../../../../../../../../../core/utils/snackbar_service.dart';
 
 import '../../../../../../../../core/Network/shared.dart';
 import '../../../../../../data/model/patients_model.dart';
@@ -198,14 +200,15 @@ class PatientCard extends StatelessWidget {
                             title: "Delete Patient",
                             message:
                                 "Are you sure you want to delete ${patient?.name ?? "this patient"}?",
-                            onConfirm: () async {
-                              Navigator.pop(
-                                  context); // Close confirmation dialog
+                            onConfirm: () {
+                              // Dialog is closed by showConfirmationDialog
                               context
                                   .read<PatientActionsCubit>()
                                   .add(DeletePatientEvent(patient!.id!));
                             },
-                            onCancel: () => Navigator.pop(context),
+                            onCancel: () {
+                              // Dialog is closed by showConfirmationDialog
+                            },
                           );
                         },
                         icon: Icon(
@@ -232,17 +235,59 @@ class PatientListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GetPatientsCubit, GetPatientsState>(
-      builder: (context, state) {
+    return BlocListener<PatientActionsCubit, PatientActionsState>(
+      listener: (context, state) {
+        // Only handle delete actions
+        if (state.actionType != PatientActionType.delete) {
+          return;
+        }
+
+        // Show loading dialog when delete starts
         if (state.isLoading) {
-          return _buildLoadingList();
-        } else if (state.patients == null ||
-            (state.patients?.patients.isEmpty ?? true)) {
-          return _buildEmptyState();
-        } else {
-          return _buildPatientList(context, state);
+          customLoading(context, "Deleting patient...");
+        }
+
+        // Handle delete success
+        if (state.isDeleteSuccess) {
+          Navigator.pop(context); // Close loading dialog
+          SnackbarService.showSuccess(
+            context,
+            message: state.successMessage ?? 'Patient deleted successfully',
+          );
+          // Refresh the list
+          context.read<GetPatientsCubit>().add(GetAllPatientsEvent());
+        }
+
+        // Handle delete error
+        if (state.isDeleteError) {
+          Navigator.pop(context); // Close loading dialog
+          SnackbarService.showError(
+            context,
+            message: state.errorMessage ?? 'Failed to delete patient',
+          );
+        }
+
+        // Handle no connection for delete
+        if (state.noConnection) {
+          Navigator.pop(context); // Close loading dialog
+          SnackbarService.showWarning(
+            context,
+            message: state.errorMessage ?? 'No internet connection',
+          );
         }
       },
+      child: BlocBuilder<GetPatientsCubit, GetPatientsState>(
+        builder: (context, state) {
+          if (state.isLoading) {
+            return _buildLoadingList();
+          } else if (state.patients == null ||
+              (state.patients?.patients.isEmpty ?? true)) {
+            return _buildEmptyState();
+          } else {
+            return _buildPatientList(context, state);
+          }
+        },
+      ),
     );
   }
 

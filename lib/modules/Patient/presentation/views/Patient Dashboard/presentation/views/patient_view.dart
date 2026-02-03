@@ -35,6 +35,12 @@ class AdminPatientView extends StatelessWidget {
         ],
         child: BlocListener<PatientActionsCubit, PatientActionsState>(
           listener: (context, state) {
+            // Only handle add and update actions here
+            // Delete actions are handled in PatientListView
+            if (state.actionType == PatientActionType.delete) {
+              return;
+            }
+
             if (state.isLoading) {
               customLoading(context, "");
             } else if (state.isSuccess) {

@@ -55,6 +55,9 @@ class PatientActionsCubit
         ));
         return;
       }
+      if (e.toString().toLowerCase().contains('request cancelled')) {
+        return;
+      }
       emit(state.copyWith(
         state: PatientActionsStatus.error,
         actionType: PatientActionType.add,
@@ -100,6 +103,9 @@ class PatientActionsCubit
         ));
         return;
       }
+      if (e.toString().toLowerCase().contains('request cancelled')) {
+        return;
+      }
       emit(state.copyWith(
         state: PatientActionsStatus.error,
         actionType: PatientActionType.update,
@@ -139,6 +145,9 @@ class PatientActionsCubit
           actionType: PatientActionType.delete,
           errorMessage: e.toString(),
         ));
+        return;
+      }
+      if (e.toString().toLowerCase().contains('request cancelled')) {
         return;
       }
       emit(state.copyWith(

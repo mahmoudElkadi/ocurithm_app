@@ -30,6 +30,7 @@ import '../examination_view/one_examination_view.dart';
 import '../examination_view/scan_form_page.dart';
 import '../examination_view/scanned_list_page.dart';
 
+
 enum PatientFormMode { add, edit, view }
 
 class PatientFormPage extends StatelessWidget {
@@ -90,7 +91,7 @@ class _PatientFormViewState extends State<PatientFormView> {
   String? _selectedGender;
   Nationality? _selectedNationality;
 
-  String? _selectedClinicId;
+  Clinic? selectedClinic;
   Branch? _selectedBranch;
 
   bool _obscurePassword = true;
@@ -153,11 +154,11 @@ class _PatientFormViewState extends State<PatientFormView> {
     }
 
     if (patient.clinic != null) {
-      _selectedClinicId = patient.clinic!.id;
+      selectedClinic = patient.clinic!;
       if (context.mounted) {
         context
             .read<GetBranchesCubit>()
-            .add(SetClinicFilterEvent(_selectedClinicId));
+            .add(SetClinicFilterEvent(selectedClinic?.id));
       }
     }
 
@@ -849,6 +850,7 @@ class _PatientFormViewState extends State<PatientFormView> {
 
   Widget _buildPhoneField(ThemeData theme) {
     return IntlPhoneField(
+      key: ValueKey(_phoneNumber), // Force rebuild when phone number changes
       initialValue: _phoneNumber ?? '',
       decoration: InputDecoration(
         hintText: S.of(context).phone,
@@ -953,17 +955,17 @@ class _PatientFormViewState extends State<PatientFormView> {
             items: state.clinics?.clinics ?? [],
             isValid: _isClinicValid,
             validateText: 'Must select Clinic',
-            selectedValue: _selectedClinicId,
+            selectedValue: selectedClinic?.name,
             hintText: 'Select Clinic',
             itemAsString: (item) => item.name.toString(),
             onItemSelected: (item) {
               setState(() {
-                _selectedClinicId = item.id;
+                selectedClinic = item;
                 _selectedBranch = null;
               });
               context
                   .read<GetBranchesCubit>()
-                  .add(SetClinicFilterEvent(_selectedClinicId));
+                  .add(SetClinicFilterEvent(selectedClinic?.id));
             },
             readOnly: _isReadOnly,
             isLoading: state.isLoading,
@@ -1149,7 +1151,7 @@ class _PatientFormViewState extends State<PatientFormView> {
 
     // Manual Validation
     setState(() {
-      _isClinicValid = _selectedClinicId != null ||
+      _isClinicValid = selectedClinic != null ||
           !CacheHelper.getStringList(key: "capabilities")
               .contains("manageCapability");
       _isBranchValid = _selectedBranch != null;
@@ -1176,7 +1178,7 @@ class _PatientFormViewState extends State<PatientFormView> {
       nationality: _selectedNationality?.name,
       birthDate: _birthDate,
       gender: _selectedGender,
-      clinic: Clinic(id: _selectedClinicId, name: ""),
+      clinic: selectedClinic,
       branch: _selectedBranch,
     );
 

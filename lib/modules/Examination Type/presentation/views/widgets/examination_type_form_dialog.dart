@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
@@ -98,7 +97,7 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
     });
   }
 
-  /// Submit the form
+    // Submit the form
   Future<void> _submitForm() async {
     setState(() {
       clinicValidation = selectedClinic != null;
@@ -110,19 +109,6 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
 
     // Show loading dialog
     customLoading(context, "");
-
-    // Check internet connection
-    final hasConnection = await InternetConnection().hasInternetAccess;
-    if (!mounted) return;
-
-    if (!hasConnection) {
-      Navigator.of(context).pop(); // Close loading dialog
-      SnackbarService.showError(
-        context,
-        message: "No Internet Connection",
-      );
-      return;
-    }
 
     // Create examination type model
     final examinationType = ExaminationType(
@@ -188,7 +174,9 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
           bloc: widget.actionsCubit,
           listener: (context, state) {
             // Close loading dialog if it's open
-            if (state.isSuccess || state.isError) {
+            if (state.status != ExaminationTypeActionStatus.loading &&
+                state.status != ExaminationTypeActionStatus.initial) {
+              // We check if the dialog is still showing before popping
               Navigator.of(context).pop(); // Close loading dialog
             }
 
@@ -200,11 +188,10 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
                     state.successMessage ?? 'Operation completed successfully',
               );
               Navigator.of(context).pop(); // Close form dialog
-              Navigator.of(context).pop(); // Go back to list
             }
 
             // Handle error
-            if (state.isAddError || state.isUpdateError) {
+            if (state.isError) {
               SnackbarService.showError(
                 context,
                 message: state.errorMessage ?? 'An error occurred',

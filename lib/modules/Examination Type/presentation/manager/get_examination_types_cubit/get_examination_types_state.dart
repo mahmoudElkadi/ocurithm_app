@@ -1,19 +1,26 @@
 part of 'get_examination_types_cubit.dart';
 
+/// Status enum for fetching examination types
+enum GetExaminationTypesStatus {
+  initial,
+  loading,
+  success,
+  error,
+  noConnection,
+}
+
 /// State for GetExaminationTypesCubit
 class GetExaminationTypesState {
+  final GetExaminationTypesStatus status;
   final ExaminationTypesModel? examinationTypes;
-  final bool isLoading;
-  final bool isLoadingMore;
   final String? errorMessage;
   final int currentPage;
   final String searchQuery;
   final bool hasReachedMax;
 
   const GetExaminationTypesState({
+    this.status = GetExaminationTypesStatus.initial,
     this.examinationTypes,
-    this.isLoading = false,
-    this.isLoadingMore = false,
     this.errorMessage,
     this.currentPage = 1,
     this.searchQuery = '',
@@ -21,22 +28,26 @@ class GetExaminationTypesState {
   });
 
   GetExaminationTypesState copyWith({
+    GetExaminationTypesStatus? status,
     ExaminationTypesModel? examinationTypes,
-    bool? isLoading,
-    bool? isLoadingMore,
     String? errorMessage,
     int? currentPage,
     String? searchQuery,
     bool? hasReachedMax,
   }) {
     return GetExaminationTypesState(
+      status: status ?? this.status,
       examinationTypes: examinationTypes ?? this.examinationTypes,
-      isLoading: isLoading ?? this.isLoading,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       errorMessage: errorMessage,
       currentPage: currentPage ?? this.currentPage,
       searchQuery: searchQuery ?? this.searchQuery,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
     );
   }
+
+  bool get isInitial => status == GetExaminationTypesStatus.initial;
+  bool get isLoading => status == GetExaminationTypesStatus.loading;
+  bool get isSuccess => status == GetExaminationTypesStatus.success;
+  bool get isError => status == GetExaminationTypesStatus.error;
+  bool get noConnection => status == GetExaminationTypesStatus.noConnection;
 }

@@ -27,6 +27,9 @@ extension PatientActionsStatusX on PatientActionsState {
   bool get isUpdateError =>
       state == PatientActionsStatus.error &&
       actionType == PatientActionType.update;
+  bool get isDeleteError =>
+      state == PatientActionsStatus.error &&
+      actionType == PatientActionType.delete;
 }
 
 @immutable

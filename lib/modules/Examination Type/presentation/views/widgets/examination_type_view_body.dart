@@ -29,6 +29,12 @@ class _ExaminationTypeViewBodyState extends State<ExaminationTypeViewBody> {
   Widget build(BuildContext context) {
     return BlocBuilder<GetExaminationTypesCubit, GetExaminationTypesState>(
       builder: (context, state) {
+        // If no connection, show only the no-internet widget centered
+        if (state.noConnection) {
+          return const ExaminationTypeListView();
+        }
+
+        // Otherwise show search field and list
         return Column(
           children: [
             _buildSearchField(),

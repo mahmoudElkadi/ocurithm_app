@@ -26,7 +26,7 @@ class ClinicRepoImpl implements ClinicRepo {
 
   @override
   Future<ClinicsModel> getAllClinics({int? page, String? search}) async {
-    Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
+    Map<String, dynamic> query = {"page": page, 'limit': 25, "search": search};
 
     log(ApiConstants.clinics);
 
