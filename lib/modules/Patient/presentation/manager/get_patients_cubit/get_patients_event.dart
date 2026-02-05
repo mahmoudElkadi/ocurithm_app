@@ -8,8 +8,15 @@ class GetAllPatientsEvent extends GetPatientsEvent {
   final String? search;
   final String? clinicId; // Kept for consistency, might be unused
   final String? branchId;
+  final bool noPagination;
 
-  GetAllPatientsEvent({this.page, this.search, this.clinicId, this.branchId});
+  GetAllPatientsEvent({
+    this.page,
+    this.search,
+    this.clinicId,
+    this.branchId,
+    this.noPagination = false,
+  });
 }
 
 class RefreshPatientsEvent extends GetPatientsEvent {}

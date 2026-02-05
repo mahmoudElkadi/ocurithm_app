@@ -1,35 +1,35 @@
+import 'package:ocurithm/core/api/api_handler.dart';
 import 'package:ocurithm/modules/Dashboard/data/models/dashboard_model.dart';
-
-import '../../../../../core/Network/dio_handler.dart';
-import '../../../../../core/Network/shared.dart';
-import '../../../../core/api/api_constants.dart';
 import 'dashboard_repo.dart';
 
 class DashboardRepoImpl implements DashboardRepo {
+  final ApiHandler _apiHandler = ApiHandler();
+
   @override
   Future<DashboardModel> getDashboard({
     DateTime? start,
     DateTime? end,
   }) async {
-    final url = ApiConstants.baseUrl;
-    final String? token = CacheHelper.getData(key: "token");
-    Map<String, dynamic> query = {if (start != null) "start": start, if (end != null) "end": end};
-    final result = await ApiService.request<DashboardModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => DashboardModel.fromJson(json),
-    );
+    try {
+      Map<String, dynamic> query = {
+        if (start != null) "startDate": start.toUtc(),
+        if (end != null) "endDate": end.toUtc(),
+      };
 
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to make examination");
+      final response = await _apiHandler.get<DashboardModel>(
+        'dashboard',
+        queryParameters: query,
+        cancelKey: 'getDashboard',
+        fromJson: (json) => DashboardModel.fromJson(json),
+      );
+
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        throw Exception(response.message ?? 'Failed to fetch dashboard data');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

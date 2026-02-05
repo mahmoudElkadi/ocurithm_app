@@ -1,46 +1,49 @@
-import 'dart:developer';
-
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/modules/Dashboard/data/models/dashboard_model.dart';
 import 'package:ocurithm/modules/Dashboard/data/repos/dashboard_repo.dart';
 
-import 'dashboard_state.dart';
+part 'dashboard_state.dart';
+part 'dashboard_event.dart';
 
-class DashboardCubit extends Cubit<DashboardState> {
-  DashboardCubit(this.dashboardRepo) : super(DashboardInitial());
+class DashboardCubit extends Bloc<DashboardEvent, DashboardState> {
+  final DashboardRepo dashboardRepo;
 
-  static DashboardCubit get(context) => BlocProvider.of(context);
+  DashboardCubit(this.dashboardRepo) : super(const DashboardState()) {
+    on<GetDashboardEvent>(_onGetDashboard);
+  }
 
-  DashboardRepo dashboardRepo;
+  static DashboardCubit get(BuildContext context) => BlocProvider.of(context);
 
-  bool? connection;
-  bool isDateRangeSelected = false;
-  DashboardModel? dashboard;
-  Future<void> getDashboard({
-    DateTime? start,
-    DateTime? end,
-  }) async {
-    dashboard = null;
-    emit(DashboardLoading());
+  Future<void> _onGetDashboard(
+      GetDashboardEvent event, Emitter<DashboardState> emit) async {
+    emit(state.copyWith(
+      status: DashboardStatus.loading,
+      startDate: event.start ?? state.startDate,
+      endDate: event.end ?? state.endDate,
+    ));
 
-    connection = await InternetConnection().hasInternetAccess;
-    emit(DashboardLoading());
     try {
-      if (connection == false) {
-        emit(DashboardError());
-      } else {
-        dashboard = await dashboardRepo.getDashboard(start: start, end: end);
-        isDateRangeSelected = start != null && end != null;  
-        if (dashboard?.error == null && dashboard != null) {
-          emit(DashboardSuccess());
-        } else {
-          emit(DashboardError());
-        }
-      }
+      final data = await dashboardRepo.getDashboard(
+        start: event.start ?? state.startDate,
+        end: event.end ?? state.endDate,
+      );
+      emit(state.copyWith(
+        status: DashboardStatus.success,
+        dashboardData: data,
+      ));
     } catch (e) {
-      log(e.toString());
-      emit(DashboardError());
+      if (e.toString().toLowerCase().contains('no internet connection')) {
+         emit(state.copyWith(
+          status: DashboardStatus.noConnection,
+          errorMessage: e.toString(),
+        ));
+      } else {
+        emit(state.copyWith(
+          status: DashboardStatus.error,
+          errorMessage: e.toString(),
+        ));
+      }
     }
   }
 }

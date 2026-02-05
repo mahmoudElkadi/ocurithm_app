@@ -52,8 +52,8 @@ class PatientRepoImpl implements PatientRepo {
     bool? isActive,
   }) async {
     Map<String, dynamic> query = {
-      "page": page ?? 1,
-      'limit': 10,
+      if (page != null) "page": page,
+      if (page != null) 'limit': 10,
       if (search != null && search.isNotEmpty) "search": search,
       if (branch != null) "branch": branch,
       if (isActive != null) "isActive": isActive,

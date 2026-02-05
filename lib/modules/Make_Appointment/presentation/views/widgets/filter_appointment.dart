@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_cubit.dart';
+import '../../../../Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
+import '../../../../Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart';
+
 
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
@@ -9,7 +12,6 @@ import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/my_line.dart';
 import '../../../../../core/widgets/width_spacer.dart';
-import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
 filterAppointment(context, MakeAppointmentCubit cubit) {
   final AnimationController animationController = AnimationController(
@@ -66,7 +68,7 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
             width: MediaQuery.sizeOf(context).width,
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-              color: Colorz.white,
+              color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).scaffoldBackgroundColor : Colorz.white,
             ),
             child: Column(
               children: [
@@ -94,7 +96,7 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                       child: Text(
                         textAlign: TextAlign.center,
                         "Filter Appointment",
-                        style: appStyle(context, 20, Colorz.primaryColor, FontWeight.w600),
+                        style: appStyle(context, 20, Theme.of(context).brightness == Brightness.dark ? Colors.white : Colorz.primaryColor, FontWeight.w600),
                       ),
                     ),
                     Expanded(
@@ -117,63 +119,60 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                 const HeightSpacer(size: 10),
                 MyLine(
                   height: 1,
-                  color: Colorz.grey200,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colorz.grey200,
                 ),
                 const HeightSpacer(size: 15),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: DropdownItem(
-                    radius: 30,
-                    color: Colorz.white,
-                    isShadow: true,
-                    iconData: Icon(
-                      Icons.arrow_drop_down_circle,
-                      color: Colorz.primaryColor,
-                    ),
-                    items: widget.cubit.doctors?.doctors,
-                    // isValid: widget.cubit.chooseBranch,
-                    // validateText: S.of(context).mustBranch,
-                    selectedValue: widget.cubit.selectedDoctor?.name,
-                    hintText: 'Select Doctor',
-                    itemAsString: (item) => item.name.toString(),
-                    onItemSelected: (item) {
-                      setState(() {
-                        if (item != "Not Found") {
-                          // widget.cubit.chooseBranch = true;
-                          widget.cubit.selectedDoctor = item;
-                          //  widget.cubit.branchId = item.id;
-                        }
-                      });
+                  child: BlocBuilder<GetDoctorsCubit, GetDoctorsState>(
+                    builder: (context, doctorState) {
+                      return DropdownItem(
+                        radius: 30,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800]! : Colorz.white,
+                        isShadow: true,
+                        iconData: Icon(
+                          Icons.arrow_drop_down_circle,
+                          color: Colorz.primaryColor,
+                        ),
+                        items: doctorState.doctors?.doctors,
+                        selectedValue: state.selectedDoctor?.name,
+                        hintText: 'Select Doctor',
+                        itemAsString: (item) => item.name.toString(),
+                        onItemSelected: (item) {
+                           if (item != null) {
+                             widget.cubit.add(SelectDoctorEvent(item));
+                           }
+                        },
+                        isLoading: doctorState.state == GetDoctorsStatus.loading,
+                      );
                     },
-                    isLoading: widget.cubit.doctors == null,
                   ),
                 ),
                 const HeightSpacer(size: 15),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: DropdownItem(
-                    radius: 30,
-                    color: Colorz.white,
-                    isShadow: true,
-                    iconData: Icon(
-                      Icons.arrow_drop_down_circle,
-                      color: Colorz.primaryColor,
-                    ),
-                    items: widget.cubit.branches?.branches,
-                    // isValid: widget.cubit.chooseBranch,
-                    // validateText: S.of(context).mustBranch,
-                    selectedValue: widget.cubit.selectedBranch?.name,
-                    hintText: 'Select Branch',
-                    itemAsString: (item) => item.name.toString(),
-                    onItemSelected: (item) {
-                      setState(() {
-                        if (item != "Not Found") {
-                          //   widget.cubit.chooseBranch = true;
-                          widget.cubit.selectedBranch = item;
-                        }
-                      });
+                  child: BlocBuilder<GetBranchesCubit, GetBranchesState>(
+                    builder: (context, branchState) {
+                      return DropdownItem(
+                        radius: 30,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800]! : Colorz.white,
+                        isShadow: true,
+                        iconData: Icon(
+                          Icons.arrow_drop_down_circle,
+                          color: Colorz.primaryColor,
+                        ),
+                        items: branchState.branches?.branches,
+                        selectedValue: state.selectedBranch?.name,
+                        hintText: 'Select Branch',
+                        itemAsString: (item) => item.name.toString(),
+                        onItemSelected: (item) {
+                           if (item != null) {
+                             widget.cubit.add(SelectBranchEvent(item));
+                           }
+                        },
+                        isLoading: branchState.state == GetBranchesStatus.loading,
+                      );
                     },
-                    isLoading: widget.cubit.branches == null,
                   ),
                 ),
                 Spacer(),
@@ -191,12 +190,14 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                             onPressed: () async {
                               setState(() {
                                 _resetLoading = true;
-                                widget.cubit.selectedBranch = null;
-                                widget.cubit.selectedDoctor = null;
                               });
+                              widget.cubit.add(SelectBranchEvent(null));
+                              widget.cubit.add(SelectDoctorEvent(null));
+                              widget.cubit.add(GetAppointmentsEvent());
                               Navigator.pop(context);
-                              //  await widget.cubit.get();
-                              _resetLoading = false;
+                              setState(() {
+                                _resetLoading = false;
+                              });
                             },
                             child: _resetLoading
                                 ? Container(width: 30, height: 30, child: CircularProgressIndicator(color: Colorz.redColor, strokeWidth: 2))
@@ -211,7 +212,7 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                                 setState(() {
                                   _filterLoading = true;
                                 });
-                                //  await widget.cubit.getAppointments();
+                                widget.cubit.add(GetAppointmentsEvent());
                                 setState(() {
                                   _filterLoading = false;
                                 });

@@ -57,8 +57,8 @@ class GetExaminationTypesCubit
 
     try {
       final result = await examinationTypeRepo.getAllExaminationTypes(
-        page: event.page,
-        search: state.searchQuery,
+        page: event.noPagination ? null : (event.page ?? 1),
+        search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
       );
 
       if (result.error == null && result.examinationTypes != null) {

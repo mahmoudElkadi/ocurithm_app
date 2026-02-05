@@ -34,7 +34,11 @@ class PaymentMethodRepoImpl implements PaymentMethodRepo {
   Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? search}) async {
     final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}";
     final String? token = CacheHelper.getData(key: "token");
-    Map<String, dynamic> query = {"page": page, 'limit': 10, "search": search};
+    Map<String, dynamic> query = {
+      if (page != null) "page": page,
+      if (page != null) 'limit': 10,
+      if (search != null && search.isNotEmpty) "search": search,
+    };
 
     final result = await ApiService.request<PaymentMethodsModel>(
       url: url,

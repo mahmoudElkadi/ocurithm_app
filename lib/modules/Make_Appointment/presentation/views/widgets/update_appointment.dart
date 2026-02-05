@@ -8,7 +8,6 @@ import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../data/repos/make_appointment_repo_impl.dart';
 import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
-import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
 class UpdateAppointment extends StatelessWidget {
   const UpdateAppointment({super.key, required this.appointment});
@@ -17,7 +16,7 @@ class UpdateAppointment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MakeAppointmentCubit(MakeAppointmentRepoImpl())..setData(appointment),
+      create: (context) => MakeAppointmentCubit(MakeAppointmentRepoImpl())..add(SetDataEvent(appointment)),
       child: BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
         builder: (BuildContext context, state) => Scaffold(
           backgroundColor: Colorz.white,

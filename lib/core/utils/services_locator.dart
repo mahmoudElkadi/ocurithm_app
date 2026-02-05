@@ -67,6 +67,10 @@ import '../../modules/profile/data/repos/profile_repo_impl.dart';
 import '../../modules/profile/presentation/manager/get_profile_cubit/get_profile_cubit.dart';
 import '../../modules/profile/presentation/manager/profile_actions_cubit/profile_actions_cubit.dart';
 
+import '../../modules/Dashboard/data/repos/dashboard_repo.dart';
+import '../../modules/Dashboard/data/repos/dashboard_repo_impl.dart';
+import '../../modules/Dashboard/presentation/manager/dashboard_cubit.dart';
+
 // Chat Module
 import '../../modules/Chat/data/repos/chat_repo.dart';
 import '../../modules/Chat/data/repos/chat_repo_impl.dart';
@@ -75,10 +79,18 @@ import '../../modules/Chat/presentation/manager/chat_threads_bloc/chat_threads_b
 import '../../modules/Chat/presentation/manager/chat_messages_bloc/chat_messages_bloc.dart';
 import '../../modules/Chat/presentation/manager/chat_socket_bloc/chat_socket_bloc.dart';
 
+import '../../modules/Make_Appointment/data/repos/make_appointment_repo.dart';
+import '../../modules/Make_Appointment/data/repos/make_appointment_repo_impl.dart';
+import '../../modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_cubit.dart';
+import '../api/api_handler.dart';
+
 final sl = GetIt.instance;
 
 class ServiceLocator {
   void init() {
+    ///Core
+    sl.registerLazySingleton<ApiHandler>(() => ApiHandler());
+
     ///Login
     sl.registerLazySingleton<LoginRepo>(() => LoginRepoImpl());
     sl.registerFactory(() => LoginCubit(sl.call<LoginRepo>()));
@@ -181,5 +193,13 @@ class ServiceLocator {
         sl.call<ChatRepo>())); // Singleton to share unread counts
     sl.registerFactory(() => ChatMessagesBloc(sl.call<ChatRepo>()));
     sl.registerLazySingleton(() => ChatSocketBloc()); // Singleton for socket
+
+    ///Dashboard
+    sl.registerLazySingleton<DashboardRepo>(() => DashboardRepoImpl());
+    sl.registerFactory(() => DashboardCubit(sl.call<DashboardRepo>()));
+
+    ///Make Appointment
+    sl.registerLazySingleton<MakeAppointmentRepo>(() => MakeAppointmentRepoImpl());
+    sl.registerFactory(() => MakeAppointmentCubit(sl.call<MakeAppointmentRepo>()));
   }
 }

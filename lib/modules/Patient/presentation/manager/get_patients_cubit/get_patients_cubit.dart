@@ -47,9 +47,9 @@ class GetPatientsCubit extends Bloc<GetPatientsEvent, GetPatientsState> {
       emit(state.copyWith(state: GetPatientsStatus.loading));
 
       final patients = await patientRepo.getAllPatients(
-        page: state.page,
-        search: state.search,
-        branch: state.branchFilter,
+        page: event.noPagination ? null : state.page,
+        search: (event.search?.isNotEmpty ?? false) ? event.search : state.search,
+        branch: event.branchId ?? state.branchFilter,
         // clinic: state.clinicFilter, // API doesn't support clinic filter yet
       );
 

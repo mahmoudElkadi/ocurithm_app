@@ -6,8 +6,9 @@ abstract class GetClinicsEvent {}
 class GetAllClinicsEvent extends GetClinicsEvent {
   final int? page;
   final String? search;
+  final bool noPagination;
 
-  GetAllClinicsEvent({this.page, this.search});
+  GetAllClinicsEvent({this.page, this.search, this.noPagination = false});
 }
 
 class RefreshClinicsEvent extends GetClinicsEvent {}

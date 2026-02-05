@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_cubit.dart';
-import 'package:ocurithm/modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_state.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import '../../../../../core/utils/colors.dart';
@@ -78,22 +77,16 @@ class _SelectDoctorBranchState extends State<SelectDoctorBranch> {
                         Icons.arrow_drop_down_circle,
                         color: Colorz.primaryColor,
                       ),
-                      items: widget.cubit.doctors?.doctors,
-                      // isValid: widget.cubit.chooseBranch,
-                      // validateText: S.of(context).mustBranch,
-                      selectedValue: widget.cubit.selectedDoctor?.name,
+                      items: state.doctors?.doctors,
+                      selectedValue: state.selectedDoctor?.name,
                       hintText: 'Select Doctor',
                       itemAsString: (item) => item.name.toString(),
                       onItemSelected: (item) {
-                        setState(() {
-                          if (item != "Not Found") {
-                            // widget.cubit.chooseBranch = true;
-                            widget.cubit.selectedDoctor = item;
-                            //  widget.cubit.branchId = item.id;
+                          if (item != null) {
+                            widget.cubit.add(SelectDoctorEvent(item));
                           }
-                        });
                       },
-                      isLoading: widget.cubit.doctors == null,
+                      isLoading: state.doctorStatus == DataStatus.loading,
                     ),
                     const HeightSpacer(size: 15),
                     DropdownItem(
@@ -104,21 +97,16 @@ class _SelectDoctorBranchState extends State<SelectDoctorBranch> {
                         Icons.arrow_drop_down_circle,
                         color: Colorz.primaryColor,
                       ),
-                      items: widget.cubit.branches?.branches,
-                      // isValid: widget.cubit.chooseBranch,
-                      // validateText: S.of(context).mustBranch,
-                      selectedValue: widget.cubit.selectedBranch?.name,
+                      items: state.branches?.branches,
+                      selectedValue: state.selectedBranch?.name,
                       hintText: 'Select Branch',
                       itemAsString: (item) => item.name.toString(),
                       onItemSelected: (item) {
-                        setState(() {
-                          if (item != "Not Found") {
-                            //   widget.cubit.chooseBranch = true;
-                            widget.cubit.selectedBranch = item;
+                          if (item != null) {
+                            widget.cubit.add(SelectBranchEvent(item));
                           }
-                        });
                       },
-                      isLoading: widget.cubit.branches == null,
+                      isLoading: state.branchStatus == DataStatus.loading,
                     ),
                     // Submit Button
                     Row(
@@ -126,7 +114,7 @@ class _SelectDoctorBranchState extends State<SelectDoctorBranch> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            if (widget.cubit.selectedDoctor != null && widget.cubit.selectedBranch != null) {
+                            if (state.selectedDoctor != null && state.selectedBranch != null) {
                               Navigator.pop(context, true);
                             } else {
                               SnackbarService.showError(

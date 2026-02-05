@@ -7,7 +7,8 @@ abstract class GetPaymentMethodsEvent {
 
 /// Event to get all payment methods (first page)
 class GetAllPaymentMethodsEvent extends GetPaymentMethodsEvent {
-  const GetAllPaymentMethodsEvent();
+  final bool noPagination;
+  const GetAllPaymentMethodsEvent({this.noPagination = false});
 }
 
 /// Event to load more payment methods (next page)

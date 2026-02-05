@@ -42,13 +42,14 @@ class GetClinicsCubit extends Bloc<GetClinicsEvent, GetClinicsState> {
 
   // Get GetClinics
   Future<void> _onGetAllClinics(
-      GetClinicsEvent event, Emitter<GetClinicsState> emit) async {
+      GetAllClinicsEvent event, Emitter<GetClinicsState> emit) async {
     log('message');
     try {
       emit(state.copyWith(state: GetClinicsStatus.loading));
 
       final clinics = await clinicRepo.getAllClinics(
-          page: state.page, search: state.search);
+          page: event.noPagination ? null : state.page, 
+          search: (state.search?.isNotEmpty ?? false) ? state.search : null);
 
       emit(state.copyWith(state: GetClinicsStatus.success, clinics: clinics));
     } catch (e) {

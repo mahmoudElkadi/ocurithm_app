@@ -10,7 +10,6 @@ import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart'
 import '../../../../../core/utils/colors.dart';
 import '../../../data/models/make_appointment_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
-import '../../manager/Make Appointment cubit/make_appointment_state.dart';
 
 class AppointmentPreviewContent extends StatefulWidget {
   final bool isUpdated;
@@ -30,8 +29,21 @@ class AppointmentPreviewContent extends StatefulWidget {
 class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
   @override
   Widget build(BuildContext context) {
-    final cubit = MakeAppointmentCubit.get(context);
-    return BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
+    return BlocConsumer<MakeAppointmentCubit, MakeAppointmentState>(
+      listener: (context, state) {
+        if (state.status == MakeAppointmentStatus.loading) {
+          customLoading(context, "Saving appointment...");
+        } else if (state.status == MakeAppointmentStatus.success) {
+          Navigator.pop(context); // Dismiss loading
+          SnackbarService.showSuccess(context, 
+            message: widget.isUpdated ? "Appointment Updated successfully" : "Appointment created successfully"
+          );
+          Navigator.pop(context, true); // Close the view
+        } else if (state.status == MakeAppointmentStatus.error) {
+          Navigator.pop(context); // Dismiss loading
+          SnackbarService.showError(context, message: state.errorMessage ?? "An error occurred");
+        }
+      },
       builder: (context, state) => Column(
         children: [
           Expanded(
@@ -39,27 +51,28 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
               child: Column(
                 children: [
-                  _buildPreviewCard(context, cubit),
+                  _buildPreviewCard(context, state),
                   SizedBox(height: 20.h),
-                  _buildNoteField(cubit),
+                  _buildNoteField(context),
                 ],
               ),
             ),
           ),
-          _buildBottomButtons(context, cubit),
+          _buildBottomButtons(context, state),
         ],
       ),
     );
   }
 
-  Widget _buildPreviewCard(BuildContext context, MakeAppointmentCubit cubit) {
+  Widget _buildPreviewCard(BuildContext context, MakeAppointmentState state) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withOpacity(0.1),
             spreadRadius: 5,
             blurRadius: 10,
             offset: const Offset(0, 3),
@@ -76,7 +89,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           ),
           Padding(
             padding: EdgeInsets.all(16.w),
-            child: _buildPreviewDetails(cubit),
+            child: _buildPreviewDetails(state),
           ),
         ],
       ),
@@ -97,7 +110,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
-              color: Colorz.primaryColor.withValues(alpha:0.1),
+              color: Colorz.primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
@@ -135,10 +148,11 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
     );
   }
 
-  Widget _buildPreviewDetails(MakeAppointmentCubit cubit) {
+  Widget _buildPreviewDetails(MakeAppointmentState state) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[800] : Colors.white,
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Column(
@@ -146,66 +160,73 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           _buildDetailItem(
             icon: Icons.person,
             title: 'Doctor',
-            value: cubit.selectedDoctor?.name ?? "N/A",
+            value: state.selectedDoctor?.name ?? "N/A",
             iconColor: Colorz.primaryColor,
+            isDark: isDark,
           ),
-          _buildDivider(),
+          _buildDivider(isDark: isDark),
           _buildDetailItem(
             icon: Icons.person_outline,
             title: 'Patient',
-            value: cubit.selectedPatient?.name ?? "N/A",
+            value: state.selectedPatient?.name ?? "N/A",
             iconColor: Colors.green,
+            isDark: isDark,
           ),
-          _buildDivider(),
+          _buildDivider(isDark: isDark),
           _buildDetailItem(
             icon: Icons.location_on,
             title: 'Branch',
-            value: cubit.selectedBranch?.name ?? "N/A",
+            value: state.selectedBranch?.name ?? "N/A",
             iconColor: Colors.red,
+            isDark: isDark,
           ),
-          _buildDivider(),
+          _buildDivider(isDark: isDark),
           _buildDetailItem(
             icon: Icons.medical_services,
             title: 'Examination',
-            value: '${cubit.selectedExaminationType?.name ?? "N/A"} '
-                '(${cubit.selectedExaminationType?.duration ?? "N/A"} min)',
+            value: '${state.selectedExaminationType?.name ?? "N/A"} '
+                '(${state.selectedExaminationType?.duration ?? "N/A"} min)',
             iconColor: Colors.purple,
+            isDark: isDark,
           ),
-          _buildDivider(),
+          _buildDivider(isDark: isDark),
           _buildDetailItem(
             icon: Icons.payment,
             title: 'Payment Method',
-            value: cubit.selectedPaymentMethod?.title ?? "N/A",
+            value: state.selectedPaymentMethod?.title ?? "N/A",
             iconColor: Colors.orange,
+            isDark: isDark,
           ),
-          _buildDivider(),
+          _buildDivider(isDark: isDark),
           _buildDetailItem(
             icon: Icons.attach_money,
             title: 'Price',
-            value: '\$${cubit.selectedExaminationType?.price ?? "N/A"}',
+            value: '\$${state.selectedExaminationType?.price ?? "N/A"}',
             iconColor: Colors.green,
+            isDark: isDark,
           ),
-          _buildDivider(),
+          _buildDivider(isDark: isDark),
           _buildDetailItem(
             icon: Icons.date_range,
             title: 'Date',
-            value: cubit.selectedTime != null
-                ? DateFormat('yyyy-MM-dd HH:mm a').format(cubit.selectedTime!)
+            value: state.selectedTime != null
+                ? DateFormat('yyyy-MM-dd HH:mm a').format(state.selectedTime!)
                 : "N/A",
             iconColor: Colorz.primaryColor,
+            isDark: isDark,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider({bool isDark = false}) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 12.w),
       child: Divider(
         height: 1.h,
         thickness: 1,
-        color: Colors.grey[100],
+        color: isDark ? Colors.grey[700] : Colors.grey[100],
       ),
     );
   }
@@ -215,6 +236,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
     required String title,
     required String value,
     required Color iconColor,
+    required bool isDark,
   }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
@@ -223,7 +245,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha:0.1),
+              color: iconColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Icon(
@@ -240,7 +262,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
                 Text(
                   title,
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
                     fontSize: 13.sp,
                   ),
                 ),
@@ -250,7 +272,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ],
@@ -261,15 +283,19 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
     );
   }
 
-  Widget _buildNoteField(MakeAppointmentCubit cubit) {
+  Widget _buildNoteField(BuildContext context) {
+    // Note controller is still in cubit for text editing handling
+    final cubit = context.read<MakeAppointmentCubit>();
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, 1),
@@ -284,22 +310,22 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
           SizedBox(height: 8.h),
           TextField(
             controller: cubit.noteController,
             maxLines: 3,
-            style: TextStyle(fontSize: 15.sp),
+            style: TextStyle(fontSize: 15.sp, color: isDark ? Colors.white : Colors.black),
             decoration: InputDecoration(
               hintText: 'Add a note (optional)',
               hintStyle: TextStyle(
-                color: Colors.grey[400],
+                color: isDark ? Colors.grey[400] : Colors.grey[400],
                 fontSize: 15.sp,
               ),
               filled: true,
-              fillColor: Colors.grey[50],
+              fillColor: isDark ? Colors.grey[800] : Colors.grey[50],
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
                 borderSide: BorderSide.none,
@@ -312,14 +338,17 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
     );
   }
 
-  Widget _buildBottomButtons(BuildContext context, MakeAppointmentCubit cubit) {
+  Widget _buildBottomButtons(BuildContext context, MakeAppointmentState state) {
+    final cubit = context.read<MakeAppointmentCubit>();
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[850] : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1),
+            color: Colors.grey.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -1),
@@ -331,7 +360,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Expanded(
             child: OutlinedButton(
               onPressed: () {
-                cubit.changeStep(1);
+                cubit.add(PreviousStepEvent()); 
               },
               style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -356,7 +385,6 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
-                customLoading(context, "");
                 bool connection = await InternetConnection().hasInternetAccess;
                 if (!connection) {
                   SnackbarService.showError(
@@ -365,21 +393,21 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
                   );
                 } else {
                   if (widget.isUpdated == true) {
-                    cubit.editAppointment(
-                        context: context,
-                        model: MakeAppointmentModel(
+                    cubit.add(EditAppointmentEvent(
+                         model: MakeAppointmentModel(
                             id: widget.appointment?.id,
-                            doctor: cubit.selectedDoctor?.id,
-                            branch: cubit.selectedBranch?.id,
-                            datetime: cubit.selectedTime?.toUtc(),
-                            paymentMethod: cubit.selectedPaymentMethod?.id,
-                            examinationType: cubit.selectedExaminationType?.id,
-                            patient: cubit.selectedPatient?.id,
+                            doctor: state.selectedDoctor?.id,
+                            branch: state.selectedBranch?.id,
+                            datetime: state.selectedTime?.toUtc(),
+                            paymentMethod: state.selectedPaymentMethod?.id,
+                            examinationType: state.selectedExaminationType?.id,
+                            patient: state.selectedPatient?.id,
                             status: "Scheduled",
-                            clinic: cubit.selectedClinic?.id,
-                            note: cubit.noteController.text));
+                            clinic: state.selectedClinic?.id,
+                            note: cubit.noteController.text),
+                    ));
                   } else {
-                    cubit.makeAppointment(context: context);
+                    cubit.add(CreateAppointmentEvent(note: cubit.noteController.text));
                   }
                 }
               },
@@ -396,6 +424,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
+                  color: Colors.white,
                 ),
               ),
             ),

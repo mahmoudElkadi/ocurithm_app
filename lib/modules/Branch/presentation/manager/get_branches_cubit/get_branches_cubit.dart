@@ -39,14 +39,14 @@ class GetBranchesCubit extends Bloc<GetBranchesEvent, GetBranchesState> {
 
   // Get GetBranches
   Future<void> _onGetAllBranches(
-      GetBranchesEvent event, Emitter<GetBranchesState> emit) async {
+      GetAllBranchesEvent event, Emitter<GetBranchesState> emit) async {
     try {
       emit(state.copyWith(state: GetBranchesStatus.loading));
 
       final branches = await branchRepo.getAllBranches(
-        page: state.page,
-        search: state.search,
-        clinic: state.clinicFilter,
+        page: event.noPagination ? null : state.page,
+        search: (state.search?.isNotEmpty ?? false) ? state.search : null,
+        clinic: event.clinicId ?? state.clinicFilter,
       );
 
       emit(

@@ -7,8 +7,9 @@ abstract class GetExaminationTypesEvent {
 
 /// Event to get examination types with optional page
 class GetAllExaminationTypesEvent extends GetExaminationTypesEvent {
-  final int page;
-  const GetAllExaminationTypesEvent({this.page = 1});
+  final int? page;
+  final bool noPagination;
+  const GetAllExaminationTypesEvent({this.page, this.noPagination = false});
 }
 
 /// Event to set search query (doesn't trigger search immediately)

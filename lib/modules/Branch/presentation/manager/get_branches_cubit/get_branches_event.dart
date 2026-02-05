@@ -7,8 +7,9 @@ class GetAllBranchesEvent extends GetBranchesEvent {
   final int? page;
   final String? search;
   final String? clinicId;
+  final bool noPagination;
 
-  GetAllBranchesEvent({this.page, this.search, this.clinicId});
+  GetAllBranchesEvent({this.page, this.search, this.clinicId, this.noPagination = false});
 }
 
 class RefreshBranchesEvent extends GetBranchesEvent {}

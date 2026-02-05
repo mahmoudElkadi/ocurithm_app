@@ -7,7 +7,7 @@ class ApiConstants {
 
   // static String get baseUrl => "https://ocurithm.com/api/";
 
-  static String get baseUrl => "http://192.168.1.20:3000/api/";
+  static String get baseUrl => "http://192.168.1.24:3000/api/";
 
   static String get login => "auth/login";
 

@@ -62,8 +62,8 @@ class GetPaymentMethodsCubit
 
       // Fetch payment methods
       final result = await paymentMethodRepo.getAllPaymentMethods(
-        page: 1,
-        search: state.searchQuery,
+        page: event.noPagination ? null : 1,
+        search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
       );
 
       if (result.error == null && result.paymentMethods != null) {

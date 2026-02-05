@@ -47,10 +47,10 @@ class GetDoctorsCubit extends Bloc<GetDoctorsEvent, GetDoctorsState> {
       emit(state.copyWith(state: GetDoctorsStatus.loading));
 
       final doctors = await doctorRepo.getAllDoctors(
-        page: state.page,
-        search: state.search,
-        clinic: state.clinicFilter,
-        branch: state.branchFilter,
+        page: event.noPagination ? null : state.page,
+        search: (event.search?.isNotEmpty ?? false) ? event.search : state.search,
+        clinic: event.clinicId ?? state.clinicFilter,
+        branch: event.branchId ?? state.branchFilter,
       );
 
       emit(state.copyWith(

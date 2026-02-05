@@ -1,226 +1,77 @@
 import 'package:ocurithm/modules/Make_Appointment/data/models/make_appointment_model.dart';
-
-import '../../../../../core/Network/dio_handler.dart';
-import '../../../../../core/Network/shared.dart';
-import '../../../../core/api/api_constants.dart';
+import '../../../../../core/api/api_handler.dart';
+import '../../../../../core/api/api_constants.dart';
 import '../../../Appointment/data/models/appointment_model.dart';
-import '../../../Branch/data/model/branches_model.dart';
-import '../../../Doctor/data/model/doctor_model.dart';
-import '../../../Examination Type/data/model/examination_type_model.dart';
-import '../../../Patient/data/model/patients_model.dart';
-import '../../../Payment Methods/data/model/payment_method_model.dart';
-import 'make_appointment_repo.dart'; 
+import 'make_appointment_repo.dart';
 
 class MakeAppointmentRepoImpl implements MakeAppointmentRepo {
-  @override
-  Future<DoctorModel> getAllDoctors({
-    String? branch,
-  }) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.doctors}";
-    final String? token = CacheHelper.getData(key: "token");
+  final ApiHandler _apiHandler = ApiHandler();
 
-    Map<String, dynamic> query = {
-      if (branch != null) "branch": branch,
-      "isActive": true,
-    };
-
-    final result = await ApiService.request<DoctorModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => DoctorModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to fetch doctors");
-    }
-  }
-
-  @override
-  Future<BranchesModel> getAllBranches() async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.branches}";
-    final String? token = CacheHelper.getData(key: "token");
-    Map<String, dynamic> query = {"isActive": true, "haveDoctors": true};
-
-    final result = await ApiService.request<BranchesModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => BranchesModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch branches");
-    }
-  }
-
-  @override
-  Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? clinic}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}";
-    final String? token = CacheHelper.getData(key: "token");
-    Map<String, dynamic> query = {"clinic": clinic};
-
-    final result = await ApiService.request<PaymentMethodsModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => PaymentMethodsModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch PaymentMethods");
-    }
-  }
-
-  @override
-  Future<ExaminationTypesModel> getAllExaminationTypes({int? page, String? clinic}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.examinationTypes}";
-    final String? token = CacheHelper.getData(key: "token");
-    Map<String, dynamic> query = {"clinic": clinic};
-
-    final result = await ApiService.request<ExaminationTypesModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => ExaminationTypesModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch examinationTypes");
-    }
-  }
-
-  @override
-  Future<PatientModel> getAllPatients({String? search}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.patients}";
-    final String? token = CacheHelper.getData(key: "token");
-
-    Map<String, dynamic> query = {
-      "search": search,
-      "isActive": true,
-    };
-
-    final result = await ApiService.request<PatientModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => PatientModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to fetch Patients");
-    }
-  }
 
   @override
   Future<Appointment> makeAppointment({required MakeAppointmentModel model}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.appointments}";
-    final String? token = CacheHelper.getData(key: "token");
-    final result = await ApiService.request<Appointment>(
-      url: url,
-      method: 'POST',
-      data: model.toJson(),
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => Appointment.fromJson(json),
-    );
+    try {
+      final response = await _apiHandler.post<Appointment>(
+        ApiConstants.appointments,
+        data: model.toJson(),
+        cancelKey: 'makeAppointment',
+        fromJson: (json) => Appointment.fromJson(json),
+      );
 
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to fetch Patients");
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        throw Exception(response.message ?? 'Failed to create appointment');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<Appointment> editAppointment({required MakeAppointmentModel model, required String id}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.appointments}/${model.id}";
-    final String? token = CacheHelper.getData(key: "token");
-    final result = await ApiService.request<Appointment>(
-      url: url,
-      method: 'PUT',
-      data: model.toJson(),
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => Appointment.fromJson(json),
-    );
+    try {
+      final response = await _apiHandler.put<Appointment>(
+        '${ApiConstants.appointments}/${model.id}',
+        data: model.toJson(),
+        cancelKey: 'editAppointment',
+        fromJson: (json) => Appointment.fromJson(json),
+      );
 
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to fetch Patients");
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        throw Exception(response.message ?? 'Failed to update appointment');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<AppointmentModel> getAllAppointment({DateTime? date, String? branch, String? doctor}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.appointments}";
-    final String? token = CacheHelper.getData(key: "token");
+    try {
+      Map<String, dynamic> query = {
+        if (date != null) "startDate": DateTime(date.year, date.month, date.day, 0, 0, 0).toUtc().toIso8601String(),
+        if (date != null) "endDate": DateTime(date.year, date.month, date.day, 23, 59, 59).toUtc().toIso8601String(),
+        if (doctor != null) "doctor": doctor,
+        if (branch != null) "branch": branch
+      };
 
-    Map<String, dynamic> quary = {
-      if (date != null) "startDate": DateTime(date.year, date.month, date.day, 0, 0, 0).toString(),
-      if (date != null) "endDate": DateTime(date.year, date.month, date.day, 23, 59, 59).toString(),
-      if (doctor != null) "doctor": doctor,
-      if (branch != null) "branch": branch
-    };
+      final response = await _apiHandler.get<AppointmentModel>(
+        ApiConstants.appointments,
+        queryParameters: query,
+        cancelKey: 'getAllAppointment',
+        fromJson: (json) => AppointmentModel.fromJson(json),
+      );
 
-    final result = await ApiService.request<AppointmentModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: quary,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => AppointmentModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch branches");
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        throw Exception(response.message ?? 'Failed fetch appointments');
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

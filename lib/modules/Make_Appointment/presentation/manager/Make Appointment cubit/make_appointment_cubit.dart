@@ -1,17 +1,14 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/modules/Make_Appointment/data/models/make_appointment_model.dart';
 
-import '../../../../../Services/services_api.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/colors.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Branch/data/model/branches_model.dart';
 import '../../../../Clinics/data/model/clinics_model.dart';
@@ -20,458 +17,216 @@ import '../../../../Examination Type/data/model/examination_type_model.dart';
 import '../../../../Patient/data/model/patients_model.dart';
 import '../../../../Payment Methods/data/model/payment_method_model.dart';
 import '../../../data/repos/make_appointment_repo.dart';
-import 'make_appointment_state.dart';
 
-class MakeAppointmentCubit extends Cubit<MakeAppointmentState> {
-  MakeAppointmentCubit(this.makeAppointmentRepo) : super(AppointmentInitial());
+part 'make_appointment_state.dart';
+part 'make_appointment_event.dart';
 
-  static MakeAppointmentCubit get(context) => BlocProvider.of(context);
+class MakeAppointmentCubit extends Bloc<MakeAppointmentEvent, MakeAppointmentState> {
+  final MakeAppointmentRepo makeAppointmentRepo;
+  
+  // Controllers to be disposed
+  final TextEditingController noteController = TextEditingController();
+  final TextEditingController patientController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
-  Widget? currentWidget;
-  int widgetIndex = 0;
+  final _searchSubject = BehaviorSubject<String>();
 
-  pageTwo(context, index) {
-    widgetIndex = index;
-    if (!isClosed) emit(ChangeState());
-  }
+  MakeAppointmentCubit(this.makeAppointmentRepo) : super(const MakeAppointmentState()) {
+    on<InitialDataEvent>(_onInitialData);
+    // Removed Get... handlers as they are now handled by separate Cubits
+    on<GetAppointmentsEvent>(_onGetAppointments);
+    on<CreateAppointmentEvent>(_onCreateAppointment);
+    on<EditAppointmentEvent>(_onEditAppointment);
+    on<SetDataEvent>(_onSetData);
+    on<SetPatientEvent>(_onSetPatient);
+    on<ChangeStepEvent>(_onChangeStep);
+    on<PreviousStepEvent>(_onPreviousStep);
+    on<ChangePageEvent>(_onChangePage);
+    on<SetWidgetIndexEvent>(_onSetWidgetIndex);
+    on<ValidateFieldEvent>(_onValidateField);
+    
+    // Selection Events
+    on<SelectDoctorEvent>((event, emit) {
+      emit(state.copyWith(selectedDoctor: event.doctor));
+      add(ValidateFieldEvent('doctor', true));
+    });
+    on<SelectClinicEvent>((event, emit) {
+      emit(state.copyWith(selectedClinic: event.clinic));
+      add(ValidateFieldEvent('clinic', true));
+    });
+    on<SelectBranchEvent>((event, emit) {
+      emit(state.copyWith(selectedBranch: event.branch));
+       add(ValidateFieldEvent('branch', true));
+    });
+    on<SelectTimeEvent>((event, emit) => emit(state.copyWith(selectedTime: event.time)));
+    on<SelectPaymentMethodEvent>((event, emit) {
+      emit(state.copyWith(selectedPaymentMethod: event.paymentMethod));
+      add(ValidateFieldEvent('paymentMethod', true));
+    });
+    on<SelectExaminationTypeEvent>((event, emit) {
+      emit(state.copyWith(selectedExaminationType: event.examinationType));
+      add(ValidateFieldEvent('examinationType', true));
+    });
 
-  PageController pageController = PageController();
-  int currentPage = 0;
-
-  void togglePage(int pageIndex, context) {
-    currentPage = pageIndex;
-    pageController.animateToPage(
-      currentPage,
-      duration: const Duration(milliseconds: 700),
-      curve: Curves.easeInOut,
-    );
-    if (!isClosed) emit(ChangeState());
-  }
-
-  ClinicsModel? clinics;
-
-  Future getClinics() async {
-    clinics = null;
-    emit(AdminClinicLoading());
-
-    connection = await InternetConnection().hasInternetAccess;
-    emit(AdminClinicLoading());
-    try {
-      if (connection == false) {
-        SnackbarService.showError(
-          Get.context!,
-          message: "No Internet Connection",
-        );
-        emit(AdminClinicError());
-      } else {
-        clinics = await ServicesApi().getAllClinics();
-        if (clinics?.error == null && clinics!.clinics.isNotEmpty) {
-          emit(AdminClinicSuccess());
-        } else {
-          emit(AdminClinicError());
-        }
-      }
-    } catch (e) {
-      log(e.toString());
-      emit(AdminClinicError());
-    }
-  }
-
-  bool? connection;
-  MakeAppointmentRepo makeAppointmentRepo;
-
-  DoctorModel? doctors;
-
-  Future<void> getDoctors({String? branch}) async {
-    doctors = null;
-    emit(AdminDoctorLoading());
-
-    connection = await InternetConnection().hasInternetAccess;
-    emit(AdminDoctorLoading());
-    try {
-      if (connection == false) {
-        SnackbarService.showError(
-          Get.context!,
-          message: "No Internet Connection",
-        );
-        emit(AdminDoctorError());
-      } else {
-        doctors = await makeAppointmentRepo.getAllDoctors(branch: branch);
-        if (doctors!.doctors!.isNotEmpty) {
-          emit(AdminDoctorSuccess());
-        } else {
-          emit(AdminDoctorError());
-        }
-      }
-    } catch (e) {
-      log(e.toString());
-      emit(AdminDoctorError());
-    }
-  }
-
-  BranchesModel? branches;
-  bool loading = false;
-
-  Future<void> getBranches() async {
-    branches = null;
-    loading = true;
-    emit(GetBranchLoading());
-
-    connection = await InternetConnection().hasInternetAccess;
-    emit(GetBranchLoading());
-    try {
-      if (connection == false) {
-        SnackbarService.showError(
-          Get.context!,
-          message: "No Internet Connection",
-        );
-        loading = false;
-        emit(GetBranchError());
-      } else {
-        branches = await ServicesApi().getAllBranches(clinic: selectedClinic?.id, haveDoctors: true);
-        if (branches?.error == null && branches!.branches.isNotEmpty) {
-          loading = false;
-          emit(GetBranchSuccess());
-        } else {
-          loading = false;
-          emit(GetBranchError());
-        }
-      }
-    } catch (e) {
-      log(e.toString());
-      loading = false;
-      emit(GetBranchError());
-    }
-  }
-
-  PatientModel? patients;
-  int page = 1;
-  TextEditingController searchController = TextEditingController();
-  TextEditingController patientController = TextEditingController();
-  bool loadPatients = false;
-
-  Future<void> getPatients() async {
-    patients = null;
-    loadPatients = true;
-    emit(AdminPatientLoading());
-
-    connection = await InternetConnection().hasInternetAccess;
-    emit(AdminPatientLoading());
-    try {
-      if (connection == false) {
-        SnackbarService.showError(
-          Get.context!,
-          message: "No Internet Connection",
-        );
-        loadPatients = false;
-        emit(AdminPatientError());
-      } else {
-        patients = await makeAppointmentRepo.getAllPatients(search: patientController.text);
-        if (patients!.patients.isNotEmpty) {
-          loadPatients = false;
-          emit(AdminPatientSuccess());
-        } else {
-          loadPatients = false;
-          emit(AdminPatientError());
-        }
-      }
-    } catch (e) {
-      loadPatients = false;
-      log(e.toString());
-      emit(AdminPatientError());
-    }
-  }
-
-  PaymentMethodsModel? paymentMethods;
-
-  Future<void> getPaymentMethods() async {
-    paymentMethods = null;
-    emit(PaymentMethodLoading());
-
-    connection = await InternetConnection().hasInternetAccess;
-    emit(PaymentMethodLoading());
-    try {
-      if (connection == false) {
-        SnackbarService.showError(
-          Get.context!,
-          message: "No Internet Connection",
-        );
-        emit(PaymentMethodError());
-      } else {
-        paymentMethods = await makeAppointmentRepo.getAllPaymentMethods(clinic: selectedClinic?.id);
-        if (paymentMethods?.error == null && paymentMethods!.paymentMethods!.isNotEmpty) {
-          emit(PaymentMethodSuccess());
-        } else {
-          emit(PaymentMethodError());
-        }
-      }
-    } catch (e) {
-      emit(PaymentMethodError());
-    }
-  }
-
-  ExaminationTypesModel? examinationTypes;
-
-  Future<void> getExaminationTypes() async {
-    examinationTypes = null;
-    emit(ExaminationTypeLoading());
-
-    connection = await InternetConnection().hasInternetAccess;
-    emit(ExaminationTypeLoading());
-    try {
-      if (connection == false) {
-        SnackbarService.showError(
-          Get.context!,
-          message: "No Internet Connection",
-        );
-        emit(ExaminationTypeError());
-      } else {
-        examinationTypes = await makeAppointmentRepo.getAllExaminationTypes(clinic: selectedClinic?.id);
-        if (examinationTypes?.error == null && examinationTypes!.examinationTypes!.isNotEmpty) {
-          emit(ExaminationTypeSuccess());
-        } else {
-          emit(ExaminationTypeError());
-        }
-      }
-    } catch (e) {
-      emit(ExaminationTypeError());
-    }
-  }
-
-  int currentStep = 0;
-  final List<String> steps = ['Details', 'Time', 'Preview'];
-
-  void changeStep(int newStep) {
-    if (newStep >= 0 && newStep < steps.length) {
-      currentStep = newStep;
-      emit(StepChanged());
-    }
-  }
-
-  void previousStep() {
-    if (currentStep > 0) {
-      currentStep--;
-      emit(StepChanged());
-    }
-  }
-
-  getAllData() async {
-    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapability")) {
-      await Future.wait([
-        getClinics(),
-      ]);
-    } else {
-      selectedClinic = CacheHelper.getUser("user")?.clinic;
-      await Future.wait([
-        getBranches(),
-        getExaminationTypes(),
-        getPaymentMethods(),
-      ]);
-    }
-  }
-
-  setAllData(Appointment? appointment) {
-    if (appointment != null) {
-      setData(appointment);
-    }
-  }
-
-  Timer? _debounceTimer;
-
-  Timer? _searchDebounceTimer;
-  CancelableOperation<void>? _currentOperation;
-
-  void searchPatients() async {
-    // Cancel previous timer
-    _searchDebounceTimer?.cancel();
-    // Cancel previous operation if exists
-    await _currentOperation?.cancel();
-
-    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
-      // Cancel previous operation
-      _currentOperation?.cancel();
-
-      // Create new cancelable operation
-      _currentOperation = CancelableOperation.fromFuture(
-        getPatients(),
-        onCancel: () {
-          // Cleanup if needed when cancelled
-          print('Search operation cancelled');
-        },
-      );
-
-      // Execute the operation
-      _currentOperation?.value.then((_) {
-        print('Search completed');
-      }).catchError((error) {
-        print('Search error: $error');
-      });
+     // Search Debounce
+    _searchSubject
+        .debounceTime(const Duration(milliseconds: 500))
+        .listen((searchText) {
+      // Forward search to patient cubit if needed, or handle locally if strictly selection
+      // add(GetPatientsEvent(search: searchText)); // Removed
     });
   }
 
-  String? appointmentId;
+  static MakeAppointmentCubit get(BuildContext context) => BlocProvider.of<MakeAppointmentCubit>(context);
 
-  setData(Appointment appointment) async {
-    selectedClinic = appointment.clinic;
-    selectedTime = appointment.datetime;
-    selectedExaminationType = appointment.examinationType;
-    selectedPaymentMethod = appointment.paymentMethod;
-    selectedBranch = appointment.branch;
-    selectedDoctor = appointment.doctor;
-    selectedPatient = appointment.patient;
-    appointmentId = appointment.id;
-    getBranches();
-    getDoctors(branch: selectedBranch?.id);
-    getExaminationTypes();
-    getPaymentMethods();
-    emit(DataChanged());
-  }
-
-  setPatient(Patient? patient) {
-    selectedPatient = patient;
-    emit(DataChanged());
-  }
-
-  AppointmentModel? appointments;
-
-  getAppointments(DateTime? selectedDate) async {
-    appointments = null;
-    emit(GetBranchLoading());
-    connection = await InternetConnection().hasInternetAccess;
-    emit(GetBranchLoading());
-    try {
-      if (connection == true) {
-        appointments = await makeAppointmentRepo.getAllAppointment(
-            date: selectedDate, branch: selectedBranch?.id, doctor: selectedDoctor?.id);
-        if (appointments?.error == null && appointments!.appointments.isNotEmpty) {
-          // Group appointments by time slot
-          emit(GetBranchSuccess());
-        } else {
-          emit(GetBranchError());
-        }
-      }
-    } catch (e) {
-      loading = false;
-      emit(GetBranchError());
+  Future<void> _onInitialData(InitialDataEvent event, Emitter<MakeAppointmentState> emit) async {
+    if (!CacheHelper.getStringList(key: "capabilities").contains("manageCapability")) {
+      final user = CacheHelper.getUser("user");
+      emit(state.copyWith(selectedClinic: user?.clinic));
     }
   }
 
-  makeAppointment({required BuildContext context}) async {
-    emit(MakeAppointmentLoading());
+  // Removed _onGetClinics, _onGetDoctors, _onGetBranches, _onGetPatients, _onGetPaymentMethods, _onGetExaminationTypes
+
+  Future<void> _onGetAppointments(GetAppointmentsEvent event, Emitter<MakeAppointmentState> emit) async {
+    emit(state.copyWith(appointmentStatus: DataStatus.loading));
+    if (await _hasNoInternet()) {
+      emit(state.copyWith(appointmentStatus: DataStatus.error, errorMessage: "No Internet Connection"));
+      return;
+    }
+    try {
+      final appointments = await makeAppointmentRepo.getAllAppointment(
+        date: event.date,
+        branch: event.branch ?? state.selectedBranch?.id,
+        doctor: event.doctor ?? state.selectedDoctor?.id,
+      );
+      if (appointments.error == null && appointments.appointments.isNotEmpty) {
+        emit(state.copyWith(appointmentStatus: DataStatus.success, appointments: appointments));
+      } else {
+        emit(state.copyWith(appointmentStatus: DataStatus.error)); // Or success with empty list?
+      }
+    } catch (e) {
+      emit(state.copyWith(appointmentStatus: DataStatus.error));
+    }
+  }
+
+  Future<void> _onCreateAppointment(CreateAppointmentEvent event, Emitter<MakeAppointmentState> emit) async {
+    emit(state.copyWith(status: MakeAppointmentStatus.loading));
     try {
       var result = await makeAppointmentRepo.makeAppointment(
-          model: MakeAppointmentModel(
-              doctor: selectedDoctor?.id,
-              branch: selectedBranch?.id,
-              datetime: selectedTime?.toUtc(),
-              paymentMethod: selectedPaymentMethod?.id,
-              examinationType: selectedExaminationType?.id,
-              patient: selectedPatient?.id,
-              status: "Scheduled",
-              clinic: selectedClinic?.id,
-              note: noteController.text));
+        model: MakeAppointmentModel(
+          doctor: state.selectedDoctor?.id,
+          branch: state.selectedBranch?.id,
+          datetime: state.selectedTime?.toUtc(),
+          paymentMethod: state.selectedPaymentMethod?.id,
+          examinationType: state.selectedExaminationType?.id,
+          patient: state.selectedPatient?.id,
+          status: "Scheduled",
+          clinic: state.selectedClinic?.id,
+          note: noteController.text.isNotEmpty ? noteController.text : event.note,
+        ),
+      );
+      
       if (result.error == null) {
-        SnackbarService.showSuccess(
-          context,
-          message: "Appointment created successfully",
-        );
-        currentStep = 0;
-        Navigator.pop(context);
-        Navigator.pop(context, true);
-        emit(MakeAppointmentSuccess());
-      } else if (result.error != null) {
-        SnackbarService.showError(
-          context,
-          message: result.error ?? "Failed to create appointment",
-        );
-        Navigator.pop(context);
-
-        emit(MakeAppointmentError());
+        emit(state.copyWith(status: MakeAppointmentStatus.success, currentStep: 0, errorMessage: null));
       } else {
-        SnackbarService.showError(
-          context,
-          message: "Failed to create appointment",
-        );
-        Navigator.pop(context);
-
-        emit(MakeAppointmentError());
+        emit(state.copyWith(status: MakeAppointmentStatus.error, errorMessage: result.error));
       }
     } catch (e) {
-      Navigator.pop(context);
-      emit(MakeAppointmentError());
+      emit(state.copyWith(status: MakeAppointmentStatus.error, errorMessage: e.toString()));
     }
   }
 
-  editAppointment({required BuildContext context, required MakeAppointmentModel model}) async {
-    emit(MakeAppointmentLoading());
+  Future<void> _onEditAppointment(EditAppointmentEvent event, Emitter<MakeAppointmentState> emit) async {
+    emit(state.copyWith(status: MakeAppointmentStatus.loading));
     try {
-      var result = await makeAppointmentRepo.editAppointment(model: model, id: model.id.toString());
-      if (result != null && result.error == null) {
-        SnackbarService.showSuccess(
-          context,
-          message: "Appointment Updated successfully",
-        );
-        Navigator.pop(context);
-        Navigator.pop(context, true);
-        emit(MakeAppointmentSuccess());
-      } else if (result != null && result.error != null) {
-        SnackbarService.showError(
-          context,
-          message: result.error ?? "Failed to update appointment",
-        );
-        Navigator.pop(context);
-
-        emit(MakeAppointmentError());
+      var result = await makeAppointmentRepo.editAppointment(model: event.model, id: event.model.id.toString());
+      if (result.error == null) {
+        emit(state.copyWith(status: MakeAppointmentStatus.success, errorMessage: null));
       } else {
-        SnackbarService.showError(
-          context,
-          message: "Failed to update appointment",
-        );
-        Navigator.pop(context);
-
-        emit(MakeAppointmentError());
+        emit(state.copyWith(status: MakeAppointmentStatus.error, errorMessage: result.error));
       }
     } catch (e) {
-      emit(MakeAppointmentError());
+       emit(state.copyWith(status: MakeAppointmentStatus.error, errorMessage: e.toString()));
     }
   }
 
-  TextEditingController noteController = TextEditingController();
+  Future<void> _onSetData(SetDataEvent event, Emitter<MakeAppointmentState> emit) async {
+    final appointment = event.appointment;
+    emit(state.copyWith(
+      selectedClinic: appointment.clinic,
+      selectedTime: appointment.datetime,
+      selectedExaminationType: appointment.examinationType,
+      selectedPaymentMethod: appointment.paymentMethod,
+      selectedBranch: appointment.branch,
+      selectedDoctor: appointment.doctor,
+      selectedPatient: appointment.patient,
+    ));
+    // Trigger side fetches
+    // Removed side fetches as they are now handled by separate Cubits. 
+    // The UI should ensure necessary data is loaded via other Cubits if needed for editing context.
+  }
+
+  Future<void> _onSetPatient(SetPatientEvent event, Emitter<MakeAppointmentState> emit) async {
+    emit(state.copyWith(selectedPatient: event.patient));
+  }
+
+  Future<void> _onChangeStep(ChangeStepEvent event, Emitter<MakeAppointmentState> emit) async {
+    if (event.step >= 0 && event.step < 3) { // Assuming 3 steps as per original code
+      emit(state.copyWith(currentStep: event.step));
+    }
+  }
+
+  Future<void> _onPreviousStep(PreviousStepEvent event, Emitter<MakeAppointmentState> emit) async {
+    if (state.currentStep > 0) {
+      emit(state.copyWith(currentStep: state.currentStep - 1));
+    }
+  }
+
+  Future<void> _onChangePage(ChangePageEvent event, Emitter<MakeAppointmentState> emit) async {
+    // Assuming PageController logic needs to be handled in UI listening to state change
+    // or we pass the controller to the bloc (bad practice).
+    // The original code had PageController in Cubit.
+    // For now, I'll update the state, and the UI should listen to 'currentPage' and animate.
+    emit(state.copyWith(currentPage: event.index));
+  }
+
+  Future<void> _onSetWidgetIndex(SetWidgetIndexEvent event, Emitter<MakeAppointmentState> emit) async {
+    emit(state.copyWith(widgetIndex: event.index));
+  }
+
+  Future<void> _onValidateField(ValidateFieldEvent event, Emitter<MakeAppointmentState> emit) async {
+    final newValidationState = Map<String, bool>.from(state.validationState);
+    newValidationState[event.field] = event.isValid;
+    
+    final allFilled = state.selectedDoctor != null &&
+        state.selectedPatient != null &&
+        state.selectedBranch != null &&
+        state.selectedExaminationType != null &&
+        state.selectedPaymentMethod != null;
+        
+    emit(state.copyWith(validationState: newValidationState, areAllFieldsFilled: allFilled));
+  }
+
+  Future<bool> _hasNoInternet() async {
+    final hasInternet = await InternetConnection().hasInternetAccess;
+    return !hasInternet;
+  }
+  
+  // PageController needs to be accessible if UI uses it from Cubit (legacy support)
+  // But preferably UI instantiates it. I will keep a reference if strictly needed but try to avoid it.
+  // Original: PageController pageController = PageController();
+  // I will add it back to minimize UI breakage if the UI accesses cubit.pageController
+  final PageController pageController = PageController();
 
   @override
   Future<void> close() {
+    _searchSubject.close();
     noteController.dispose();
+    patientController.dispose();
+    searchController.dispose();
+    pageController.dispose();
     return super.close();
   }
-
-  Doctor? selectedDoctor;
-  Clinic? selectedClinic;
-  Patient? selectedPatient;
-  Branch? selectedBranch;
-  DateTime? selectedTime;
-  PaymentMethod? selectedPaymentMethod;
-  ExaminationType? selectedExaminationType;
-  final Map<String, bool> validationState = {
-    'doctor': true,
-    'patient': true,
-    'branch': true,
-    'clinic': true,
-    'examinationType': true,
-    'paymentMethod': true,
-  };
-
-  bool get areAllFieldsFilled =>
-      selectedDoctor != null &&
-      selectedPatient != null &&
-      selectedBranch != null &&
-      selectedExaminationType != null &&
-      selectedPaymentMethod != null &&
-      selectedDoctor != null;
-
-  bool get isFormValid => validationState.values.every((isValid) => isValid) && areAllFieldsFilled;
-
-  void validateField(String field, bool isValid) {
-    validationState[field] = isValid;
-    emit(ValidateState());
-  }
 }
+

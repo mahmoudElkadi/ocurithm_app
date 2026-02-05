@@ -223,24 +223,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
     });
   }
 
-  // Update calendar day selection handler
-  void onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    if (!isSameDay(_selectedDay, selectedDay)) {
-      if (_isWeeklyOff(selectedDay)) {
-        final nearestNonHolidayDate = findNearestNonHolidayDate(selectedDay);
-        setState(() {
-          _selectedDay = nearestNonHolidayDate;
-          _focusedDay = nearestNonHolidayDate;
-        });
-      } else {
-        setState(() {
-          _selectedDay = selectedDay;
-          _focusedDay = focusedDay;
-        });
-      }
-      selectNewDateRange();
-    }
-  }
+
 
   void fetchAppointmentsAndUpdateSlots() async {
     try {
@@ -290,7 +273,25 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
   }
 
   @override
+  void didUpdateWidget(BookingCalendarMain oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.holidayWeekdays != widget.holidayWeekdays) {
+      _initializeHolidayWeeks();
+      // If currently selected day is now a holiday, move to nearest non-holiday
+      if (_isWeeklyOff(_selectedDay)) {
+        final nearestNonHolidayDate = findNearestNonHolidayDate(_selectedDay);
+        setState(() {
+          _selectedDay = nearestNonHolidayDate;
+          _focusedDay = nearestNonHolidayDate;
+        });
+        selectNewDateRange();
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -299,6 +300,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             child: TableCalendar(
               startingDayOfWeek: StartingDayOfWeek.monday,
+              weekendDays: _holidayWeekdayNumbers,
               firstDay: DateTime.now(),
               lastDay: widget.lastDay ?? DateTime.now().add(const Duration(days: 365)),
               focusedDay: _focusedDay,
@@ -306,11 +308,23 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
               selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
               enabledDayPredicate: _isDateSelectable,
               calendarStyle: CalendarStyle(
-                disabledTextStyle: const TextStyle(color: Colors.red),
+                defaultTextStyle: TextStyle(color: isDark ? Colors.white : Colors.black),
+                weekendTextStyle: TextStyle(color: isDark ? Colors.red[300] : Colors.red),
+                outsideTextStyle: TextStyle(color: isDark ? Colors.grey[600] : Colors.grey),
+                todayTextStyle: TextStyle(color: isDark ? Colors.white : Colors.black),
+                todayDecoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  shape: BoxShape.circle,
+                ),
+                disabledTextStyle: TextStyle(color: isDark ? Colors.red[200] : Colors.red),
                 selectedDecoration: BoxDecoration(
                   color: Theme.of(context).primaryColor,
                   shape: BoxShape.circle,
                 ),
+              ),
+              daysOfWeekStyle: DaysOfWeekStyle(
+                weekdayStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
+                weekendStyle: TextStyle(color: isDark ? Colors.red[300] : Colors.red),
               ),
               onFormatChanged: (format) {
                 if (_calendarFormat != format) {
@@ -319,9 +333,22 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
                   });
                 }
               },
-              headerStyle: const HeaderStyle(
+              headerStyle: HeaderStyle(
                 formatButtonVisible: false,
                 titleCentered: true,
+                titleTextStyle: TextStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                leftChevronIcon: Icon(
+                  Icons.chevron_left,
+                  color: isDark ? Colors.white : Theme.of(context).primaryColor,
+                ),
+                rightChevronIcon: Icon(
+                  Icons.chevron_right,
+                  color: isDark ? Colors.white : Theme.of(context).primaryColor,
+                ),
               ),
               onDaySelected: (selectedDay, focusedDay) {
                 if (!isSameDay(_selectedDay, selectedDay)) {
@@ -357,6 +384,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
               ),
           const SizedBox(height: 8),
           StreamBuilder<dynamic>(
+            key: ValueKey(_selectedDay),
             stream: widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch ?? ""),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
@@ -377,21 +405,26 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
               });
 
               return Expanded(
-                child: (widget.wholeDayIsBookedWidget != null && controller.isWholeDayBooked())
-                    ? widget.wholeDayIsBookedWidget!
-                    : GridView.builder(
-                        physics: widget.gridScrollPhysics ?? const BouncingScrollPhysics(),
-                        itemCount: controller.allBookingSlots.length,
-                        itemBuilder: (context, index) {
-                          return _buildBookingSlot(controller, index);
-                        },
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: widget.bookingGridCrossAxisCount ?? 3,
-                          childAspectRatio: widget.bookingGridChildAspectRatio ?? 2.1,
-                          crossAxisSpacing: 20,
-                          mainAxisSpacing: 10,
-                        ),
+                child: Consumer<BookingController>(
+                  builder: (context, bookingController, child) {
+                    if (widget.wholeDayIsBookedWidget != null && bookingController.isWholeDayBooked()) {
+                      return widget.wholeDayIsBookedWidget!;
+                    }
+                    return GridView.builder(
+                      physics: widget.gridScrollPhysics ?? const BouncingScrollPhysics(),
+                      itemCount: bookingController.allBookingSlots.length,
+                      itemBuilder: (context, index) {
+                        return _buildBookingSlot(bookingController, index);
+                      },
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: widget.bookingGridCrossAxisCount ?? 3,
+                        childAspectRatio: widget.bookingGridChildAspectRatio ?? 2.1,
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 10,
                       ),
+                    );
+                  },
+                ),
               );
             },
           ),

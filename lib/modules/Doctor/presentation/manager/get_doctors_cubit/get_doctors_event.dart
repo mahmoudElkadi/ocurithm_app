@@ -8,8 +8,15 @@ class GetAllDoctorsEvent extends GetDoctorsEvent {
   final String? search;
   final String? clinicId;
   final String? branchId;
+  final bool noPagination;
 
-  GetAllDoctorsEvent({this.page, this.search, this.clinicId, this.branchId});
+  GetAllDoctorsEvent({
+    this.page,
+    this.search,
+    this.clinicId,
+    this.branchId,
+    this.noPagination = false,
+  });
 }
 
 class RefreshDoctorsEvent extends GetDoctorsEvent {}
