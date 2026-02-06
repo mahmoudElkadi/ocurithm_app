@@ -82,6 +82,9 @@ import '../../modules/Chat/presentation/manager/chat_socket_bloc/chat_socket_blo
 import '../../modules/Make_Appointment/data/repos/make_appointment_repo.dart';
 import '../../modules/Make_Appointment/data/repos/make_appointment_repo_impl.dart';
 import '../../modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_cubit.dart';
+import '../../modules/Appointment/data/repos/appointment_repo.dart';
+import '../../modules/Appointment/data/repos/appointment_repo_impl.dart';
+import '../../modules/Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
 import '../api/api_handler.dart';
 
 final sl = GetIt.instance;
@@ -201,5 +204,9 @@ class ServiceLocator {
     ///Make Appointment
     sl.registerLazySingleton<MakeAppointmentRepo>(() => MakeAppointmentRepoImpl());
     sl.registerFactory(() => MakeAppointmentCubit(sl.call<MakeAppointmentRepo>()));
+
+    ///Appointment
+    sl.registerLazySingleton<AppointmentRepo>(() => AppointmentRepoImpl());
+    sl.registerFactory(() => AppointmentCubit(sl.call<AppointmentRepo>()));
   }
 }

@@ -168,7 +168,18 @@ class MakeAppointmentCubit extends Bloc<MakeAppointmentEvent, MakeAppointmentSta
   }
 
   Future<void> _onSetPatient(SetPatientEvent event, Emitter<MakeAppointmentState> emit) async {
-    emit(state.copyWith(selectedPatient: event.patient));
+    emit(state.copyWith(
+      selectedPatient: event.patient,
+      selectedClinic: event.patient?.clinic ?? state.selectedClinic,
+      selectedBranch: event.patient?.branch ?? state.selectedBranch,
+    ));
+    add( ValidateFieldEvent('patient', true));
+    if (event.patient?.clinic != null) {
+      add( ValidateFieldEvent('clinic', true));
+    }
+    if (event.patient?.branch != null) {
+      add( ValidateFieldEvent('branch', true));
+    }
   }
 
   Future<void> _onChangeStep(ChangeStepEvent event, Emitter<MakeAppointmentState> emit) async {

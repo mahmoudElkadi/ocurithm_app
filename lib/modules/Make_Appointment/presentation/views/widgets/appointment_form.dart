@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_cubit.dart';
 import '../../../../Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import '../../../../Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
@@ -13,7 +14,6 @@ import '../../../../Payment Methods/presentation/manager/get_payment_methods_cub
 import '../../../../Examination Type/presentation/manager/get_examination_types_cubit/get_examination_types_cubit.dart';
 
 
-import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/height_spacer.dart';
@@ -119,13 +119,12 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
               cubit.add(SelectPaymentMethodEvent(null));
               cubit.add(SelectTimeEvent(null));
               
-              if (item != null) {
                   context.read<GetBranchesCubit>().add(SetClinicFilterEvent(item.id));
                   context.read<GetBranchesCubit>().add(GetAllBranchesEvent(noPagination: true));
                   context.read<GetPatientsCubit>().add(GetAllPatientsEvent(noPagination: true));
-                  context.read<GetPaymentMethodsCubit>().add(GetAllPaymentMethodsEvent(noPagination: true));
-                  context.read<GetExaminationTypesCubit>().add(GetAllExaminationTypesEvent(noPagination: true));
-              }
+                  context.read<GetPaymentMethodsCubit>().add(const GetAllPaymentMethodsEvent(noPagination: true));
+                  context.read<GetExaminationTypesCubit>().add(const GetAllExaminationTypesEvent(noPagination: true));
+
           },
           isLoading: clinicState.state == GetClinicsStatus.loading,
         );
@@ -185,10 +184,9 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
               cubit.add(SelectDoctorEvent(null));
               cubit.add(SelectTimeEvent(null));
               
-              if (item != null) {
                   context.read<GetDoctorsCubit>().add(SetBranchFilterEvent(item.id));
                   context.read<GetDoctorsCubit>().add(GetAllDoctorsEvent(noPagination: true));
-              }
+
           },
           isLoading: branchState.state == GetBranchesStatus.loading,
         );
@@ -268,17 +266,37 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
 
   @override
   Widget build(BuildContext context) {
-    // Access cubit for non-state usage if any, or rely on context.read inside methods
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    return BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
-      builder: (context, state) => SafeArea(
-        child: Container(
-          width: MediaQuery.sizeOf(context).width,
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            color: isDark ? Theme.of(context).scaffoldBackgroundColor : Colorz.white,
-          ),
-          child: Column(
+    return BlocListener<MakeAppointmentCubit, MakeAppointmentState>(
+      listenWhen: (previous, current) {
+        return (previous.selectedClinic != current.selectedClinic) ||
+            (previous.selectedBranch != current.selectedBranch);
+      },
+      listener: (context, state) {
+        if (state.selectedClinic != null) {
+          final clinic = state.selectedClinic!;
+          context.read<GetBranchesCubit>().add(SetClinicFilterEvent(clinic.id));
+          context.read<GetBranchesCubit>().add(GetAllBranchesEvent(noPagination: true));
+          context.read<GetPatientsCubit>().add(GetAllPatientsEvent(noPagination: true));
+          context.read<GetPaymentMethodsCubit>().add(const GetAllPaymentMethodsEvent(noPagination: true));
+          context.read<GetExaminationTypesCubit>().add(const GetAllExaminationTypesEvent(noPagination: true));
+
+          if (state.selectedBranch != null) {
+            final branch = state.selectedBranch!;
+            context.read<GetDoctorsCubit>().add(SetBranchFilterEvent(branch.id));
+            context.read<GetDoctorsCubit>().add(GetAllDoctorsEvent(noPagination: true));
+          }
+        }
+      },
+      child: BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
+        builder: (context, state) => SafeArea(
+          child: Container(
+            width: MediaQuery.sizeOf(context).width,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              color: isDark ? Theme.of(context).scaffoldBackgroundColor : Colorz.white,
+            ),
+            child: Column(
             children: [
               const HeightSpacer(size: 15),
               Expanded(
@@ -289,7 +307,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (CacheHelper.getStringList(key: "capabilities").contains("manageCapability"))
+                        if (CapabilityServices.hasCapability('manageCapability'))
                           _buildClinicDropdown(context, state),
                         const HeightSpacer(size: 15),
                         _buildBranchDropdown(context, state),
@@ -313,7 +331,7 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   @override

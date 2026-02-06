@@ -2,201 +2,218 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../../../../core/utils/colors.dart';
 import '../../../../Branch/data/model/branches_model.dart' as branch;
 import '../../../../Doctor/data/model/doctor_model.dart';
 import '../../../data/models/appointment_model.dart' as model;
 import '../../../data/repos/appointment_repo.dart';
-import 'appointment_state.dart';
 
-class AppointmentCubit extends Cubit<AppointmentState> {
-  AppointmentCubit(this.appointmentRepo) : super(AppointmentInitial());
+part 'appointment_event.dart';
+part 'appointment_state.dart';
 
-  static AppointmentCubit get(context) => BlocProvider.of(context);
+class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
+  final AppointmentRepo appointmentRepo;
+  final _searchSubject = BehaviorSubject<String>();
+  DateTime? selectedTime;
 
-  DateTime selectedDate = DateTime.now();
+  bool get connection => state.status != AppointmentStatus.noConnection;
+  DoctorModel? get doctors => state.doctors;
+  branch.BranchesModel? get branches => state.branches;
+  model.AppointmentModel? get appointments => state.appointments;
+  String get search => state.search;
+  branch.Branch? get selectedBranch => state.selectedBranch;
+  Doctor? get selectedDoctor => state.selectedDoctor;
+  DateTime get selectedDate => state.selectedDate;
 
-  bool? connection;
-  AppointmentRepo appointmentRepo;
-  DoctorModel? doctors;
+  AppointmentCubit(this.appointmentRepo) : super(AppointmentState()) {
+    on<GetDoctorsEvent>(_onGetDoctors);
+    on<GetBranchesEvent>(_onGetBranches);
+    on<GetAppointmentsEvent>(_onGetAppointments);
+    on<EditAppointmentEvent>(_onEditAppointment);
+    on<SelectDateEvent>(_onSelectDate);
+    on<SelectBranchEvent>(_onSelectBranch);
+    on<SelectDoctorEvent>(_onSelectDoctor);
+    on<SearchChangedEvent>(_onSearchChanged);
+    on<RefreshAppointmentsEvent>(_onRefreshAppointments);
 
-  getDoctors() async {
-    doctors = null;
-    emit(AdminDoctorLoading());
+    // Listen to search subject with debounce
+    _searchSubject
+        .debounceTime(const Duration(milliseconds: 700))
+        .listen((searchText) {
+      add(GetAppointmentsEvent(search: searchText));
+    });
+  }
 
-    connection = await InternetConnection().hasInternetAccess;
-    emit(AdminDoctorLoading());
+  static AppointmentCubit get(BuildContext context) => BlocProvider.of(context);
+
+  void onSearchChanged(String searchText) {
+    add(SearchChangedEvent(searchText));
+    _searchSubject.add(searchText);
+  }
+
+  Future<void> _onGetDoctors(
+      GetDoctorsEvent event, Emitter<AppointmentState> emit) async {
+    emit(state.copyWith(status: AppointmentStatus.loadingDoctors));
     try {
-      if (connection == false) {
-        if (Get.context != null) {
-          SnackbarService.showError(
-            Get.context!,
-            message: "No Internet Connection",
-          );
-        }
-        emit(AdminDoctorError());
-      } else {
-        doctors = await appointmentRepo.getAllDoctors();
-        if (doctors!.doctors!.isNotEmpty) {
-          emit(AdminDoctorSuccess());
-        } else {
-          emit(AdminDoctorError());
-        }
-      }
+      final doctors = await appointmentRepo.getAllDoctors(
+        branch: event.branch,
+        isActive: event.isActive,
+      );
+      emit(state.copyWith(
+        status: AppointmentStatus.success,
+        doctors: doctors,
+      ));
     } catch (e) {
       log(e.toString());
-      emit(AdminDoctorError());
+      emit(state.copyWith(
+        status: AppointmentStatus.error,
+        errorMessage: e.toString(),
+      ));
     }
   }
 
-  TextEditingController searchController = TextEditingController();
+  Future<void> _onGetBranches(
+      GetBranchesEvent event, Emitter<AppointmentState> emit) async {
+    emit(state.copyWith(status: AppointmentStatus.loadingBranches));
+    try {
+      final branches = await appointmentRepo.getAllBranches();
+      emit(state.copyWith(
+        status: AppointmentStatus.success,
+        branches: branches,
+      ));
+    } catch (e) {
+      log(e.toString());
+      emit(state.copyWith(
+        status: AppointmentStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onGetAppointments(
+      GetAppointmentsEvent event, Emitter<AppointmentState> emit) async {
+    emit(state.copyWith(status: AppointmentStatus.loading));
+    try {
+      final appointments = await appointmentRepo.getAllAppointment(
+        date: event.date ?? state.selectedDate,
+        branch: event.branch ?? state.selectedBranch?.id,
+        doctor: event.doctor ?? state.selectedDoctor?.id,
+        search: event.search ?? state.search,
+      );
+
+      final grouped = AppointmentHelper.groupAppointmentsByTimeSlot(
+          appointments.appointments);
+
+      emit(state.copyWith(
+        status: AppointmentStatus.success,
+        appointments: appointments,
+        groupedAppointments: grouped,
+      ));
+    } catch (e) {
+      log(e.toString());
+      if (e.toString().toLowerCase().contains('no internet')) {
+        emit(state.copyWith(
+          status: AppointmentStatus.noConnection,
+          errorMessage: e.toString(),
+        ));
+      } else {
+        emit(state.copyWith(
+          status: AppointmentStatus.error,
+          errorMessage: e.toString(),
+        ));
+      }
+    }
+  }
+
+  Future<void> _onEditAppointment(
+      EditAppointmentEvent event, Emitter<AppointmentState> emit) async {
+    emit(state.copyWith(status: AppointmentStatus.editLoading));
+    try {
+      final result = await appointmentRepo.editAppointment(
+        id: event.id,
+        action: event.action,
+        date: event.date,
+        doctor: event.doctor,
+      );
+
+      SnackbarService.showSuccess(
+        event.context,
+        message: "Appointment Updated successfully",
+      );
+
+      // Update local state if needed
+      if (state.appointments != null) {
+        final updatedList = List<model.Appointment>.from(state.appointments!.appointments);
+        final index = updatedList.indexWhere((e) => e.id == event.id);
+        if (index != -1) {
+          updatedList[index] = result;
+        }
+        
+        final newAppointments = model.AppointmentModel(
+          appointments: updatedList,
+          total: state.appointments!.total,
+          totalPages: state.appointments!.totalPages, error: '',
+        );
+        
+        final grouped = AppointmentHelper.groupAppointmentsByTimeSlot(updatedList);
+        
+        emit(state.copyWith(
+          status: AppointmentStatus.editSuccess,
+          appointments: newAppointments,
+          groupedAppointments: grouped,
+        ));
+      } else {
+        emit(state.copyWith(status: AppointmentStatus.editSuccess));
+      }
+    } catch (e) {
+      log(e.toString());
+      SnackbarService.showError(
+        event.context,
+        message: e.toString(),
+      );
+      emit(state.copyWith(
+        status: AppointmentStatus.editError,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  void _onSelectDate(SelectDateEvent event, Emitter<AppointmentState> emit) {
+    emit(state.copyWith(selectedDate: event.date));
+    add(GetAppointmentsEvent());
+  }
+
+  void _onSelectBranch(SelectBranchEvent event, Emitter<AppointmentState> emit) {
+    emit(state.copyWith(selectedBranch: event.selectedBranch));
+    add(GetAppointmentsEvent());
+  }
+
+  void _onSelectDoctor(SelectDoctorEvent event, Emitter<AppointmentState> emit) {
+    emit(state.copyWith(selectedDoctor: event.selectedDoctor));
+    add(GetAppointmentsEvent());
+  }
+
+  void _onSearchChanged(SearchChangedEvent event, Emitter<AppointmentState> emit) {
+    emit(state.copyWith(search: event.search));
+  }
+
+  void _onRefreshAppointments(RefreshAppointmentsEvent event, Emitter<AppointmentState> emit) {
+     add(GetAppointmentsEvent());
+  }
 
   @override
   Future<void> close() {
-    searchController.dispose();
+    _searchSubject.close();
     return super.close();
   }
-
-  branch.BranchesModel? branches;
-  bool loading = false;
-
-  getBranches() async {
-    branches = null;
-    loading = true;
-    emit(GetBranchLoading());
-
-    connection = await InternetConnection().hasInternetAccess;
-    emit(GetBranchLoading());
-    try {
-      if (connection == false) {
-        if (Get.context != null) {
-          SnackbarService.showError(
-            Get.context!,
-            message: "No Internet Connection",
-          );
-        }
-        loading = false;
-        emit(GetBranchError());
-      } else {
-        branches = await appointmentRepo.getAllBranches();
-        if (branches?.error == null && branches!.branches.isNotEmpty) {
-          loading = false;
-          emit(GetBranchSuccess());
-        } else {
-          loading = false;
-          emit(GetBranchError());
-        }
-      }
-    } catch (e) {
-      log(e.toString());
-      loading = false;
-      emit(GetBranchError());
-    }
-  }
-
-  branch.Branch? selectedBranch;
-  Doctor? selectedDoctor;
-
-  Map<String, List<model.Appointment>>? groupedAppointments;
-  model.AppointmentModel? appointments;
-
-  getAppointments() async {
-    appointments = null;
-    emit(GetAppointmentLoading());
-    connection = await InternetConnection().hasInternetAccess;
-    emit(GetAppointmentLoading());
-    try {
-      if (connection == true) {
-        appointments = await appointmentRepo.getAllAppointment(
-            date: selectedDate,
-            branch: selectedBranch?.id,
-            doctor: selectedDoctor?.id,
-            search: searchController.text);
-        if (appointments?.error == null &&
-            appointments!.appointments.isNotEmpty) {
-          // Group appointments by time slot
-          groupedAppointments = AppointmentHelper.groupAppointmentsByTimeSlot(
-              appointments!.appointments);
-
-          emit(GetAppointmentSuccess());
-        } else {
-          emit(GetAppointmentError());
-        }
-      }
-    } catch (e) {
-      log(e.toString());
-      loading = false;
-      emit(GetAppointmentError());
-    }
-  }
-
-  editAppointment(
-      {required BuildContext context,
-      required String id,
-      required String action,
-      DateTime? date,
-      String? doctor}) async {
-    emit(EditAppointmentLoading());
-    try {
-      var result = await appointmentRepo.editAppointment(
-          id: id, action: action, date: date, doctor: doctor);
-      if (result != null && result.error == null) {
-        SnackbarService.showSuccess(
-          context,
-          message: "Appointment Updated successfully",
-        );
-        int? index = appointments?.appointments.indexWhere((e) => e.id == id);
-        if (index != null && index != -1) {
-          appointments?.appointments[index].status = result.status;
-        }
-        Navigator.pop(context);
-        Navigator.pop(context, true);
-        emit(EditAppointmentSuccess());
-      } else if (result != null && result.error != null) {
-        SnackbarService.showError(
-          context,
-          message: result.error ?? "Failed to $action appointment",
-        );
-        Navigator.pop(context);
-
-        emit(EditAppointmentError());
-      } else {
-        SnackbarService.showError(
-          context,
-          message: "Failed to $action appointment",
-        );
-        Navigator.pop(context);
-        emit(EditAppointmentError());
-      }
-    } catch (e) {
-      emit(EditAppointmentError());
-    }
-  }
-
-  DateTime? selectedTime;
-
-  List<model.Appointment> get morningAppointments =>
-      groupedAppointments?['morning'] ?? [];
-
-  List<model.Appointment> get afternoonAppointments =>
-      groupedAppointments?['afternoon'] ?? [];
-
-  List<model.Appointment> get eveningAppointments =>
-      groupedAppointments?['evening'] ?? [];
-
-  // Get count of appointments in a time slot
-  int getAppointmentCount(String timeSlot) =>
-      groupedAppointments?[timeSlot]?.length ?? 0;
 }
 
 class AppointmentHelper {
   static Map<String, List<model.Appointment>> groupAppointmentsByTimeSlot(
       List<model.Appointment> appointments) {
-    // Initialize empty lists for each time slot
     final Map<String, List<model.Appointment>> groupedAppointments = {
       'morning': [], // 00:00 - 11:59
       'afternoon': [], // 12:00 - 17:59
@@ -217,7 +234,6 @@ class AppointmentHelper {
       }
     }
 
-    // Sort appointments within each time slot
     groupedAppointments.forEach((_, appointments) {
       appointments.sort((a, b) => (a.datetime ?? DateTime.now())
           .compareTo(b.datetime ?? DateTime.now()));

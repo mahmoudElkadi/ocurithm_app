@@ -230,25 +230,25 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                 fontSize: 13,
                 color: isDark ? Colors.white : Colors.black,
               ),
-              bookedSlotTextStyle: TextStyle(
+              bookedSlotTextStyle: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                color: isDark ? Colors.white : Colors.grey,
+                color: Colors.white,
               ),
               isUpdate: widget.isUpdate,
-              selectedSlotTextStyle: TextStyle(
+              selectedSlotTextStyle: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                color: isDark ? Colors.white : Colors.orange,
+                color: Colors.white,
               ),
               holidayWeekdays: getHolidayDays(
                   workingDays: state.selectedDoctor?.branches
                       ?.firstWhere((branch) => branch.branch?.id == state.selectedBranch?.id, orElse: () => state.selectedDoctor!.branches!.first)
                       .availableDays), // Added orElse to prevent crash
               
-              availableSlotColor: isDark ? Colorz.primaryColor.withOpacity(0.7) : Colorz.primaryColor,
-              bookedSlotColor: isDark ? Colors.grey[700] : Colors.grey,
-              selectedSlotColor: isDark ? Colors.orange : Colors.orange, // Example highlighting
+              availableSlotColor: Colorz.primaryColor,
+              bookedSlotColor: Colors.redAccent,
+              selectedSlotColor: Colors.orange,
               pauseSlotColor: Colors.grey,
               
               onDateSelected: (DateTime date) {

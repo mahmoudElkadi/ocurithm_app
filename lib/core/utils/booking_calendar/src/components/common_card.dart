@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 class CommonCard extends StatelessWidget {
   const CommonCard(
-      {Key? key, required this.child, this.padding, this.margin, this.color, this.borderRadius, this.boxShadow})
-      : super(key: key);
+      {super.key, required this.child, this.padding, this.margin, this.color, this.borderRadius, this.boxShadow, this.borderColor, this.borderWidth});
 
   final Widget child;
   final EdgeInsets? padding;
@@ -11,20 +10,30 @@ class CommonCard extends StatelessWidget {
   final BorderRadius? borderRadius;
   final BoxShadow? boxShadow;
   final Color? color;
+  final Color? borderColor;
+  final double? borderWidth;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
-        //margin: margin,
-        padding:  const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+        margin: margin,
+        padding: padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
         decoration: BoxDecoration(
-          color: isDark ? Colors.grey[850] : Colors.white,
-          borderRadius: borderRadius ?? const BorderRadius.all(Radius.circular(16)), 
-          border: Border.all(color: color ?? (isDark ? Colors.grey[700]! : Colors.white), width: 1.0),
+          color: color ?? (isDark ? theme.cardColor : Colors.white),
+          borderRadius: borderRadius ?? const BorderRadius.all(Radius.circular(15)),
+          border: Border.all(
+            color: borderColor ?? (isDark ? theme.dividerColor : Colors.grey.shade100),
+            width: borderWidth ?? 0.5,
+          ),
           boxShadow: [
             boxShadow ??
-                BoxShadow(blurRadius: 10.0, offset: const Offset(0, 5), color: (isDark ? Colors.black : const Color(0xff666666)).withValues(alpha:0.2))
+                BoxShadow(
+                  blurRadius: 8.0,
+                  offset: const Offset(0, 2),
+                  color: (isDark ? Colors.black : const Color(0xff000000)).withValues(alpha: 0.05),
+                )
           ],
         ),
         child: child);

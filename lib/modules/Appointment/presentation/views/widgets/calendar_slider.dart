@@ -46,9 +46,9 @@ class _CalendarSliderWidgetState extends State<CalendarSliderWidget> {
   }
 
   void _scrollToSelectedDate() {
-    if (selectedDate != null) {
+    if (selectedDate != null && _scrollController.hasClients) {
       // Calculate the scroll position based on the day
-      final double scrollPosition = (selectedDate!.day - 1) * itemWidth;
+      final double scrollPosition = (selectedDate!.day - 1) * (itemWidth + separatorWidth);
 
       // Get the ListView width
       final double listViewWidth = MediaQuery.of(context).size.width;
@@ -80,6 +80,9 @@ class _CalendarSliderWidgetState extends State<CalendarSliderWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     final int daysInMonth = getDaysInMonth(widget.month, widget.year);
     List<DateTime> dates = List.generate(daysInMonth, (index) => DateTime(widget.year, widget.month, index + 1));
 
@@ -91,7 +94,7 @@ class _CalendarSliderWidgetState extends State<CalendarSliderWidget> {
         scrollDirection: Axis.horizontal,
         itemCount: dates.length,
         physics: const BouncingScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemBuilder: (context, index) {
           DateTime date = dates[index];
           String dayName = DateFormat('EEE').format(date).toUpperCase();
@@ -106,11 +109,11 @@ class _CalendarSliderWidgetState extends State<CalendarSliderWidget> {
               _scrollToSelectedDate();
             },
             child: Container(
-              width: MediaQuery.of(context).size.height * 0.08,
+              width: itemWidth,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colorz.white,
-                border: Border.all(color: isSelected ? Colorz.primaryColor : Colors.grey.shade400, width: 1),
+                color: isDark ? theme.cardColor : Colors.white,
+                border: Border.all(color: isSelected ? Colorz.primaryColor : (isDark ? theme.dividerColor : Colors.grey.shade400), width: 1),
                 borderRadius: BorderRadius.circular(13.0),
                 boxShadow: isSelected ? [BoxShadow(color: Colorz.primaryColor.withValues(alpha:0.1), blurRadius: 4, spreadRadius: 2)] : null,
               ),
@@ -119,14 +122,18 @@ class _CalendarSliderWidgetState extends State<CalendarSliderWidget> {
                 children: [
                   Text(
                     dayName,
-                    style: TextStyle(fontSize: 12, color: isSelected ? Colors.black : Colors.grey.shade400, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: 12, 
+                      color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.grey.shade500, 
+                      fontWeight: FontWeight.w600
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     date.day.toString(),
                     style: GoogleFonts.agdasima(
                       fontSize: 17,
-                      color: isSelected ? Colors.black : Colors.grey.shade400,
+                      color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.grey.shade500,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -136,7 +143,7 @@ class _CalendarSliderWidgetState extends State<CalendarSliderWidget> {
           );
         },
         separatorBuilder: (BuildContext context, int index) {
-          return const SizedBox(width: 10.0);
+          return SizedBox(width: separatorWidth);
         },
       ),
     );

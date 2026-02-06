@@ -242,9 +242,7 @@ class _DoctorCardState extends State<DoctorCard> {
                                     DeleteDoctorEvent(widget.doctor!.id!),
                                   );
                             },
-                            onCancel: () {
-                              Navigator.pop(context);
-                            },
+                            onCancel: () {},
                           );
                         },
                         icon: Icon(

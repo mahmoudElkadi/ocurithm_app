@@ -372,16 +372,22 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
           const SizedBox(height: 15),
           widget.bookingExplanation ??
               Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                spacing: 12,
-                runSpacing: 12,
-                direction: Axis.horizontal,
-                children: [
-                  BookingExplanation(color: widget.availableSlotColor ?? Colors.greenAccent, text: widget.availableSlotText ?? 'Available'),
-                  BookingExplanation(color: widget.selectedSlotColor ?? Colors.orangeAccent, text: widget.selectedSlotText ?? 'Selected'),
-                  BookingExplanation(color: widget.bookedSlotColor ?? Colors.redAccent, text: widget.bookedSlotText ?? 'Booked'),
-                ],
-              ),
+            alignment: WrapAlignment.center,
+            spacing: 20,
+            runSpacing: 10,
+            direction: Axis.horizontal,
+            children: [
+              BookingExplanation(
+                  color: widget.availableSlotColor ?? Colors.greenAccent,
+                  text: widget.availableSlotText ?? 'Available'),
+              BookingExplanation(
+                  color: widget.selectedSlotColor ?? Colors.orangeAccent,
+                  text: widget.selectedSlotText ?? 'Selected'),
+              BookingExplanation(
+                  color: widget.bookedSlotColor ?? Colors.redAccent,
+                  text: widget.bookedSlotText ?? 'Booked'),
+            ],
+          ),
           const SizedBox(height: 8),
           StreamBuilder<dynamic>(
             key: ValueKey(_selectedDay),

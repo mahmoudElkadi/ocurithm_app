@@ -30,8 +30,7 @@ import '../../../../Analysis/presentation/views/analysis_view.dart';
 import '../examination_view/one_examination_view.dart';
 import '../examination_view/scan_form_page.dart';
 import '../examination_view/scanned_list_page.dart';
-
-
+import '../../../../Make_Appointment/presentation/views/make_appointment_view.dart';
 enum PatientFormMode { add, edit, view }
 
 class PatientFormPage extends StatelessWidget {
@@ -132,6 +131,97 @@ class _PatientFormViewState extends State<PatientFormView> {
     _addressController.dispose();
     _nationalIdController.dispose();
     super.dispose();
+  }
+
+  void _showPostAddDialog(BuildContext context, Patient patient) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.check_circle_outline,
+                      color: theme.primaryColor, size: 50),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  "Patient Added!",
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "Successfully added ${patient.name}. Would you like to schedule an appointment for them now?",
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                          Navigator.pop(this.context, true);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: theme.primaryColor),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text("Later",
+                            style: TextStyle(
+                                color: theme.primaryColor,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                          Navigator.pop(this.context, true);
+                          Get.to(() => MakeAppointmentView(patient: patient));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: theme.primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text("Appointment",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _populateForm(Patient patient) {
@@ -239,7 +329,12 @@ class _PatientFormViewState extends State<PatientFormView> {
                   context,
                   message: state.successMessage ?? 'Success',
                 );
-                Navigator.pop(context, true);
+                if (state.actionType == PatientActionType.add &&
+                    state.patient != null) {
+                  _showPostAddDialog(context, state.patient!);
+                } else {
+                  Navigator.pop(context, true);
+                }
               } else if (state.isError || state.noConnection) {
                 // Pop the loading dialog
                 Navigator.pop(context);
@@ -1044,11 +1139,20 @@ class _PatientFormViewState extends State<PatientFormView> {
                     lastDate: DateTime.now(),
                     builder: (context, child) => Theme(
                       data: theme.copyWith(
-                        colorScheme: ColorScheme.light(
-                            primary: theme.primaryColor,
-                            onPrimary: Colors.white,
-                            surface: theme.cardColor,
-                            onSurface: theme.textTheme.bodyLarge!.color!),
+                        colorScheme: isDark
+                            ? ColorScheme.dark(
+                                primary: theme.primaryColor,
+                                onPrimary: Colors.white,
+                                surface: theme.cardColor,
+                                onSurface: Colors.white,
+                              )
+                            : ColorScheme.light(
+                                primary: theme.primaryColor,
+                                onPrimary: Colors.white,
+                                surface: theme.cardColor,
+                                onSurface: Colors.black87,
+                              ),
+                        dialogBackgroundColor: theme.cardColor,
                       ),
                       child: child!,
                     ),

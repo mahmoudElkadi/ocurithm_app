@@ -92,6 +92,7 @@ class _SearchAndFilterState extends State<SearchAndFilter> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         Expanded(
@@ -113,7 +114,7 @@ class _SearchAndFilterState extends State<SearchAndFilter> {
                     : null),
             child: Row(
               children: [
-                const Icon(Icons.search, color: Colors.grey),
+                Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
@@ -121,11 +122,12 @@ class _SearchAndFilterState extends State<SearchAndFilter> {
                     onChanged: (_) {
                       searchItem();
                     },
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       border: InputBorder.none,
                       hintText: widget.hintText,
                       hintStyle:
-                          const TextStyle(color: Colors.grey, fontSize: 14),
+                          TextStyle(color: isDark ? Colors.grey[400] : Colors.grey, fontSize: 14),
                     ),
                   ),
                 ),
@@ -135,7 +137,7 @@ class _SearchAndFilterState extends State<SearchAndFilter> {
                           widget.controller!.clear();
                           widget.onChanged();
                         },
-                        child: const Icon(Icons.close, color: Colors.black))
+                        child: Icon(Icons.close, color: isDark ? Colors.white : Colors.black))
                     : const SizedBox.shrink(),
               ],
             ),
@@ -153,7 +155,7 @@ class _SearchAndFilterState extends State<SearchAndFilter> {
                   color: widget.backgroundColor,
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Icon(Icons.tune, color: Colors.grey),
+                child: Icon(Icons.tune, color: isDark ? Colors.grey[400] : Colors.grey),
               ),
             ),
           ),
