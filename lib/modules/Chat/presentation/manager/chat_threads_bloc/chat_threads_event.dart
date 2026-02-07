@@ -42,5 +42,14 @@ class HandleMessagesReadEvent extends ChatThreadsEvent {
   HandleMessagesReadEvent({required this.threadId});
 }
 
+/// Event to search threads locally or via API
+class SearchThreadsEvent extends ChatThreadsEvent {
+  final String query;
+  SearchThreadsEvent(this.query);
+}
+
+/// Event to clear the active thread reference
+class ClearActiveThreadRefEvent extends ChatThreadsEvent {}
+
 /// Event to reset state
 class ResetThreadsEvent extends ChatThreadsEvent {}

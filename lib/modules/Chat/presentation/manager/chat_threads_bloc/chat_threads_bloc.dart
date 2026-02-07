@@ -19,6 +19,8 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
     on<HandleSocketNewMessageEvent>(_onHandleSocketNewMessage);
     on<MarkThreadReadEvent>(_onMarkThreadRead);
     on<HandleMessagesReadEvent>(_onHandleMessagesRead);
+    on<SearchThreadsEvent>(_onSearchThreads);
+    on<ClearActiveThreadRefEvent>(_onClearActiveThreadRef);
     on<ResetThreadsEvent>(_onReset);
   }
 
@@ -33,7 +35,8 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
         emit(state.copyWith(status: ChatThreadsStatus.loading));
       }
 
-      final result = await chatRepo.getThreads(page: 1, limit: 20);
+      final result =
+          await chatRepo.getThreads(page: 1, limit: 20, search: state.searchQuery);
 
       if (result.success && result.data != null) {
         emit(state.copyWith(
@@ -82,7 +85,8 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
       emit(state.copyWith(isLoadingMore: true));
 
       final nextPage = state.currentPage + 1;
-      final result = await chatRepo.getThreads(page: nextPage, limit: 20);
+      final result = await chatRepo.getThreads(
+          page: nextPage, limit: 20, search: state.searchQuery);
 
       if (result.success && result.data != null) {
         final newThreads = [...state.threads, ...result.data!];
@@ -124,25 +128,26 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
           threads.insert(0, result.data!);
         }
 
+        // Set as active thread immediately for socket context
         emit(state.copyWith(
           actionStatus: ChatThreadsActionStatus.success,
           threads: threads,
           activeThread: result.data,
           successMessage: 'Thread created successfully',
-          loadingActionId: null,
+          clearActionId: true,
         ));
       } else {
         emit(state.copyWith(
           actionStatus: ChatThreadsActionStatus.error,
           errorMessage: result.message ?? 'Failed to create thread',
-          loadingActionId: null,
+          clearActionId: true,
         ));
       }
     } catch (e) {
       emit(state.copyWith(
         actionStatus: ChatThreadsActionStatus.error,
         errorMessage: e.toString(),
-        loadingActionId: null,
+        clearActionId: true,
       ));
     }
   }
@@ -242,6 +247,21 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
         emit(state.copyWith(threads: threads));
       }
     }
+  }
+
+  Future<void> _onSearchThreads(
+    SearchThreadsEvent event,
+    Emitter<ChatThreadsState> emit,
+  ) async {
+    emit(state.copyWith(searchQuery: event.query));
+    add(FetchThreadsEvent());
+  }
+
+  Future<void> _onClearActiveThreadRef(
+    ClearActiveThreadRefEvent event,
+    Emitter<ChatThreadsState> emit,
+  ) async {
+    emit(state.copyWith(clearActiveThread: true));
   }
 
   Future<void> _onReset(

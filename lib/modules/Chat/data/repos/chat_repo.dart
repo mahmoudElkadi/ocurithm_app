@@ -21,6 +21,7 @@ abstract class ChatRepo {
   Future<ApiResponse<List<ThreadModel>>> getThreads({
     int page = 1,
     int limit = 20,
+    String? search,
   });
 
   /// Create or get existing thread with a user

@@ -10,7 +10,8 @@ import '../manager/chat_threads_bloc/chat_threads_bloc.dart';
 
 class ChatDetailView extends StatelessWidget {
   final ThreadModel thread;
-  const ChatDetailView({super.key, required this.thread});
+  final bool isNewChat;
+  const ChatDetailView({super.key, required this.thread, this.isNewChat = false});
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +27,15 @@ class ChatDetailView extends StatelessWidget {
         BlocProvider.value(value: socketBloc),
         BlocProvider.value(value: threadsBloc),
       ],
-      child: _ChatDetailContent(thread: thread),
+      child: _ChatDetailContent(thread: thread, isNewChat: isNewChat),
     );
   }
 }
 
 class _ChatDetailContent extends StatefulWidget {
   final ThreadModel thread;
-  const _ChatDetailContent({required this.thread});
+  final bool isNewChat;
+  const _ChatDetailContent({required this.thread, required this.isNewChat});
 
   @override
   State<_ChatDetailContent> createState() => _ChatDetailContentState();
@@ -59,6 +61,11 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
     WidgetsBinding.instance.removeObserver(this);
     // Clear active thread when leaving - use sl instead of context in dispose
     sl<ChatSocketBloc>().add(ClearActiveThreadEvent());
+    // Ensure thread is marked as read locally when closing
+    sl<ChatThreadsBloc>().add(MarkThreadReadEvent(threadId: widget.thread.id));
+    // Clear active thread reference in bloc to prevent auto-navigation issue
+    sl<ChatThreadsBloc>().add(ClearActiveThreadRefEvent());
+
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -423,7 +430,7 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
                         ),
                         child: TextField(
                           controller: _controller,
-                          autofocus: true,
+                          autofocus: widget.isNewChat,
                           enabled: isConnected,
                           textInputAction: TextInputAction.send,
                           onSubmitted:

@@ -53,6 +53,17 @@ class _ChatListContentState extends State<_ChatListContent>
 
     // Refresh threads when opening chat list
     context.read<ChatThreadsBloc>().add(RefreshThreadsEvent());
+
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        _searchController.clear();
+        // Reset searches when switching tabs
+        context.read<ChatThreadsBloc>().add(SearchThreadsEvent(''));
+        context.read<GetChatUsersBloc>().add(SearchChatUsersEvent(''));
+        // Also clear active thread reference to prevent jumping
+        context.read<ChatThreadsBloc>().add(ClearActiveThreadRefEvent());
+      }
+    });
   }
 
   @override
@@ -69,7 +80,8 @@ class _ChatListContentState extends State<_ChatListContent>
         if (state.isActionSuccess &&
             state.activeThread != null &&
             state.loadingActionId == null) {
-          Get.to(() => ChatDetailView(thread: state.activeThread!));
+          // IMPORTANT: Open chat directly when created from New Chat
+          Get.to(() => ChatDetailView(thread: state.activeThread!, isNewChat: true));
         }
       },
       child: Container(
@@ -140,7 +152,11 @@ class _ChatListContentState extends State<_ChatListContent>
                 child: TextField(
                   controller: _searchController,
                   onChanged: (value) {
-                    if (_tabController.index == 1) {
+                    if (_tabController.index == 0) {
+                      context
+                          .read<ChatThreadsBloc>()
+                          .add(SearchThreadsEvent(value));
+                    } else if (_tabController.index == 1) {
                       context
                           .read<GetChatUsersBloc>()
                           .add(SearchChatUsersEvent(value));
@@ -377,7 +393,11 @@ class _ThreadTile extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        Get.to(() => ChatDetailView(thread: thread));
+        // Mark as read immediately for better UX
+        context
+            .read<ChatThreadsBloc>()
+            .add(MarkThreadReadEvent(threadId: thread.id));
+        Get.to(() => ChatDetailView(thread: thread, isNewChat: false));
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(

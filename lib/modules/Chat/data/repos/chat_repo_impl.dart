@@ -57,14 +57,21 @@ class ChatRepoImpl implements ChatRepo {
   Future<ApiResponse<List<ThreadModel>>> getThreads({
     int page = 1,
     int limit = 20,
+    String? search,
   }) async {
     try {
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+      };
+
+      if (search != null && search.isNotEmpty) {
+        queryParams['search'] = search;
+      }
+
       final response = await _apiHandler.get<List<ThreadModel>>(
         ApiConstants.chatThreads,
-        queryParameters: {
-          'page': page,
-          'limit': limit,
-        },
+        queryParameters: queryParams,
         fromJson: (json) {
           if (json is Map<String, dynamic>) {
             final threads = json['threads'] as List<dynamic>? ?? [];

@@ -33,10 +33,13 @@ class ChatThreadsState {
   final bool isLoadingMore;
   final String? loadingActionId;
 
+  final String searchQuery;
+
   const ChatThreadsState({
     this.status = ChatThreadsStatus.initial,
     this.actionStatus = ChatThreadsActionStatus.initial,
     this.threads = const [],
+    this.searchQuery = '',
     this.activeThread,
     this.errorMessage,
     this.successMessage,
@@ -57,18 +60,24 @@ class ChatThreadsState {
     bool? hasMore,
     bool? isLoadingMore,
     String? loadingActionId,
+    bool clearActionId = false,
+    String? searchQuery,
+    bool clearActiveThread = false,
   }) {
     return ChatThreadsState(
       status: status ?? this.status,
       actionStatus: actionStatus ?? this.actionStatus,
       threads: threads ?? this.threads,
-      activeThread: activeThread ?? this.activeThread,
+      activeThread: clearActiveThread ? null : activeThread ?? this.activeThread,
+      searchQuery: searchQuery ?? this.searchQuery,
       errorMessage: errorMessage ?? this.errorMessage,
       successMessage: successMessage ?? this.successMessage,
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      loadingActionId: loadingActionId ?? this.loadingActionId,
+      loadingActionId: clearActionId
+          ? null
+          : loadingActionId ?? this.loadingActionId,
     );
   }
 }
