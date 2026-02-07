@@ -44,10 +44,8 @@ class GetChatUsersBloc extends Bloc<GetChatUsersEvent, GetChatUsersState> {
       }
     } catch (e) {
       if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-          status: GetChatUsersStatus.noConnection,
-          errorMessage: e.toString(),
-        ));
+        // Silently fail on no connection to avoid UI disruption
+        emit(state.copyWith(status: GetChatUsersStatus.error)); 
         return;
       }
       emit(state.copyWith(

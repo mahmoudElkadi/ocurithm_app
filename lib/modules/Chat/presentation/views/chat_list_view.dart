@@ -42,13 +42,14 @@ class _ChatListContent extends StatefulWidget {
 }
 
 class _ChatListContentState extends State<_ChatListContent>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 2, vsync: this);
 
     // Refresh threads when opening chat list
@@ -68,22 +69,49 @@ class _ChatListContentState extends State<_ChatListContent>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh chats when returning to the app
+      context.read<ChatThreadsBloc>().add(RefreshThreadsEvent());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocListener<ChatThreadsBloc, ChatThreadsState>(
-      listener: (context, state) {
-        if (state.isActionSuccess &&
-            state.activeThread != null &&
-            state.loadingActionId == null) {
-          // IMPORTANT: Open chat directly when created from New Chat
-          Get.to(() => ChatDetailView(thread: state.activeThread!, isNewChat: true));
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ChatThreadsBloc, ChatThreadsState>(
+          listener: (context, state) {
+            if (state.isActionSuccess &&
+                state.activeThread != null &&
+                state.loadingActionId == null) {
+              // IMPORTANT: Open chat directly when created from New Chat
+              Get.to(() =>
+                  ChatDetailView(thread: state.activeThread!, isNewChat: true));
+            }
+          },
+        ),
+        BlocListener<ChatSocketBloc, ChatSocketState>(
+          listenWhen: (previous, current) =>
+              previous.isDisconnected && current.isConnected,
+          listener: (context, state) {
+            // Refresh threads when connection is restored to update badges/last messages
+            // Add a small delay to ensure network is fully ready
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                context.read<ChatThreadsBloc>().add(RefreshThreadsEvent());
+              }
+            });
+          },
+        ),
+      ],
       child: Container(
         height: MediaQuery.of(context).size.height * 0.85,
         decoration: BoxDecoration(

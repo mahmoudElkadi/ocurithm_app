@@ -53,10 +53,7 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
       }
     } catch (e) {
       if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-          status: ChatThreadsStatus.noConnection,
-          errorMessage: e.toString(),
-        ));
+        // Silently fail on no connection to avoid UI disruption
         return;
       }
       emit(state.copyWith(
@@ -100,6 +97,11 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
         emit(state.copyWith(isLoadingMore: false));
       }
     } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
+        // Silently fail to keep existing list
+        emit(state.copyWith(isLoadingMore: false));
+        return;
+      }
       emit(state.copyWith(isLoadingMore: false));
     }
   }
