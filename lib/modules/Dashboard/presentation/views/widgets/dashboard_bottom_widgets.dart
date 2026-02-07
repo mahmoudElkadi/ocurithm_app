@@ -51,9 +51,13 @@ class DashboardBottomWidgets extends StatelessWidget {
                   children: [
                      _buildHeader("Performance", "Completion and cancellation rates", isDark),
                      const SizedBox(height: 16),
-                     _buildRateCard("COMPLETION RATE", analytics!.completionRate, Colors.teal, isDark),
-                     const SizedBox(height: 16),
-                     _buildRateCard("CANCELLATION RATE", analytics!.cancellationRate, Colors.redAccent, isDark),
+                     Row(
+                       children: [
+                         Expanded(child: _buildRateCard("COMPLETION RATE", analytics!.completionRate, Colors.teal, isDark)),
+                         const SizedBox(width: 16),
+                         Expanded(child: _buildRateCard("CANCELLATION RATE", analytics!.cancellationRate, Colors.redAccent, isDark)),
+                       ],
+                     ),
                   ],
                 ),
               )
@@ -63,9 +67,13 @@ class DashboardBottomWidgets extends StatelessWidget {
                 children: [
                    _buildHeader("Performance", "Completion and cancellation rates", isDark),
                    const SizedBox(height: 16),
-                   _buildRateCard("COMPLETION RATE", analytics!.completionRate, Colors.teal, isDark),
-                   const SizedBox(height: 16),
-                   _buildRateCard("CANCELLATION RATE", analytics!.cancellationRate, Colors.redAccent, isDark),
+                   Row(
+                     children: [
+                       Expanded(child: _buildRateCard("COMPLETION RATE", analytics!.completionRate, Colors.teal, isDark)),
+                       const SizedBox(width: 16),
+                       Expanded(child: _buildRateCard("CANCELLATION RATE", analytics!.cancellationRate, Colors.redAccent, isDark)),
+                     ],
+                   ),
                 ],
               ),
           ],
@@ -148,7 +156,7 @@ class DashboardBottomWidgets extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text("${rate.value ?? 0}%", style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+          Text("${rate.value ?? 0}%", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: 8),
           Text("Previous: ${rate.previousValue ?? 0}%", style: TextStyle(fontSize: 12, color: isDark ? Colors.grey.shade400 : Colors.grey)),
         ],
