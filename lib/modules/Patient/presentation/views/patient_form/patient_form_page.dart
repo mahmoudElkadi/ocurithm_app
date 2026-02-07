@@ -332,6 +332,12 @@ class _PatientFormViewState extends State<PatientFormView> {
                 if (state.actionType == PatientActionType.add &&
                     state.patient != null) {
                   _showPostAddDialog(context, state.patient!);
+                } else if (state.actionType == PatientActionType.update &&
+                    state.patient != null) {
+                  _populateForm(state.patient!);
+                  setState(() {
+                    _isReadOnlyState = true;
+                  });
                 } else {
                   Navigator.pop(context, true);
                 }

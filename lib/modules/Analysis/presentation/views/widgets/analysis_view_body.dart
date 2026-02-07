@@ -731,6 +731,15 @@ class _ChartCardState extends State<ChartCard> {
           ),
         ];
       case EyeSelection.both:
+        // Apply tiny X offset to Right Eye spots if they overlap with Left Eye spots
+        // This ensures both points are visible when they have identical values
+        final processedRightData = clampedRightData.map((rSpot) {
+          final isOverlap = clampedLeftData.any((lSpot) =>
+              (lSpot.x - rSpot.x).abs() < 0.05 &&
+              (lSpot.y - rSpot.y).abs() < 0.05);
+          return isOverlap ? FlSpot(rSpot.x + 0.1, rSpot.y) : rSpot;
+        }).toList();
+
         return [
           _createLineChartBarData(
             clampedLeftData,
@@ -738,7 +747,7 @@ class _ChartCardState extends State<ChartCard> {
             'Left Eye',
           ),
           _createLineChartBarData(
-            clampedRightData,
+            processedRightData,
             Colors.red,
             'Right Eye',
           ),

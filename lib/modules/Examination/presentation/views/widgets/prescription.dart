@@ -19,6 +19,9 @@ import '../../../../Doctor/data/model/doctor_model.dart';
 import 'package:ocurithm/modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
+import '../../../../Medicine/data/model/medicine_model.dart' as MedicineModel; // Aliased to avoid conflict
 
 class MedicalTreeForm extends StatefulWidget {
   const MedicalTreeForm(
@@ -400,6 +403,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
       TextEditingController();
   final TextEditingController medicationDurationController =
       TextEditingController();
+  
+  String? selectedMedicineId; // Store selected medicine ID
 
   @override
   void dispose() {
@@ -414,18 +419,17 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<ExaminationActionsCubit>(),
-      child: BlocListener<ExaminationActionsCubit, ExaminationActionsState>(
-        listener: (context, state) {
-          if (state.status == ExaminationActionsStatus.loading) {
+    return BlocListener<ExaminationActionsCubit, ExaminationActionsState>(
+      listener: (context, state) {
+        if (state.status == ExaminationActionsStatus.loading) {
             // Loading is handled via manual dialog or we can do it here.
             // If we use manual dialog in onTap, we don't need to do it here, but closing it is needed.
             // Better to handle everything here.
             customLoading(context, "");
           } else if (state.status == ExaminationActionsStatus.success) {
             Navigator.pop(context); // Pop loading
-            Navigator.pop(context); // Pop screen
+            Navigator.pop(context); // Pop MedicalTreeForm
+            Navigator.pop(context); // Pop MultiStepFormPage
             SnackbarService.showSuccess(
               context,
               message: state.message ?? "Finalized Successfully",
@@ -440,13 +444,13 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           }
         },
         child: Scaffold(
-          backgroundColor: Colors.grey[50],
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            leading: const SizedBox.shrink(),
-            title: Column(
-              spacing: 10,
-              children: [
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          leading: const SizedBox.shrink(),
+          title: Column(
+            spacing: 10,
+            children: [
                 Text('Visit Finalization',
                     style: TextStyle(color: Colorz.primaryColor)),
                 Container(
@@ -495,8 +499,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Future<void> _clearAllData() async {
@@ -562,7 +565,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                         categoryIcons[category],
                         size: 24.sp,
                         color:
-                            isSelected ? Colorz.primaryColor : Colors.grey[600],
+                            isSelected ? Colorz.primaryColor : Theme.of(context).iconTheme.color,
                       ),
                       SizedBox(width: 16.w),
                       Expanded(
@@ -575,7 +578,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                                 : FontWeight.normal,
                             color: isSelected
                                 ? Colorz.primaryColor
-                                : Colors.black87,
+                                : Theme.of(context).textTheme.bodyLarge?.color,
                           ),
                         ),
                       ),
@@ -899,9 +902,9 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
               if (medicationsList.isNotEmpty)
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey[50],
+                    color: Theme.of(context).cardColor.withValues(alpha:0.5),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[200]!),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -918,12 +921,12 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                             final medication = medicationsList[index];
                             return Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.grey[200]!),
+                                border: Border.all(color: Theme.of(context).dividerColor),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withValues(alpha:0.1),
+                                    color: Theme.of(context).shadowColor.withValues(alpha:0.1),
                                     spreadRadius: 1,
                                     blurRadius: 3,
                                     offset: const Offset(0, 1),
@@ -945,21 +948,21 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                                           _buildMedicationField(
                                             'Name',
                                             medication.name ?? '',
-                                            Colors.black,
+                                            Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
                                           ),
                                           const SizedBox(height: 8),
                                           // Dosage
                                           _buildMedicationField(
                                             'Dosage',
                                             medication.dosage ?? '',
-                                            Colors.black,
+                                            Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
                                           ),
                                           const SizedBox(height: 8),
                                           // Duration
                                           _buildMedicationField(
                                             'Duration',
                                             medication.duration ?? '',
-                                            Colors.black,
+                                            Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
                                           ),
                                         ],
                                       ),
@@ -1015,7 +1018,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                       onPressed: () => _showMedicationPopup(),
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton.icon(
                       label: const Text("Print",
@@ -1070,9 +1073,9 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: Colors.grey,
+            color: Theme.of(context).hintColor,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -1082,60 +1085,88 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   }
 
   void _showMedicationPopup() {
-    // Clear the controllers
+    // Clear the controllers and selection
     medicationNameController.clear();
     medicationDosageController.clear();
     medicationDurationController.clear();
+    selectedMedicineId = null;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Add Medication'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: medicationNameController,
-              decoration: _getInputDecoration('Name'),
+      builder: (dialogContext) => BlocProvider.value(
+        value: context.read<GetMedicinesCubit>(),
+        child: AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          title: Text(
+            'Add Medication',
+            style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Dropdown for Medicine Name
+              BlocBuilder<GetMedicinesCubit, GetMedicinesState>(
+                builder: (context, state) {
+                  return FlutterDropdownSearch<MedicineModel.CommercialName>(
+                    hintText: "Select Medicine",
+                    isLoading: state.status == GetMedicinesStatus.loading,
+                    items: state.medicines,
+                    isShadow: false,
+                    border: Theme.of(context).dividerColor,
+                    itemAsString: (item) => item.name ?? '',
+                    onChanged: (value) {
+                       context.read<GetMedicinesCubit>().getMedicines(search: value);
+                    },
+                    onItemSelected: (selectedItem) {
+                      medicationNameController.text = selectedItem.name ?? '';
+                      selectedMedicineId = selectedItem.id;
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: medicationDosageController,
+                decoration: _getInputDecoration('Dosage'),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: medicationDurationController,
+                decoration: _getInputDecoration('Duration'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyLarge?.color),
+              ),
             ),
-            SizedBox(height: 16),
-            TextField(
-              controller: medicationDosageController,
-              decoration: _getInputDecoration('Dosage'),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: medicationDurationController,
-              decoration: _getInputDecoration('Duration'),
+            ElevatedButton(
+              onPressed: () {
+                if (medicationNameController.text.isNotEmpty) {
+                  setState(() {
+                    medicationsList.add(Medicine(
+                        name: medicationNameController.text,
+                        dosage: medicationDosageController.text,
+                        duration: medicationDurationController.text,
+                        medicineId: selectedMedicineId // Pass the ID
+                    ));
+                    updatePrescription();
+                  });
+                  Navigator.pop(dialogContext);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colorz.primaryColor),
+              child: const Text('Confirm', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colorz.black),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (medicationNameController.text.isNotEmpty) {
-                setState(() {
-                  medicationsList.add(Medicine(
-                      name: medicationNameController.text,
-                      dosage: medicationDosageController.text,
-                      duration: medicationDurationController.text));
-                  updatePrescription();
-                });
-                Navigator.pop(context);
-              }
-            },
-            style:
-                ElevatedButton.styleFrom(backgroundColor: Colorz.primaryColor),
-            child: Text('Confirm'),
-          ),
-        ],
       ),
     );
   }
@@ -1280,7 +1311,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         title,
         style: TextStyle(
           fontSize: 15.sp,
-          color: value ? Colorz.primaryColor : Colors.black87,
+          color: value ? Colorz.primaryColor : Theme.of(context).textTheme.bodyLarge?.color,
         ),
       ),
       value: value,
@@ -1301,7 +1332,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         title,
         style: TextStyle(
           fontSize: 15.sp,
-          color: title == groupValue ? Colorz.primaryColor : Colors.black87,
+          color: title == groupValue ? Colorz.primaryColor : Theme.of(context).textTheme.bodyLarge?.color,
         ),
       ),
       value: title,
@@ -1526,7 +1557,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                   padding:
                       const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -1540,8 +1571,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                               : 'Select appointment date and time',
                           style: TextStyle(
                             color: selectedDate != null
-                                ? Colors.black87
-                                : Colors.grey[600],
+                                ? Theme.of(context).textTheme.bodyLarge?.color
+                                : Theme.of(context).hintColor,
                             fontSize: 15,
                           ),
                         ),
@@ -1590,11 +1621,9 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
               primary: Colorz.primaryColor,
               onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
             ),
           ),
           child: child!,
@@ -1609,11 +1638,9 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
         builder: (context, child) {
           return Theme(
             data: Theme.of(context).copyWith(
-              colorScheme: ColorScheme.light(
+              colorScheme: Theme.of(context).colorScheme.copyWith(
                 primary: Colorz.primaryColor,
                 onPrimary: Colors.white,
-                surface: Colors.white,
-                onSurface: Colors.black,
               ),
             ),
             child: child!,
@@ -1675,13 +1702,13 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   InputDecoration _getInputDecoration(String label) {
     return InputDecoration(
       hintText: label,
-      labelStyle: TextStyle(color: Colors.grey[700]),
+      labelStyle: TextStyle(color: Theme.of(context).hintColor),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.r),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.r),
-        borderSide: BorderSide(color: Colors.grey[300]!),
+        borderSide: BorderSide(color: Theme.of(context).dividerColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.r),

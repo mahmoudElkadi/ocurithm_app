@@ -98,16 +98,166 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
               ),
 
               Column(
+                spacing: 10,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 10,
-                    children: [
-                      _buildEyeExaminationContent(isLeft: false),
-                      _buildEyeExaminationContent(isLeft: true),
-                    ],
-                  )
-                  // Content
+                   _buildEyeTitleRow(),
+                   _buildSynchronizedQuadrantSection(),
+                   _buildSynchronizedExaminationSection(
+                    title: 'Old-Glasses',
+                    sectionIndex: 0,
+                    dataLE: {
+                      'Spherical': FormatHelper.formatPositiveValue(cubit.leftOldSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.leftOldCylindrical),
+                      'Axis': cubit.leftOldAxis,
+                    },
+                    dataRE: {
+                      'Spherical': FormatHelper.formatPositiveValue(cubit.rightOldSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.rightOldCylindrical),
+                      'Axis': cubit.rightOldAxis,
+                    },
+                  ),
+                  _buildSynchronizedExaminationSection(
+                    title: 'Auto-refraction',
+                    sectionIndex: 0,
+                    dataLE: {
+                      'Spherical': FormatHelper.formatPositiveValue(cubit.leftAurorefSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.leftAurorefCylindrical),
+                      'Axis': cubit.leftAurorefAxis,
+                    },
+                    dataRE: {
+                      'Spherical': FormatHelper.formatPositiveValue(cubit.rightAurorefSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.rightAurorefSpherical),
+                      'Axis': cubit.rightAurorefAxis,
+                    },
+                  ),
+                  _buildSynchronizedExaminationSection(
+                    title: 'Refined Refraction',
+                    sectionIndex: 2,
+                    dataLE: {
+                      'Spherical': FormatHelper.formatPositiveValue(cubit.leftRefinedRefractionSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.leftRefinedRefractionCylindrical),
+                      'Axis': cubit.leftRefinedRefractionAxis,
+                      'NearVision': FormatHelper.formatPositiveValue(cubit.leftNearVisionAddition),
+                    },
+                    dataRE: {
+                      'Spherical': FormatHelper.formatPositiveValue(cubit.rightRefinedRefractionSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.rightRefinedRefractionCylindrical),
+                      'Axis': cubit.rightRefinedRefractionAxis,
+                      'NearVision': FormatHelper.formatPositiveValue(cubit.rightNearVisionAddition),
+                    },
+                  ),
+                   _buildSynchronizedExaminationSection(
+                    title: 'Visual Acuity',
+                    sectionIndex: 1,
+                    dataLE: {
+                      'UCVA': cubit.leftUCVA,
+                      'BCVA': cubit.leftBCVA,
+                    },
+                    dataRE: {
+                      'UCVA': cubit.rightUCVA,
+                      'BCVA': cubit.rightBCVA,
+                    },
+                  ),
+                  _buildSynchronizedExaminationSection(
+                    title: 'IOP',
+                    sectionIndex: 3,
+                    dataLE: {
+                      'IOP Value': cubit.leftIOP,
+                      'Measurement Method': cubit.leftMeansOfMeasurement,
+                      'Additional Measurement': cubit.leftAcquireAnotherIOPMeasurement,
+                    },
+                    dataRE: {
+                      'IOP Value': cubit.rightIOP,
+                      'Measurement Method': cubit.rightMeansOfMeasurement,
+                      'Additional Measurement': cubit.rightAcquireAnotherIOPMeasurement,
+                    },
+                  ),
+                  _buildSynchronizedExaminationSection(
+                    title: 'Pupils',
+                    sectionIndex: 4,
+                    dataLE: {
+                      'Shape': cubit.leftPupilsShape,
+                      'Light Reflex': cubit.leftPupilsLightReflexTest,
+                      'Near Reflex': cubit.leftPupilsNearReflexTest,
+                      'Swinging Flashlight': cubit.leftPupilsSwingingFlashLightTest,
+                      'Other Disorders': cubit.leftPupilsOtherDisorders,
+                    },
+                    dataRE: {
+                      'Shape': cubit.rightPupilsShape,
+                      'Light Reflex': cubit.rightPupilsLightReflexTest,
+                      'Near Reflex': cubit.rightPupilsNearReflexTest,
+                      'Swinging Flashlight': cubit.rightPupilsSwingingFlashLightTest,
+                      'Other Disorders': cubit.rightPupilsOtherDisorders,
+                    },
+                  ),
+                  _buildSynchronizedExaminationSection(
+                    title: 'Eyelid & Physcal',
+                    sectionIndex: 5,
+                    dataLE: {
+                      'Eyelid Ptosis': cubit.leftEyelidPtosis,
+                      'Lagophthalmos': cubit.leftEyelidLagophthalmos,
+                      'Palpable Lymph Nodes': cubit.leftPalpableLymphNodes,
+                      'Papable Temporal Artery': cubit.leftPapableTemporalArtery,
+                    },
+                    dataRE: {
+                      'Eyelid Ptosis': cubit.rightEyelidPtosis,
+                      'Lagophthalmos': cubit.rightEyelidLagophthalmos,
+                      'Palpable Lymph Nodes': cubit.rightPalpableLymphNodes,
+                      'Papable Temporal Artery': cubit.rightPapableTemporalArtery,
+                    },
+                  ),
+                  _buildSynchronizedExaminationSection(
+                    title: 'Eye Structure',
+                    sectionIndex: 7,
+                    dataLE: {
+                      'Cornea': cubit.leftCornea.join(', '),
+                      'Anterior Chambre': cubit.leftAnteriorChambre.join(', '),
+                      'Iris': cubit.leftIris.join(', '),
+                      'Lens': cubit.leftLens.join(', '),
+                      'Anterior Vitreous': cubit.leftAnteriorVitreous.join(', '),
+                    },
+                    dataRE: {
+                      'Cornea': cubit.rightCornea.join(', '),
+                      'Anterior Chambre': cubit.rightAnteriorChambre.join(', '),
+                      'Iris': cubit.rightIris.join(', '),
+                      'Lens': cubit.rightLens.join(', '),
+                      'Anterior Vitreous': cubit.rightAnteriorVitreous.join(', '),
+                    },
+                  ),
+                   _buildSynchronizedExaminationSection(
+                    title: 'Fundus Examination',
+                    sectionIndex: 8,
+                    dataLE: {
+                      'Optic Disc': cubit.leftFundusOpticDisc.join(', '),
+                      'Macula': cubit.leftFundusMacula.join(', '),
+                      'Vessels': cubit.leftFundusVessels.join(', '),
+                      'Periphery': cubit.leftFundusPeriphery.join(', '),
+                    },
+                    dataRE: {
+                      'Optic Disc': cubit.rightFundusOpticDisc.join(', '),
+                      'Macula': cubit.rightFundusMacula.join(', '),
+                      'Vessels': cubit.rightFundusVessels.join(', '),
+                      'Periphery': cubit.rightFundusPeriphery.join(', '),
+                    },
+                  ),
+                  _buildSynchronizedExaminationSection(
+                    title: 'External Features',
+                    sectionIndex: 6,
+                    dataLE: {
+                      'Lids': cubit.leftLidsController.text,
+                      'Lashes': cubit.leftLashesController.text,
+                      'Lacrimal': cubit.leftLacrimalController.text,
+                      'Conjunctiva': cubit.leftConjunctivaController.text,
+                      'Sclera': cubit.leftScleraController.text,
+                    },
+                    dataRE: {
+                      'Lids': cubit.rightLidsController.text,
+                      'Lashes': cubit.rightLashesController.text,
+                      'Lacrimal': cubit.rightLacrimalController.text,
+                      'Conjunctiva': cubit.rightConjunctivaController.text,
+                      'Sclera': cubit.rightScleraController.text,
+                    },
+                  ),
                 ],
               ),
 
@@ -164,7 +314,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
     ];
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 0),
       elevation: 2,
       shadowColor: Theme.of(context).shadowColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -209,222 +359,72 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
     );
   }
 
-  Widget _buildEyeExaminationContent({required bool isLeft}) {
-    return BlocBuilder<ExaminationFormCubit, ExaminationFormState>(
-      builder: (context, state) {
-        final cubit = context.read<ExaminationFormCubit>();
+  Widget _buildEyeTitleRow() {
+    return Row(
+      spacing: 10,
+      children: [
+        Expanded(
+          child: Text('Right Eye',
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.bold,
+              )),
+        ),
+        Expanded(
+          child: Text('Left Eye',
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.bold,
+              )),
+        ),
+      ],
+    );
+  }
 
-        return Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min, // Add this line
+  Widget _buildSynchronizedQuadrantSection() {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 10,
+        children: [
+          Expanded(child: _buildQuadrantSection(isLeft: false)),
+          Expanded(child: _buildQuadrantSection(isLeft: true)),
+        ],
+      ),
+    );
+  }
 
-            children: [
-              Text(isLeft ? 'Left Eye' : 'Right Eye',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.bold,
-                  )),
-              HeightSpacer(size: 10),
-              _buildQuadrantSection(isLeft: isLeft),
-              _buildExaminationSection(
-                title: 'Old-Glasses',
-                isLeft: isLeft,
-                sectionIndex: 0,
-                data: {
-                  'Spherical': isLeft
-                      ? FormatHelper.formatPositiveValue(cubit.leftOldSpherical)
-                      : FormatHelper.formatPositiveValue(
-                          cubit.rightOldSpherical),
-                  'Cylindrical': isLeft
-                      ? FormatHelper.formatPositiveValue(
-                          cubit.leftOldCylindrical)
-                      : FormatHelper.formatPositiveValue(
-                          cubit.rightOldCylindrical),
-                  'Axis': isLeft ? cubit.leftOldAxis : cubit.rightOldAxis,
-                },
-              ),
-              _buildExaminationSection(
-                title: 'Auto-refraction',
-                isLeft: isLeft,
-                sectionIndex: 0,
-                data: {
-                  'Spherical': isLeft
-                      ? FormatHelper.formatPositiveValue(
-                          cubit.leftAurorefSpherical)
-                      : FormatHelper.formatPositiveValue(
-                          cubit.rightAurorefSpherical),
-                  'Cylindrical': isLeft
-                      ? FormatHelper.formatPositiveValue(
-                          cubit.leftAurorefCylindrical)
-                      : FormatHelper.formatPositiveValue(
-                          cubit.rightAurorefCylindrical),
-                  'Axis':
-                      isLeft ? cubit.leftAurorefAxis : cubit.rightAurorefAxis,
-                },
-              ),
-              _buildExaminationSection(
-                title: 'Refined Refraction',
-                isLeft: isLeft,
-                sectionIndex: 2,
-                data: {
-                  'Spherical': isLeft
-                      ? FormatHelper.formatPositiveValue(
-                          cubit.leftRefinedRefractionSpherical)
-                      : FormatHelper.formatPositiveValue(
-                          cubit.rightRefinedRefractionSpherical),
-                  'Cylindrical': isLeft
-                      ? FormatHelper.formatPositiveValue(
-                          cubit.leftRefinedRefractionCylindrical)
-                      : FormatHelper.formatPositiveValue(
-                          cubit.rightRefinedRefractionCylindrical),
-                  'Axis': isLeft
-                      ? cubit.leftRefinedRefractionAxis
-                      : cubit.rightRefinedRefractionAxis,
-                  'NearVision': isLeft
-                      ? FormatHelper.formatPositiveValue(
-                          cubit.leftNearVisionAddition)
-                      : FormatHelper.formatPositiveValue(
-                          cubit.rightNearVisionAddition),
-                },
-              ),
-              _buildExaminationSection(
-                title: 'Visual Acuity',
-                isLeft: isLeft,
-                sectionIndex: 1,
-                data: {
-                  'UCVA': isLeft ? cubit.leftUCVA : cubit.rightUCVA,
-                  'BCVA': isLeft ? cubit.leftBCVA : cubit.rightBCVA,
-                },
-              ),
-
-              _buildExaminationSection(
-                title: 'IOP',
-                isLeft: isLeft,
-                sectionIndex: 3,
-                data: {
-                  'IOP Value': isLeft ? cubit.leftIOP : cubit.rightIOP,
-                  'Measurement Method': isLeft
-                      ? cubit.leftMeansOfMeasurement
-                      : cubit.rightMeansOfMeasurement,
-                  'Additional Measurement': isLeft
-                      ? cubit.leftAcquireAnotherIOPMeasurement
-                      : cubit.rightAcquireAnotherIOPMeasurement,
-                },
-              ),
-              _buildExaminationSection(
-                title: 'Pupils',
-                isLeft: isLeft,
-                sectionIndex: 4,
-                data: {
-                  'Shape':
-                      isLeft ? cubit.leftPupilsShape : cubit.rightPupilsShape,
-                  'Light Reflex': isLeft
-                      ? cubit.leftPupilsLightReflexTest
-                      : cubit.rightPupilsLightReflexTest,
-                  'Near Reflex': isLeft
-                      ? cubit.leftPupilsNearReflexTest
-                      : cubit.rightPupilsNearReflexTest,
-                  'Swinging Flashlight': isLeft
-                      ? cubit.leftPupilsSwingingFlashLightTest
-                      : cubit.rightPupilsSwingingFlashLightTest,
-                  'Other Disorders': isLeft
-                      ? cubit.leftPupilsOtherDisorders
-                      : cubit.rightPupilsOtherDisorders,
-                },
-              ),
-              _buildExaminationSection(
-                title: 'Eyelid & Physcal',
-                isLeft: isLeft,
-                sectionIndex: 5,
-                data: {
-                  'Eyelid Ptosis':
-                      isLeft ? cubit.leftEyelidPtosis : cubit.rightEyelidPtosis,
-                  'Lagophthalmos': isLeft
-                      ? cubit.leftEyelidLagophthalmos
-                      : cubit.rightEyelidLagophthalmos,
-                  'Palpable Lymph Nodes': isLeft
-                      ? cubit.leftPalpableLymphNodes
-                      : cubit.rightPalpableLymphNodes,
-                  'Papable Temporal Artery': isLeft
-                      ? cubit.leftPapableTemporalArtery
-                      : cubit.rightPapableTemporalArtery,
-                },
-              ),
-
-              _buildExaminationSection(
-                title: 'Eye Structure',
-                isLeft: isLeft,
-                sectionIndex: 7,
-                data: {
-                  'Cornea': (isLeft ? cubit.leftCornea : cubit.rightCornea)
-                      .join(', '),
-                  'Anterior Chambre': (isLeft
-                          ? cubit.leftAnteriorChambre
-                          : cubit.rightAnteriorChambre)
-                      .join(', '),
-                  'Iris':
-                      (isLeft ? cubit.leftIris : cubit.rightIris).join(', '),
-                  'Lens':
-                      (isLeft ? cubit.leftLens : cubit.rightLens).join(', '),
-                  'Anterior Vitreous': (isLeft
-                          ? cubit.leftAnteriorVitreous
-                          : cubit.rightAnteriorVitreous)
-                      .join(', '),
-                },
-              ),
-              _buildExaminationSection(
-                title: 'Fundus Examination',
-                isLeft: isLeft,
-                sectionIndex: 8,
-                data: {
-                  'Optic Disc': (isLeft
-                          ? cubit.leftFundusOpticDisc
-                          : cubit.rightFundusOpticDisc)
-                      .join(', '),
-                  'Macula': (isLeft
-                          ? cubit.leftFundusMacula
-                          : cubit.rightFundusMacula)
-                      .join(', '),
-                  'Vessels': (isLeft
-                          ? cubit.leftFundusVessels
-                          : cubit.rightFundusVessels)
-                      .join(', '),
-                  'Periphery': (isLeft
-                          ? cubit.leftFundusPeriphery
-                          : cubit.rightFundusPeriphery)
-                      .join(', '),
-                },
-              ),
-              _buildExaminationSection(
-                title: 'External Features',
-                isLeft: isLeft,
-                sectionIndex: 6,
-                data: {
-                  'Lids': isLeft
-                      ? cubit.leftLidsController.text
-                      : cubit.rightLidsController.text,
-                  'Lashes': isLeft
-                      ? cubit.leftLashesController.text
-                      : cubit.rightLashesController.text,
-                  'Lacrimal': isLeft
-                      ? cubit.leftLacrimalController.text
-                      : cubit.rightLacrimalController.text,
-                  'Conjunctiva': isLeft
-                      ? cubit.leftConjunctivaController.text
-                      : cubit.rightConjunctivaController.text,
-                  'Sclera': isLeft
-                      ? cubit.leftScleraController.text
-                      : cubit.rightScleraController.text,
-                },
-              ),
-
-              const SizedBox(height: 16), // Bottom padding
-            ],
+  Widget _buildSynchronizedExaminationSection({
+    required String title,
+    required int sectionIndex,
+    required Map<String, dynamic> dataLE,
+    required Map<String, dynamic> dataRE,
+  }) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 10,
+        children: [
+          Expanded(
+            child: _buildExaminationSection(
+              title: title,
+              data: dataRE,
+              sectionIndex: sectionIndex,
+              isLeft: false,
+            ),
           ),
-        );
-      },
+          Expanded(
+            child: _buildExaminationSection(
+              title: title,
+              data: dataLE,
+              sectionIndex: sectionIndex,
+              isLeft: true,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -435,7 +435,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
     required bool isLeft,
   }) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 0),
       elevation: 2,
       shadowColor: Theme.of(context).shadowColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

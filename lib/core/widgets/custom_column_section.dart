@@ -70,15 +70,15 @@ class _BuildExaminationSectionState extends State<BuildExaminationSection> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withValues(alpha:0.2)),
+            border: Border.all(color: Theme.of(context).dividerColor),
           ),
           child: Text(
             displayValue,
             style: TextStyle(
               fontSize: isLongText ? 13 : 14,
-              color: Colorz.black,
+              color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
               height: 1.5,
             ),
           ),

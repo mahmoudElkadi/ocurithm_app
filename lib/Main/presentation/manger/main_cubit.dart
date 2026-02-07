@@ -151,7 +151,7 @@ class MainCubit extends Cubit<MainState> {
       "manageMedicines": [
         "Medicines",
         const MedicineView(),
-        "assets/icons/clinic.svg"
+        "assets/icons/medicine.svg"
       ],
     };
 

@@ -20,6 +20,9 @@ import 'package:ocurithm/modules/Examination/presentation/views/widgets/circle_v
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/header_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/navigation_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription.dart';
+import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
+import '../../../../../core/utils/services_locator.dart';
+import '../../../../../core/widgets/arrow_text_field.dart';
 
 class MultiStepFormView extends StatelessWidget {
   const MultiStepFormView({super.key, required this.appointment});
@@ -41,10 +44,16 @@ class MultiStepFormView extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MedicalTreeForm(
-                    examination: state.result.examination,
-                    appointment: appointment,
-                    doctor: state.result.doctor,
+                  builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider(create: (context) => sl<ExaminationActionsCubit>()),
+                      BlocProvider(create: (context) => sl<GetMedicinesCubit>()..getMedicines()),
+                    ],
+                    child: MedicalTreeForm(
+                      examination: state.result.examination,
+                      appointment: appointment,
+                      doctor: state.result.doctor,
+                    ),
                   ),
                 ),
               );
@@ -144,7 +153,7 @@ class _HistoryDetails extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.grey[800],
+                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -195,14 +204,14 @@ class _HistoryDetails extends StatelessWidget {
                 const SizedBox(height: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.grey[200]!,
+                      color: Theme.of(context).dividerColor,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey[100]!,
+                        color: Theme.of(context).shadowColor.withValues(alpha:0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -214,7 +223,7 @@ class _HistoryDetails extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: 'Type patient history here...',
                       hintStyle: TextStyle(
-                        color: Colors.grey[400],
+                        color: Theme.of(context).hintColor,
                         fontSize: 15,
                       ),
                       contentPadding: const EdgeInsets.all(20),
@@ -240,14 +249,14 @@ class _HistoryDetails extends StatelessWidget {
                 const SizedBox(height: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.grey[200]!,
+                      color: Theme.of(context).dividerColor,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey[100]!,
+                        color: Theme.of(context).shadowColor.withValues(alpha:0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -285,14 +294,14 @@ class _HistoryDetails extends StatelessWidget {
                 const SizedBox(height: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.grey[200]!,
+                      color: Theme.of(context).dividerColor,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey[100]!,
+                        color: Theme.of(context).shadowColor.withValues(alpha:0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -433,14 +442,14 @@ class _StepTwoContent extends StatelessWidget {
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.grey[200]!,
+                    color: Theme.of(context).dividerColor,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey[100]!,
+                      color: Theme.of(context).shadowColor.withValues(alpha:0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -452,7 +461,7 @@ class _StepTwoContent extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Describe the one complaint...',
                     hintStyle: TextStyle(
-                      color: Colors.grey[400],
+                      color: Theme.of(context).hintColor,
                       fontSize: 15,
                     ),
                     contentPadding: const EdgeInsets.all(20),
@@ -478,14 +487,14 @@ class _StepTwoContent extends StatelessWidget {
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.grey[200]!,
+                    color: Theme.of(context).dividerColor,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey[100]!,
+                      color: Theme.of(context).shadowColor.withValues(alpha:0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -497,7 +506,7 @@ class _StepTwoContent extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Describe the one complaint...',
                     hintStyle: TextStyle(
-                      color: Colors.grey[400],
+                      color: Theme.of(context).hintColor,
                       fontSize: 15,
                     ),
                     contentPadding: const EdgeInsets.all(20),
@@ -681,28 +690,34 @@ class EyeExaminationView extends StatelessWidget {
             const HeightSpacer(size: 10),
             Text(
               "Old Glasses",
-              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            const Row(
-              spacing: 10,
-              children: [RightOldGlasses(), LeftOldGlasses()],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 10,
+                children: [RightOldGlasses(), LeftOldGlasses()],
+              ),
             ),
             const HeightSpacer(size: 8),
             Text(
               "Auto-refraction",
-              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            const Row(
-              spacing: 10,
-              children: [RightAutorefContent(), LeftAutorefContent()],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 10,
+                children: [RightAutorefContent(), LeftAutorefContent()],
+              ),
             ),
             const HeightSpacer(size: 8),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text(
                 "Refined Refraction",
-                style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+                style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
               ),
               TextButton(
                   onPressed: () {
@@ -715,85 +730,104 @@ class EyeExaminationView extends StatelessWidget {
                   )),
             ]),
             const HeightSpacer(size: 4),
-            const Row(
-              spacing: 10,
-              children: [
-                RightRefinedRefractionContent(),
-                LeftRefinedRefractionContent()
-              ],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 10,
+                children: [
+                  RightRefinedRefractionContent(),
+                  LeftRefinedRefractionContent()
+                ],
+              ),
             ),
             const HeightSpacer(size: 8),
             Text(
               "Visual Acuity",
-              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            const Row(
-              spacing: 10,
-              children: [RightVisualAcuityContent(), LeftVisualAcuityContent()],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 10,
+                children: [RightVisualAcuityContent(), LeftVisualAcuityContent()],
+              ),
             ),
             const HeightSpacer(size: 8),
             Text(
               "IOP (mmHg)",
-              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            const Row(
-              spacing: 10,
-              children: [RightIOPContent(), LeftIOPContent()],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 10,
+                children: [RightIOPContent(), LeftIOPContent()],
+              ),
             ),
             const HeightSpacer(size: 8),
             Text(
               "Pupils",
-              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            const Row(
-              spacing: 10,
-              children: [RightPupilsContent(), LeftPupilsContent()],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 10,
+                children: [RightPupilsContent(), LeftPupilsContent()],
+              ),
             ),
             const HeightSpacer(size: 8),
             Text(
               "EyeLid & Physical",
-              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            const Row(
-              spacing: 10,
-              children: [RightEyeLid(), LeftEyeLid()],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 10,
+                children: [RightEyeLid(), LeftEyeLid()],
+              ),
             ),
             const HeightSpacer(size: 8),
             Text(
               "Eye Structure",
-              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 10,
-              children: [
-                RightAdditionalExaminationContent(),
-                LeftAdditionalExaminationContent()
-              ],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 10,
+                children: [
+                  RightAdditionalExaminationContent(),
+                  LeftAdditionalExaminationContent()
+                ],
+              ),
             ),
             const HeightSpacer(size: 8),
             Text(
               "Fundus Examination",
-              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 10,
-              children: [
-                FundusExaminationContent(isLeftEye: false),
-                FundusExaminationContent(isLeftEye: true)
-              ],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 10,
+                children: [
+                  FundusExaminationContent(isLeftEye: false),
+                  FundusExaminationContent(isLeftEye: true)
+                ],
+              ),
             ),
             const HeightSpacer(size: 8),
             Text(
               "External Features ",
-              style: appStyle(context, 18, Colorz.black, FontWeight.bold),
+              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -886,7 +920,7 @@ class RightAutorefContent extends StatelessWidget {
                           Colors.black,
                       FontWeight.bold)),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.rightAurorefSpherical,
@@ -895,20 +929,18 @@ class RightAutorefContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Cylindrical :",
-                hintText: '',
                 selectedValue: cubit.rightAurorefCylindrical,
                 onChanged: (selected) {
                   cubit.updateRightEyeField('aurorefCylindrical', selected);
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefAxis'] ?? [],
                 textRow: "Axis :",
-                hintText: '',
                 selectedValue: cubit.rightAurorefAxis,
                 onChanged: (selected) {
                   cubit.updateRightEyeField('aurorefAxis', selected);
@@ -948,7 +980,7 @@ class LeftAutorefContent extends StatelessWidget {
                           Colors.black,
                       FontWeight.bold)),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.leftAurorefSpherical,
@@ -957,20 +989,18 @@ class LeftAutorefContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Cylindrical :",
-                hintText: '',
                 selectedValue: cubit.leftAurorefCylindrical,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField('aurorefCylindrical', selected);
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefAxis'] ?? [],
                 textRow: "Axis :",
-                hintText: '',
                 selectedValue: cubit.leftAurorefAxis,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField('aurorefAxis', selected);
@@ -1010,7 +1040,7 @@ class RightOldGlasses extends StatelessWidget {
                           Colors.black,
                       FontWeight.bold)),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.rightOldSpherical,
@@ -1019,20 +1049,18 @@ class RightOldGlasses extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Cylindrical :",
-                hintText: '',
                 selectedValue: cubit.rightOldCylindrical,
                 onChanged: (selected) {
                   cubit.updateRightEyeField('oldCylindrical', selected);
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefAxis'] ?? [],
                 textRow: "Axis :",
-                hintText: '',
                 selectedValue: cubit.rightOldAxis,
                 onChanged: (selected) {
                   cubit.updateRightEyeField('oldAxis', selected);
@@ -1072,7 +1100,7 @@ class LeftOldGlasses extends StatelessWidget {
                           Colors.black,
                       FontWeight.bold)),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.leftOldSpherical,
@@ -1081,20 +1109,18 @@ class LeftOldGlasses extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Cylindrical :",
-                hintText: '',
                 selectedValue: cubit.leftOldCylindrical,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField('oldCylindrical', selected);
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefAxis'] ?? [],
                 textRow: "Axis :",
-                hintText: '',
                 selectedValue: cubit.leftOldAxis,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField('oldAxis', selected);
@@ -1348,8 +1374,8 @@ class RightPupilsContent extends StatelessWidget {
                     onTextFieldChanged: (value) {
                       cubit.updateRightEyeField('lidsShape', value);
                     },
-                    borderColor: Colors.black,
-                    fillColor: Colors.white,
+                    borderColor: Theme.of(context).dividerColor,
+                    fillColor: Theme.of(context).cardColor,
                     radius: 30,
                   ),
                 ),
@@ -1444,8 +1470,8 @@ class LeftPupilsContent extends StatelessWidget {
                     onTextFieldChanged: (value) {
                       cubit.updateLeftEyeField('lidsShape', value);
                     },
-                    borderColor: Colors.black,
-                    fillColor: Colors.white,
+                    borderColor: Theme.of(context).dividerColor,
+                    fillColor: Theme.of(context).cardColor,
                     radius: 30,
                   ),
                 ),
@@ -1522,7 +1548,7 @@ class RightRefinedRefractionContent extends StatelessWidget {
                           Colors.black,
                       FontWeight.bold)),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.rightRefinedRefractionSpherical,
@@ -1532,10 +1558,9 @@ class RightRefinedRefractionContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Cylindrical :",
-                hintText: '',
                 selectedValue: cubit.rightRefinedRefractionCylindrical,
                 onChanged: (selected) {
                   cubit.updateRightEyeField(
@@ -1543,7 +1568,7 @@ class RightRefinedRefractionContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefAxis'] ?? [],
                 textRow: "Axis :",
                 selectedValue: cubit.rightRefinedRefractionAxis,
@@ -1552,9 +1577,8 @@ class RightRefinedRefractionContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['NearVisionAddition'] ?? [],
-                hintText: "",
                 textRow: "Near vision addition :",
                 selectedValue: cubit.rightNearVisionAddition,
                 onChanged: (selected) {
@@ -1594,7 +1618,7 @@ class LeftRefinedRefractionContent extends StatelessWidget {
                           Colors.black,
                       FontWeight.bold)),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.leftRefinedRefractionSpherical,
@@ -1604,10 +1628,9 @@ class LeftRefinedRefractionContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Cylindrical :",
-                hintText: '',
                 selectedValue: cubit.leftRefinedRefractionCylindrical,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField(
@@ -1615,7 +1638,7 @@ class LeftRefinedRefractionContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AurorefAxis'] ?? [],
                 textRow: "Axis :",
                 selectedValue: cubit.leftRefinedRefractionAxis,
@@ -1623,10 +1646,9 @@ class LeftRefinedRefractionContent extends StatelessWidget {
                   cubit.updateLeftEyeField('refinedRefractionAxis', selected);
                 },
               ),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['NearVisionAddition'] ?? [],
                 textRow: "Near vision addition :",
-                hintText: "",
                 selectedValue: cubit.leftNearVisionAddition,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField('nearVisionAddition', selected);
@@ -1804,8 +1826,8 @@ class SlitLampExaminationContent extends StatelessWidget {
                 onTextFieldChanged: (value) {
                   // cubit.updateStepState();
                 },
-                borderColor: Colors.black,
-                fillColor: Colors.white,
+                borderColor: Theme.of(context).dividerColor,
+                fillColor: Theme.of(context).cardColor,
                 radius: 10,
               ),
               const SizedBox(height: 20),
@@ -1818,8 +1840,8 @@ class SlitLampExaminationContent extends StatelessWidget {
                 onTextFieldChanged: (value) {
                   // cubit.updateStepState();
                 },
-                borderColor: Colors.black,
-                fillColor: Colors.white,
+                borderColor: Theme.of(context).dividerColor,
+                fillColor: Theme.of(context).cardColor,
                 radius: 10,
               ),
               const SizedBox(height: 20),
@@ -1832,8 +1854,8 @@ class SlitLampExaminationContent extends StatelessWidget {
                 onTextFieldChanged: (value) {
                   // cubit.updateStepState();
                 },
-                borderColor: Colors.black,
-                fillColor: Colors.white,
+                borderColor: Theme.of(context).dividerColor,
+                fillColor: Theme.of(context).cardColor,
                 radius: 10,
               ),
               const SizedBox(height: 20),
@@ -1846,8 +1868,8 @@ class SlitLampExaminationContent extends StatelessWidget {
                 onTextFieldChanged: (value) {
                   //  cubit.updateStepState();
                 },
-                borderColor: Colors.black,
-                fillColor: Colors.white,
+                borderColor: Theme.of(context).dividerColor,
+                fillColor: Theme.of(context).cardColor,
                 radius: 10,
               ),
               const SizedBox(height: 20),
@@ -1860,8 +1882,8 @@ class SlitLampExaminationContent extends StatelessWidget {
                 onTextFieldChanged: (value) {
                   // cubit.updateStepState();
                 },
-                borderColor: Colors.black,
-                fillColor: Colors.white,
+                borderColor: Theme.of(context).dividerColor,
+                fillColor: Theme.of(context).cardColor,
                 radius: 10,
               ),
             ],

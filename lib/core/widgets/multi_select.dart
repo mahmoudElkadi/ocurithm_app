@@ -73,7 +73,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   constraints: BoxConstraints(
@@ -112,7 +112,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                                 Expanded(
                                   child: Text(
                                     itemStr,
-                                    style: appStyle(context, 12, Colors.black, FontWeight.w400),
+                                    style: appStyle(context, 12, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.w400),
                                   ),
                                 ),
                                 if (isSelected)
@@ -170,7 +170,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
             children: [
               Text(
                 widget.textRow,
-                style: appStyle(context, 14, Colors.black, FontWeight.w500),
+                style: appStyle(context, 14, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.w500),
               ),
               const HeightSpacer(size: 2),
               GestureDetector(
@@ -181,10 +181,10 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                   height: widget.height ?? 35,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.shade200,
+                        color: Theme.of(context).shadowColor.withValues(alpha:0.1),
                         spreadRadius: 2,
                         blurRadius: 4,
                       ),
@@ -200,7 +200,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                           style: appStyle(
                             context,
                             12,
-                            localSelectedValues.isEmpty ? Colors.grey : Colors.black,
+                            localSelectedValues.isEmpty ? Theme.of(context).hintColor : (Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black),
                             FontWeight.w400,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -208,7 +208,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                       ),
                       Icon(
                         Icons.arrow_drop_down,
-                        color: Colors.grey,
+                        color: Theme.of(context).iconTheme.color ?? Colors.grey,
                       ),
                     ],
                   ),
