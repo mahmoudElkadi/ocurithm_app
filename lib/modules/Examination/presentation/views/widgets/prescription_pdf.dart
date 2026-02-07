@@ -2,6 +2,9 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:ocurithm/modules/Analysis/presentation/views/widgets/analysis_pdf_service.dart';
+import 'package:ocurithm/modules/Analysis/data/models/analysis_model.dart' as analysis_model;
+import 'package:ocurithm/modules/Analysis/presentation/views/widgets/analysis_view_body.dart' as analysis_view;
 
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../Patient/data/model/one_exam.dart';
@@ -11,7 +14,10 @@ Future<void> generateAndPrintPrescription(
     required Action action,
     String? diagnosis,
     List<Medicine>? prescriptionList,
-    bool showPrescriptionTable = false}) async {
+    bool showPrescriptionTable = false,
+    analysis_model.AnalysisModel? analysis,
+    Set<String>? selectedChartKeys,
+    analysis_view.EyeSelection? eyeSelection}) async {
   final pdf = pw.Document();
   final regularFont = await rootBundle.load("assets/fonts/Cairo-Regular.ttf");
   final bold = await rootBundle.load("assets/fonts/Cairo-Bold.ttf");
@@ -580,6 +586,15 @@ Future<void> generateAndPrintPrescription(
       },
     ),
   );
+
+  if (analysis != null && selectedChartKeys != null && eyeSelection != null) {
+    await AnalysisPdfService.addAnalysisPagesToDocument(
+      pdf: pdf,
+      analysis: analysis,
+      selectedChartKeys: selectedChartKeys,
+      eyeSelection: eyeSelection,
+    );
+  }
 
   // Print the document
   await Printing.layoutPdf(

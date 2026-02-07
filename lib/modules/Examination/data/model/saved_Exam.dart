@@ -1,120 +1,79 @@
 class SavedExaminationModel {
   SavedExaminationModel({
-    required this.examination,
-    this.error,
-    this.message,
-  });
-
-  final Examinations? examination;
-  final String? error;
-  final String? message;
-
-  factory SavedExaminationModel.fromJson(Map<String, dynamic> json) {
-    return SavedExaminationModel(
-      examination: json["examinations"] == null
-          ? null
-          : Examinations.fromJson(json["examinations"]),
-      error: json["error"],
-      message: json["message"],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        "examinations": examination?.toJson(),
-        "error": error,
-        "message": message,
-      };
-}
-
-class Examinations {
-  Examinations({
-    required this.examination,
+    required this.success,
+    required this.examinations,
     required this.total,
     required this.totalPages,
   });
 
-  final List<Examination> examination;
-  final int? total;
-  final dynamic totalPages;
+  final bool? success;
+  final List<Examination> examinations;
+  final num? total;
+  final num? totalPages;
 
-  factory Examinations.fromJson(Map<String, dynamic> json) {
-    return Examinations(
-      examination: json["examinations"] == null
-          ? []
-          : List<Examination>.from(
-              json["examinations"]!.map((x) => Examination.fromJson(x))),
+  factory SavedExaminationModel.fromJson(Map<String, dynamic> json){
+    return SavedExaminationModel(
+      success: json["success"],
+      examinations: json["examinations"] == null ? [] : List<Examination>.from(json["examinations"]!.map((x) => Examination.fromJson(x))),
       total: json["total"],
       totalPages: json["totalPages"],
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        "examinations": examination.map((x) => x?.toJson()).toList(),
-        "total": total,
-        "totalPages": totalPages,
-      };
 }
 
 class Examination {
   Examination({
     required this.clinic,
-    required this.patient,
     required this.appointment,
-    required this.type,
-    required this.measurements,
+    required this.deletedAt,
     required this.createdAt,
+    required this.createdBy,
+    required this.deletedBy,
+    required this.measurements,
+    required this.patient,
+    required this.type,
     required this.updatedAt,
-    required this.history,
+    required this.updatedBy,
     required this.complain,
+    required this.history,
     required this.id,
   });
 
   final String? clinic;
-  final Patient? patient;
   final Appointment? appointment;
-  final Type? type;
-  final List<Measurement> measurements;
+  final dynamic deletedAt;
   final DateTime? createdAt;
+  final String? createdBy;
+  final dynamic deletedBy;
+  final List<Measurement> measurements;
+  final Patient? patient;
+  final Patient? type;
   final DateTime? updatedAt;
-  final History? history;
+  final String? updatedBy;
   final Complain? complain;
+  final History? history;
   final String? id;
 
-  factory Examination.fromJson(Map<String, dynamic> json) {
+  factory Examination.fromJson(Map<String, dynamic> json){
     return Examination(
       clinic: json["clinic"],
-      patient:
-          json["patient"] == null ? null : Patient.fromJson(json["patient"]),
-      appointment: json["appointment"] == null
-          ? null
-          : Appointment.fromJson(json["appointment"]),
-      type: json["type"] == null ? null : Type.fromJson(json["type"]),
-      measurements: json["measurements"] == null
-          ? []
-          : List<Measurement>.from(
-              json["measurements"]!.map((x) => Measurement.fromJson(x))),
+      appointment: json["appointment"] == null ? null : Appointment.fromJson(json["appointment"]),
+      deletedAt: json["deletedAt"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+      createdBy: json["createdBy"],
+      deletedBy: json["deletedBy"],
+      measurements: json["measurements"] == null ? [] : List<Measurement>.from(json["measurements"]!.map((x) => Measurement.fromJson(x))),
+      patient: json["patient"] == null ? null : Patient.fromJson(json["patient"]),
+      type: json["type"] == null ? null : Patient.fromJson(json["type"]),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
-      history:
-          json["history"] == null ? null : History.fromJson(json["history"]),
-      complain:
-          json["complain"] == null ? null : Complain.fromJson(json["complain"]),
+      updatedBy: json["updatedBy"],
+      complain: json["complain"] == null ? null : Complain.fromJson(json["complain"]),
+      history: json["history"] == null ? null : History.fromJson(json["history"]),
       id: json["id"],
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        "clinic": clinic,
-        "patient": patient?.toJson(),
-        "appointment": appointment?.toJson(),
-        "type": type?.toJson(),
-        "measurements": measurements.map((x) => x?.toJson()).toList(),
-        "createdAt": createdAt?.toIso8601String(),
-        "updatedAt": updatedAt?.toIso8601String(),
-        "history": history?.toJson(),
-        "complain": complain?.toJson(),
-        "id": id,
-      };
 }
 
 class Appointment {
@@ -126,351 +85,278 @@ class Appointment {
   final DateTime? datetime;
   final String? id;
 
-  factory Appointment.fromJson(Map<String, dynamic> json) {
+  factory Appointment.fromJson(Map<String, dynamic> json){
     return Appointment(
       datetime: DateTime.tryParse(json["datetime"] ?? ""),
       id: json["id"],
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        "datetime": datetime?.toIso8601String(),
-        "id": id,
-      };
 }
 
 class Complain {
   Complain({
     required this.examination,
     required this.complainOne,
-    required this.complainTwo,
     required this.complainThree,
+    required this.complainTwo,
     required this.createdAt,
+    required this.createdBy,
+    required this.deletedAt,
+    required this.deletedBy,
     required this.updatedAt,
+    required this.updatedBy,
     required this.id,
   });
 
   final String? examination;
   final String? complainOne;
-  final String? complainTwo;
   final String? complainThree;
+  final String? complainTwo;
   final DateTime? createdAt;
+  final String? createdBy;
+  final dynamic deletedAt;
+  final dynamic deletedBy;
   final DateTime? updatedAt;
+  final String? updatedBy;
   final String? id;
 
-  factory Complain.fromJson(Map<String, dynamic> json) {
+  factory Complain.fromJson(Map<String, dynamic> json){
     return Complain(
       examination: json["examination"],
       complainOne: json["complainOne"],
-      complainTwo: json["complainTwo"],
       complainThree: json["complainThree"],
+      complainTwo: json["complainTwo"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+      createdBy: json["createdBy"],
+      deletedAt: json["deletedAt"],
+      deletedBy: json["deletedBy"],
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
+      updatedBy: json["updatedBy"],
       id: json["id"],
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        "examination": examination,
-        "complainOne": complainOne,
-        "complainTwo": complainTwo,
-        "complainThree": complainThree,
-        "createdAt": createdAt?.toIso8601String(),
-        "updatedAt": updatedAt?.toIso8601String(),
-        "id": id,
-      };
 }
 
 class History {
   History({
     required this.examination,
-    required this.presentIllness,
-    required this.pastHistory,
-    required this.medicationHistory,
-    required this.familyHistory,
     required this.createdAt,
+    required this.createdBy,
+    required this.deletedAt,
+    required this.deletedBy,
+    required this.familyHistory,
+    required this.medicationHistory,
+    required this.pastHistory,
+    required this.presentIllness,
     required this.updatedAt,
+    required this.updatedBy,
     required this.id,
   });
 
   final String? examination;
-  final String? presentIllness;
-  final String? pastHistory;
-  final String? medicationHistory;
-  final String? familyHistory;
   final DateTime? createdAt;
+  final String? createdBy;
+  final dynamic deletedAt;
+  final dynamic deletedBy;
+  final String? familyHistory;
+  final String? medicationHistory;
+  final String? pastHistory;
+  final String? presentIllness;
   final DateTime? updatedAt;
+  final String? updatedBy;
   final String? id;
 
-  factory History.fromJson(Map<String, dynamic> json) {
+  factory History.fromJson(Map<String, dynamic> json){
     return History(
       examination: json["examination"],
-      presentIllness: json["presentIllness"],
-      pastHistory: json["pastHistory"],
-      medicationHistory: json["medicationHistory"],
-      familyHistory: json["familyHistory"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+      createdBy: json["createdBy"],
+      deletedAt: json["deletedAt"],
+      deletedBy: json["deletedBy"],
+      familyHistory: json["familyHistory"],
+      medicationHistory: json["medicationHistory"],
+      pastHistory: json["pastHistory"],
+      presentIllness: json["presentIllness"],
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
+      updatedBy: json["updatedBy"],
       id: json["id"],
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        "examination": examination,
-        "presentIllness": presentIllness,
-        "pastHistory": pastHistory,
-        "medicationHistory": medicationHistory,
-        "familyHistory": familyHistory,
-        "createdAt": createdAt?.toIso8601String(),
-        "updatedAt": updatedAt?.toIso8601String(),
-        "id": id,
-      };
 }
 
 class Measurement {
   Measurement({
-    required this.eye,
     required this.examination,
-    required this.oldSpherical,
-    required this.oldCylindrical,
-    required this.oldAxis,
-    required this.autorefSpherical,
-    required this.autorefCylindrical,
-    required this.autorefAxis,
-    required this.nearVisionAddition,
-    required this.ucva,
-    required this.bcva,
-    required this.refinedRefractionSpherical,
-    required this.refinedRefractionCylindrical,
-    required this.refinedRefractionAxis,
-    required this.iop,
-    required this.meansOfMeasurement,
+    required this.eye,
     required this.acquireAnotherIopMeasurement,
-    required this.pupilsShape,
-    required this.pupilsLightReflexTest,
-    required this.pupilsNearReflexTest,
-    required this.pupilsSwingingFlashLightTest,
-    required this.pupilsOtherDisorders,
-    required this.eyelidPtosis,
-    required this.eyelidLagophthalmos,
-    required this.palpableLymphNodes,
-    required this.palpableTemporalArtery,
-    required this.exophthalmometry,
-    required this.cornea,
     required this.anteriorChamber,
-    required this.iris,
-    required this.lens,
     required this.anteriorVitreous,
-    required this.fundusOpticDisc,
-    required this.fundusMacula,
-    required this.fundusVessels,
-    required this.fundusPeriphery,
-    required this.lids,
-    required this.lashes,
-    required this.sclera,
-    required this.conjunctiva,
-    required this.lacrimalSystem,
-    required this.topLeft,
-    required this.topRight,
+    required this.autorefAxis,
+    required this.autorefCylindrical,
+    required this.autorefSpherical,
+    required this.bcva,
     required this.bottomLeft,
     required this.bottomRight,
+    required this.conjunctiva,
+    required this.cornea,
     required this.createdAt,
+    required this.createdBy,
+    required this.deletedAt,
+    required this.deletedBy,
+    required this.exophthalmometry,
+    required this.eyelidLagophthalmos,
+    required this.eyelidPtosis,
+    required this.fundusMacula,
+    required this.fundusOpticDisc,
+    required this.fundusPeriphery,
+    required this.fundusVessels,
+    required this.iop,
+    required this.iris,
+    required this.lacrimalSystem,
+    required this.lashes,
+    required this.lens,
+    required this.lids,
+    required this.meansOfMeasurement,
+    required this.nearVisionAddition,
+    required this.oldAxis,
+    required this.oldCylindrical,
+    required this.oldSpherical,
+    required this.palpableLymphNodes,
+    required this.palpableTemporalArtery,
+    required this.pupilsLightReflexTest,
+    required this.pupilsNearReflexTest,
+    required this.pupilsOtherDisorders,
+    required this.pupilsShape,
+    required this.pupilsSwingingFlashLightTest,
+    required this.refinedRefractionAxis,
+    required this.refinedRefractionCylindrical,
+    required this.refinedRefractionSpherical,
+    required this.sclera,
+    required this.topLeft,
+    required this.topRight,
+    required this.ucva,
     required this.updatedAt,
+    required this.updatedBy,
     required this.id,
   });
 
-  final String? eye;
   final String? examination;
-  final String? oldSpherical;
-  final String? oldCylindrical;
-  final dynamic oldAxis;
-  final String? autorefSpherical;
+  final String? eye;
+  final String? acquireAnotherIopMeasurement;
+  final List<String> anteriorChamber;
+  final List<String> anteriorVitreous;
+  final String? autorefAxis;
   final String? autorefCylindrical;
-  final dynamic autorefAxis;
-  final dynamic nearVisionAddition;
-  final dynamic ucva;
-  final dynamic bcva;
-  final dynamic refinedRefractionSpherical;
-  final dynamic refinedRefractionCylindrical;
-  final dynamic refinedRefractionAxis;
-  final dynamic iop;
-  final dynamic meansOfMeasurement;
-  final dynamic acquireAnotherIopMeasurement;
-  final dynamic pupilsShape;
-  final dynamic pupilsLightReflexTest;
-  final dynamic pupilsNearReflexTest;
-  final dynamic pupilsSwingingFlashLightTest;
-  final dynamic pupilsOtherDisorders;
-  final dynamic eyelidPtosis;
-  final dynamic eyelidLagophthalmos;
-  final dynamic palpableLymphNodes;
-  final dynamic palpableTemporalArtery;
-  final dynamic exophthalmometry;
-  final List<dynamic> cornea;
-  final List<dynamic> anteriorChamber;
-  final List<dynamic> iris;
-  final List<dynamic> lens;
-  final List<dynamic> anteriorVitreous;
-  final List<dynamic> fundusOpticDisc;
-  final List<dynamic> fundusMacula;
-  final List<dynamic> fundusVessels;
-  final List<dynamic> fundusPeriphery;
-  final String? lids;
-  final String? lashes;
-  final String? sclera;
+  final String? autorefSpherical;
+  final String? bcva;
+  final num? bottomLeft;
+  final num? bottomRight;
   final String? conjunctiva;
-  final String? lacrimalSystem;
-  final int? topLeft;
-  final int? topRight;
-  final int? bottomLeft;
-  final int? bottomRight;
+  final List<String> cornea;
   final DateTime? createdAt;
+  final String? createdBy;
+  final dynamic deletedAt;
+  final dynamic deletedBy;
+  final String? exophthalmometry;
+  final String? eyelidLagophthalmos;
+  final String? eyelidPtosis;
+  final List<String> fundusMacula;
+  final List<String> fundusOpticDisc;
+  final List<String> fundusPeriphery;
+  final List<String> fundusVessels;
+  final String? iop;
+  final List<String> iris;
+  final String? lacrimalSystem;
+  final String? lashes;
+  final List<String> lens;
+  final String? lids;
+  final String? meansOfMeasurement;
+  final String? nearVisionAddition;
+  final String? oldAxis;
+  final String? oldCylindrical;
+  final String? oldSpherical;
+  final String? palpableLymphNodes;
+  final String? palpableTemporalArtery;
+  final String? pupilsLightReflexTest;
+  final String? pupilsNearReflexTest;
+  final String? pupilsOtherDisorders;
+  final String? pupilsShape;
+  final String? pupilsSwingingFlashLightTest;
+  final String? refinedRefractionAxis;
+  final String? refinedRefractionCylindrical;
+  final String? refinedRefractionSpherical;
+  final String? sclera;
+  final num? topLeft;
+  final num? topRight;
+  final String? ucva;
   final DateTime? updatedAt;
+  final String? updatedBy;
   final String? id;
 
-  factory Measurement.fromJson(Map<String, dynamic> json) {
+  factory Measurement.fromJson(Map<String, dynamic> json){
     return Measurement(
-      eye: json["eye"],
       examination: json["examination"],
-      oldSpherical: json["oldSpherical"],
-      oldCylindrical: json["oldCylindrical"],
-      oldAxis: json["oldAxis"],
-      autorefSpherical: json["autorefSpherical"],
-      autorefCylindrical: json["autorefCylindrical"],
-      autorefAxis: json["autorefAxis"],
-      nearVisionAddition: json["nearVisionAddition"],
-      ucva: json["ucva"],
-      bcva: json["bcva"],
-      refinedRefractionSpherical: json["refinedRefractionSpherical"],
-      refinedRefractionCylindrical: json["refinedRefractionCylindrical"],
-      refinedRefractionAxis: json["refinedRefractionAxis"],
-      iop: json["iop"],
-      meansOfMeasurement: json["meansOfMeasurement"],
+      eye: json["eye"],
       acquireAnotherIopMeasurement: json["acquireAnotherIOPMeasurement"],
-      pupilsShape: json["pupilsShape"],
-      pupilsLightReflexTest: json["pupilsLightReflexTest"],
-      pupilsNearReflexTest: json["pupilsNearReflexTest"],
-      pupilsSwingingFlashLightTest: json["pupilsSwingingFlashLightTest"],
-      pupilsOtherDisorders: json["pupilsOtherDisorders"],
-      eyelidPtosis: json["eyelidPtosis"],
-      eyelidLagophthalmos: json["eyelidLagophthalmos"],
-      palpableLymphNodes: json["palpableLymphNodes"],
-      palpableTemporalArtery: json["palpableTemporalArtery"],
-      exophthalmometry: json["exophthalmometry"],
-      cornea: json["cornea"] == null
-          ? []
-          : List<dynamic>.from(json["cornea"]!.map((x) => x)),
-      anteriorChamber: json["anteriorChamber"] == null
-          ? []
-          : List<dynamic>.from(json["anteriorChamber"]!.map((x) => x)),
-      iris: json["iris"] == null
-          ? []
-          : List<dynamic>.from(json["iris"]!.map((x) => x)),
-      lens: json["lens"] == null
-          ? []
-          : List<dynamic>.from(json["lens"]!.map((x) => x)),
-      anteriorVitreous: json["anteriorVitreous"] == null
-          ? []
-          : List<dynamic>.from(json["anteriorVitreous"]!.map((x) => x)),
-      fundusOpticDisc: json["fundusOpticDisc"] == null
-          ? []
-          : List<dynamic>.from(json["fundusOpticDisc"]!.map((x) => x)),
-      fundusMacula: json["fundusMacula"] == null
-          ? []
-          : List<dynamic>.from(json["fundusMacula"]!.map((x) => x)),
-      fundusVessels: json["fundusVessels"] == null
-          ? []
-          : List<dynamic>.from(json["fundusVessels"]!.map((x) => x)),
-      fundusPeriphery: json["fundusPeriphery"] == null
-          ? []
-          : List<dynamic>.from(json["fundusPeriphery"]!.map((x) => x)),
-      lids: json["lids"],
-      lashes: json["lashes"],
-      sclera: json["sclera"],
-      conjunctiva: json["conjunctiva"],
-      lacrimalSystem: json["lacrimalSystem"],
-      topLeft: json["topLeft"],
-      topRight: json["topRight"],
+      anteriorChamber: json["anteriorChamber"] == null ? [] : List<String>.from(json["anteriorChamber"]!.map((x) => x)),
+      anteriorVitreous: json["anteriorVitreous"] == null ? [] : List<String>.from(json["anteriorVitreous"]!.map((x) => x)),
+      autorefAxis: json["autorefAxis"],
+      autorefCylindrical: json["autorefCylindrical"],
+      autorefSpherical: json["autorefSpherical"],
+      bcva: json["bcva"],
       bottomLeft: json["bottomLeft"],
       bottomRight: json["bottomRight"],
+      conjunctiva: json["conjunctiva"],
+      cornea: json["cornea"] == null ? [] : List<String>.from(json["cornea"]!.map((x) => x)),
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
+      createdBy: json["createdBy"],
+      deletedAt: json["deletedAt"],
+      deletedBy: json["deletedBy"],
+      exophthalmometry: json["exophthalmometry"],
+      eyelidLagophthalmos: json["eyelidLagophthalmos"],
+      eyelidPtosis: json["eyelidPtosis"],
+      fundusMacula: json["fundusMacula"] == null ? [] : List<String>.from(json["fundusMacula"]!.map((x) => x)),
+      fundusOpticDisc: json["fundusOpticDisc"] == null ? [] : List<String>.from(json["fundusOpticDisc"]!.map((x) => x)),
+      fundusPeriphery: json["fundusPeriphery"] == null ? [] : List<String>.from(json["fundusPeriphery"]!.map((x) => x)),
+      fundusVessels: json["fundusVessels"] == null ? [] : List<String>.from(json["fundusVessels"]!.map((x) => x)),
+      iop: json["iop"],
+      iris: json["iris"] == null ? [] : List<String>.from(json["iris"]!.map((x) => x)),
+      lacrimalSystem: json["lacrimalSystem"],
+      lashes: json["lashes"],
+      lens: json["lens"] == null ? [] : List<String>.from(json["lens"]!.map((x) => x)),
+      lids: json["lids"],
+      meansOfMeasurement: json["meansOfMeasurement"],
+      nearVisionAddition: json["nearVisionAddition"],
+      oldAxis: json["oldAxis"],
+      oldCylindrical: json["oldCylindrical"],
+      oldSpherical: json["oldSpherical"],
+      palpableLymphNodes: json["palpableLymphNodes"],
+      palpableTemporalArtery: json["palpableTemporalArtery"],
+      pupilsLightReflexTest: json["pupilsLightReflexTest"],
+      pupilsNearReflexTest: json["pupilsNearReflexTest"],
+      pupilsOtherDisorders: json["pupilsOtherDisorders"],
+      pupilsShape: json["pupilsShape"],
+      pupilsSwingingFlashLightTest: json["pupilsSwingingFlashLightTest"],
+      refinedRefractionAxis: json["refinedRefractionAxis"],
+      refinedRefractionCylindrical: json["refinedRefractionCylindrical"],
+      refinedRefractionSpherical: json["refinedRefractionSpherical"],
+      sclera: json["sclera"],
+      topLeft: json["topLeft"],
+      topRight: json["topRight"],
+      ucva: json["ucva"],
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
+      updatedBy: json["updatedBy"],
       id: json["id"],
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        "eye": eye,
-        "examination": examination,
-        "oldSpherical": oldSpherical,
-        "oldCylindrical": oldCylindrical,
-        "oldAxis": oldAxis,
-        "autorefSpherical": autorefSpherical,
-        "autorefCylindrical": autorefCylindrical,
-        "autorefAxis": autorefAxis,
-        "nearVisionAddition": nearVisionAddition,
-        "ucva": ucva,
-        "bcva": bcva,
-        "refinedRefractionSpherical": refinedRefractionSpherical,
-        "refinedRefractionCylindrical": refinedRefractionCylindrical,
-        "refinedRefractionAxis": refinedRefractionAxis,
-        "iop": iop,
-        "meansOfMeasurement": meansOfMeasurement,
-        "acquireAnotherIOPMeasurement": acquireAnotherIopMeasurement,
-        "pupilsShape": pupilsShape,
-        "pupilsLightReflexTest": pupilsLightReflexTest,
-        "pupilsNearReflexTest": pupilsNearReflexTest,
-        "pupilsSwingingFlashLightTest": pupilsSwingingFlashLightTest,
-        "pupilsOtherDisorders": pupilsOtherDisorders,
-        "eyelidPtosis": eyelidPtosis,
-        "eyelidLagophthalmos": eyelidLagophthalmos,
-        "palpableLymphNodes": palpableLymphNodes,
-        "palpableTemporalArtery": palpableTemporalArtery,
-        "exophthalmometry": exophthalmometry,
-        "cornea": cornea.map((x) => x).toList(),
-        "anteriorChamber": anteriorChamber.map((x) => x).toList(),
-        "iris": iris.map((x) => x).toList(),
-        "lens": lens.map((x) => x).toList(),
-        "anteriorVitreous": anteriorVitreous.map((x) => x).toList(),
-        "fundusOpticDisc": fundusOpticDisc.map((x) => x).toList(),
-        "fundusMacula": fundusMacula.map((x) => x).toList(),
-        "fundusVessels": fundusVessels.map((x) => x).toList(),
-        "fundusPeriphery": fundusPeriphery.map((x) => x).toList(),
-        "lids": lids,
-        "lashes": lashes,
-        "sclera": sclera,
-        "conjunctiva": conjunctiva,
-        "lacrimalSystem": lacrimalSystem,
-        "topLeft": topLeft,
-        "topRight": topRight,
-        "bottomLeft": bottomLeft,
-        "bottomRight": bottomRight,
-        "createdAt": createdAt?.toIso8601String(),
-        "updatedAt": updatedAt?.toIso8601String(),
-        "id": id,
-      };
 }
 
 class Patient {
   Patient({
-    required this.id,
-  });
-
-  final String? id;
-
-  factory Patient.fromJson(Map<String, dynamic> json) {
-    return Patient(
-      id: json["id"],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        "id": id,
-      };
-}
-
-class Type {
-  Type({
     required this.name,
     required this.id,
   });
@@ -478,15 +364,11 @@ class Type {
   final String? name;
   final String? id;
 
-  factory Type.fromJson(Map<String, dynamic> json) {
-    return Type(
+  factory Patient.fromJson(Map<String, dynamic> json){
+    return Patient(
       name: json["name"],
       id: json["id"],
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        "name": name,
-        "id": id,
-      };
 }

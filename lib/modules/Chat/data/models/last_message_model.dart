@@ -42,4 +42,22 @@ class LastMessageModel {
       'createdAt': createdAt.toIso8601String(),
     };
   }
+
+  LastMessageModel copyWith({
+    String? id,
+    String? content,
+    String? senderId,
+    bool? isMine,
+    MessageStatus? status,
+    DateTime? createdAt,
+  }) {
+    return LastMessageModel(
+      id: id ?? this.id,
+      content: content ?? this.content,
+      senderId: senderId ?? this.senderId,
+      isMine: isMine ?? this.isMine,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

@@ -66,6 +66,57 @@ class AnalysisPdfService {
     );
   }
 
+  static Future<void> addAnalysisPagesToDocument({
+    required pw.Document pdf,
+    required model.AnalysisModel analysis,
+    required Set<String> selectedChartKeys,
+    required EyeSelection eyeSelection,
+  }) async {
+    final regularFontData =
+        await rootBundle.load("assets/fonts/Cairo-Regular.ttf");
+    final boldFontData = await rootBundle.load("assets/fonts/Cairo-Bold.ttf");
+    final font = pw.Font.ttf(regularFontData);
+    final boldFont = pw.Font.ttf(boldFontData);
+
+    final logoData = await rootBundle.load('assets/icons/logo.png');
+    final logoBytes = logoData.buffer.asUint8List();
+
+    // Prepare charts to be printed
+    final chartsToPrint = _getChartsToPrint(analysis, selectedChartKeys);
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        header: (pw.Context context) =>
+            _buildHeader(analysis, logoBytes, font, boldFont),
+        footer: (pw.Context context) => _buildFooter(context, font),
+        build: (pw.Context context) {
+          return [
+            pw.Header(
+              level: 0,
+              child: pw.Text('Patient Trend Analysis Report',
+                  style: pw.TextStyle(
+                      font: boldFont, fontSize: 18, color: PdfColors.blue900)),
+            ),
+            pw.SizedBox(height: 10),
+            pw.Text(
+              'This report shows the visual health trends for ${analysis.patientName ?? 'Patient'}. '
+              'Generated on ${DateFormat('dd MMM yyyy HH:mm').format(DateTime.now())}.',
+              style: pw.TextStyle(
+                  font: font, fontSize: 12, color: PdfColors.grey700),
+            ),
+            pw.SizedBox(height: 20),
+            ...chartsToPrint
+                .map((chart) =>
+                    _buildPdfChart(chart, eyeSelection, font, boldFont))
+                .toList(),
+          ];
+        },
+      ),
+    );
+  }
+
   static List<_PrintableChartData> _getChartsToPrint(
       model.AnalysisModel analysis, Set<String> keys) {
     final List<_PrintableChartData> results = [];

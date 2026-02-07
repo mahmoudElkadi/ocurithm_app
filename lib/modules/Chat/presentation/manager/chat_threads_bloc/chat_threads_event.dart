@@ -36,5 +36,11 @@ class MarkThreadReadEvent extends ChatThreadsEvent {
   MarkThreadReadEvent({required this.threadId});
 }
 
+/// Event to update last message status to 'read' based on socket event
+class HandleMessagesReadEvent extends ChatThreadsEvent {
+  final String threadId;
+  HandleMessagesReadEvent({required this.threadId});
+}
+
 /// Event to reset state
 class ResetThreadsEvent extends ChatThreadsEvent {}

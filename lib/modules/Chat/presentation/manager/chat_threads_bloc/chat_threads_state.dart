@@ -31,6 +31,7 @@ class ChatThreadsState {
   final int currentPage;
   final bool hasMore;
   final bool isLoadingMore;
+  final String? loadingActionId;
 
   const ChatThreadsState({
     this.status = ChatThreadsStatus.initial,
@@ -42,6 +43,7 @@ class ChatThreadsState {
     this.currentPage = 1,
     this.hasMore = false,
     this.isLoadingMore = false,
+    this.loadingActionId,
   });
 
   ChatThreadsState copyWith({
@@ -54,6 +56,7 @@ class ChatThreadsState {
     int? currentPage,
     bool? hasMore,
     bool? isLoadingMore,
+    String? loadingActionId,
   }) {
     return ChatThreadsState(
       status: status ?? this.status,
@@ -65,6 +68,7 @@ class ChatThreadsState {
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      loadingActionId: loadingActionId ?? this.loadingActionId,
     );
   }
 }

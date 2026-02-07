@@ -21,9 +21,15 @@ import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
-import '../../../../Medicine/data/model/medicine_model.dart' as MedicineModel; // Aliased to avoid conflict
+import '../../../../Medicine/data/model/medicine_model.dart' as MedicineModel show CommercialName; // Aliased to avoid conflict
+import '../../../../Analysis/presentation/manager/analysis_cubit/get_analysis_cubit.dart';
+import '../../../../Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
+import '../../../../Analysis/presentation/views/widgets/chart_selection_dialog.dart';
+import '../../../../Analysis/presentation/views/widgets/analysis_view_body.dart' as analysis_view; // Aliased
+import '../../../../Analysis/data/models/analysis_model.dart' as analysis_model; // Added for type safety
+import 'package:rxdart/rxdart.dart'; // For robust stream handling
 
-class MedicalTreeForm extends StatefulWidget {
+class MedicalTreeForm extends StatelessWidget {
   const MedicalTreeForm(
       {super.key, required this.examination, this.doctor, this.appointment});
 
@@ -32,15 +38,130 @@ class MedicalTreeForm extends StatefulWidget {
   final Doctor? doctor;
 
   @override
-  State<MedicalTreeForm> createState() => _MedicalTreeFormState();
+  Widget build(BuildContext context) {
+    final patientId = examination?.patient?.id ?? appointment?.patient;
+    return BlocProvider(
+      create: (context) {
+        final cubit = sl<GetAnalysisCubit>();
+        if (patientId != null) {
+          cubit.add(GetPatientAnalysisEvent(patientId: patientId.toString()));
+        }
+        return cubit;
+      },
+      child: _MedicalTreeFormBody(
+        examination: examination,
+        doctor: doctor,
+        appointment: appointment,
+      ),
+    );
+  } 
 }
 
-class _MedicalTreeFormState extends State<MedicalTreeForm> {
+class _MedicalTreeFormBody extends StatefulWidget {
+  const _MedicalTreeFormBody(
+      {required this.examination, this.doctor, this.appointment});
+
+  final Appointment? appointment;
+  final Examination? examination;
+  final Doctor? doctor;
+
+  @override
+  State<_MedicalTreeFormBody> createState() => _MedicalTreeFormBodyState();
+}
+
+class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
   String? selectedMainOption;
   String? selectedGlassesType;
   final TextEditingController IPDController = TextEditingController();
   final TextEditingController typeOfLens = TextEditingController();
   final TextEditingController diagnosisController = TextEditingController();
+  
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _onPrintPressed({
+    required String actionName,
+    required bool showPrescriptionTable,
+    List<Medicine>? prescriptionList,
+  }) async {
+    final currentAction = getActionByOption(actionName);
+    if (currentAction == null) return;
+
+    final analysisCubit = context.read<GetAnalysisCubit>();
+    var analysisState = analysisCubit.state;
+
+    // Robust wait for analysis data if not already successful
+    if (!analysisState.isSuccess && (analysisState.isInitial || analysisState.isLoading)) {
+      // If still initial, trigger fetch manually if patientId is available
+      if (analysisState.isInitial) {
+        final patientId = widget.examination?.patient?.id ?? widget.appointment?.patient;
+        if (patientId != null) {
+          analysisCubit.add(GetPatientAnalysisEvent(patientId: patientId.toString()));
+        }
+      }
+
+      customLoading(context, "Preparing analysis report...");
+      
+      try {
+        // Use RxDart to include current state and wait for completion
+        analysisState = await analysisCubit.stream
+            .startWith(analysisCubit.state)
+            .firstWhere((s) => s.isSuccess || s.isError || s.noConnection)
+            .timeout(const Duration(seconds: 7));
+      } catch (e) {
+        analysisState = analysisCubit.state;
+      }
+      
+      if (mounted) Navigator.pop(context); // Dismiss loading
+    }
+
+    if (analysisState.isSuccess && analysisState.analysis != null) {
+      await showDialog<bool>(
+        context: context,
+        builder: (context) => ChartSelectionDialog(
+          analysis: analysisState.analysis!,
+          currentEyeSelection: analysis_view.EyeSelection.both,
+          onSelectionConfirmed: (selectedKeys, eyeSelection) {
+            _printNormally(
+              currentAction,
+              showPrescriptionTable,
+              prescriptionList,
+              analysis: analysisState.analysis, 
+              selectedChartKeys: selectedKeys,  
+              eyeSelection: eyeSelection,
+            );
+          },
+        ),
+      );
+    } else {
+      _printNormally(currentAction, showPrescriptionTable, prescriptionList);
+    }
+  }
+
+  void _printNormally(
+    Action action,
+    bool showPrescriptionTable,
+    List<Medicine>? prescriptionList, {
+    analysis_model.AnalysisModel? analysis,
+    Set<String>? selectedChartKeys,
+    analysis_view.EyeSelection? eyeSelection,
+  }) {
+    generateAndPrintPrescription(
+      examination: ExaminationModel(
+        examination: widget.examination,
+        doctor: widget.doctor,
+      ),
+      prescriptionList: prescriptionList,
+      showPrescriptionTable: showPrescriptionTable,
+      action: action,
+      diagnosis: unDiagnosedYet ? null : diagnosisController.text,
+      analysis: analysis,
+      selectedChartKeys: selectedChartKeys,
+      eyeSelection: eyeSelection,
+    );
+  }
 
   // Add these to your state class
   final List<String> selectedMainOptions = [];
@@ -282,7 +403,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   }
 
   Action? getActionByOption(String option) {
-    selectedMainOptions.forEach((option) {
+    for (var option in selectedMainOptions) {
       final currentPrescription = generatePrescriptionObject(option);
       final existingIndex =
           prescriptionsList.indexWhere((p) => p.action == option.toLowerCase());
@@ -292,7 +413,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
       } else {
         prescriptionsList.add(currentPrescription);
       }
-    });
+    }
 
     final index = prescriptionsList.indexWhere(
         (prescription) => prescription.action == option.toLowerCase());
@@ -420,110 +541,117 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<ExaminationActionsCubit, ExaminationActionsState>(
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status == ExaminationActionsStatus.loading) {
-            // Loading is handled via manual dialog or we can do it here.
-            // If we use manual dialog in onTap, we don't need to do it here, but closing it is needed.
-            // Better to handle everything here.
-            customLoading(context, "");
-          } else if (state.status == ExaminationActionsStatus.success) {
-            Navigator.pop(context); // Pop loading
-            Navigator.pop(context); // Pop MedicalTreeForm
-            Navigator.pop(context); // Pop MultiStepFormPage
+          customLoading(context, "");
+        } else {
+          // Attempt to dismiss the loading dialog.
+          // Using rootNavigator: true because showDialog usually uses the root navigator.
+          // wrapping in a try-catch to avoid crashing if pop fails, though unlikely.
+          try {
+             Navigator.of(context, rootNavigator: true).pop();
+          } catch (e) {
+            // log error
+          }
+
+          if (state.status == ExaminationActionsStatus.success) {
+            // Mark appointment as Completed LOCALLY
+            final appointmentId = widget.examination?.appointment?.id ?? widget.appointment?.id;
+            if (appointmentId != null) {
+              context.read<AppointmentCubit>().add(LocalUpdateAppointmentStatusEvent(
+                id: appointmentId.toString(),
+                status: 'Completed',
+              ));
+            }
+
+            // Return to Appointment page
+            // We use the regular navigator to pop the page.
+            if (mounted) {
+               Navigator.of(context).pop(true);
+               Navigator.of(context).pop(true);
+            }
+            
             SnackbarService.showSuccess(
               context,
               message: state.message ?? "Finalized Successfully",
             );
           } else if (state.status == ExaminationActionsStatus.error ||
               state.status == ExaminationActionsStatus.noConnection) {
-            Navigator.pop(context); // Pop loading
             SnackbarService.showError(
               context,
-              message: state.error ?? "proccess failed",
+              message: state.error ?? "Failed to finalize visit. Please try again.",
             );
+            Navigator.of(context).pop(true);
+
           }
+        }
+      },
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          
+          await showConfirmationDialog(
+            context: context,
+            title: "Discard Finalization",
+            message: "Are you sure you want to go back? Any unsaved changes in this finalization step will be lost.",
+            confirmText: "Go Back",
+            cancelText: "Stay",
+            confirmColor: Colors.red,
+            icon: Icons.warning_amber_rounded,
+            onConfirm: () => Navigator.pop(context),
+          );
         },
         child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          leading: const SizedBox.shrink(),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colorz.primaryColor),
+              onPressed: () {
+                Navigator.maybePop(context);
+              },
+            ),
           title: Column(
             spacing: 10,
             children: [
-                Text('Visit Finalization',
-                    style: TextStyle(color: Colorz.primaryColor)),
-                Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    width: MediaQuery.of(context).size.width,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: Colorz.primaryColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ))
-              ],
-            ),
-            actions: [
-              IconButton(
-                  icon: const Icon(Icons.picture_as_pdf),
-                  color: Colors.transparent,
-                  onPressed: () {
-                    // generateAndPrintPrescription(
-                    //     examination:  ExaminationModel(
-                    //    examination: widget.examination,
-                    //    doctor: widget.doctor,
-                    //    ),
-                    //  showPrescriptionTable: selectedMainOption == 'Prescribe glasses',
-                    //     action: Action(action: '', eye: '', data: '', metaData: []),
-                    //    diagnosis: unDiagnosedYet ? null : diagnosisController.text
-                    // );
-                  }),
+              Text('Visit Finalization',
+                  style: TextStyle(color: Colorz.primaryColor)),
+              Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  width: MediaQuery.of(context).size.width,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: Colorz.primaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ))
             ],
           ),
-          body: SingleChildScrollView(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildFinalDiagnosisForm(),
-                SizedBox(height: 20.h),
-                _buildMainOptions(),
-                if (selectedMainOptions.isNotEmpty)
-                  Column(
-                    children: [
-                      SizedBox(height: 20.h),
-                      _buildSaveButton(context),
-                    ],
-                  ),
-              ],
-            ),
+          actions: const [
+            SizedBox.shrink(),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildFinalDiagnosisForm(),
+              SizedBox(height: 20.h),
+              _buildMainOptions(),
+              if (selectedMainOptions.isNotEmpty)
+                Column(
+                  children: [
+                    SizedBox(height: 20.h),
+                    _buildSaveButton(context),
+                  ],
+                ),
+            ],
           ),
         ),
-      );
-  }
-
-  Future<void> _clearAllData() async {
-    // Clear text controllers
-    IPDController.clear();
-    typeOfLens.clear();
-
-    // Clear all investigation options
-    investigationOptions.updateAll((key, value) => false);
-    cornealOptions.updateAll((key, value) => false);
-    biometryTypes.updateAll((key, value) => false);
-    biometryFeatures.updateAll((key, value) => false);
-
-    // Clear selected values
-    selectedGlassesType = null;
-    selectedLaserOption = null;
-    selectedKeratoconusOption = null;
-    selectedOROption = null;
-    selectedAppointmentType = null;
-    selectedGlassesValue = null;
-
-    // Clear maps
-    cataractSurgeryOptions.updateAll((key, value) => false);
-    injectionOptions.updateAll((key, value) => false);
+      ),
+    ));
   }
 
   Future<void> clearOrOptions() async {
@@ -666,7 +794,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
 
   void updatePrescription() {
     // Update prescription when form fields change
-    selectedMainOptions.forEach((option) {
+    for (var option in selectedMainOptions) {
       final currentPrescription = generatePrescriptionObject(option);
       final index =
           prescriptionsList.indexWhere((p) => p.action == option.toLowerCase());
@@ -676,7 +804,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
       } else {
         prescriptionsList.add(currentPrescription);
       }
-    });
+    }
   }
 
   Widget _buildFormContainer({required String title, required Widget child}) {
@@ -707,26 +835,26 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
     );
   }
 
-  Widget _buildSelectedOptionContent() {
-    switch (selectedMainOption) {
-      case 'Prescribe glasses':
-        return _buildGlassesPrescriptionForm();
-      case 'Prescribe medications':
-        return _buildMedicationForm();
-      case 'Refer to investigations':
-        return _buildInvestigationsForm();
-      case 'Refer to lasers':
-        return _buildLaserOptionsForm();
-      case 'Keratoconus':
-        return _buildKeratoconusForm();
-      case 'Refer to OR':
-        return _buildORForm();
-      case 'Book next appointment':
-        return _buildAppointmentForm();
-      default:
-        return const SizedBox.shrink();
-    }
-  }
+  // Widget _buildSelectedOptionContent() {
+  //   switch (selectedMainOption) {
+  //     case 'Prescribe glasses':
+  //       return _buildGlassesPrescriptionForm();
+  //     case 'Prescribe medications':
+  //       return _buildMedicationForm();
+  //     case 'Refer to investigations':
+  //       return _buildInvestigationsForm();
+  //     case 'Refer to lasers':
+  //       return _buildLaserOptionsForm();
+  //     case 'Keratoconus':
+  //       return _buildKeratoconusForm();
+  //     case 'Refer to OR':
+  //       return _buildORForm();
+  //     case 'Book next appointment':
+  //       return _buildAppointmentForm();
+  //     default:
+  //       return const SizedBox.shrink();
+  //   }
+  // }
 
   Widget _buildGlassesPrescriptionForm() {
     return Column(
@@ -833,20 +961,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
               backgroundColor: Colorz.primaryColor,
             ),
             icon: const Icon(Icons.print, color: Colors.white),
-            onPressed: () {
-              final currentAction = getActionByOption('prescribe glasses');
-              if (currentAction != null) {
-                generateAndPrintPrescription(
-                    examination: ExaminationModel(
-                      examination: widget.examination,
-                      doctor: widget.doctor,
-                    ),
-                    showPrescriptionTable: true,
-                    action: currentAction,
-                    diagnosis:
-                        unDiagnosedYet ? null : diagnosisController.text);
-              }
-            }),
+            onPressed: () => _onPrintPressed(
+                actionName: 'prescribe glasses', showPrescriptionTable: true)),
       ],
     );
   }
@@ -902,7 +1018,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
               if (medicationsList.isNotEmpty)
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor.withValues(alpha:0.5),
+                    color: Theme.of(context).cardColor.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Theme.of(context).dividerColor),
                   ),
@@ -910,7 +1026,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Medications List
-                      Container(
+                      SizedBox(
                         height: 200,
                         child: ListView.separated(
                           padding: const EdgeInsets.all(12),
@@ -926,7 +1042,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                                 border: Border.all(color: Theme.of(context).dividerColor),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Theme.of(context).shadowColor.withValues(alpha:0.1),
+                                    color: Theme.of(context).shadowColor.withOpacity(0.1),
                                     spreadRadius: 1,
                                     blurRadius: 3,
                                     offset: const Offset(0, 1),
@@ -1030,23 +1146,10 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                         backgroundColor: Colorz.primaryColor,
                       ),
                       icon: const Icon(Icons.print, color: Colors.white),
-                      onPressed: () {
-                        final currentAction =
-                            getActionByOption('prescribe medications');
-                        if (currentAction != null) {
-                          generateAndPrintPrescription(
-                              examination: ExaminationModel(
-                                examination: widget.examination,
-                                doctor: widget.doctor,
-                              ),
-                              prescriptionList: medicationsList,
-                              showPrescriptionTable: false,
-                              action: currentAction,
-                              diagnosis: unDiagnosedYet
-                                  ? null
-                                  : diagnosisController.text);
-                        }
-                      },
+                    onPressed: () => _onPrintPressed(
+                        actionName: 'prescribe medications',
+                        showPrescriptionTable: false,
+                        prescriptionList: medicationsList),
                     ),
                   ),
                 ],
@@ -1282,21 +1385,9 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
               backgroundColor: Colorz.primaryColor,
             ),
             icon: const Icon(Icons.print, color: Colors.white),
-            onPressed: () {
-              final currentAction =
-                  getActionByOption('refer to investigations');
-              if (currentAction != null) {
-                generateAndPrintPrescription(
-                    examination: ExaminationModel(
-                      examination: widget.examination,
-                      doctor: widget.doctor,
-                    ),
-                    showPrescriptionTable: false,
-                    action: currentAction,
-                    diagnosis:
-                        unDiagnosedYet ? null : diagnosisController.text);
-              }
-            }),
+            onPressed: () => _onPrintPressed(
+                actionName: 'refer to investigations',
+                showPrescriptionTable: false)),
       ],
     );
   }
@@ -1366,20 +1457,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
               backgroundColor: Colorz.primaryColor,
             ),
             icon: const Icon(Icons.print, color: Colors.white),
-            onPressed: () {
-              final currentAction = getActionByOption('refer to lasers');
-              if (currentAction != null) {
-                generateAndPrintPrescription(
-                    examination: ExaminationModel(
-                      examination: widget.examination,
-                      doctor: widget.doctor,
-                    ),
-                    showPrescriptionTable: false,
-                    action: currentAction,
-                    diagnosis:
-                        unDiagnosedYet ? null : diagnosisController.text);
-              }
-            }),
+            onPressed: () => _onPrintPressed(
+                actionName: 'refer to lasers', showPrescriptionTable: false)),
       ],
     );
   }
@@ -1407,20 +1486,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
               backgroundColor: Colorz.primaryColor,
             ),
             icon: const Icon(Icons.print, color: Colors.white),
-            onPressed: () {
-              final currentAction = getActionByOption('keratoconus');
-              if (currentAction != null) {
-                generateAndPrintPrescription(
-                    examination: ExaminationModel(
-                      examination: widget.examination,
-                      doctor: widget.doctor,
-                    ),
-                    showPrescriptionTable: false,
-                    action: currentAction,
-                    diagnosis:
-                        unDiagnosedYet ? null : diagnosisController.text);
-              }
-            }),
+            onPressed: () => _onPrintPressed(
+                actionName: 'keratoconus', showPrescriptionTable: false)),
       ],
     );
   }
@@ -1485,7 +1552,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                       });
                     },
                   );
-                }).toList(),
+                }),
                 SizedBox(height: 16.h),
                 TextField(
                   controller: typeOfLens,
@@ -1504,7 +1571,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                       });
                     },
                   );
-                }).toList(),
+                }),
               ],
             ],
           ),
@@ -1518,20 +1585,8 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
               backgroundColor: Colorz.primaryColor,
             ),
             icon: const Icon(Icons.print, color: Colors.white),
-            onPressed: () {
-              final currentAction = getActionByOption('refer to or');
-              if (currentAction != null) {
-                generateAndPrintPrescription(
-                    examination: ExaminationModel(
-                      examination: widget.examination,
-                      doctor: widget.doctor,
-                    ),
-                    showPrescriptionTable: false,
-                    action: currentAction,
-                    diagnosis:
-                        unDiagnosedYet ? null : diagnosisController.text);
-              }
-            }),
+            onPressed: () => _onPrintPressed(
+                actionName: 'refer to or', showPrescriptionTable: false)),
       ],
     );
   }
@@ -1593,75 +1648,64 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
               backgroundColor: Colorz.primaryColor,
             ),
             icon: const Icon(Icons.print, color: Colors.white),
-            onPressed: () {
-              final currentAction = getActionByOption('book next appointment');
-              if (currentAction != null) {
-                generateAndPrintPrescription(
-                    examination: ExaminationModel(
-                      examination: widget.examination,
-                      doctor: widget.doctor,
-                    ),
-                    showPrescriptionTable: false,
-                    action: currentAction,
-                    diagnosis:
-                        unDiagnosedYet ? null : diagnosisController.text);
-              }
-            }),
+            onPressed: () => _onPrintPressed(
+                actionName: 'book next appointment',
+                showPrescriptionTable: false)),
       ],
     );
   }
 
 // Add this method to handle date and time picking
-  void _showDateTimePicker() async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now().add(const Duration(days: 1)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: Colorz.primaryColor,
-              onPrimary: Colors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (pickedDate != null) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-        builder: (context, child) {
-          return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: Colorz.primaryColor,
-                onPrimary: Colors.white,
-              ),
-            ),
-            child: child!,
-          );
-        },
-      );
-
-      if (pickedTime != null) {
-        setState(() {
-          selectedDate = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-          selectedTime = pickedTime;
-        });
-      }
-    }
-  }
+//   void _showDateTimePicker() async {
+//     final DateTime? pickedDate = await showDatePicker(
+//       context: context,
+//       initialDate: DateTime.now().add(const Duration(days: 1)),
+//       firstDate: DateTime.now(),
+//       lastDate: DateTime.now().add(const Duration(days: 365)),
+//       builder: (context, child) {
+//         return Theme(
+//           data: Theme.of(context).copyWith(
+//             colorScheme: Theme.of(context).colorScheme.copyWith(
+//               primary: Colorz.primaryColor,
+//               onPrimary: Colors.white,
+//             ),
+//           ),
+//           child: child!,
+//         );
+//       },
+//     );
+//
+//     if (pickedDate != null) {
+//       final TimeOfDay? pickedTime = await showTimePicker(
+//         context: context,
+//         initialTime: TimeOfDay.now(),
+//         builder: (context, child) {
+//           return Theme(
+//             data: Theme.of(context).copyWith(
+//               colorScheme: Theme.of(context).colorScheme.copyWith(
+//                 primary: Colorz.primaryColor,
+//                 onPrimary: Colors.white,
+//               ),
+//             ),
+//             child: child!,
+//           );
+//         },
+//       );
+//
+//       if (pickedTime != null) {
+//         setState(() {
+//           selectedDate = DateTime(
+//             pickedDate.year,
+//             pickedDate.month,
+//             pickedDate.day,
+//             pickedTime.hour,
+//             pickedTime.minute,
+//           );
+//           selectedTime = pickedTime;
+//         });
+//       }
+//     }
+//   }
 
 // Add this method to format the date and time
   String _formatAppointmentDateTime() {
@@ -1720,15 +1764,23 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
   Widget _buildSaveButton(BuildContext context) {
     return BlocBuilder<ExaminationActionsCubit, ExaminationActionsState>(
       builder: (context, state) => Container(
-        height: 45,
+        height: 54,
+        width: double.infinity,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colorz.primaryColor.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
             gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
               colors: [
                 Colorz.primaryColor,
-                Color.lerp(Colorz.primaryColor, Colors.black, 0.2)!,
-                Color.lerp(Colorz.primaryColor, Colors.black, 0.3)!,
-                Color.lerp(Colorz.primaryColor, Colors.black, 0.4)!,
+                Colorz.primaryColor.withBlue(200),
               ],
             )),
         child: Material(
@@ -1736,7 +1788,7 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
           child: InkWell(
             onTap: () {
               // Generate prescription for current selection if not already in list
-              selectedMainOptions.forEach((option) {
+              for (var option in selectedMainOptions) {
                 final currentPrescription = generatePrescriptionObject(option);
                 final existingIndex = prescriptionsList
                     .indexWhere((p) => p.action == option.toLowerCase());
@@ -1746,14 +1798,51 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                 } else {
                   prescriptionsList.add(currentPrescription);
                 }
-              });
+              }
 
               final finalizationData = getFinalizationData();
+              final diagnosis = diagnosisController.text.isNotEmpty 
+                  ? diagnosisController.text 
+                  : 'Not specified';
 
               showConfirmationDialog(
                 context: context,
-                title: "Visit Finalization",
-                message: "Are you sure you want to Make Finalization?",
+                title: "Finalize Visit",
+                icon: Icons.assignment_turned_in_rounded,
+                confirmColor: Colorz.primaryColor,
+                confirmText: "Finalize",
+                text: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Review the summary below before completing the visit. This action cannot be undone.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14, 
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colorz.primaryColor.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colorz.primaryColor.withOpacity(0.1)),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildSummaryRow(Icons.description_outlined, "Diagnosis", diagnosis),
+                          if (medicationsList.isNotEmpty)
+                            _buildSummaryRow(Icons.medication_outlined, "Medications", "${medicationsList.length} prescribed"),
+                          if (selectedMainOptions.isNotEmpty)
+                            _buildSummaryRow(Icons.list_alt_rounded, "Actions", "${selectedMainOptions.length} categories"),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
                 onConfirm: () async {
                   customLoading(context, "");
                   bool value = await InternetConnection().hasInternetAccess;
@@ -1768,24 +1857,56 @@ class _MedicalTreeFormState extends State<MedicalTreeForm> {
                       id: widget.examination?.id ?? '', data: finalizationData);
                 },
                 onCancel: () {
-                  Navigator.pop(context);
+                  // Redundant pop removed to fix the bug where the page closed
                 },
               );
             },
-            borderRadius: BorderRadius.circular(8),
-            child: const Center(
-              child: Text(
-                'Finalize Visit',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
+            borderRadius: BorderRadius.circular(12),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.white, size: 22),
+                SizedBox(width: 10),
+                Text(
+                  'Finalize Visit',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colorz.primaryColor),
+          const SizedBox(width: 10),
+          Text(
+            "$label: ",
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

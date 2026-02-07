@@ -423,6 +423,7 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
                         ),
                         child: TextField(
                           controller: _controller,
+                          autofocus: true,
                           enabled: isConnected,
                           textInputAction: TextInputAction.send,
                           onSubmitted:
@@ -563,7 +564,7 @@ class _MessageBubble extends StatelessWidget {
         break;
       case MessageStatus.read:
         icon = Icons.done_all;
-        color = const Color(0xFF34B7F1); // WhatsApp-style blue seen marks
+        color = Colors.black; // Requested black seen marks
         break;
     }
 

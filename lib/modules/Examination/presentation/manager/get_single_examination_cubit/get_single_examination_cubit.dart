@@ -14,10 +14,10 @@ class GetSingleExaminationCubit extends Cubit<GetSingleExaminationState> {
     emit(GetSingleExaminationLoading());
     try {
       final result = await examinationRepo.getOneExamination(appointmentId: id);
-      if (result.error == null) {
+      if (result.success == true) {
         emit(GetSingleExaminationSuccess(result));
       } else {
-        emit(GetSingleExaminationError(result.error ?? 'Unknown error'));
+        emit(GetSingleExaminationError('Failed to fetch examination'));
       }
     } catch (e) {
       emit(GetSingleExaminationError(e.toString()));

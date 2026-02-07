@@ -307,127 +307,156 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
   }
 
   void populateFromModel(SavedExaminationModel oneExamination) {
-    if (oneExamination.examination == null ||
-        oneExamination.examination!.examination.isEmpty) return;
+    if (oneExamination.examinations.isEmpty) return;
 
-    final exam = oneExamination.examination!.examination[0];
+    final exam = oneExamination.examinations[0];
+    if (exam.measurements.isEmpty) return;
 
-    leftOldSpherical = exam.measurements[0].oldSpherical;
-    leftOldCylindrical = exam.measurements[0].oldCylindrical;
-    leftOldAxis = exam.measurements[0].oldAxis;
+    // Find measurements by eye label
+    Measurement? leftMeas;
+    Measurement? rightMeas;
 
-    rightOldSpherical = exam.measurements[1].oldSpherical;
-    rightOldCylindrical = exam.measurements[1].oldCylindrical;
-    rightOldAxis = exam.measurements[1].oldAxis;
+    for (var m in exam.measurements) {
+      if (m.eye?.toLowerCase() == 'left') leftMeas = m;
+      if (m.eye?.toLowerCase() == 'right') rightMeas = m;
+    }
 
-    leftAurorefSpherical = exam.measurements[0].autorefSpherical;
-    leftAurorefCylindrical = exam.measurements[0].autorefCylindrical;
-    leftAurorefAxis = exam.measurements[0].autorefAxis;
+    // Fallbacks if not found by label
+    leftMeas ??= exam.measurements[0];
+    rightMeas ??= exam.measurements.length > 1
+        ? exam.measurements[1]
+        : exam.measurements[0];
 
-    rightAurorefSpherical = exam.measurements[1].autorefSpherical;
-    rightAurorefCylindrical = exam.measurements[1].autorefCylindrical;
-    rightAurorefAxis = exam.measurements[1].autorefAxis;
+    leftOldSpherical = leftMeas.oldSpherical;
+    leftOldCylindrical = leftMeas.oldCylindrical;
+    leftOldAxis = leftMeas.oldAxis;
 
-    leftRefinedRefractionSpherical =
-        exam.measurements[0].refinedRefractionSpherical;
-    leftRefinedRefractionCylindrical =
-        exam.measurements[0].refinedRefractionCylindrical;
-    leftRefinedRefractionAxis = exam.measurements[0].refinedRefractionAxis;
-    leftNearVisionAddition = exam.measurements[0].nearVisionAddition;
+    rightOldSpherical = rightMeas.oldSpherical;
+    rightOldCylindrical = rightMeas.oldCylindrical;
+    rightOldAxis = rightMeas.oldAxis;
 
-    rightRefinedRefractionSpherical =
-        exam.measurements[1].refinedRefractionSpherical;
-    rightRefinedRefractionCylindrical =
-        exam.measurements[1].refinedRefractionCylindrical;
-    rightRefinedRefractionAxis = exam.measurements[1].refinedRefractionAxis;
-    rightNearVisionAddition = exam.measurements[1].nearVisionAddition;
+    leftAurorefSpherical = leftMeas.autorefSpherical;
+    leftAurorefCylindrical = leftMeas.autorefCylindrical;
+    leftAurorefAxis = leftMeas.autorefAxis;
 
-    leftUCVA = exam.measurements[0].ucva;
-    rightUCVA = exam.measurements[1].ucva;
-    leftBCVA = exam.measurements[0].bcva;
-    rightBCVA = exam.measurements[1].bcva;
+    rightAurorefSpherical = rightMeas.autorefSpherical;
+    rightAurorefCylindrical = rightMeas.autorefCylindrical;
+    rightAurorefAxis = rightMeas.autorefAxis;
 
-    leftIOP = exam.measurements[0].iop;
-    rightIOP = exam.measurements[1].iop;
-    leftMeansOfMeasurement = exam.measurements[0].meansOfMeasurement;
-    rightMeansOfMeasurement = exam.measurements[1].meansOfMeasurement;
-    leftAcquireAnotherIOPMeasurement =
-        exam.measurements[0].acquireAnotherIopMeasurement;
-    rightAcquireAnotherIOPMeasurement =
-        exam.measurements[1].acquireAnotherIopMeasurement;
+    leftRefinedRefractionSpherical = leftMeas.refinedRefractionSpherical;
+    leftRefinedRefractionCylindrical = leftMeas.refinedRefractionCylindrical;
+    leftRefinedRefractionAxis = leftMeas.refinedRefractionAxis;
+    leftNearVisionAddition = leftMeas.nearVisionAddition;
 
-    leftPupilsShape = exam.measurements[0].pupilsShape;
-    rightPupilsShape = exam.measurements[1].pupilsShape;
-    leftPupilsLightReflexTest = exam.measurements[0].pupilsLightReflexTest;
-    rightPupilsLightReflexTest = exam.measurements[1].pupilsLightReflexTest;
-    leftPupilsNearReflexTest = exam.measurements[0].pupilsNearReflexTest;
-    rightPupilsNearReflexTest = exam.measurements[1].pupilsNearReflexTest;
-    leftPupilsSwingingFlashLightTest =
-        exam.measurements[0].pupilsSwingingFlashLightTest;
-    rightPupilsSwingingFlashLightTest =
-        exam.measurements[1].pupilsSwingingFlashLightTest;
-    leftPupilsOtherDisorders = exam.measurements[0].pupilsOtherDisorders;
-    rightPupilsOtherDisorders = exam.measurements[1].pupilsOtherDisorders;
+    rightRefinedRefractionSpherical = rightMeas.refinedRefractionSpherical;
+    rightRefinedRefractionCylindrical = rightMeas.refinedRefractionCylindrical;
+    rightRefinedRefractionAxis = rightMeas.refinedRefractionAxis;
+    rightNearVisionAddition = rightMeas.nearVisionAddition;
 
-    leftEyelidPtosis = exam.measurements[0].eyelidPtosis;
-    rightEyelidPtosis = exam.measurements[1].eyelidPtosis;
-    leftEyelidLagophthalmos = exam.measurements[0].eyelidLagophthalmos;
-    rightEyelidLagophthalmos = exam.measurements[1].eyelidLagophthalmos;
-    leftPalpableLymphNodes = exam.measurements[0].palpableLymphNodes;
-    rightPalpableLymphNodes = exam.measurements[1].palpableLymphNodes;
-    leftPapableTemporalArtery = exam.measurements[0].palpableTemporalArtery;
-    rightPapableTemporalArtery = exam.measurements[1].palpableTemporalArtery;
-    leftExophthalmometry = exam.measurements[0].exophthalmometry;
-    rightExophthalmometry = exam.measurements[1].exophthalmometry;
+    leftUCVA = leftMeas.ucva;
+    rightUCVA = rightMeas.ucva;
+    leftBCVA = leftMeas.bcva;
+    rightBCVA = rightMeas.bcva;
 
-    leftCornea = exam.measurements[0].cornea;
-    rightCornea = exam.measurements[1].cornea;
-    leftAnteriorChambre = exam.measurements[0].anteriorChamber;
-    rightAnteriorChambre = exam.measurements[1].anteriorChamber;
-    leftIris = exam.measurements[0].iris;
-    rightIris = exam.measurements[1].iris;
-    leftLens = exam.measurements[0].lens;
-    rightLens = exam.measurements[1].lens;
-    leftAnteriorVitreous = exam.measurements[0].anteriorVitreous;
-    rightAnteriorVitreous = exam.measurements[1].anteriorVitreous;
+    leftIOP = leftMeas.iop;
+    rightIOP = rightMeas.iop;
+    leftMeansOfMeasurement = leftMeas.meansOfMeasurement;
+    rightMeansOfMeasurement = rightMeas.meansOfMeasurement;
+    leftAcquireAnotherIOPMeasurement = leftMeas.acquireAnotherIopMeasurement;
+    rightAcquireAnotherIOPMeasurement = rightMeas.acquireAnotherIopMeasurement;
 
-    leftFundusOpticDisc = exam.measurements[0].fundusOpticDisc;
-    rightFundusOpticDisc = exam.measurements[1].fundusOpticDisc;
-    leftFundusMacula = exam.measurements[0].fundusMacula;
-    rightFundusMacula = exam.measurements[1].fundusMacula;
-    leftFundusVessels = exam.measurements[0].fundusVessels;
-    rightFundusVessels = exam.measurements[1].fundusVessels;
-    leftFundusPeriphery = exam.measurements[0].fundusPeriphery;
-    rightFundusPeriphery = exam.measurements[1].fundusPeriphery;
+    // Pupils Shape Left
+    final leftPupilsShapeVal = leftMeas.pupilsShape;
+    if (leftPupilsShapeVal != null &&
+        !["rounded", "irregular"].contains(leftPupilsShapeVal)) {
+      leftPupilsShape = "others";
+      leftShapeController.text = leftPupilsShapeVal;
+    } else {
+      leftPupilsShape = leftPupilsShapeVal;
+    }
 
-    leftLidsController.text = exam.measurements[0].lids ?? '';
-    rightLidsController.text = exam.measurements[1].lids ?? '';
-    leftLashesController.text = exam.measurements[0].lashes ?? '';
-    rightLashesController.text = exam.measurements[1].lashes ?? '';
-    leftLacrimalController.text = exam.measurements[0].lacrimalSystem ?? '';
-    rightLacrimalController.text = exam.measurements[1].lacrimalSystem ?? '';
-    leftConjunctivaController.text = exam.measurements[0].conjunctiva ?? '';
-    rightConjunctivaController.text = exam.measurements[1].conjunctiva ?? '';
-    leftScleraController.text = exam.measurements[0].sclera ?? '';
-    rightScleraController.text = exam.measurements[1].sclera ?? '';
+    // Pupils Shape Right
+    final rightPupilsShapeVal = rightMeas.pupilsShape;
+    if (rightPupilsShapeVal != null &&
+        !["rounded", "irregular"].contains(rightPupilsShapeVal)) {
+      rightPupilsShape = "others";
+      rightShapeController.text = rightPupilsShapeVal;
+    } else {
+      rightPupilsShape = rightPupilsShapeVal;
+    }
 
-    leftTopRightTapCount = exam.measurements[0].topRight ?? 0;
-    rightTopRightTapCount = exam.measurements[1].topRight ?? 0;
-    leftTopLeftTapCount = exam.measurements[0].topLeft ?? 0;
-    rightTopLeftTapCount = exam.measurements[1].topLeft ?? 0;
-    leftBottomLeftTapCount = exam.measurements[0].bottomLeft ?? 0;
-    rightBottomLeftTapCount = exam.measurements[1].bottomLeft ?? 0;
-    leftBottomRightTapCount = exam.measurements[0].bottomRight ?? 0;
-    rightBottomRightTapCount = exam.measurements[1].bottomRight ?? 0;
+    leftPupilsLightReflexTest = leftMeas.pupilsLightReflexTest;
+    rightPupilsLightReflexTest = rightMeas.pupilsLightReflexTest;
+    leftPupilsNearReflexTest = leftMeas.pupilsNearReflexTest;
+    rightPupilsNearReflexTest = rightMeas.pupilsNearReflexTest;
+    leftPupilsSwingingFlashLightTest = leftMeas.pupilsSwingingFlashLightTest;
+    rightPupilsSwingingFlashLightTest = rightMeas.pupilsSwingingFlashLightTest;
+    leftPupilsOtherDisorders = leftMeas.pupilsOtherDisorders;
+    rightPupilsOtherDisorders = rightMeas.pupilsOtherDisorders;
 
-    presentIllnessController.text = exam.history?.presentIllness ?? '';
-    pastHistoryController.text = exam.history?.pastHistory ?? '';
-    medicationHistoryController.text = exam.history?.medicationHistory ?? '';
-    familyHistoryController.text = exam.history?.familyHistory ?? '';
+    leftEyelidPtosis = leftMeas.eyelidPtosis;
+    rightEyelidPtosis = rightMeas.eyelidPtosis;
+    leftEyelidLagophthalmos = leftMeas.eyelidLagophthalmos;
+    rightEyelidLagophthalmos = rightMeas.eyelidLagophthalmos;
+    leftPalpableLymphNodes = leftMeas.palpableLymphNodes;
+    rightPalpableLymphNodes = rightMeas.palpableLymphNodes;
+    leftPapableTemporalArtery = leftMeas.palpableTemporalArtery;
+    rightPapableTemporalArtery = rightMeas.palpableTemporalArtery;
+    leftExophthalmometry = leftMeas.exophthalmometry;
+    rightExophthalmometry = rightMeas.exophthalmometry;
 
-    oneComplaintController.text = exam.complain?.complainOne ?? '';
-    twoComplaintController.text = exam.complain?.complainTwo ?? '';
-    threeComplaintController.text = exam.complain?.complainThree ?? '';
+    leftCornea = leftMeas.cornea;
+    rightCornea = rightMeas.cornea;
+    leftAnteriorChambre = leftMeas.anteriorChamber;
+    rightAnteriorChambre = rightMeas.anteriorChamber;
+    leftIris = leftMeas.iris;
+    rightIris = rightMeas.iris;
+    leftLens = leftMeas.lens;
+    rightLens = rightMeas.lens;
+    leftAnteriorVitreous = leftMeas.anteriorVitreous;
+    rightAnteriorVitreous = rightMeas.anteriorVitreous;
+
+    leftFundusOpticDisc = leftMeas.fundusOpticDisc;
+    rightFundusOpticDisc = rightMeas.fundusOpticDisc;
+    leftFundusMacula = leftMeas.fundusMacula;
+    rightFundusMacula = rightMeas.fundusMacula;
+    leftFundusVessels = leftMeas.fundusVessels;
+    rightFundusVessels = rightMeas.fundusVessels;
+    leftFundusPeriphery = leftMeas.fundusPeriphery;
+    rightFundusPeriphery = rightMeas.fundusPeriphery;
+
+    leftLidsController.text = leftMeas.lids ?? '';
+    rightLidsController.text = rightMeas.lids ?? '';
+    leftLashesController.text = leftMeas.lashes ?? '';
+    rightLashesController.text = rightMeas.lashes ?? '';
+    leftLacrimalController.text = leftMeas.lacrimalSystem ?? '';
+    rightLacrimalController.text = rightMeas.lacrimalSystem ?? '';
+    leftConjunctivaController.text = leftMeas.conjunctiva ?? '';
+    rightConjunctivaController.text = rightMeas.conjunctiva ?? '';
+    leftScleraController.text = leftMeas.sclera ?? '';
+    rightScleraController.text = rightMeas.sclera ?? '';
+
+    leftTopRightTapCount = leftMeas.topRight ?? 0;
+    rightTopRightTapCount = rightMeas.topRight ?? 0;
+    leftTopLeftTapCount = leftMeas.topLeft ?? 0;
+    rightTopLeftTapCount = rightMeas.topLeft ?? 0;
+    leftBottomLeftTapCount = leftMeas.bottomLeft ?? 0;
+    rightBottomLeftTapCount = rightMeas.bottomLeft ?? 0;
+    leftBottomRightTapCount = leftMeas.bottomRight ?? 0;
+    rightBottomRightTapCount = rightMeas.bottomRight ?? 0;
+
+    if (exam.history != null) {
+      presentIllnessController.text = exam.history?.presentIllness ?? '';
+      pastHistoryController.text = exam.history?.pastHistory ?? '';
+      medicationHistoryController.text = exam.history?.medicationHistory ?? '';
+      familyHistoryController.text = exam.history?.familyHistory ?? '';
+    }
+
+    if (exam.complain != null) {
+      oneComplaintController.text = exam.complain?.complainOne ?? '';
+      twoComplaintController.text = exam.complain?.complainTwo ?? '';
+      threeComplaintController.text = exam.complain?.complainThree ?? '';
+    }
 
     emit(ExaminationFormUpdated());
   }

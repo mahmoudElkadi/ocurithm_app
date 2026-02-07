@@ -20,7 +20,7 @@ class PatientRepoImpl implements PatientRepo {
       "phone": patient.phone?.trim(),
       "password": patient.password,
       "branch": patient.branch?.id,
-      "email": patient.email?.trim(),
+    if(patient.email !=null&& patient.email!.isNotEmpty)  "email": patient.email?.trim(),
       "address": patient.address?.trim(),
       "username": patient.username?.trim(),
       "gender": patient.gender,

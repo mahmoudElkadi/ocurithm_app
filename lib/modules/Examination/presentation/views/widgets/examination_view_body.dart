@@ -20,6 +20,7 @@ import 'package:ocurithm/modules/Examination/presentation/views/widgets/circle_v
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/header_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/navigation_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription.dart';
+import '../../../../Analysis/presentation/manager/analysis_cubit/get_analysis_cubit.dart';
 import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
 import '../../../../../core/utils/services_locator.dart';
 import '../../../../../core/widgets/arrow_text_field.dart';
@@ -34,20 +35,31 @@ class MultiStepFormView extends StatelessWidget {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: BlocListener<ExaminationActionsCubit, ExaminationActionsState>(
+        listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
           if (state.status == ExaminationActionsStatus.loading) {
             customLoading(context, "");
           } else if (state.status == ExaminationActionsStatus.success) {
             Navigator.pop(context); // Close loading
+            final action = context.read<ExaminationFormCubit>().action;
 
-            if (state.result != null && state.result.examination != null) {
-              Navigator.push(
+            if (action == "save") {
+              Navigator.pop(context, true); // Pop the MultiStepFormPage
+              SnackbarService.showSuccess(
+                context,
+                message: state.message ?? "Saved Successfully",
+              );
+            } else if (state.result != null && state.result.examination != null) {
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => MultiBlocProvider(
                     providers: [
-                      BlocProvider(create: (context) => sl<ExaminationActionsCubit>()),
-                      BlocProvider(create: (context) => sl<GetMedicinesCubit>()..getMedicines()),
+                      BlocProvider(
+                          create: (context) => sl<ExaminationActionsCubit>()),
+                      BlocProvider(
+                          create: (context) =>
+                              sl<GetMedicinesCubit>()..getMedicines()),
                     ],
                     child: MedicalTreeForm(
                       examination: state.result.examination,
@@ -59,7 +71,7 @@ class MultiStepFormView extends StatelessWidget {
               );
             } else {
               // Fallback if result is empty? usually means just close.
-              Navigator.pop(context);
+              Navigator.pop(context, true);
               SnackbarService.showSuccess(
                 context,
                 message: state.message ?? "Success",
@@ -70,7 +82,7 @@ class MultiStepFormView extends StatelessWidget {
             Navigator.pop(context); // Close loading
             SnackbarService.showError(
               context,
-              message: state.error ?? "Error",
+              message: state.error ?? "Failed to finalize visit. Please try again.",
             );
           }
         },

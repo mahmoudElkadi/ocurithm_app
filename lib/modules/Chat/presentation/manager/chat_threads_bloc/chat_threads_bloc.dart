@@ -18,6 +18,7 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
     on<UpdateThreadEvent>(_onUpdateThread);
     on<HandleSocketNewMessageEvent>(_onHandleSocketNewMessage);
     on<MarkThreadReadEvent>(_onMarkThreadRead);
+    on<HandleMessagesReadEvent>(_onHandleMessagesRead);
     on<ResetThreadsEvent>(_onReset);
   }
 
@@ -104,7 +105,10 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
     Emitter<ChatThreadsState> emit,
   ) async {
     try {
-      emit(state.copyWith(actionStatus: ChatThreadsActionStatus.loading));
+      emit(state.copyWith(
+        actionStatus: ChatThreadsActionStatus.loading,
+        loadingActionId: event.participantId,
+      ));
 
       final result =
           await chatRepo.createThread(participantId: event.participantId);
@@ -125,17 +129,20 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
           threads: threads,
           activeThread: result.data,
           successMessage: 'Thread created successfully',
+          loadingActionId: null,
         ));
       } else {
         emit(state.copyWith(
           actionStatus: ChatThreadsActionStatus.error,
           errorMessage: result.message ?? 'Failed to create thread',
+          loadingActionId: null,
         ));
       }
     } catch (e) {
       emit(state.copyWith(
         actionStatus: ChatThreadsActionStatus.error,
         errorMessage: e.toString(),
+        loadingActionId: null,
       ));
     }
   }
@@ -167,6 +174,11 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
 
     if (index >= 0) {
       final thread = threads[index];
+
+      // Prevent duplicate processing of the same message (e.g. if socket emits twice)
+      if (thread.lastMessage?.id == event.message.id) {
+        return;
+      }
 
       // Update the thread's last message and unread count
       final updatedThread = thread.copyWith(
@@ -205,6 +217,28 @@ class ChatThreadsBloc extends Bloc<ChatThreadsEvent, ChatThreadsState> {
       final thread = threads[index];
       if (thread.unreadCount > 0) {
         threads[index] = thread.copyWith(unreadCount: 0);
+        emit(state.copyWith(threads: threads));
+      }
+    }
+  }
+
+  Future<void> _onHandleMessagesRead(
+    HandleMessagesReadEvent event,
+    Emitter<ChatThreadsState> emit,
+  ) async {
+    final threads = List<ThreadModel>.from(state.threads);
+    final index = threads.indexWhere((t) => t.id == event.threadId);
+
+    if (index >= 0) {
+      final thread = threads[index];
+      if (thread.lastMessage != null &&
+          thread.lastMessage!.isMine &&
+          thread.lastMessage!.status != MessageStatus.read) {
+        // Update the last message status to read
+        final updatedLastMessage =
+            thread.lastMessage!.copyWith(status: MessageStatus.read);
+
+        threads[index] = thread.copyWith(lastMessage: updatedLastMessage);
         emit(state.copyWith(threads: threads));
       }
     }

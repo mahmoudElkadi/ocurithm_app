@@ -38,6 +38,7 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
     on<SelectDoctorEvent>(_onSelectDoctor);
     on<SearchChangedEvent>(_onSearchChanged);
     on<RefreshAppointmentsEvent>(_onRefreshAppointments);
+    on<LocalUpdateAppointmentStatusEvent>(_onLocalUpdateStatus);
 
     // Listen to search subject with debounce
     _searchSubject
@@ -202,6 +203,33 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
 
   void _onRefreshAppointments(RefreshAppointmentsEvent event, Emitter<AppointmentState> emit) {
      add(GetAppointmentsEvent());
+  }
+
+  void _onLocalUpdateStatus(
+      LocalUpdateAppointmentStatusEvent event, Emitter<AppointmentState> emit) {
+    if (state.appointments != null) {
+      final updatedList =
+          List<model.Appointment>.from(state.appointments!.appointments);
+      final index = updatedList.indexWhere((e) => e.id.toString() == event.id);
+      if (index != -1) {
+        updatedList[index] = updatedList[index].copyWith(status: event.status);
+
+        final newAppointments = model.AppointmentModel(
+          appointments: updatedList,
+          total: state.appointments!.total,
+          totalPages: state.appointments!.totalPages,
+          error: '',
+        );
+
+        final grouped =
+            AppointmentHelper.groupAppointmentsByTimeSlot(updatedList);
+
+        emit(state.copyWith(
+          appointments: newAppointments,
+          groupedAppointments: grouped,
+        ));
+      }
+    }
   }
 
   @override

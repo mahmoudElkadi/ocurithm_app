@@ -11,7 +11,10 @@ class ChartSelectionDialog extends StatefulWidget {
     super.key,
     required this.analysis,
     required this.currentEyeSelection,
+    this.onSelectionConfirmed,
   });
+
+  final Function(Set<String> selectedKeys, EyeSelection eyeSelection)? onSelectionConfirmed;
 
   @override
   State<ChartSelectionDialog> createState() => _ChartSelectionDialogState();
@@ -169,12 +172,18 @@ class _ChartSelectionDialogState extends State<ChartSelectionDialog> {
           onPressed: _selectedKeys.isEmpty
               ? null
               : () {
-                  Navigator.pop(context);
-                  AnalysisPdfService.generateAndPrintAnalysis(
-                    analysis: widget.analysis,
-                    selectedChartKeys: _selectedKeys,
-                    eyeSelection: widget.currentEyeSelection,
-                  );
+                  if (widget.onSelectionConfirmed != null) {
+                    widget.onSelectionConfirmed!(
+                        _selectedKeys, widget.currentEyeSelection);
+                    Navigator.pop(context, true);
+                  } else {
+                    Navigator.pop(context, true);
+                    AnalysisPdfService.generateAndPrintAnalysis(
+                      analysis: widget.analysis,
+                      selectedChartKeys: _selectedKeys,
+                      eyeSelection: widget.currentEyeSelection,
+                    );
+                  }
                 },
           style: ElevatedButton.styleFrom(
             backgroundColor: primaryColor,

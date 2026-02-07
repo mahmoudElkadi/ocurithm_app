@@ -63,3 +63,10 @@ class SearchChangedEvent extends AppointmentEvent {
 }
 
 class RefreshAppointmentsEvent extends AppointmentEvent {}
+
+class LocalUpdateAppointmentStatusEvent extends AppointmentEvent {
+  final String id;
+  final String status;
+
+  LocalUpdateAppointmentStatusEvent({required this.id, required this.status});
+}

@@ -15,40 +15,38 @@ class AppointmentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<AppointmentCubit>()..add(GetAppointmentsEvent()),
-      child: BlocBuilder<AppointmentCubit, AppointmentState>(
-        builder: (context, state) {
-          final cubit = context.read<AppointmentCubit>();
-          
-          return CustomScaffold(
-            body: !state.noConnection
-                ? const AppointmentViewBody()
-                : NoInternet(
-                    onPressed: () {
-                      if (state.doctors == null) {
-                        cubit.add(GetAppointmentsEvent());
-                      }
-                    },
-                  ),
-            actions: [
-              manageCapability(
-                capability: 'addAppointments',
-                child: IconButton(
-                  onPressed: () async {
-                    bool? isChanged = await Get.to(() => const MakeAppointmentView());
-                    if (isChanged == true) {
+    return BlocBuilder<AppointmentCubit, AppointmentState>(
+      builder: (context, state) {
+        final cubit = context.read<AppointmentCubit>();
+
+        return CustomScaffold(
+          body: !state.noConnection
+              ? const AppointmentViewBody()
+              : NoInternet(
+                  onPressed: () {
+                    if (state.doctors == null) {
                       cubit.add(GetAppointmentsEvent());
                     }
                   },
-                  icon: Icon(Icons.add, color: Colorz.primaryColor),
                 ),
-              )
-            ],
-            title: "Appointments",
-          );
-        },
-      ),
+          actions: [
+            manageCapability(
+              capability: 'addAppointments',
+              child: IconButton(
+                onPressed: () async {
+                  bool? isChanged =
+                      await Get.to(() => const MakeAppointmentView());
+                  if (isChanged == true) {
+                    cubit.add(GetAppointmentsEvent());
+                  }
+                },
+                icon: Icon(Icons.add, color: Colorz.primaryColor),
+              ),
+            )
+          ],
+          title: "Appointments",
+        );
+      },
     );
   }
 }

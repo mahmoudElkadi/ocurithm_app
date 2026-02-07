@@ -77,6 +77,12 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper> {
         BlocProvider.value(value: _socketBloc),
       ],
       child: BlocListener<ChatSocketBloc, ChatSocketState>(
+        listenWhen: (previous, current) {
+          return previous.lastNewMessage != current.lastNewMessage ||
+              previous.lastThreadUpdate != current.lastThreadUpdate ||
+              previous.lastMessagesRead != current.lastMessagesRead ||
+              previous.lastEventType != current.lastEventType;
+        },
         listener: (context, socketState) {
           // Listen for new messages to update the badge in real-time
           if (socketState.lastEventType == ChatSocketEventType.newMessage &&
@@ -92,8 +98,12 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper> {
           }
 
           // Handle messages read
-          if (socketState.lastEventType == ChatSocketEventType.messagesRead) {
-            _threadsBloc.add(RefreshThreadsEvent());
+          if (socketState.lastEventType == ChatSocketEventType.messagesRead &&
+              socketState.lastMessagesRead != null) {
+            final threadId = socketState.lastMessagesRead!['threadId'];
+            if (threadId != null) {
+              _threadsBloc.add(HandleMessagesReadEvent(threadId: threadId));
+            }
           }
         },
         child: Material(

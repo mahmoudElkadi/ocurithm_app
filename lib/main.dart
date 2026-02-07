@@ -11,6 +11,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/theme/theme_state.dart';
 import 'core/utils/services_locator.dart';
+import 'modules/Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
 import 'modules/Splash/splash_screen.dart';
 import 'modules/Chat/presentation/widgets/floating_chat_wrapper.dart';
 
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => MainCubit()),
         BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => sl<AppointmentCubit>()),
       ],
       child: ScreenUtilInit(
         designSize: Size(MediaQuery.of(context).size.width,

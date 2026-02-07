@@ -5,7 +5,11 @@ import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart'
 import 'package:ocurithm/modules/Examination/presentation/manager/get_single_examination_cubit/get_single_examination_cubit.dart';
 import 'package:ocurithm/modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
 import 'package:ocurithm/modules/Examination/presentation/manager/examination_form_cubit/examination_form_cubit.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/examination_view_body.dart';
+import 'package:ocurithm/core/widgets/no_internet.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/examination_shimmer.dart';
 
 class MultiStepFormPage extends StatelessWidget {
   const MultiStepFormPage(
@@ -42,7 +46,7 @@ class MultiStepFormPage extends StatelessWidget {
           ),
         ],
         child:
-            BlocListener<GetSingleExaminationCubit, GetSingleExaminationState>(
+            BlocConsumer<GetSingleExaminationCubit, GetSingleExaminationState>(
           listener: (context, state) {
             if (state is GetSingleExaminationSuccess) {
               context
@@ -50,9 +54,24 @@ class MultiStepFormPage extends StatelessWidget {
                   .populateFromModel(state.examination);
             }
           },
-          child: MultiStepFormView(
-            appointment: appointment,
-          ),
+          builder: (context, state) {
+            if (state is GetSingleExaminationLoading) {
+              return const ExaminationFormShimmer();
+            } else if (state is GetSingleExaminationError) {
+              return Scaffold(
+                body: NoInternet(
+                  onPressed: () {
+                    context
+                        .read<GetSingleExaminationCubit>()
+                        .getExamination(appointment.id.toString());
+                  },
+                ),
+              );
+            }
+            return MultiStepFormView(
+              appointment: appointment,
+            );
+          },
         ),
       ),
     );

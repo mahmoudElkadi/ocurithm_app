@@ -122,6 +122,42 @@ class Appointment {
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,
       };
+
+  Appointment copyWith({
+    Clinic? clinic,
+    Patient? patient,
+    Branch? branch,
+    Doctor? doctor,
+    ExaminationType? examinationType,
+    DateTime? datetime,
+    PaymentMethod? paymentMethod,
+    String? status,
+    String? note,
+    num? price,
+    dynamic createBy,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? id,
+    String? error,
+  }) {
+    return Appointment(
+      clinic: clinic ?? this.clinic,
+      patient: patient ?? this.patient,
+      branch: branch ?? this.branch,
+      doctor: doctor ?? this.doctor,
+      examinationType: examinationType ?? this.examinationType,
+      datetime: datetime ?? this.datetime,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      status: status ?? this.status,
+      note: note ?? this.note,
+      price: price ?? this.price,
+      createBy: createBy ?? this.createBy,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      id: id ?? this.id,
+      error: error ?? this.error,
+    );
+  }
 }
 
 class AppointmentClinic {
