@@ -1,19 +1,35 @@
 part of 'get_payment_methods_cubit.dart';
 
+enum GetPaymentMethodsStatus {
+  initial,
+  loading,
+  success,
+  error,
+  noConnection,
+  loadingMore,
+}
+
+extension GetPaymentMethodsStatusX on GetPaymentMethodsState {
+  bool get isInitial => state == GetPaymentMethodsStatus.initial;
+  bool get isLoading => state == GetPaymentMethodsStatus.loading;
+  bool get isLoadingMore => state == GetPaymentMethodsStatus.loadingMore;
+  bool get isSuccess => state == GetPaymentMethodsStatus.success;
+  bool get isError => state == GetPaymentMethodsStatus.error;
+  bool get noConnection => state == GetPaymentMethodsStatus.noConnection;
+}
+
 /// State for GetPaymentMethodsCubit
 class GetPaymentMethodsState {
+  final GetPaymentMethodsStatus state;
   final PaymentMethodsModel? paymentMethods;
-  final bool isLoading;
-  final bool isLoadingMore;
   final String? errorMessage;
   final int currentPage;
   final String searchQuery;
   final bool hasReachedMax;
 
   const GetPaymentMethodsState({
+    this.state = GetPaymentMethodsStatus.initial,
     this.paymentMethods,
-    this.isLoading = false,
-    this.isLoadingMore = false,
     this.errorMessage,
     this.currentPage = 1,
     this.searchQuery = '',
@@ -21,18 +37,16 @@ class GetPaymentMethodsState {
   });
 
   GetPaymentMethodsState copyWith({
+    GetPaymentMethodsStatus? state,
     PaymentMethodsModel? paymentMethods,
-    bool? isLoading,
-    bool? isLoadingMore,
     String? errorMessage,
     int? currentPage,
     String? searchQuery,
     bool? hasReachedMax,
   }) {
     return GetPaymentMethodsState(
+      state: state ?? this.state,
       paymentMethods: paymentMethods ?? this.paymentMethods,
-      isLoading: isLoading ?? this.isLoading,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       errorMessage: errorMessage,
       currentPage: currentPage ?? this.currentPage,
       searchQuery: searchQuery ?? this.searchQuery,

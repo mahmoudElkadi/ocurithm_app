@@ -5,6 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 
+import 'package:ocurithm/core/utils/snackbar_service.dart';
+
 import '../manager/get_payment_methods_cubit/get_payment_methods_cubit.dart';
 import '../manager/payment_method_actions_cubit/payment_method_actions_cubit.dart';
 import 'widgets/payment_method_form_dialog.dart';
@@ -27,42 +29,74 @@ class PaymentMethodView extends StatelessWidget {
           create: (_) => sl<PaymentMethodActionsCubit>(),
         ),
       ],
-      child: Builder(
-        builder: (context) {
-          return CustomScaffold(
-            title: "Payment Methods",
-            actions: [
-              IconButton(
-                onPressed: () {
-                  showPaymentMethodFormDialog(
-                    context,
-                    mode: PaymentMethodFormMode.add,
-                    actionsCubit: context.read<PaymentMethodActionsCubit>(),
-                  );
+      child: BlocListener<PaymentMethodActionsCubit, PaymentMethodActionsState>(
+        listener: (context, state) {
+          // Handle Error
+          if (state.isError) {
+            SnackbarService.showError(
+              context,
+              message: state.errorMessage ?? 'An error occurred',
+            );
+          }
+
+          // Handle No Connection
+          if (state.noConnection) {
+            SnackbarService.showWarning(
+              context,
+              message: state.errorMessage ?? 'No internet connection',
+            );
+          }
+
+          // Handle Success
+          if (state.isSuccess) {
+            SnackbarService.showSuccess(
+              context,
+              message: state.successMessage ?? 'Operation successful',
+            );
+
+            // Refresh the list on any successful action
+            context
+                .read<GetPaymentMethodsCubit>()
+                .add(const GetAllPaymentMethodsEvent());
+          }
+        },
+        child: Builder(
+          builder: (context) {
+            return CustomScaffold(
+              title: "Payment Methods",
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    showPaymentMethodFormDialog(
+                      context,
+                      mode: PaymentMethodFormMode.add,
+                      actionsCubit: context.read<PaymentMethodActionsCubit>(),
+                    );
+                  },
+                  icon: SvgPicture.asset(
+                    "assets/icons/add_branch.svg",
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+              ],
+              body: CustomMaterialIndicator(
+                onRefresh: () async {
+                  context
+                      .read<GetPaymentMethodsCubit>()
+                      .add(const GetAllPaymentMethodsEvent());
                 },
-                icon: SvgPicture.asset(
-                  "assets/icons/add_branch.svg",
-                  color: Theme.of(context).primaryColor,
+                indicatorBuilder:
+                    (BuildContext context, IndicatorController controller) {
+                  return const Image(image: AssetImage("assets/icons/logo.png"));
+                },
+                child:  SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: PaymentMethodViewBody(),
                 ),
               ),
-            ],
-            body: CustomMaterialIndicator(
-              onRefresh: () async {
-                context
-                    .read<GetPaymentMethodsCubit>()
-                    .add(const GetAllPaymentMethodsEvent());
-              },
-              indicatorBuilder:
-                  (BuildContext context, IndicatorController controller) {
-                return const Image(image: AssetImage("assets/icons/logo.png"));
-              },
-              child: const SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                child: PaymentMethodViewBody(),
-              ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

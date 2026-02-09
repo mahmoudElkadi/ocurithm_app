@@ -52,14 +52,6 @@ class ReceptionistActionsCubit
         ));
       }
     } catch (e) {
-      if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-          state: ReceptionistActionsStatus.noConnection,
-          actionType: ReceptionistActionType.add,
-          errorMessage: e.toString(),
-        ));
-        return;
-      }
       if (e.toString().toLowerCase().contains('request cancelled')) {
         return;
       }
@@ -115,14 +107,7 @@ class ReceptionistActionsCubit
         ));
       }
     } catch (e) {
-      if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-          state: ReceptionistActionsStatus.noConnection,
-          actionType: ReceptionistActionType.update,
-          errorMessage: e.toString(),
-        ));
-        return;
-      }
+
       if (e.toString().toLowerCase().contains('request cancelled')) {
         return;
       }
@@ -160,14 +145,6 @@ class ReceptionistActionsCubit
         ));
       }
     } catch (e) {
-      if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-          state: ReceptionistActionsStatus.noConnection,
-          actionType: ReceptionistActionType.delete,
-          errorMessage: e.toString(),
-        ));
-        return;
-      }
       if (e.toString().toLowerCase().contains('request cancelled')) {
         return;
       }

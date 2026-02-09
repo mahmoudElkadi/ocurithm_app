@@ -147,18 +147,10 @@ class _ClinicCardState extends State<ClinicCard> {
                         icon: Icons.delete_forever,
                         onConfirm: () async {
                           customLoading(context, "Deleting Clinic...");
-                          bool connection =
-                              await InternetConnection().hasInternetAccess;
-                          if (!connection) {
-                            Navigator.pop(context);
-                            SnackbarService.showError(
-                              context,
-                              message: "No Internet Connection",
-                            );
-                          } else {
+
                             cubit.add(DeleteClinicEvent(
                                 widget.clinic!.id.toString()));
-                          }
+
                         },
                       );
                     },

@@ -93,17 +93,7 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
     customLoading(context, "");
 
     // Check internet connection
-    final hasConnection = await InternetConnection().hasInternetAccess;
-    if (!mounted) return;
 
-    if (!hasConnection) {
-      Navigator.of(context).pop(); // Close loading dialog
-      SnackbarService.showError(
-        context,
-        message: "No Internet Connection",
-      );
-      return;
-    }
 
     // Create clinic model
     final clinic = Clinic(

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -35,6 +34,7 @@ import '../../manager/doctor_branch_actions_cubit/doctor_branch_actions_cubit.da
 import 'widgets/add_doctor_branch_dialog.dart';
 import 'widgets/doctor_examinations_section.dart';
 import '../../manager/get_doctor_examinations_cubit/get_doctor_examinations_cubit.dart';
+import '../../../../../core/widgets/no_internet.dart';
 
 // Helper class for info items
 class _InfoItemData {
@@ -301,46 +301,122 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             },
           ),
         ],
-        child: widget.mode == DoctorFormMode.add
-            ? _buildForm(context, theme, isDark)
-            : BlocBuilder<GetSingleDoctorCubit, GetSingleDoctorState>(
-                builder: (context, singleState) {
-                  if (singleState.isLoading) {
-                    return _buildFormWithShimmer(context, theme, isDark);
-                  }
-
-                  if (singleState.isError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error_outline,
-                              size: 64, color: Colors.red),
-                          const SizedBox(height: 16),
-                          Text(singleState.errorMessage ??
-                              'Failed to load doctor'),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              context.read<GetSingleDoctorCubit>().add(
-                                    GetDoctorByIdEvent(widget.doctorId!),
-                                  );
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: _isReadOnly
-                        ? _buildDoctorDetailView(theme, isDark)
-                        : _buildForm(context, theme, isDark),
+        child: BlocBuilder<GetClinicsCubit, GetClinicsState>(
+          builder: (context, clinicsState) {
+            return BlocBuilder<GetCapabilitiesCubit, GetCapabilitiesState>(
+              builder: (context, capabilitiesState) {
+                // If any critical dependency has NO CONNECTION, show NoInternet
+                if (clinicsState.noConnection || capabilitiesState.noConnection) {
+                  return NoInternet(
+                    fromTop: 0,
+                    onPressed: () {
+                      if (clinicsState.noConnection) {
+                        context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
+                      }
+                      if (capabilitiesState.noConnection) {
+                        context
+                            .read<GetCapabilitiesCubit>()
+                            .add(GetAllCapabilitiesEvent());
+                      }
+                      if (widget.mode != DoctorFormMode.add) {
+                        context.read<GetSingleDoctorCubit>().add(
+                              GetDoctorByIdEvent(widget.doctorId!),
+                            );
+                      }
+                    },
                   );
-                },
-              ),
+                }
+
+                // If any critical dependency has an ERROR (not noConnection), show error view
+                if (clinicsState.isError || capabilitiesState.isError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 64, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(clinicsState.errorMessage ??
+                            capabilitiesState.errorMessage ??
+                            'Failed to load required data'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (clinicsState.isError) {
+                              context
+                                  .read<GetClinicsCubit>()
+                                  .add(GetAllClinicsEvent());
+                            }
+                            if (capabilitiesState.isError) {
+                              context
+                                  .read<GetCapabilitiesCubit>()
+                                  .add(GetAllCapabilitiesEvent());
+                            }
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                if (widget.mode == DoctorFormMode.add) {
+                  return _buildForm(context, theme, isDark);
+                }
+
+                return BlocBuilder<GetSingleDoctorCubit, GetSingleDoctorState>(
+                  builder: (context, singleState) {
+                    if (singleState.isLoading) {
+                      return _buildFormWithShimmer(context, theme, isDark);
+                    }
+
+                    if (singleState.noConnection) {
+                      return NoInternet(
+                        fromTop: 0,
+                        onPressed: () {
+                          context.read<GetSingleDoctorCubit>().add(
+                                GetDoctorByIdEvent(widget.doctorId!),
+                              );
+                        },
+                      );
+                    }
+
+                    if (singleState.isError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline,
+                                size: 64, color: Colors.red),
+                            const SizedBox(height: 16),
+                            Text(singleState.errorMessage ??
+                                'Failed to load doctor'),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<GetSingleDoctorCubit>().add(
+                                      GetDoctorByIdEvent(widget.doctorId!),
+                                    );
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: _isReadOnly
+                          ? _buildDoctorDetailView(theme, isDark)
+                          : _buildForm(context, theme, isDark),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        ),
       ),
       bottomNavigationBar:
           _isReadOnly ? null : _buildBottomBar(context, theme, isDark),
@@ -781,7 +857,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: theme.primaryColor.withOpacity(0.3),
+          color: theme.primaryColor.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -881,25 +957,6 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: CircularProgressIndicator(color: theme.primaryColor),
-            ),
-          );
-        }
-
-        if (state.isError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.errorMessage ?? 'Failed to load capabilities',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
             ),
           );
         }
@@ -1782,19 +1839,19 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   }
 }
 
-// Profile Image Picker Widget (reused from Receptionist)
+// Profile Image Picker Widget (reused from existing code)
 class ProfileImagePicker extends StatefulWidget {
-  final String? initialImageUrl;
-  final bool readOnly;
-  final VoidCallback onDelete;
   final Function(String) onImageUploaded;
+  final String? initialImageUrl;
+  final bool? readOnly;
+  final Function() onDelete;
 
   const ProfileImagePicker({
     Key? key,
-    this.initialImageUrl,
-    required this.readOnly,
-    required this.onDelete,
     required this.onImageUploaded,
+    this.initialImageUrl,
+    this.readOnly = false,
+    required this.onDelete,
   }) : super(key: key);
 
   @override
@@ -1803,38 +1860,16 @@ class ProfileImagePicker extends StatefulWidget {
 
 class _ProfileImagePickerState extends State<ProfileImagePicker> {
   File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
-  String? _imageUrl;
+  bool _isImageDeleted = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _imageUrl = widget.initialImageUrl;
-  }
-
-  @override
-  void didUpdateWidget(ProfileImagePicker oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.initialImageUrl != oldWidget.initialImageUrl) {
-      setState(() {
-        _imageUrl = widget.initialImageUrl;
-        _imageFile = null;
-      });
-    }
-  }
-
-  Future<void> _pickImage() async {
-    if (widget.readOnly) return;
-
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-      await _uploadImage();
-    }
+  void _handleDelete() {
+    setState(() {
+      _imageFile = null;
+      _isImageDeleted = true;
+    });
+    widget.onDelete();
   }
 
   Future<void> _uploadImage() async {
@@ -1845,175 +1880,246 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
     });
 
     try {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('https://ocurithm.onrender.com/api/v1/upload'),
-      );
+      final url = await CloudinaryService.uploadImage(_imageFile!);
 
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'file',
-          _imageFile!.path,
-        ),
-      );
-
-      final response = await request.send();
-      final responseData = await response.stream.bytesToString();
-      final jsonData = json.decode(responseData);
-
-      if (response.statusCode == 200 && jsonData['url'] != null) {
-        setState(() {
-          _imageUrl = jsonData['url'];
-          _isUploading = false;
-        });
-        widget.onImageUploaded(jsonData['url']);
+      if (url != null) {
+        widget.onImageUploaded(url);
       } else {
-        throw Exception('Failed to upload image');
+        _showError('Failed to upload image');
       }
     } catch (e) {
-      log('Error uploading image: $e');
+      _showError('Error uploading image: $e');
+    } finally {
       setState(() {
         _isUploading = false;
       });
-      if (mounted) {
-        SnackbarService.showError(
-          context,
-          message: 'Failed to upload image: $e',
-        );
-      }
     }
   }
 
-  void _deleteImage() {
-    if (widget.readOnly) return;
+  void _showError(String message) {
+    SnackbarService.showError(
+      context,
+      message: message,
+    );
+  }
 
-    setState(() {
-      _imageFile = null;
-      _imageUrl = null;
-    });
-    widget.onDelete();
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final file = File(pickedFile.path);
+        final sizeInBytes = await file.length();
+        final sizeInMb = sizeInBytes / (1024 * 1024);
+
+        if (sizeInMb > 10) {
+          _showError('Image size should be less than 10MB');
+          return;
+        }
+
+        setState(() {
+          _imageFile = file;
+        });
+        await _uploadImage();
+      }
+    } catch (e) {
+      _showError('Failed to pick image: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Stack(
+      alignment: Alignment.center,
       children: [
         Container(
-          width: 100,
-          height: 100,
+          width: 120,
+          height: 120,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: theme.cardColor,
-            border: Border.all(
-              color: theme.primaryColor.withValues(alpha: 0.3),
-              width: 2,
-            ),
             boxShadow: [
               BoxShadow(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.grey.shade200,
+                color: Colors.grey.withValues(alpha: 0.3),
                 spreadRadius: 2,
                 blurRadius: 5,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: _isUploading
               ? Center(
-                  child: CircularProgressIndicator(
-                    color: theme.primaryColor,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(color: theme.primaryColor),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Uploading...',
+                        style: TextStyle(
+                          color: theme.textTheme.bodySmall?.color,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 )
-              : _imageFile != null
-                  ? ClipOval(
-                      child: Image.file(
-                        _imageFile!,
-                        fit: BoxFit.cover,
-                        width: 100,
-                        height: 100,
-                      ),
-                    )
-                  : _imageUrl != null && _imageUrl!.isNotEmpty
-                      ? ClipOval(
-                          child: Image.network(
-                            _imageUrl!,
-                            fit: BoxFit.cover,
-                            width: 100,
-                            height: 100,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.person,
-                                size: 50,
-                                color: theme.primaryColor,
-                              );
-                            },
-                          ),
+              : ClipOval(
+                  child: _imageFile != null
+                      ? Image.file(
+                          _imageFile!,
+                          fit: BoxFit.cover,
+                          width: 120,
+                          height: 120,
                         )
-                      : Icon(
-                          Icons.person,
-                          size: 50,
-                          color: theme.primaryColor,
-                        ),
+                      : (!_isImageDeleted && widget.initialImageUrl != null)
+                          ? Image.network(
+                              widget.initialImageUrl!,
+                              fit: BoxFit.cover,
+                              width: 120,
+                              height: 120,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.person,
+                                      size: 60, color: Colors.grey),
+                            )
+                          : const Icon(Icons.person,
+                              size: 60, color: Colors.grey),
+                ),
         ),
-        if (!widget.readOnly)
+        if (!_isUploading && widget.readOnly != true)
           Positioned(
             bottom: 0,
             right: 0,
-            child: Row(
-              children: [
-                if (_imageUrl != null || _imageFile != null)
-                  GestureDetector(
-                    onTap: _deleteImage,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.red,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            spreadRadius: 1,
-                            blurRadius: 3,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.delete,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                const SizedBox(width: 4),
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: theme.primaryColor,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          spreadRadius: 1,
-                          blurRadius: 3,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
+            child: GestureDetector(
+              onTap: () => _showImageSourceDialog(_handleDelete),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.primaryColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
                 ),
-              ],
+                child: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
             ),
           ),
       ],
     );
+  }
+
+  void _showImageSourceDialog(Function() onDelete) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
+        title: const Text('Select Image Source'),
+        actions: <CupertinoActionSheetAction>[
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickImage(ImageSource.gallery);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.photo, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Choose from Gallery'),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickImage(ImageSource.camera);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.camera, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Take a Photo'),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              onDelete();
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.delete, color: CupertinoColors.activeBlue),
+                SizedBox(width: 8),
+                Text('Delete Photo'),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text(
+            'Cancel',
+            style: TextStyle(
+              color: CupertinoColors.destructiveRed,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Cloudinary Service (reused from existing code)
+class CloudinaryService {
+  static const String cloudName = 'dxsrhu3ku';
+  static const String uploadPreset = 'ocurithm';
+  static const String _baseUrl = 'https://api.cloudinary.com/v1_1/$cloudName';
+
+  static Future<String?> uploadImage(File imageFile) async {
+    try {
+      final url = Uri.parse('$_baseUrl/image/upload');
+      final request = http.MultipartRequest('POST', url);
+
+      request.fields['upload_preset'] = uploadPreset;
+      request.fields['folder'] = 'public';
+      request.fields['timestamp'] =
+          DateTime.now().millisecondsSinceEpoch.toString();
+
+      final bytes = await imageFile.readAsBytes();
+      final multipartFile = http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: imageFile.path.split('/').last,
+      );
+      request.files.add(multipartFile);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        return jsonResponse['secure_url'] as String;
+      } else {
+        throw Exception('Failed to upload image: ${response.body}');
+      }
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
   }
 }

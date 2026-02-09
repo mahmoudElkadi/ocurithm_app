@@ -242,23 +242,13 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
                             "Do you want to Delete ${widget.receptionist?.name ?? "this Receptionist"}?",
                         onConfirm: () async {
                           customLoading(context, "");
-                          bool connection =
-                              await InternetConnection().hasInternetAccess;
-                          if (!connection) {
-                            Navigator.pop(context);
-                            if (mounted) {
-                              SnackbarService.showError(
-                                context,
-                                message: "No Internet Connection",
-                              );
-                            }
-                          } else {
+
                             // Dispatch delete event
                             context.read<ReceptionistActionsCubit>().add(
                                   DeleteReceptionistEvent(
                                       widget.receptionist!.id!),
                                 );
-                          }
+
                         },
                         onCancel: () {
                           Navigator.pop(context);

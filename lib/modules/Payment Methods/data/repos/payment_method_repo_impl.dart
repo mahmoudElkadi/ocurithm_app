@@ -1,131 +1,128 @@
-import '../../../../../core/Network/dio_handler.dart';
+import 'package:dio/dio.dart';
+import '../../../../../core/api/api_constants.dart';
+import '../../../../../core/api/api_handler.dart';
 import '../../../../../core/Network/shared.dart';
-import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/data.dart';
 import '../model/payment_method_model.dart';
 import 'payment_method_repo.dart';
 
 class PaymentMethodRepoImpl implements PaymentMethodRepo {
-  @override
-  Future<PaymentMethod> createPaymentMethod({required PaymentMethod paymentMethod}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}";
-    final String? token = CacheHelper.getData(key: "token");
+  final ApiHandler _apiHandler = ApiHandler();
 
-    final result = await ApiService.request<PaymentMethod>(
-      url: url,
-      data: paymentMethod.toJson(),
-      method: 'POST',
+  Options _getOptions() {
+    final String? token = CacheHelper.getData(key: "token");
+    return Options(
       headers: {
         "Content-Type": "application/json",
         if (token != null) 'Cookie': 'ocurithmToken=$token',
       },
-      showError: true,
-      fromJson: (json) => PaymentMethod.fromJson(json),
     );
+  }
 
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed to add PaymentMethod");
+  @override
+  Future<PaymentMethod> createPaymentMethod(
+      {required PaymentMethod paymentMethod}) async {
+    try {
+      final result = await _apiHandler.post<PaymentMethod>(
+        ApiConstants.paymentMethods,
+        data: paymentMethod.toJson(),
+        options: _getOptions(),
+        fromJson: (json) => PaymentMethod.fromJson(json),
+      );
+
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed to add PaymentMethod");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
-  Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? search}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}";
-    final String? token = CacheHelper.getData(key: "token");
+  Future<PaymentMethodsModel> getAllPaymentMethods(
+      {int? page, String? search}) async {
     Map<String, dynamic> query = {
       if (page != null) "page": page,
       if (page != null) 'limit': 10,
       if (search != null && search.isNotEmpty) "search": search,
     };
 
-    final result = await ApiService.request<PaymentMethodsModel>(
-      url: url,
-      method: 'GET',
-      queryParameters: query,
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => PaymentMethodsModel.fromJson(json),
-    );
+    try {
+      final result = await _apiHandler.get<PaymentMethodsModel>(
+        ApiConstants.paymentMethods,
+        queryParameters: query,
+        options: _getOptions(),
+        fromJson: (json) => PaymentMethodsModel.fromJson(json),
+      );
 
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch PaymentMethods");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed fetch PaymentMethods");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<PaymentMethod> getPaymentMethod({required String id}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}/$id";
-    final String? token = CacheHelper.getData(key: "token");
+    try {
+      final result = await _apiHandler.get<PaymentMethod>(
+        "${ApiConstants.paymentMethods}/$id",
+        options: _getOptions(),
+        fromJson: (json) => PaymentMethod.fromJson(json),
+      );
 
-    final result = await ApiService.request<PaymentMethod>(
-      url: url,
-      method: 'GET',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => PaymentMethod.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch PaymentMethods");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed fetch PaymentMethods");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
-  Future<PaymentMethod> updatePaymentMethod({required String id, required PaymentMethod paymentMethod}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}/$id";
-    final String? token = CacheHelper.getData(key: "token");
+  Future<PaymentMethod> updatePaymentMethod(
+      {required String id, required PaymentMethod paymentMethod}) async {
+    try {
+      final result = await _apiHandler.put<PaymentMethod>(
+        "${ApiConstants.paymentMethods}/$id",
+        data: paymentMethod.toJson(),
+        options: _getOptions(),
+        fromJson: (json) => PaymentMethod.fromJson(json),
+      );
 
-    final result = await ApiService.request<PaymentMethod>(
-      url: url,
-      method: 'PUT',
-      data: paymentMethod.toJson(),
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => PaymentMethod.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch PaymentMethods");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed fetch PaymentMethods");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   @override
   Future<DataModel> deletePaymentMethod({required String id}) async {
-    final url = "${ApiConstants.baseUrl}${ApiConstants.paymentMethods}/$id";
-    final String? token = CacheHelper.getData(key: "token");
+    try {
+      final result = await _apiHandler.delete<DataModel>(
+        "${ApiConstants.paymentMethods}/$id",
+        options: _getOptions(),
+        fromJson: (json) => DataModel.fromJson(json),
+      );
 
-    final result = await ApiService.request<DataModel>(
-      url: url,
-      method: 'DELETE',
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) 'Cookie': 'ocurithmToken=$token',
-      },
-      showError: true,
-      fromJson: (json) => DataModel.fromJson(json),
-    );
-
-    if (result != null) {
-      return result;
-    } else {
-      throw Exception("Failed fetch PaymentMethods");
+      if (result.success && result.data != null) {
+        return result.data!;
+      } else {
+        throw Exception(result.message ?? "Failed fetch PaymentMethods");
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

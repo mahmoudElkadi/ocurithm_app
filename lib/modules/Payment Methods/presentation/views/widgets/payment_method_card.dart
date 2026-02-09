@@ -13,6 +13,7 @@ import '../../../../../core/widgets/width_spacer.dart';
 import '../../../data/model/payment_method_model.dart';
 import '../../manager/get_payment_methods_cubit/get_payment_methods_cubit.dart';
 import '../../manager/payment_method_actions_cubit/payment_method_actions_cubit.dart';
+import '../../../../../core/widgets/no_internet.dart';
 import 'payment_method_form_dialog.dart';
 
 /// Payment Method Card - Displays individual payment method
@@ -45,40 +46,17 @@ class _PaymentMethodCardState extends State<PaymentMethodCard> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final actionsCubit = context.read<PaymentMethodActionsCubit>();
 
-    return BlocListener<PaymentMethodActionsCubit, PaymentMethodActionsState>(
-      listener: (context, state) {
-        // Handle delete success
-        if (state.isDeleteSuccess) {
-          SnackbarService.showSuccess(
+    return GestureDetector(
+      onTap: () {
+        if (!widget.isLoading && widget.paymentMethod != null) {
+          showPaymentMethodFormDialog(
             context,
-            message:
-                state.successMessage ?? 'Payment method deleted successfully',
-          );
-          // Refresh the list
-          context
-              .read<GetPaymentMethodsCubit>()
-              .add(const GetAllPaymentMethodsEvent());
-        }
-
-        // Handle delete error
-        if (state.isDeleteError) {
-          SnackbarService.showError(
-            context,
-            message: state.errorMessage ?? 'Failed to delete payment method',
+            mode: PaymentMethodFormMode.edit,
+            actionsCubit: actionsCubit,
+            paymentMethodId: widget.paymentMethod!.id,
           );
         }
       },
-      child: GestureDetector(
-        onTap: () {
-          if (!widget.isLoading && widget.paymentMethod != null) {
-            showPaymentMethodFormDialog(
-              context,
-              mode: PaymentMethodFormMode.edit,
-              actionsCubit: actionsCubit,
-              paymentMethodId: widget.paymentMethod!.id,
-            );
-          }
-        },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Container(
@@ -184,8 +162,6 @@ class _PaymentMethodCardState extends State<PaymentMethodCard> {
                             message:
                                 "Do you want to delete ${widget.paymentMethod?.title ?? "this payment method"}?",
                             onConfirm: () {
-                              Navigator.pop(
-                                  context); // Close confirmation dialog
                               actionsCubit.add(DeletePaymentMethodEvent(
                                   widget.paymentMethod!.id!));
                             },
@@ -204,7 +180,6 @@ class _PaymentMethodCardState extends State<PaymentMethodCard> {
             ),
           ),
         ),
-      ),
     );
   }
 }
@@ -224,10 +199,22 @@ class _PaymentMethodListViewState extends State<PaymentMethodListView> {
     return BlocBuilder<GetPaymentMethodsCubit, GetPaymentMethodsState>(
       builder: (context, state) {
         final isLoading = state.isLoading;
+        final isError = state.isError;
+        final noConnection = state.noConnection;
         final isEmpty = state.paymentMethods?.paymentMethods?.isEmpty ?? true;
 
         if (isLoading && state.paymentMethods == null) {
           return _buildLoadingList();
+        } else if (noConnection && state.paymentMethods == null) {
+          return NoInternet(
+            onPressed: () {
+              context
+                  .read<GetPaymentMethodsCubit>()
+                  .add(const GetAllPaymentMethodsEvent());
+            },
+          );
+        } else if (isError && state.paymentMethods == null) {
+          return _buildErrorState(state.errorMessage ?? 'An error occurred');
         } else if (isEmpty && !isLoading) {
           return _buildEmptyState();
         } else {
@@ -282,6 +269,34 @@ class _PaymentMethodListViewState extends State<PaymentMethodListView> {
       ),
       separatorBuilder: (context, index) => const HeightSpacer(size: 20),
       itemCount: paymentMethods.length,
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 120),
+      child: Center(
+        child: Column(
+          children: [
+            const Icon(Icons.error_outline, size: 70, color: Colors.red),
+            const HeightSpacer(size: 20),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const HeightSpacer(size: 20),
+            ElevatedButton(
+              onPressed: () {
+                context
+                    .read<GetPaymentMethodsCubit>()
+                    .add(const GetAllPaymentMethodsEvent());
+              },
+              child: const Text('Try Again'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

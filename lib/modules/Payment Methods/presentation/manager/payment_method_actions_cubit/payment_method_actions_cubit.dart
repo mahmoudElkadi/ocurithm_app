@@ -31,37 +31,27 @@ class PaymentMethodActionsCubit
     ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          status: PaymentMethodActionStatus.noConnection,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       // Create payment method
-      final result = await paymentMethodRepo.createPaymentMethod(
+      await paymentMethodRepo.createPaymentMethod(
         paymentMethod: event.paymentMethod,
       );
 
-      if (result.error == null && (result.title != null || result.id != null)) {
+      emit(state.copyWith(
+        status: PaymentMethodActionStatus.success,
+        successMessage: 'Payment method added successfully',
+      ));
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
         emit(state.copyWith(
-          status: PaymentMethodActionStatus.success,
-          successMessage: 'Payment method added successfully',
+          status: PaymentMethodActionStatus.noConnection,
+          errorMessage: e.toString(),
         ));
       } else {
         emit(state.copyWith(
           status: PaymentMethodActionStatus.error,
-          errorMessage: result.error ?? 'Failed to add payment method',
+          errorMessage: e.toString(),
         ));
       }
-    } catch (e) {
-      emit(state.copyWith(
-        status: PaymentMethodActionStatus.error,
-        errorMessage: 'An error occurred: ${e.toString()}',
-      ));
     }
   }
 
@@ -76,38 +66,28 @@ class PaymentMethodActionsCubit
     ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          status: PaymentMethodActionStatus.noConnection,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       // Update payment method
-      final result = await paymentMethodRepo.updatePaymentMethod(
+      await paymentMethodRepo.updatePaymentMethod(
         id: event.paymentMethodId,
         paymentMethod: event.paymentMethod,
       );
 
-      if (result.error == null && (result.title != null || result.id != null)) {
+      emit(state.copyWith(
+        status: PaymentMethodActionStatus.success,
+        successMessage: 'Payment method updated successfully',
+      ));
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
         emit(state.copyWith(
-          status: PaymentMethodActionStatus.success,
-          successMessage: 'Payment method updated successfully',
+          status: PaymentMethodActionStatus.noConnection,
+          errorMessage: e.toString(),
         ));
       } else {
         emit(state.copyWith(
           status: PaymentMethodActionStatus.error,
-          errorMessage: result.error ?? 'Failed to update payment method',
+          errorMessage: e.toString(),
         ));
       }
-    } catch (e) {
-      emit(state.copyWith(
-        status: PaymentMethodActionStatus.error,
-        errorMessage: 'An error occurred: ${e.toString()}',
-      ));
     }
   }
 
@@ -122,37 +102,28 @@ class PaymentMethodActionsCubit
     ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          status: PaymentMethodActionStatus.noConnection,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       // Delete payment method
       final result = await paymentMethodRepo.deletePaymentMethod(
         id: event.paymentMethodId,
       );
 
-      if (result.error == null && result.message != null) {
+      emit(state.copyWith(
+        status: PaymentMethodActionStatus.success,
+        successMessage:
+            (result is Map && result.containsKey('message')) ? result['message'] : 'Deleted successfully',
+      ));
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
         emit(state.copyWith(
-          status: PaymentMethodActionStatus.success,
-          successMessage: result.message,
+          status: PaymentMethodActionStatus.noConnection,
+          errorMessage: e.toString(),
         ));
       } else {
         emit(state.copyWith(
           status: PaymentMethodActionStatus.error,
-          errorMessage: result.error ?? 'Failed to delete payment method',
+          errorMessage: e.toString(),
         ));
       }
-    } catch (e) {
-      emit(state.copyWith(
-        status: PaymentMethodActionStatus.error,
-        errorMessage: 'An error occurred: ${e.toString()}',
-      ));
     }
   }
 

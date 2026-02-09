@@ -27,6 +27,20 @@ class PaymentMethodsModel {
         "total": total,
         "totalPages": totalPages,
       };
+
+  PaymentMethodsModel copyWith({
+    List<PaymentMethod>? paymentMethods,
+    num? total,
+    num? totalPages,
+    String? error,
+  }) {
+    return PaymentMethodsModel(
+      paymentMethods: paymentMethods ?? this.paymentMethods,
+      total: total ?? this.total,
+      totalPages: totalPages ?? this.totalPages,
+      error: error ?? this.error,
+    );
+  }
 }
 
 class PaymentMethod {
@@ -55,4 +69,26 @@ class PaymentMethod {
   }
 
   Map<String, dynamic> toJson() => {"title": title, "description": description, "clinic": clinic?.id};
+
+  PaymentMethod copyWith({
+    String? title,
+    String? description,
+    Clinic? clinic,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? id,
+    String? error,
+  }) {
+    return PaymentMethod(
+      title: title ?? this.title,
+      description: description ?? this.description,
+      clinic: clinic ?? this.clinic,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      id: id ?? this.id,
+      error: error ?? this.error,
+    );
+  }
 }

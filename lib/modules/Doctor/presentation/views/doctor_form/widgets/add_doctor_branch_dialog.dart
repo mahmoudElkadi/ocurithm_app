@@ -279,14 +279,7 @@ class _AddDoctorBranchDialogState extends State<AddDoctorBranchDialog> {
     if (!isValid) return;
 
     // Check internet
-    bool connection = await InternetConnection().hasInternetAccess;
-    if (!connection) {
-      SnackbarService.showError(
-        context,
-        message: "No Internet Connection",
-      );
-      return;
-    }
+
 
     // Conflict check
     final newBranchSchedule = BranchElement(

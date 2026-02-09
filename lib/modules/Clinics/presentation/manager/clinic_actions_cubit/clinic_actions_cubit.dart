@@ -9,7 +9,7 @@ part 'clinic_actions_event.dart';
 class ClinicActionsCubit extends Bloc<ClinicActionsEvent, ClinicActionsState> {
   final ClinicRepo clinicRepo;
 
-  ClinicActionsCubit(this.clinicRepo) : super(ClinicActionsState()) {
+  ClinicActionsCubit(this.clinicRepo) : super(const ClinicActionsState()) {
     on<AddClinicEvent>(_onAddClinic);
     on<UpdateClinicEvent>(_onUpdateClinic);
     on<DeleteClinicEvent>(_onDeleteClinic);
@@ -45,14 +45,7 @@ class ClinicActionsCubit extends Bloc<ClinicActionsEvent, ClinicActionsState> {
         ));
       }
     } catch (e) {
-      if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-          state: ClinicActionsStatus.noConnection,
-          actionType: ClinicActionType.add,
-          errorMessage: e.toString(),
-        ));
-        return;
-      }
+
       if (e.toString().toLowerCase().contains('request cancelled')) {
         return;
       }
@@ -93,14 +86,7 @@ class ClinicActionsCubit extends Bloc<ClinicActionsEvent, ClinicActionsState> {
         ));
       }
     } catch (e) {
-      if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-          state: ClinicActionsStatus.noConnection,
-          actionType: ClinicActionType.update,
-          errorMessage: e.toString(),
-        ));
-        return;
-      }
+
       if (e.toString().toLowerCase().contains('request cancelled')) {
         return;
       }
@@ -137,14 +123,7 @@ class ClinicActionsCubit extends Bloc<ClinicActionsEvent, ClinicActionsState> {
         ));
       }
     } catch (e) {
-      if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-          state: ClinicActionsStatus.noConnection,
-          actionType: ClinicActionType.delete,
-          errorMessage: e.toString(),
-        ));
-        return;
-      }
+
       if (e.toString().toLowerCase().contains('request cancelled')) {
         return;
       }
@@ -159,6 +138,6 @@ class ClinicActionsCubit extends Bloc<ClinicActionsEvent, ClinicActionsState> {
   // Reset Clinic Actions
   Future<void> _onResetClinicActions(
       ResetClinicActionsEvent event, Emitter<ClinicActionsState> emit) async {
-    emit(ClinicActionsState());
+    emit(const ClinicActionsState());
   }
 }

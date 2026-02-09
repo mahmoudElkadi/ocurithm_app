@@ -12,6 +12,7 @@ import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/text_field.dart';
+import '../../../../../core/Network/shared.dart';
 import '../../manger/login_cubit/login_cubit.dart';
 
 class LoginForm extends StatefulWidget {
@@ -24,12 +25,20 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
+  TextEditingController ipController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    ipController.text = CacheHelper.getData(key: 'ip_address') ?? '192.168.1.24';
+  }
 
   @override
   void dispose() {
     email.dispose();
     password.dispose();
+    ipController.dispose();
     super.dispose();
   }
 
@@ -51,6 +60,22 @@ class _LoginFormState extends State<LoginForm> {
             padding: EdgeInsets.symmetric(horizontal: 15.w),
             child: Column(
               children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      _showIPDialog(context);
+                    },
+                    icon: Icon(Icons.settings_ethernet,
+                        color: Colorz.primaryColor, size: 20),
+                    label: Text(
+                      "Change IP: ${ipController.text}",
+                      style: appStyle(
+                          context, 14, Colorz.primaryColor, FontWeight.w500),
+                    ),
+                  ),
+                ),
+                const HeightSpacer(size: 10),
                 Container(
                   width: MediaQuery.of(context).size.width,
                   decoration: BoxDecoration(
@@ -132,6 +157,8 @@ class _LoginFormState extends State<LoginForm> {
                 MyElevatedButton(
                     onPressed: () {
                       if (formKey.currentState!.validate()) {
+                        CacheHelper.saveString(
+                            key: 'ip_address', value: ipController.text);
                         context.read<LoginCubit>().add(LoginUserEvent(
                               username: email.text,
                               password: password.text,
@@ -178,6 +205,76 @@ class _LoginFormState extends State<LoginForm> {
                             ],
                           )),
                 const HeightSpacer(size: 20)
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showIPDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Change Server IP",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colorz.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField2(
+                  controller: ipController,
+                  radius: 15,
+                  type: TextInputType.url,
+                  borderColor: Colorz.primaryColor,
+                  hintText: "Enter IP Address",
+                  required: true,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (ipController.text.isNotEmpty) {
+                          CacheHelper.saveString(
+                              key: 'ip_address', value: ipController.text);
+                          setState(() {});
+                          Navigator.pop(context);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colorz.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text("Save",
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

@@ -47,43 +47,36 @@ class GetPaymentMethodsCubit
     GetAllPaymentMethodsEvent event,
     Emitter<GetPaymentMethodsState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(state.copyWith(
+      state: GetPaymentMethodsStatus.loading,
+      errorMessage: null,
+    ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          isLoading: false,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       // Fetch payment methods
       final result = await paymentMethodRepo.getAllPaymentMethods(
         page: event.noPagination ? null : 1,
         search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
       );
 
-      if (result.error == null && result.paymentMethods != null) {
+      emit(state.copyWith(
+        state: GetPaymentMethodsStatus.success,
+        paymentMethods: result,
+        currentPage: 1,
+        hasReachedMax: result.paymentMethods?.isEmpty ?? true,
+      ));
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
         emit(state.copyWith(
-          isLoading: false,
-          paymentMethods: result,
-          currentPage: 1,
-          hasReachedMax: result.paymentMethods!.isEmpty,
+          state: GetPaymentMethodsStatus.noConnection,
+          errorMessage: e.toString(),
         ));
       } else {
         emit(state.copyWith(
-          isLoading: false,
-          errorMessage: result.error ?? 'Failed to load payment methods',
+          state: GetPaymentMethodsStatus.error,
+          errorMessage: e.toString(),
         ));
       }
-    } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'An error occurred: ${e.toString()}',
-      ));
     }
   }
 
@@ -94,7 +87,7 @@ class GetPaymentMethodsCubit
   ) async {
     if (state.isLoadingMore || state.hasReachedMax) return;
 
-    emit(state.copyWith(isLoadingMore: true));
+    emit(state.copyWith(state: GetPaymentMethodsStatus.loadingMore));
 
     try {
       final nextPage = state.currentPage + 1;
@@ -103,22 +96,24 @@ class GetPaymentMethodsCubit
         search: state.searchQuery,
       );
 
-      if (result.error == null && result.paymentMethods != null) {
-        // Merge new payment methods with existing ones
-        final updatedPaymentMethods =
-            state.paymentMethods?.paymentMethods ?? [];
-        updatedPaymentMethods.addAll(result.paymentMethods!);
+      // Merge new payment methods with existing ones
+      final updatedPaymentMethodsList =
+          List<PaymentMethod>.from(state.paymentMethods?.paymentMethods ?? []);
+      updatedPaymentMethodsList.addAll(result.paymentMethods ?? []);
 
-        emit(state.copyWith(
-          isLoadingMore: false,
-          currentPage: nextPage,
-          hasReachedMax: result.paymentMethods!.isEmpty,
-        ));
-      } else {
-        emit(state.copyWith(isLoadingMore: false));
-      }
+      emit(state.copyWith(
+        state: GetPaymentMethodsStatus.success,
+        paymentMethods: state.paymentMethods?.copyWith(
+          paymentMethods: updatedPaymentMethodsList,
+        ),
+        currentPage: nextPage,
+        hasReachedMax: result.paymentMethods?.isEmpty ?? true,
+      ));
     } catch (e) {
-      emit(state.copyWith(isLoadingMore: false));
+      emit(state.copyWith(
+        state: GetPaymentMethodsStatus.error,
+        errorMessage: e.toString(),
+      ));
     }
   }
 
@@ -135,41 +130,35 @@ class GetPaymentMethodsCubit
     SearchPaymentMethodsEvent event,
     Emitter<GetPaymentMethodsState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(state.copyWith(
+      state: GetPaymentMethodsStatus.loading,
+      errorMessage: null,
+    ));
 
     try {
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          isLoading: false,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       final result = await paymentMethodRepo.getAllPaymentMethods(
         page: 1,
         search: event.query,
       );
 
-      if (result.error == null && result.paymentMethods != null) {
+      emit(state.copyWith(
+        state: GetPaymentMethodsStatus.success,
+        paymentMethods: result,
+        currentPage: 1,
+        hasReachedMax: result.paymentMethods?.isEmpty ?? true,
+      ));
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
         emit(state.copyWith(
-          isLoading: false,
-          paymentMethods: result,
-          currentPage: 1,
-          hasReachedMax: result.paymentMethods!.isEmpty,
+          state: GetPaymentMethodsStatus.noConnection,
+          errorMessage: e.toString(),
         ));
       } else {
         emit(state.copyWith(
-          isLoading: false,
-          errorMessage: result.error ?? 'Failed to search payment methods',
+          state: GetPaymentMethodsStatus.error,
+          errorMessage: e.toString(),
         ));
       }
-    } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'An error occurred: ${e.toString()}',
-      ));
     }
   }
 

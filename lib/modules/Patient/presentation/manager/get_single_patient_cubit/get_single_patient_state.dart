@@ -7,6 +7,7 @@ extension GetSinglePatientStatusX on GetSinglePatientState {
   bool get isLoading => state == GetSinglePatientStatus.loading;
   bool get isSuccess => state == GetSinglePatientStatus.success;
   bool get isError => state == GetSinglePatientStatus.error;
+  bool get noConnection => state == GetSinglePatientStatus.noConnection;
 }
 
 @immutable

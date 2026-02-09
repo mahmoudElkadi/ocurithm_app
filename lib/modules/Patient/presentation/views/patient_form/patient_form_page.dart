@@ -31,6 +31,7 @@ import '../examination_view/one_examination_view.dart';
 import '../examination_view/scan_form_page.dart';
 import '../examination_view/scanned_list_page.dart';
 import '../../../../Make_Appointment/presentation/views/make_appointment_view.dart';
+import '../../../../../core/widgets/no_internet.dart';
 enum PatientFormMode { add, edit, view }
 
 class PatientFormPage extends StatelessWidget {
@@ -353,24 +354,101 @@ class _PatientFormViewState extends State<PatientFormView> {
             },
           )
         ],
-        child: widget.mode == PatientFormMode.add
-            ? _buildForm(context, theme, isDark)
-            : BlocBuilder<GetSinglePatientCubit, GetSinglePatientState>(
-                builder: (context, state) {
-                  if (state.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
+        child: BlocBuilder<GetClinicsCubit, GetClinicsState>(
+          builder: (context, clinicsState) {
+            // If any dependency has NO CONNECTION, show NoInternet
+            if (clinicsState.noConnection) {
+              return NoInternet(
+                fromTop: 0,
+                onPressed: () {
+                  context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
+                  if (widget.mode != PatientFormMode.add) {
+                    context.read<GetSinglePatientCubit>().add(
+                          GetPatientByIdEvent(widget.patientId!),
+                        );
                   }
-                  if (state.isError) {
-                    return Center(child: Text(state.errorMessage ?? 'Error'));
-                  }
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: _isReadOnly
-                        ? _buildPatientDetailView(theme, isDark)
-                        : _buildForm(context, theme, isDark),
-                  );
                 },
-              ),
+              );
+            }
+
+            // If dependency has ERROR, show basic error view
+            if (clinicsState.isError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text(clinicsState.errorMessage ?? 'Failed to load clinics'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context
+                            .read<GetClinicsCubit>()
+                            .add(GetAllClinicsEvent());
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (widget.mode == PatientFormMode.add) {
+              return _buildForm(context, theme, isDark);
+            }
+
+            return BlocBuilder<GetSinglePatientCubit, GetSinglePatientState>(
+              builder: (context, singleState) {
+                if (singleState.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (singleState.noConnection) {
+                  return NoInternet(
+                    fromTop: 0,
+                    onPressed: () {
+                      context.read<GetSinglePatientCubit>().add(
+                            GetPatientByIdEvent(widget.patientId!),
+                          );
+                    },
+                  );
+                }
+
+                if (singleState.isError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 60, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(singleState.errorMessage ??
+                            'Failed to load patient details'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<GetSinglePatientCubit>().add(
+                                  GetPatientByIdEvent(widget.patientId!),
+                                );
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _isReadOnly
+                      ? _buildPatientDetailView(theme, isDark)
+                      : _buildForm(context, theme, isDark),
+                );
+              },
+            );
+          },
+        ),
       ),
       bottomNavigationBar: (!_isReadOnly || widget.mode == PatientFormMode.add)
           ? _buildBottomBar(context, theme)

@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/core/utils/network_connection.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
-
-import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/booking_calendar/booking_calendar.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/height_spacer.dart';
@@ -28,7 +26,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
   late BookingService bookingService;
   late StreamController<dynamic> _controller;
   bool _disposed = false;
-  bool _viewOnly = false;
+  final bool _viewOnly = false;
 
   List<String> getHolidayDays({List<String>? workingDays}) {
     final Map<String, String> dayMapping = {
@@ -235,9 +233,9 @@ class _DelayAppointmentState extends State<DelayAppointment> {
                 doctor: widget.appointment.doctor,
                 viewOnly: _viewOnly,
                 availableSlotTextStyle: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black),
-                bookedSlotTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                bookedSlotTextStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
                 isUpdate: widget.isUpdate,
-                selectedSlotTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                selectedSlotTextStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
                 holidayWeekdays: getHolidayDays(
                     workingDays: widget.appointment.doctor?.branches
                         ?.firstWhere((branch) => branch.branch?.id == widget.appointment.branch?.id)
@@ -275,7 +273,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (widget.cubit.selectedTime != null) {
-                              bool value = await InternetConnection().hasInternetAccess;
+                              bool value = await NetworkStatus().hasInternetConnection();
                               if (!value) {
                                 SnackbarService.showWarning(context, message: 'No Internet Connection');
                                 return;

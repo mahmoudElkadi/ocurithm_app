@@ -1,3 +1,5 @@
+import '../Network/shared.dart';
+
 class ApiConstants {
   static const int connectionTimeout = 15000; // 15 seconds
   static const int receiveTimeout = 15000;
@@ -7,7 +9,13 @@ class ApiConstants {
 
   // static String get baseUrl => "https://ocurithm.com/api/";
 
-  static String get baseUrl => "http://192.168.1.24:3000/api/";
+  static String get baseUrl {
+    String? ip = CacheHelper.getData(key: 'ip_address');
+    if (ip != null && ip.isNotEmpty) {
+      return "http://$ip:3000/api/";
+    }
+    return "http://192.168.1.24:3000/api/";
+  }
 
   static String get login => "auth/login";
 

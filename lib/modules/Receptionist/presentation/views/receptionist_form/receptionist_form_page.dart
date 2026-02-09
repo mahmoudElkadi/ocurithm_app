@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -25,6 +24,7 @@ import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/widgets/capabilities_section.dart';
 import 'package:ocurithm/Services/whatsapp_confirmation.dart';
 import 'package:password_generator/password_generator.dart';
+import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../Branch/data/model/branches_model.dart';
 import '../../../data/models/receptionists_model.dart';
@@ -793,15 +793,25 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
                     builder: (context, child) {
                       return Theme(
                         data: theme.copyWith(
-                          colorScheme: ColorScheme.light(
-                            primary: theme.primaryColor,
-                            onPrimary: Colors.white,
-                            onSurface: theme.textTheme.bodyLarge?.color ??
-                                Colors.black,
-                          ),
+                          colorScheme: isDark
+                              ? ColorScheme.dark(
+                                  primary: Colorz.primaryColor,
+                                  onPrimary: Colors.white,
+                                  surface: theme.cardColor,
+                                  onSurface: Colors.white,
+                                  secondary: Colorz.primaryColor,
+                                )
+                              : ColorScheme.light(
+                                  primary: theme.primaryColor,
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: theme.textTheme.bodyLarge?.color ??
+                                      Colors.black,
+                                ),
+                          dialogBackgroundColor: isDark ? theme.cardColor : Colors.white,
                           textButtonTheme: TextButtonThemeData(
                             style: TextButton.styleFrom(
-                              foregroundColor: theme.primaryColor,
+                              foregroundColor: isDark ? Colors.white : theme.primaryColor,
                             ),
                           ),
                         ),

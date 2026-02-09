@@ -191,29 +191,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
 
             // Handle success
             if (state.isAddSuccess || state.isUpdateSuccess) {
-              SnackbarService.showSuccess(
-                context,
-                message:
-                    state.successMessage ?? 'Operation completed successfully',
-              );
               Navigator.of(context).pop(); // Close form dialog
-              Navigator.of(context).pop(); // Go back to list
-            }
-
-            // Handle error
-            if (state.isAddError || state.isUpdateError) {
-              SnackbarService.showError(
-                context,
-                message: state.errorMessage ?? 'An error occurred',
-              );
-            }
-
-            // Handle no connection
-            if (state.noConnection) {
-              SnackbarService.showWarning(
-                context,
-                message: state.errorMessage ?? 'No internet connection',
-              );
             }
           },
         ),

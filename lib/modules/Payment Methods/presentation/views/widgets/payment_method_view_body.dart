@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ocurithm/core/widgets/no_internet.dart';
 
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/search_fileld.dart';
@@ -29,6 +30,14 @@ class _PaymentMethodViewBodyState extends State<PaymentMethodViewBody> {
   Widget build(BuildContext context) {
     return BlocBuilder<GetPaymentMethodsCubit, GetPaymentMethodsState>(
       builder: (context, state) {
+        if(state.noConnection){
+          return NoInternet(
+            onPressed: (){
+              context
+                  .read<GetPaymentMethodsCubit>()
+                  .add(const GetAllPaymentMethodsEvent());            },
+          );
+        }
         return Column(
           children: [
             _buildSearchField(),

@@ -29,37 +29,27 @@ class GetSinglePaymentMethodCubit
     ));
 
     try {
-      // Check internet connection
-      final hasConnection = await InternetConnection().hasInternetAccess;
-      if (!hasConnection) {
-        emit(state.copyWith(
-          status: SinglePaymentMethodStatus.noConnection,
-          errorMessage: 'No internet connection',
-        ));
-        return;
-      }
-
       // Fetch payment method
       final result = await paymentMethodRepo.getPaymentMethod(
         id: event.paymentMethodId,
       );
 
-      if (result.error == null) {
+      emit(state.copyWith(
+        status: SinglePaymentMethodStatus.success,
+        paymentMethod: result,
+      ));
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
         emit(state.copyWith(
-          status: SinglePaymentMethodStatus.success,
-          paymentMethod: result,
+          status: SinglePaymentMethodStatus.noConnection,
+          errorMessage: e.toString(),
         ));
       } else {
         emit(state.copyWith(
           status: SinglePaymentMethodStatus.error,
-          errorMessage: result.error ?? 'Failed to load payment method',
+          errorMessage: e.toString(),
         ));
       }
-    } catch (e) {
-      emit(state.copyWith(
-        status: SinglePaymentMethodStatus.error,
-        errorMessage: 'An error occurred: ${e.toString()}',
-      ));
     }
   }
 
