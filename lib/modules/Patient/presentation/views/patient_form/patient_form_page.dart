@@ -24,6 +24,7 @@ import 'package:ocurithm/modules/Patient/presentation/manager/get_patient_examin
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:password_generator/password_generator.dart';
 import 'package:ocurithm/core/utils/constant.dart';
+import 'package:ocurithm/core/utils/auth_service.dart';
 import 'package:ocurithm/modules/Patient/data/model/nationality_model.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
@@ -61,9 +62,13 @@ class PatientFormPage extends StatelessWidget {
                 sl<GetPatientExaminationsCubit>()..getExaminations(patientId!),
           ),
         ],
+        if (AuthService.showClinicSelection)
+          BlocProvider(
+              create: (_) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent())),
         BlocProvider(
-            create: (_) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent())),
-        BlocProvider(create: (_) => sl<GetBranchesCubit>()),
+          create: (_) => sl<GetBranchesCubit>()
+            ..add(SetClinicFilterEvent(AuthService.getEffectiveClinic()?.id)),
+        ),
       ],
       child: PatientFormView(mode: mode, patientId: patientId),
     );
@@ -124,6 +129,10 @@ class _PatientFormViewState extends State<PatientFormView> {
     _passwordController = TextEditingController();
     _addressController = TextEditingController();
     _nationalIdController = TextEditingController();
+
+    if (!AuthService.isAdmin) {
+      selectedClinic = AuthService.userClinic;
+    }
   }
 
   @override
@@ -258,6 +267,12 @@ class _PatientFormViewState extends State<PatientFormView> {
 
     _selectedBranch = patient.branch;
 
+    if (!AuthService.isAdmin) {
+      selectedClinic = AuthService.userClinic;
+    } else {
+      selectedClinic = patient.clinic;
+    }
+
     setState(() {});
   }
 
@@ -290,6 +305,24 @@ class _PatientFormViewState extends State<PatientFormView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    final Widget bodyContent = AuthService.showClinicSelection
+        ? BlocBuilder<GetClinicsCubit, GetClinicsState>(
+            builder: (context, clinicsState) {
+              if (clinicsState.noConnection) {
+                return NoInternet(
+                  fromTop: 0,
+                  onPressed: () =>
+                      context.read<GetClinicsCubit>().add(GetAllClinicsEvent()),
+                );
+              }
+              if (clinicsState.isError) {
+                return Center(child: Text(clinicsState.errorMessage ?? ''));
+              }
+              return _buildMainContent(context, theme, isDark);
+            },
+          )
+        : _buildMainContent(context, theme, isDark);
 
     return Scaffold(
       appBar: AppBar(
@@ -368,101 +401,7 @@ class _PatientFormViewState extends State<PatientFormView> {
             },
           )
         ],
-        child: BlocBuilder<GetClinicsCubit, GetClinicsState>(
-          builder: (context, clinicsState) {
-            // If any dependency has NO CONNECTION, show NoInternet
-            if (clinicsState.noConnection) {
-              return NoInternet(
-                fromTop: 0,
-                onPressed: () {
-                  context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
-                  if (widget.mode != PatientFormMode.add) {
-                    context.read<GetSinglePatientCubit>().add(
-                          GetPatientByIdEvent(widget.patientId!),
-                        );
-                  }
-                },
-              );
-            }
-
-            // If dependency has ERROR, show basic error view
-            if (clinicsState.isError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, size: 60, color: Colors.red),
-                    const SizedBox(height: 16),
-                    Text(clinicsState.errorMessage ?? 'Failed to load clinics'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context
-                            .read<GetClinicsCubit>()
-                            .add(GetAllClinicsEvent());
-                      },
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            if (widget.mode == PatientFormMode.add) {
-              return _buildForm(context, theme, isDark);
-            }
-
-            return BlocBuilder<GetSinglePatientCubit, GetSinglePatientState>(
-              builder: (context, singleState) {
-                if (singleState.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (singleState.noConnection) {
-                  return NoInternet(
-                    fromTop: 0,
-                    onPressed: () {
-                      context.read<GetSinglePatientCubit>().add(
-                            GetPatientByIdEvent(widget.patientId!),
-                          );
-                    },
-                  );
-                }
-
-                if (singleState.isError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline,
-                            size: 60, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text(singleState.errorMessage ??
-                            'Failed to load patient details'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<GetSinglePatientCubit>().add(
-                                  GetPatientByIdEvent(widget.patientId!),
-                                );
-                          },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: _isReadOnly
-                      ? _buildPatientDetailView(theme, isDark)
-                      : _buildForm(context, theme, isDark),
-                );
-              },
-            );
-          },
-        ),
+        child: bodyContent,
       ),
       bottomNavigationBar: (!_isReadOnly || widget.mode == PatientFormMode.add)
           ? _buildBottomBar(context, theme)
@@ -763,8 +702,7 @@ class _PatientFormViewState extends State<PatientFormView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapability"))
+            if (AuthService.showClinicSelection)
               _buildClinicDropdown(theme),
             _buildBranchDropdown(theme),
             const HeightSpacer(size: 20),
@@ -1215,7 +1153,6 @@ class _PatientFormViewState extends State<PatientFormView> {
       hintText: 'Select Nationality',
       itemAsString: (item) => item.name,
       onItemSelected: (item) {
-        log(_selectedNationality!.value.toString());
         setState(() => _selectedNationality = item);
       },
       readOnly: _isReadOnly,
@@ -1359,9 +1296,7 @@ class _PatientFormViewState extends State<PatientFormView> {
 
     // Manual Validation
     setState(() {
-      _isClinicValid = selectedClinic != null ||
-          !CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability");
+      _isClinicValid = selectedClinic != null || !AuthService.showClinicSelection;
       _isBranchValid = _selectedBranch != null;
       _isNationalityValid = _selectedNationality != null;
       _isBirthDateValid = _birthDate != null;
@@ -1397,6 +1332,60 @@ class _PatientFormViewState extends State<PatientFormView> {
           .read<PatientActionsCubit>()
           .add(UpdatePatientEvent(widget.patientId!, patient));
     }
+  }
+
+  Widget _buildMainContent(BuildContext context, ThemeData theme, bool isDark) {
+    if (widget.mode == PatientFormMode.add) {
+      return _buildForm(context, theme, isDark);
+    }
+
+    return BlocBuilder<GetSinglePatientCubit, GetSinglePatientState>(
+      builder: (context, singleState) {
+        if (singleState.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (singleState.noConnection) {
+          return NoInternet(
+            fromTop: 0,
+            onPressed: () {
+              context.read<GetSinglePatientCubit>().add(
+                    GetPatientByIdEvent(widget.patientId!),
+                  );
+            },
+          );
+        }
+
+        if (singleState.isError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(singleState.errorMessage ?? 'Failed to load patient details'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<GetSinglePatientCubit>().add(
+                          GetPatientByIdEvent(widget.patientId!),
+                        );
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: _isReadOnly
+              ? _buildPatientDetailView(theme, isDark)
+              : _buildForm(context, theme, isDark),
+        );
+      },
+    );
   }
 }
 

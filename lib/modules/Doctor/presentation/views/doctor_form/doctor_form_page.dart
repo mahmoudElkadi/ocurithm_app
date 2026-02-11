@@ -12,6 +12,7 @@ import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/text_field.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:ocurithm/generated/l10n.dart';
@@ -24,6 +25,7 @@ import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/widgets/capabilities_section.dart';
 import 'package:ocurithm/Services/whatsapp_confirmation.dart';
+import 'package:ocurithm/core/utils/auth_service.dart';
 import 'package:password_generator/password_generator.dart';
 import 'package:get/get.dart' as getx;
 import '../../../../../core/widgets/DropdownPackage.dart';
@@ -77,9 +79,10 @@ class DoctorFormPage extends StatelessWidget {
             create: (_) =>
                 sl<GetSingleDoctorCubit>()..add(GetDoctorByIdEvent(doctorId!)),
           ),
-        BlocProvider(
-          create: (_) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),
-        ),
+        if (AuthService.showClinicSelection)
+          BlocProvider(
+            create: (_) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),
+          ),
         BlocProvider(
           create: (_) => sl<DoctorBranchActionsCubit>(),
         ),
@@ -158,6 +161,10 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     if (widget.mode != DoctorFormMode.add) {
       _loadDoctorData();
     }
+
+    if (!AuthService.isAdmin) {
+      _selectedClinicId = AuthService.userClinic?.id;
+    }
   }
 
   void _loadDoctorData() {
@@ -202,18 +209,21 @@ class _DoctorFormViewState extends State<DoctorFormView> {
         actions: [
           // Edit button in view mode
           if (widget.mode != DoctorFormMode.add)
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _isReadOnlyState = !_isReadOnlyState;
-                  // If reverting to read-only, reset form data
-                  if (_isReadOnlyState && _loadedDoctor != null) {
-                    _populateForm(_loadedDoctor!);
-                  }
-                });
-              },
-              icon: Icon(
-                _isReadOnly ? Icons.edit : Icons.close,
+            manageCapability(
+              capability: 'manageDoctors',
+              child: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isReadOnlyState = !_isReadOnlyState;
+                    // If reverting to read-only, reset form data
+                    if (_isReadOnlyState && _loadedDoctor != null) {
+                      _populateForm(_loadedDoctor!);
+                    }
+                  });
+                },
+                icon: Icon(
+                  _isReadOnly ? Icons.edit : Icons.close,
+                ),
               ),
             ),
           // Add Branch button
@@ -303,122 +313,97 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             },
           ),
         ],
-        child: BlocBuilder<GetClinicsCubit, GetClinicsState>(
-          builder: (context, clinicsState) {
-            return BlocBuilder<GetCapabilitiesCubit, GetCapabilitiesState>(
-              builder: (context, capabilitiesState) {
-                // If any critical dependency has NO CONNECTION, show NoInternet
-                if (clinicsState.noConnection || capabilitiesState.noConnection) {
-                  return NoInternet(
-                    fromTop: 0,
-                    onPressed: () {
-                      if (clinicsState.noConnection) {
-                        context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
-                      }
-                      if (capabilitiesState.noConnection) {
-                        context
-                            .read<GetCapabilitiesCubit>()
-                            .add(GetAllCapabilitiesEvent());
-                      }
-                      if (widget.mode != DoctorFormMode.add) {
-                        context.read<GetSingleDoctorCubit>().add(
-                              GetDoctorByIdEvent(widget.doctorId!),
-                            );
-                      }
-                    },
-                  );
-                }
-
-                // If any critical dependency has an ERROR (not noConnection), show error view
-                if (clinicsState.isError || capabilitiesState.isError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline,
-                            size: 64, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text(clinicsState.errorMessage ??
-                            capabilitiesState.errorMessage ??
-                            'Failed to load required data'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
+        child: AuthService.showClinicSelection
+            ? BlocBuilder<GetClinicsCubit, GetClinicsState>(
+                builder: (context, clinicsState) {
+                  return BlocBuilder<GetCapabilitiesCubit, GetCapabilitiesState>(
+                    builder: (context, capabilitiesState) {
+                      // If any critical dependency has NO CONNECTION, show NoInternet
+                      if (clinicsState.noConnection ||
+                          capabilitiesState.noConnection) {
+                        return NoInternet(
+                          fromTop: 0,
                           onPressed: () {
-                            if (clinicsState.isError) {
-                              context
-                                  .read<GetClinicsCubit>()
-                                  .add(GetAllClinicsEvent());
+                            if (clinicsState.noConnection) {
+                              context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
                             }
-                            if (capabilitiesState.isError) {
+                            if (capabilitiesState.noConnection) {
                               context
                                   .read<GetCapabilitiesCubit>()
                                   .add(GetAllCapabilitiesEvent());
                             }
+                            if (widget.mode != DoctorFormMode.add) {
+                              context.read<GetSingleDoctorCubit>().add(
+                                    GetDoctorByIdEvent(widget.doctorId!),
+                                  );
+                            }
                           },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
+                        );
+                      }
+
+                      // If any critical dependency has an ERROR (not noConnection), show error view
+                      if (clinicsState.isError || capabilitiesState.isError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error_outline,
+                                  size: 64, color: Colors.red),
+                              const SizedBox(height: 16),
+                              Text(clinicsState.errorMessage ??
+                                  capabilitiesState.errorMessage ??
+                                  'Failed to load required data'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  if (clinicsState.isError) {
+                                    context
+                                        .read<GetClinicsCubit>()
+                                        .add(GetAllClinicsEvent());
+                                  }
+                                  if (capabilitiesState.isError) {
+                                    context
+                                        .read<GetCapabilitiesCubit>()
+                                        .add(GetAllCapabilitiesEvent());
+                                  }
+                                },
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return _buildMainContent(context, theme, isDark);
+                    },
                   );
-                }
-
-                if (widget.mode == DoctorFormMode.add) {
-                  return _buildForm(context, theme, isDark);
-                }
-
-                return BlocBuilder<GetSingleDoctorCubit, GetSingleDoctorState>(
-                  builder: (context, singleState) {
-                    if (singleState.isLoading) {
-                      return _buildFormWithShimmer(context, theme, isDark);
-                    }
-
-                    if (singleState.noConnection) {
-                      return NoInternet(
-                        fromTop: 0,
-                        onPressed: () {
+                },
+              )
+            : BlocBuilder<GetCapabilitiesCubit, GetCapabilitiesState>(
+                builder: (context, capabilitiesState) {
+                  if (capabilitiesState.noConnection) {
+                    return NoInternet(
+                      fromTop: 0,
+                      onPressed: () {
+                        context
+                            .read<GetCapabilitiesCubit>()
+                            .add(GetAllCapabilitiesEvent());
+                        if (widget.mode != DoctorFormMode.add) {
                           context.read<GetSingleDoctorCubit>().add(
                                 GetDoctorByIdEvent(widget.doctorId!),
                               );
-                        },
-                      );
-                    }
-
-                    if (singleState.isError) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.error_outline,
-                                size: 64, color: Colors.red),
-                            const SizedBox(height: 16),
-                            Text(singleState.errorMessage ??
-                                'Failed to load doctor'),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () {
-                                context.read<GetSingleDoctorCubit>().add(
-                                      GetDoctorByIdEvent(widget.doctorId!),
-                                    );
-                              },
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: _isReadOnly
-                          ? _buildDoctorDetailView(theme, isDark)
-                          : _buildForm(context, theme, isDark),
+                        }
+                      },
                     );
-                  },
-                );
-              },
-            );
-          },
-        ),
+                  }
+                  if (capabilitiesState.isError) {
+                    return Center(
+                      child: Text(capabilitiesState.errorMessage ?? 'Error'),
+                    );
+                  }
+                  return _buildMainContent(context, theme, isDark);
+                },
+              ),
       ),
       bottomNavigationBar:
           _isReadOnly ? null : _buildBottomBar(context, theme, isDark),
@@ -503,8 +488,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
           const HeightSpacer(size: 20),
 
           // Clinic Dropdown Shimmer (if user has permission)
-          if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
+          if (AuthService.showClinicSelection)
             _buildShimmer(
               Container(
                 width: double.infinity,
@@ -517,9 +501,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
               theme,
               isDark,
             ),
-          if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
-            const HeightSpacer(size: 20),
+          if (AuthService.showClinicSelection)
+              const HeightSpacer(size: 20),
 
           // Capabilities Shimmer
           _buildShimmer(
@@ -650,8 +633,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             const HeightSpacer(size: 20),
 
             // Clinic Dropdown (if user has permission)
-            if (_isAddMode && CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapability"))
+            if (_isAddMode && AuthService.showClinicSelection)
               _buildClinicDropdown(context, theme, isDark),
 
             // Capabilities Multi-Select (hidden in add mode)
@@ -1165,8 +1147,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     }
 
     // Validate clinic selection (if user has permission)
-    if (_isAddMode && CacheHelper.getStringList(key: "capabilities")
-            .contains("manageCapability") &&
+    if (_isAddMode && AuthService.showClinicSelection &&
         _selectedClinicId == null) {
       SnackbarService.showError(
         context,
@@ -1211,7 +1192,13 @@ class _DoctorFormViewState extends State<DoctorFormView> {
       _qualificationsController.text = doctor.qualifications ?? '';
       _birthDate = doctor.birthDate;
       _imageUrl = doctor.image;
-      _selectedClinicId = doctor.clinic?.id;
+      
+      if (!AuthService.isAdmin) {
+        _selectedClinicId = AuthService.userClinic?.id;
+      } else {
+        _selectedClinicId = doctor.clinic?.id;
+      }
+      
       _isConsultant = doctor.isConsultant ?? false;
 
       // Load branches if clinic is selected
@@ -1842,6 +1829,60 @@ class _DoctorFormViewState extends State<DoctorFormView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMainContent(BuildContext context, ThemeData theme, bool isDark) {
+    if (widget.mode == DoctorFormMode.add) {
+      return _buildForm(context, theme, isDark);
+    }
+
+    return BlocBuilder<GetSingleDoctorCubit, GetSingleDoctorState>(
+      builder: (context, singleState) {
+        if (singleState.isLoading) {
+          return _buildFormWithShimmer(context, theme, isDark);
+        }
+
+        if (singleState.noConnection) {
+          return NoInternet(
+            fromTop: 0,
+            onPressed: () {
+              context.read<GetSingleDoctorCubit>().add(
+                    GetDoctorByIdEvent(widget.doctorId!),
+                  );
+            },
+          );
+        }
+
+        if (singleState.isError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(singleState.errorMessage ?? 'Failed to load doctor'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<GetSingleDoctorCubit>().add(
+                          GetDoctorByIdEvent(widget.doctorId!),
+                        );
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: _isReadOnly
+              ? _buildDoctorDetailView(theme, isDark)
+              : _buildForm(context, theme, isDark),
+        );
+      },
     );
   }
 }

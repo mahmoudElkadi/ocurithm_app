@@ -13,6 +13,7 @@ import 'package:ocurithm/modules/Branch/presentation/manager/branch_actions_cubi
 import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/widgets/branch_form_dialog.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/widgets/branch_view_body.dart';
+import 'package:ocurithm/core/utils/auth_service.dart';
 
 class AdminBranchView extends StatelessWidget {
   const AdminBranchView({super.key});
@@ -22,7 +23,8 @@ class AdminBranchView extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => sl<GetBranchesCubit>()..add(GetAllBranchesEvent()),
+          create: (_) => sl<GetBranchesCubit>()
+            ..add(SetClinicFilterEvent(AuthService.getEffectiveClinic()?.id)),
         ),
         BlocProvider(
           create: (_) => sl<BranchActionsCubit>(),
@@ -70,7 +72,9 @@ class AdminBranchView extends StatelessWidget {
                     }
 
                     // Refresh the branches list
-                    context.read<GetBranchesCubit>().add(GetAllBranchesEvent());
+                    context
+                        .read<GetBranchesCubit>()
+                        .add(SetClinicFilterEvent(AuthService.getEffectiveClinic()?.id));
                   } else if (actionState.isDeleteError) {
                     Navigator.of(context, rootNavigator: true)
                         .pop(); // Close loading dialog
@@ -86,7 +90,12 @@ class AdminBranchView extends StatelessWidget {
             child: CustomMaterialIndicator(
               onRefresh: () async {
                 try {
-                  context.read<GetBranchesCubit>().add(ResetBranchFilters());
+                  if (AuthService.isAdmin) {
+                    context.read<GetBranchesCubit>().add(ResetBranchFilters());
+                  } else {
+                    context.read<GetBranchesCubit>().add(SetClinicFilterEvent(
+                        AuthService.getEffectiveClinic()?.id));
+                  }
                 } catch (e) {
                   log(e.toString());
                 }
@@ -103,7 +112,7 @@ class AdminBranchView extends StatelessWidget {
                           onPressed: () {
                             context
                                 .read<GetBranchesCubit>()
-                                .add(GetAllBranchesEvent());
+                                .add(SetClinicFilterEvent(AuthService.getEffectiveClinic()?.id));
                           },
                         )
                       : const BranchViewBody(),

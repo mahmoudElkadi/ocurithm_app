@@ -21,6 +21,9 @@ import '../../core/widgets/no_internet.dart';
 import '../Login/presentation/view/login_view.dart';
 import '../On boarding/presentation/onBoarding.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/utils/services_locator.dart';
+import '../Login/data/repos/login_repo.dart';
+import '../Login/data/model/login_response.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -87,6 +90,20 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         // Prepare headers with token if available
         if (token!=null) {
           // User is authenticated, navigate to Main View
+          try {
+            final response = await sl<LoginRepo>().getMe();
+            if (response.user != null) {
+              await CacheHelper.saveUser("user", response.user!);
+              await CacheHelper.saveStringList(
+                key: "capabilities",
+                value: response.user!.capabilities,
+              );
+            }
+          } catch (e) {
+             log("Error fetching user data: $e");
+             // Even if getMe fails, we might still want to proceed if token is valid,
+             // but usually it's better to force login if we can't get basic info.
+          }
 
           Get.offAll(
                 () => UpgradeAlert(

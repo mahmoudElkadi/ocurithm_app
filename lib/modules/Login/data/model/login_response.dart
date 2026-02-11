@@ -47,16 +47,37 @@ class User {
   final List<String> capabilities;
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final rawCaps = json["capabilities"];
+
+    List<String> parsedCapabilities = [];
+
+    if (rawCaps != null && rawCaps is List) {
+      parsedCapabilities = rawCaps.map<String>((cap) {
+
+        // Case 1 → Already String
+        if (cap is String) {
+          return cap;
+        }
+
+        // Case 2 → Object → Extract name
+        if (cap is Map<String, dynamic>) {
+          return cap["name"] ?? "";
+        }
+
+        // Fallback safety
+        return "";
+      }).where((cap) => cap.isNotEmpty).toList();
+    }
+
     return User(
       id: json["id"],
       name: json["name"],
       userType: json["userType"],
       clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
-      capabilities: json["capabilities"] == null
-          ? []
-          : List<String>.from(json["capabilities"]!.map((x) => x)),
+      capabilities: parsedCapabilities,
     );
   }
+
 
   Map<String, dynamic> toJson() => {
     "id": id,

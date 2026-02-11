@@ -19,6 +19,8 @@ class ApiConstants {
 
   static String get login => "auth/login";
 
+  static String get me => "auth/me";
+
   static String get refreshToken => "auth/refresh";
 
   static String get branches => "branches";

@@ -22,10 +22,29 @@ class LoginRepoImpl extends LoginRepo {
       fromJson: (json) => LoginModel.fromJson(json),
     );
 
-    if (result.data != null) {
+    if (result.success && result.data != null) {
       return result.data!;
     } else {
       throw Exception(result.message ?? "Failed to Login");
+    }
+  }
+
+  @override
+  Future<LoginModel> getMe() async {
+    final result = await ApiHandler().get<LoginModel>(
+      ApiConstants.me,
+      fromJson: (json) => LoginModel(
+        accessToken: null,
+        refreshToken: null,
+        expiresIn: null,
+        user: User.fromJson(json),
+      ),
+    );
+
+    if (result.success && result.data != null) {
+      return result.data!;
+    } else {
+      throw Exception(result.message ?? "Failed to get user data");
     }
   }
 }

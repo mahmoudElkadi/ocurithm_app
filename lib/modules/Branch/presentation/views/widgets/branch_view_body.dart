@@ -8,6 +8,7 @@ import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/widgets/branch_card.dart';
+import 'package:ocurithm/core/utils/auth_service.dart';
 
 class BranchViewBody extends StatefulWidget {
   const BranchViewBody({super.key});
@@ -55,18 +56,19 @@ class _BranchViewBodyState extends State<BranchViewBody> {
             },
           ),
         ),
-        InkWell(
-          onTap: () {
-            showFilterBottomSheet(context, cubit);
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(
-              Icons.filter_alt_outlined,
-              color: Theme.of(context).primaryColor,
+        if (AuthService.isAdmin)
+          InkWell(
+            onTap: () {
+              showFilterBottomSheet(context, cubit);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.filter_alt_outlined,
+                color: Theme.of(context).primaryColor,
+              ),
             ),
-          ),
-        )
+          )
       ],
     );
   }
