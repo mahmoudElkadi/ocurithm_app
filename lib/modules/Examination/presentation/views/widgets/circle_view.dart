@@ -27,10 +27,7 @@ class QuadrantWidget extends StatefulWidget {
     required this.tapCount,
     required this.colorList,
     this.text = "CF",
-    this.textStyle = const TextStyle(
-      fontSize: 25,
-      fontWeight: FontWeight.bold,
-    ),
+    this.textStyle,
     this.showTextAtCount = 2,
   });
 
@@ -56,7 +53,13 @@ class _QuadrantWidgetState extends State<QuadrantWidget> {
   Widget build(BuildContext context) {
     // Get current color based on tap count
     final currentColor =
-        widget.colorList[int.parse(widget.tapCount.toString())];
+        widget.colorList[widget.tapCount.toInt()];
+
+    // Determine readable text color based on background
+    final Color defaultTextColor =
+        ThemeData.estimateBrightnessForColor(currentColor) == Brightness.dark
+            ? Colors.white
+            : Colors.black;
 
     return GestureDetector(
       onTap: () {
@@ -73,8 +76,14 @@ class _QuadrantWidgetState extends State<QuadrantWidget> {
         child: Center(
           child: Text(
             widget.tapCount == widget.showTextAtCount ? widget.text : "",
-            style: widget.textStyle,
-          ),
+            style: widget.textStyle ??
+                appStyle(
+                  context,
+                  25,
+                  defaultTextColor,
+                  FontWeight.bold,
+                ),
+          ), 
         ),
       ),
     );
@@ -90,15 +99,14 @@ class QuadrantContainer extends StatelessWidget {
   final String? title;
 
   const QuadrantContainer({
-    Key? key,
+    super.key,
     required this.containerSize,
     required this.tapCounts,
     this.tapHandlers,
     required this.colorList,
     required this.side,
     this.title,
-  })  : assert(tapCounts.length == 4),
-        super(key: key);
+  })  : assert(tapCounts.length == 4);
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +133,7 @@ class QuadrantContainer extends StatelessWidget {
                         Theme.of(context).textTheme.bodyLarge!.color!,
                         FontWeight.bold)),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Row(

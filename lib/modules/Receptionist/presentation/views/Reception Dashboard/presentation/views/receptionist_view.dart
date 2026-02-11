@@ -1,3 +1,4 @@
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -72,7 +73,26 @@ class ReceptionistView extends StatelessWidget {
                           );
                     },
                   )
-                : const ReceptionistViewBody(),
+                : CustomMaterialIndicator(
+                    onRefresh: () async {
+                      try {
+                        context
+                            .read<GetReceptionistsCubit>()
+                            .add(ResetReceptionistFilters());
+                      } catch (e) {
+                        debugPrint(e.toString());
+                      }
+                    },
+                    indicatorBuilder: (BuildContext context,
+                        IndicatorController controller) {
+                      return const Image(
+                          image: AssetImage("assets/icons/logo.png"));
+                    },
+                    child: const SingleChildScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      child: ReceptionistViewBody(),
+                    ),
+                  ),
           );
         },
       ),

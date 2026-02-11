@@ -82,6 +82,7 @@ dependencies:
   fl_chart: ^0.69.0
   socket_io_client: ^3.0.2
   audioplayers: ^6.5.1
+  dicom_parser: ^0.0.14
 
 
   flutter_localizations:

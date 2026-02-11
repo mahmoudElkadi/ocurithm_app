@@ -210,7 +210,7 @@ class _HistoryDetails extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.grey[800],
+                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -255,7 +255,7 @@ class _HistoryDetails extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.grey[800],
+                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -280,7 +280,7 @@ class _HistoryDetails extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: 'Type patient history here...',
                       hintStyle: TextStyle(
-                        color: Colors.grey[400],
+                        color: Theme.of(context).hintColor,
                         fontSize: 15,
                       ),
                       contentPadding: const EdgeInsets.all(20),
@@ -300,7 +300,7 @@ class _HistoryDetails extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.grey[800],
+                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -325,7 +325,7 @@ class _HistoryDetails extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: 'Type patient history here...',
                       hintStyle: TextStyle(
-                        color: Colors.grey[400],
+                        color: Theme.of(context).hintColor,
                         fontSize: 15,
                       ),
                       contentPadding: const EdgeInsets.all(20),
@@ -403,7 +403,7 @@ class _StepTwoContent extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Colors.grey[800],
+                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
                 ),
               ),
               const SizedBox(height: 8),
@@ -448,7 +448,7 @@ class _StepTwoContent extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Colors.grey[800],
+                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
                 ),
               ),
               const SizedBox(height: 8),
@@ -493,7 +493,7 @@ class _StepTwoContent extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Colors.grey[800],
+                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
                 ),
               ),
               const SizedBox(height: 8),

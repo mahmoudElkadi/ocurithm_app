@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/modules/Receptionist/data/models/receptionists_model.dart';
@@ -48,7 +50,6 @@ class GetReceptionistsCubit
       Emitter<GetReceptionistsState> emit) async {
     try {
       emit(state.copyWith(state: GetReceptionistsStatus.loading));
-
       final receptionists = await receptionistRepo.getAllReceptionists(
         page: state.page,
         search: state.search,
@@ -56,11 +57,13 @@ class GetReceptionistsCubit
         branch: state.branchFilter,
       );
 
+
       emit(state.copyWith(
         state: GetReceptionistsStatus.success,
         receptionists: receptionists,
       ));
     } catch (e) {
+
       if (e.toString().toLowerCase().contains('no internet connection')) {
         emit(state.copyWith(
           state: GetReceptionistsStatus.noConnection,

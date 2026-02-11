@@ -134,12 +134,12 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
   bool _isFormValid() {
     if (_visibleType == MedicineFormType.medicine) {
-      return (!_hasManageCapability || _selectedClinic != null) &&
-          _selectedActiveIngredient != null &&
+      return (widget.isEdit || !_hasManageCapability || _selectedClinic != null) &&
+          (widget.isEdit || _selectedActiveIngredient != null) &&
           _nameController.text.trim().isNotEmpty &&
           _concentrationController.text.trim().isNotEmpty;
     } else {
-      return (!_hasManageCapability || _selectedClinic != null) &&
+      return (widget.isEdit || !_hasManageCapability || _selectedClinic != null) &&
           _aiNameController.text.trim().isNotEmpty;
     }
   }
@@ -192,7 +192,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
                         color: Colors.grey,
                         borderRadius: BorderRadius.circular(8)),
                   ),
-                  Align(
+                  Align( 
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
@@ -326,7 +326,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (CapabilityServices.hasCapability('manageCapability')) ...[
+        if (CapabilityServices.hasCapability('manageCapability') && !widget.isEdit) ...[
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 5),
             child: Text("Clinic",
@@ -336,52 +336,53 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           _buildClinicDropdown(isDark, onMedicineForm: true),
           const HeightSpacer(size: 15),
         ],
-        BlocBuilder<GetActiveIngredientsCubit, GetActiveIngredientsState>(
-          builder: (context, state) {
-            List<ActiveIngredient> items = [];
-            bool isLoading = false;
-            if (state.status == GetActiveIngredientsStatus.success) {
-              items = state.activeIngredients;
-            } else if (state.status == GetActiveIngredientsStatus.loading) {
-              isLoading = true;
-            }
+        if (!widget.isEdit)
+          BlocBuilder<GetActiveIngredientsCubit, GetActiveIngredientsState>(
+            builder: (context, state) {
+              List<ActiveIngredient> items = [];
+              bool isLoading = false;
+              if (state.status == GetActiveIngredientsStatus.success) {
+                items = state.activeIngredients;
+              } else if (state.status == GetActiveIngredientsStatus.loading) {
+                isLoading = true;
+              }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!widget.isDetails)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0, bottom: 5),
-                    child: Text("Active Ingredient",
-                        style: appStyle(
-                            context,
-                            14,
-                            isDark ? Colors.white70 : Colors.black54,
-                            FontWeight.bold)),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!widget.isDetails)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0, bottom: 5),
+                      child: Text("Active Ingredient",
+                          style: appStyle(
+                              context,
+                              14,
+                              isDark ? Colors.white70 : Colors.black54,
+                              FontWeight.bold)),
+                    ),
+                  DropdownItem<ActiveIngredient>(
+                    radius: 10,
+                    color: isDark ? const Color(0xff2C2C2C) : Colors.white,
+                    border: isDark ? Colors.grey[700] : Colors.grey[400],
+                    isShadow: false,
+                    items: items,
+                    itemAsString: (ActiveIngredient u) => u.name ?? "",
+                    selectedValue: _selectedActiveIngredient?.name,
+                    hintText: "Select Active Ingredient",
+                    onItemSelected: (ActiveIngredient item) {
+                      setState(() {
+                        _selectedActiveIngredient = item;
+                      });
+                    },
+                    isLoading: isLoading,
+                    readOnly: widget.isDetails,
+                    isValid: true,
+                    validateText: "Required",
                   ),
-                DropdownItem<ActiveIngredient>(
-                  radius: 10,
-                  color: isDark ? const Color(0xff2C2C2C) : Colors.white,
-                  border: isDark ? Colors.grey[700] : Colors.grey[400],
-                  isShadow: false,
-                  items: items,
-                  itemAsString: (ActiveIngredient u) => u.name ?? "",
-                  selectedValue: _selectedActiveIngredient?.name,
-                  hintText: "Select Active Ingredient",
-                  onItemSelected: (ActiveIngredient item) {
-                    setState(() {
-                      _selectedActiveIngredient = item;
-                    });
-                  },
-                  isLoading: isLoading,
-                  readOnly: widget.isDetails,
-                  isValid: true,
-                  validateText: "Required",
-                ),
-              ],
-            );
-          },
-        ),
+                ],
+              );
+            },
+          ),
         const HeightSpacer(size: 15),
         _buildTextField(
           controller: _nameController,
@@ -414,7 +415,8 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (CapabilityServices.hasCapability('manageCapability')) ...[
+        if (CapabilityServices.hasCapability('manageCapability') &&
+            !widget.isEdit) ...[
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 5),
             child: Text("Clinic",
@@ -423,7 +425,8 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           ),
           _buildClinicDropdown(isDark),
         ],
-        if (CapabilityServices.hasCapability('manageCapability'))
+        if (CapabilityServices.hasCapability('manageCapability') &&
+            !widget.isEdit)
           const HeightSpacer(size: 15),
         _buildTextField(
           controller: _aiNameController,
@@ -492,7 +495,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
     if (_formKey.currentState!.validate()) {
       customLoading(context, widget.isEdit ? "Updating..." : "Adding...");
       if (_currentType == MedicineFormType.medicine) {
-        if (_selectedActiveIngredient == null) {
+        if (!widget.isEdit && _selectedActiveIngredient == null) {
           Navigator.pop(context);
           SnackbarService.showWarning(context,
               message: "Please select an Active Ingredient");
@@ -501,7 +504,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
         bool needsClinic = CacheHelper.getStringList(key: "capabilities")
             .contains("manageCapability");
-        if (needsClinic && _selectedClinic == null) {
+        if (!widget.isEdit && needsClinic && _selectedClinic == null) {
           Navigator.pop(context);
           setState(() {
             _clinicValidation = false;
@@ -535,9 +538,13 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
         );
 
         if (widget.isEdit && widget.medicine != null) {
-          context
-              .read<MedicineActionsCubit>()
-              .updateMedicine(widget.medicine!.id!, medicine);
+          context.read<MedicineActionsCubit>().updateMedicine(
+              widget.medicine!.id!,
+              CommercialName(
+                name: _nameController.text,
+                description: _descriptionController.text,
+                concentration: _concentrationController.text,
+              ));
         } else {
           context.read<MedicineActionsCubit>().createMedicine(medicine);
         }
@@ -545,7 +552,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
         bool needsClinic = CacheHelper.getStringList(key: "capabilities")
             .contains("manageCapability");
 
-        if (needsClinic && _selectedClinic == null) {
+        if (!widget.isEdit && needsClinic && _selectedClinic == null) {
           Navigator.pop(context);
           setState(() {
             _clinicValidation = false;
@@ -563,7 +570,10 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
         if (widget.isEdit && widget.activeIngredient != null) {
           context.read<MedicineActionsCubit>().updateActiveIngredient(
-              widget.activeIngredient!.id!, activeIngredient);
+              widget.activeIngredient!.id!,
+              ActiveIngredient(
+                name: _aiNameController.text,
+              ));
         } else {
           context
               .read<MedicineActionsCubit>()

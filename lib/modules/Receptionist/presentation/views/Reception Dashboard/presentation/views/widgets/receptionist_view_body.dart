@@ -1,4 +1,3 @@
-import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/views/Reception%20Dashboard/presentation/views/widgets/receptionist_card.dart';
@@ -24,31 +23,23 @@ class _ReceptionistViewBodyState extends State<ReceptionistViewBody> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GetReceptionistsCubit, GetReceptionistsState>(
-      builder: (context, state) => Column(
-        children: [
-          _buildSearchField(context),
-          const HeightSpacer(size: 10),
-          Expanded(
-            child: CustomMaterialIndicator(
-              onRefresh: () async {
-                try {
-                  _searchController.clear();
-                  context.read<GetReceptionistsCubit>().add(
-                        ResetReceptionistFilters(),
-                      );
-                } catch (e) {
-                  // Handle error
-                }
-              },
-              indicatorBuilder:
-                  (BuildContext context, IndicatorController controller) {
-                return const Image(image: AssetImage("assets/icons/logo.png"));
-              },
-              child: const ReceptionistListView(),
-            ),
-          ),
-        ],
+    return BlocListener<GetReceptionistsCubit, GetReceptionistsState>(
+      listenWhen: (previous, current) => previous.search != current.search,
+      listener: (context, state) {
+        if (state.search == '' || state.search == null) {
+          _searchController.text = '';
+        } else if (_searchController.text != state.search) {
+          _searchController.text = state.search!;
+        }
+      },
+      child: BlocBuilder<GetReceptionistsCubit, GetReceptionistsState>(
+        builder: (context, state) => Column(
+          children: [
+            _buildSearchField(context),
+            const HeightSpacer(size: 10),
+            const ReceptionistListView(),
+          ],
+        ),
       ),
     );
   }

@@ -99,11 +99,11 @@ class MedicineRepoImpl implements MedicineRepo {
       final result = await _apiHandler.put<CommercialName>(
         "${ApiConstants.medicines}/$id",
         data: {
-          "clinic": commercialName.clinic?.id,
+          if (commercialName.clinic?.id != null) "clinic": commercialName.clinic?.id,
           "name": commercialName.name,
           "description": commercialName.description,
           "concentration": commercialName.concentration,
-          "parentId": commercialName.parentId?.id,
+          if (commercialName.parentId?.id != null) "parentId": commercialName.parentId?.id,
         },
         options: _getOptions(),
         fromJson: (json) => CommercialName.fromJson(json),
@@ -199,7 +199,7 @@ class MedicineRepoImpl implements MedicineRepo {
       final result = await _apiHandler.put<ActiveIngredient>(
         "${ApiConstants.activeIngredients}/$id",
         data: {
-          "clinic": activeIngredient.clinic?.id,
+          if (activeIngredient.clinic?.id != null) "clinic": activeIngredient.clinic?.id,
           "name": activeIngredient.name,
         },
         options: _getOptions(),

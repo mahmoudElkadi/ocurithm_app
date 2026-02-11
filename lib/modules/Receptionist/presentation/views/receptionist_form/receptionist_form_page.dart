@@ -4,9 +4,11 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../Clinics/data/model/clinics_model.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:intl/intl.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -32,6 +34,19 @@ import '../../../../../../modules/Login/data/model/login_response.dart';
 
 /// Form mode enum
 enum ReceptionistFormMode { add, edit, view }
+
+// Helper class for info items
+class _InfoItemData {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  _InfoItemData({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+}
 
 /// Unified Receptionist Form Page
 /// Handles add, edit, and view modes in a single page
@@ -100,6 +115,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
   String? _imageUrl;
   DateTime? _birthDate;
   String? _selectedClinicId;
+  Clinic? selectedClinic;
   // String? _selectedBranchId;
   Branch? selectedBranch;
   List<Capability> _selectedCapabilities = [];
@@ -130,6 +146,22 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
     _nameController = TextEditingController();
     _phoneController = TextEditingController();
     _passwordController = TextEditingController();
+
+    // Set clinic if user doesn't have manageCapability
+    if (!CacheHelper.getStringList(key: "capabilities")
+        .contains("manageCapability")) {
+      selectedClinic = CacheHelper.getUser("user")?.clinic;
+      _selectedClinicId = selectedClinic?.id;
+
+      // Load branches for user's clinic
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_selectedClinicId != null) {
+          context.read<GetBranchesCubit>().add(
+                SetClinicFilterEvent(_selectedClinicId),
+              );
+        }
+      });
+    }
 
     // Load data for edit/view modes
     if (widget.mode != ReceptionistFormMode.add) {
@@ -282,7 +314,12 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
                     );
                   }
 
-                  return _buildForm(context, theme, isDark);
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _isReadOnly
+                        ? _buildReceptionistDetailView(theme, isDark)
+                        : _buildForm(context, theme, isDark),
+                  );
                 },
               ),
       ),
@@ -548,7 +585,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
 
     return TextField2(
       controller: controller,
-      required: true,
+      required: true, 
       type: keyboardType,
       hintText: hintText,
       fillColor: theme.cardColor,
@@ -656,17 +693,20 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
             items: state.clinics?.clinics ?? [],
             isValid: true,
             validateText: 'Clinic must not be empty',
-            selectedValue: _selectedClinicId != null
-                ? state.clinics?.clinics
-                    .firstWhere((c) => c.id == _selectedClinicId)
-                    .name
-                : null,
+            selectedValue: selectedClinic?.name ??
+                (_selectedClinicId != null
+                    ? state.clinics?.clinics
+                        .where((c) => c.id == _selectedClinicId)
+                        .firstOrNull
+                        ?.name
+                    : null),
             hintText: 'Select Clinic',
             itemAsString: (item) => item.name.toString(),
             readOnly: _isReadOnly,
             onItemSelected: (item) {
               setState(() {
                 _selectedClinicId = item.id;
+                selectedClinic = item;
                 selectedBranch = null; // Reset branch
               });
               // Load branches for selected clinic
@@ -985,6 +1025,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
       phone: _phoneController.text.trim(),
       password: _isAddMode ? _passwordController.text : null,
       branch: selectedBranch,
+      clinic: selectedClinic ?? Clinic(id: _selectedClinicId),
       birthDate: _birthDate,
       image: _imageUrl,
       capability: _selectedCapabilities.map((c) => c.id).toList(),
@@ -1013,6 +1054,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
       _birthDate = receptionist.birthDate;
       selectedBranch = receptionist.branch;
       _selectedClinicId = receptionist.clinic?.id;
+      selectedClinic = receptionist.clinic;
       _loadedReceptionist = receptionist;
 
       // map capability IDs to objects
@@ -1045,6 +1087,261 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
         _selectedCapabilities = [];
       });
     }
+  }
+
+  Widget _buildReceptionistDetailView(ThemeData theme, bool isDark) {
+    if (_loadedReceptionist == null) return const SizedBox.shrink();
+    final receptionist = _loadedReceptionist!;
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          _buildDetailHeader(receptionist, theme, isDark),
+          Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoSection(
+                  title: 'Personal Information',
+                  items: [
+                    _InfoItemData(
+                      label: 'Phone',
+                      value: receptionist.phone ?? 'N/A',
+                      icon: Icons.phone_outlined,
+                    ),
+                    _InfoItemData(
+                      label: 'Birth Date',
+                      value: receptionist.birthDate != null
+                          ? DateFormat('MMM dd, yyyy')
+                              .format(receptionist.birthDate!)
+                          : 'N/A',
+                      icon: Icons.cake_outlined,
+                    ),
+                  ],
+                  theme: theme,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildInfoSection(
+                  title: 'Clinic & Branch',
+                  items: [
+                    _InfoItemData(
+                      label: 'Clinic',
+                      value: receptionist.clinic?.name ?? 'N/A',
+                      icon: Icons.local_hospital_outlined,
+                    ),
+                    _InfoItemData(
+                      label: 'Branch',
+                      value: receptionist.branch?.name ?? 'N/A',
+                      icon: Icons.business_outlined,
+                    ),
+                  ],
+                  theme: theme,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                if (_selectedCapabilities.isNotEmpty)
+                  _buildInfoSection(
+                    title: 'Capabilities',
+                    items: _selectedCapabilities
+                        .map((cap) => _InfoItemData(
+                              label: cap.name ?? 'Capability',
+                              value: 'Active',
+                              icon: Icons.check_circle_outline,
+                            ))
+                        .toList(),
+                    theme: theme,
+                    isDark: isDark,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailHeader(
+      Receptionist receptionist, ThemeData theme, bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 30.h, horizontal: 16.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [theme.primaryColor.withValues(alpha: 0.2), theme.cardColor]
+              : [
+                  theme.primaryColor.withValues(alpha: 0.1),
+                  theme.primaryColor.withValues(alpha: 0.02)
+                ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 80.w,
+            height: 80.w,
+            decoration: BoxDecoration(
+              color: theme.primaryColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: theme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: receptionist.image != null && receptionist.image!.isNotEmpty
+                  ? Image.network(
+                      receptionist.image!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Text(
+                            receptionist.name?.isNotEmpty == true
+                                ? receptionist.name![0].toUpperCase()
+                                : 'R',
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : Center(
+                      child: Text(
+                        receptionist.name?.isNotEmpty == true
+                            ? receptionist.name![0].toUpperCase()
+                            : 'R',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            receptionist.name ?? 'Unknown Receptionist',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child:  Text(
+              'Receptionist',
+              style: TextStyle(
+                color: Colorz.primaryColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoSection({
+    required String title,
+    required List<_InfoItemData> items,
+    required ThemeData theme,
+    required bool isDark,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[900] : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...items.map((item) => _buildInfoRow(item, theme, isDark)).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(_InfoItemData item, ThemeData theme, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              item.icon,
+              size: 20,
+              color: theme.primaryColor,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  item.value,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

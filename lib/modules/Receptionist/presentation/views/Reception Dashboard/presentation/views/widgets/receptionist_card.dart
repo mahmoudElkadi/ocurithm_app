@@ -306,7 +306,7 @@ class _ReceptionistListViewState extends State<ReceptionistListView> {
   Widget _buildReceptionistList(GetReceptionistsState state) {
     return ListView.separated(
       shrinkWrap: true,
-      physics: const AlwaysScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) => Column(
         children: [
           ReceptionistCard(
