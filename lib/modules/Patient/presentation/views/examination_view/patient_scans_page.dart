@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:ocurithm/core/widgets/fullscreen_image_viewer.dart';
+import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/examination_view/scan_details_page.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:ocurithm/core/utils/colors.dart';
@@ -560,6 +561,10 @@ class _PatientScansPageState extends State<PatientScansPage> {
                       itemCount: scan.files.length,
                       itemBuilder: (context, fileIndex) {
                         final file = scan.files[fileIndex];
+                        final isDicom =
+                            file.key?.toLowerCase().endsWith('.dcm') == true ||
+                                file.url?.toLowerCase().endsWith('.dcm') ==
+                                    true;
                         final allUrls = scan.files
                             .where((f) => f.url != null)
                             .map((f) => f.url!)
@@ -574,16 +579,31 @@ class _PatientScansPageState extends State<PatientScansPage> {
                                 tag: file.url ?? "scan_${scan.id}_$fileIndex",
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    file.url ?? "",
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, _, __) => Container(
-                                      color: isDark ? Colors.grey[850] : Colors.grey[200],
-                                      child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
-                                    ),
-                                  ),
+                                  child: isDicom
+                                      ? SizedBox(
+                                          width: 100,
+                                          height: 100,
+                                          child: DicomImageWidget(
+                                            url: file.url,
+                                            fit: BoxFit.cover,
+                                            showMetadata: true,
+                                          ),
+                                        )
+                                      : Image.network(
+                                          file.url ?? "",
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, _, __) =>
+                                              Container(
+                                            color: isDark
+                                                ? Colors.grey[850]
+                                                : Colors.grey[200],
+                                            child: const Icon(
+                                                Icons.broken_image_outlined,
+                                                color: Colors.grey),
+                                          ),
+                                        ),
                                 ),
                               ),
                               Positioned.fill(
@@ -592,7 +612,6 @@ class _PatientScansPageState extends State<PatientScansPage> {
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(12),
                                     onTap: () {
-                                      print('--- Tapped Image: ${file.url} ---');
                                       if (file.url != null) {
                                         Navigator.push(
                                           context,

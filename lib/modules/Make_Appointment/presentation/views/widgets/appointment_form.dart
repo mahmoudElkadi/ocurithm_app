@@ -117,8 +117,10 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
               cubit.add(SelectBranchEvent(null));
               cubit.add(SelectExaminationTypeEvent(null));
               cubit.add(SelectPaymentMethodEvent(null));
+              cubit.add(SelectDoctorEvent(null));
+              cubit.add(SetPatientEvent(null));
               cubit.add(SelectTimeEvent(null));
-              
+
                   context.read<GetBranchesCubit>().add(SetClinicFilterEvent(item.id));
                   context.read<GetBranchesCubit>().add(GetAllBranchesEvent(noPagination: true));
                   context.read<GetPatientsCubit>().add(GetAllPatientsEvent(noPagination: true));

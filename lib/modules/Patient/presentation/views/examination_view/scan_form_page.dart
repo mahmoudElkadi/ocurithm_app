@@ -9,6 +9,7 @@ import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/widgets/DropdownPackage.dart';
 import 'package:ocurithm/core/widgets/custom_date_picker.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
 import 'package:ocurithm/modules/Doctor/data/model/doctor_model.dart';
 import 'package:ocurithm/modules/Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart';
 import 'package:ocurithm/modules/Storage/presentation/manager/storage_cubit/storage_cubit.dart';
@@ -540,17 +541,13 @@ class _ScanFormPageState extends State<ScanFormPage> {
                               isDark ? Colors.grey[800]! : Colors.grey[200]!),
                     ),
                     child: isDicom
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.medical_services,
-                                  size: 40, color: Colorz.primaryColor),
-                              const SizedBox(height: 4),
-                              const Text("DICOM",
-                                  style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold)),
-                            ],
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(15),
+                            child: DicomImageWidget(
+                              filePath: file.localPath,
+                              fit: BoxFit.cover,
+                              showMetadata: true,
+                            ),
                           )
                         : ClipRRect(
                             borderRadius: BorderRadius.circular(15),

@@ -112,7 +112,6 @@ class DoctorRepoImpl implements DoctorRepo {
       Map<String, dynamic> data = {
         "name": doctor.name?.trim(),
         "phone": doctor.phone?.trim(),
-        "clinic": doctor.clinic?.id,
         if (doctor.birthDate != null) "birthDate": doctor.birthDate.toString(),
         if (doctor.capability != null && doctor.capability!.isNotEmpty)
           "capabilities": doctor.capability,

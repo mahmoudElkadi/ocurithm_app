@@ -42,17 +42,17 @@ class MakeAppointmentState {
   
   // Selection Data
   final Clinic? selectedClinic;
-  final Doctor? selectedDoctor;
-  final Branch? selectedBranch;
-  final Patient? selectedPatient;
+   Doctor? selectedDoctor;
+   Branch? selectedBranch;
+   Patient? selectedPatient;
   final DateTime? selectedTime;
-  final PaymentMethod? selectedPaymentMethod;
-  final ExaminationType? selectedExaminationType;
+   PaymentMethod? selectedPaymentMethod;
+   ExaminationType? selectedExaminationType;
   
   final Map<String, bool> validationState;
   final bool areAllFieldsFilled;
   
-  const MakeAppointmentState({
+   MakeAppointmentState({
     this.status = MakeAppointmentStatus.initial,
     this.clinicStatus = DataStatus.initial,
     this.doctorStatus = DataStatus.initial,

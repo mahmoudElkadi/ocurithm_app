@@ -179,15 +179,19 @@ class _TopSnackBarState extends State<_TopSnackBar>
       curve: Curves.elasticOut,
     ));
 
-    // Start animation
     _controller.forward();
 
-    // Schedule dismissal
     Future.delayed(widget.duration, () {
       if (mounted) {
-        _controller.reverse().then((_) => widget.onDismiss());
+        _dismiss();
       }
     });
+  }
+
+  void _dismiss() {
+    if (mounted && _controller.status != AnimationStatus.reverse) {
+      _controller.reverse().then((_) => widget.onDismiss());
+    }
   }
 
   @override
@@ -205,15 +209,39 @@ class _TopSnackBarState extends State<_TopSnackBar>
       child: SlideTransition(
         position: _offsetAnimation,
         child: SafeArea(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              margin: const EdgeInsets.all(16),
-              child: AwesomeSnackbarContent(
-                title: widget.title,
-                message: widget.message,
-                contentType: widget.contentType,
-                color: widget.color,
+          child: Dismissible(
+            key: UniqueKey(),
+            direction: DismissDirection.up,
+            onDismissed: (_) {
+              widget.onDismiss();
+            },
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                child: Stack(
+                  children: [
+                    AwesomeSnackbarContent(
+                      title: widget.title,
+                      message: widget.message,
+                      contentType: widget.contentType,
+                      color: widget.color,
+                    ),
+                    // Detection area for the "X" icon of AwesomeSnackbarContent
+                    Positioned(
+                      top: 10,
+                      right: 15,
+                      child: GestureDetector(
+                        onTap: _dismiss,
+                        behavior: HitTestBehavior.opaque,
+                        child: const SizedBox(
+                          width: 40,
+                          height: 40,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

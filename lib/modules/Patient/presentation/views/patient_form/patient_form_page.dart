@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -238,8 +240,8 @@ class _PatientFormViewState extends State<PatientFormView> {
     if (patient.nationality != null) {
       try {
         _selectedNationality = nationalities.firstWhere((n) =>
-            n.name == patient.nationality ||
-            n.value.toLowerCase() == patient.nationality?.toLowerCase());
+            n.value.toLowerCase() == patient.nationality?.toLowerCase() ||
+            n.name == patient.nationality);
       } catch (e) {
         // ignore
       }
@@ -271,6 +273,18 @@ class _PatientFormViewState extends State<PatientFormView> {
   }
 
   bool get _isReadOnly => _isReadOnlyState;
+
+  String _getNationalityDisplayName(String? nationalityValue) {
+    if (nationalityValue == null || nationalityValue.isEmpty) return 'N/A';
+    try {
+      final nationality = nationalities.firstWhere((n) =>
+          n.value.toLowerCase() == nationalityValue.toLowerCase() ||
+          n.name == nationalityValue);
+      return nationality.name;
+    } catch (_) {
+      return nationalityValue;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -485,7 +499,7 @@ class _PatientFormViewState extends State<PatientFormView> {
                         icon: Icons.cake_outlined),
                     _InfoItemData(
                         label: 'Nationality',
-                        value: p.nationality ?? 'N/A',
+                        value: _getNationalityDisplayName(p.nationality),
                         icon: Icons.flag_outlined),
                   ],
                   theme: theme,
@@ -620,7 +634,7 @@ class _PatientFormViewState extends State<PatientFormView> {
             child: Center(
               child: Text(
                 p.name?.isNotEmpty == true ? p.name![0].toUpperCase() : 'P',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -691,7 +705,7 @@ class _PatientFormViewState extends State<PatientFormView> {
             ),
           ),
           const SizedBox(height: 16),
-          ...items.map((item) => _buildInfoRow(item, theme, isDark)).toList(),
+          ...items.map((item) => _buildInfoRow(item, theme, isDark)),
         ],
       ),
     );
@@ -1200,7 +1214,10 @@ class _PatientFormViewState extends State<PatientFormView> {
       selectedValue: _selectedNationality?.name,
       hintText: 'Select Nationality',
       itemAsString: (item) => item.name,
-      onItemSelected: (item) => setState(() => _selectedNationality = item),
+      onItemSelected: (item) {
+        log(_selectedNationality!.value.toString());
+        setState(() => _selectedNationality = item);
+      },
       readOnly: _isReadOnly,
       isLoading: false,
     );
@@ -1366,7 +1383,7 @@ class _PatientFormViewState extends State<PatientFormView> {
       password: _passwordController.text,
       address: _addressController.text,
       nationalId: _nationalIdController.text,
-      nationality: _selectedNationality?.name,
+      nationality: _selectedNationality?.value,
       birthDate: _birthDate,
       gender: _selectedGender,
       clinic: selectedClinic,

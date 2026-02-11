@@ -31,7 +31,7 @@ class MakeAppointmentCubit extends Bloc<MakeAppointmentEvent, MakeAppointmentSta
 
   final _searchSubject = BehaviorSubject<String>();
 
-  MakeAppointmentCubit(this.makeAppointmentRepo) : super(const MakeAppointmentState()) {
+  MakeAppointmentCubit(this.makeAppointmentRepo) : super( MakeAppointmentState()) {
     on<InitialDataEvent>(_onInitialData);
     // Removed Get... handlers as they are now handled by separate Cubits
     on<GetAppointmentsEvent>(_onGetAppointments);
@@ -47,6 +47,8 @@ class MakeAppointmentCubit extends Bloc<MakeAppointmentEvent, MakeAppointmentSta
     
     // Selection Events
     on<SelectDoctorEvent>((event, emit) {
+      log('doctorssss ${event.doctor}');
+      state.selectedDoctor=event.doctor;
       emit(state.copyWith(selectedDoctor: event.doctor));
       add(ValidateFieldEvent('doctor', true));
     });
@@ -55,15 +57,20 @@ class MakeAppointmentCubit extends Bloc<MakeAppointmentEvent, MakeAppointmentSta
       add(ValidateFieldEvent('clinic', true));
     });
     on<SelectBranchEvent>((event, emit) {
+      state.selectedBranch=event.branch;
       emit(state.copyWith(selectedBranch: event.branch));
        add(ValidateFieldEvent('branch', true));
     });
     on<SelectTimeEvent>((event, emit) => emit(state.copyWith(selectedTime: event.time)));
     on<SelectPaymentMethodEvent>((event, emit) {
+      state.selectedPaymentMethod=event.paymentMethod;
+
       emit(state.copyWith(selectedPaymentMethod: event.paymentMethod));
       add(ValidateFieldEvent('paymentMethod', true));
     });
     on<SelectExaminationTypeEvent>((event, emit) {
+      state.selectedExaminationType=event.examinationType;
+
       emit(state.copyWith(selectedExaminationType: event.examinationType));
       add(ValidateFieldEvent('examinationType', true));
     });
@@ -168,6 +175,7 @@ class MakeAppointmentCubit extends Bloc<MakeAppointmentEvent, MakeAppointmentSta
   }
 
   Future<void> _onSetPatient(SetPatientEvent event, Emitter<MakeAppointmentState> emit) async {
+    state.selectedPatient=event.patient ;
     emit(state.copyWith(
       selectedPatient: event.patient,
       selectedClinic: event.patient?.clinic ?? state.selectedClinic,

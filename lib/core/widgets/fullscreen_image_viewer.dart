@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
 
 class FullscreenImageViewer extends StatefulWidget {
   final List<String> imageUrls;
@@ -41,7 +41,6 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
     if (_isZooming) return;
     setState(() {
       _verticalOffset += details.delta.dy;
-      // Calculate opacity: starts fading after 50px, fully transparent at 300px
       _backgroundOpacity = (1.0 - (_verticalOffset.abs() / 300)).clamp(0.0, 1.0);
     });
   }
@@ -51,12 +50,20 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
     if (_verticalOffset.abs() > 150 || details.primaryVelocity!.abs() > 500) {
       Navigator.of(context).pop();
     } else {
-      // Snap back if swipe wasn't far enough
       setState(() {
         _verticalOffset = 0.0;
         _backgroundOpacity = 1.0;
       });
     }
+  }
+
+  bool _isDicomUrl(String url) {
+    // Check the URL path (before query params) for .dcm extension
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      return uri.path.toLowerCase().endsWith('.dcm');
+    }
+    return url.toLowerCase().endsWith('.dcm');
   }
 
   @override
@@ -89,33 +96,55 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
                   });
                 },
                 itemBuilder: (context, index) {
+                  final url = widget.imageUrls[index];
+                  final isDicom = _isDicomUrl(url);
+
                   return InteractiveViewer(
                     transformationController: _transformationController,
                     minScale: 1.0,
                     maxScale: 5.0,
                     onInteractionStart: (_) => setState(() => _isZooming = true),
                     onInteractionEnd: (_) {
-                      // Check if we are actually zoomed in or just touched
                       if (_transformationController.value.getMaxScaleOnAxis() <= 1.0) {
                         setState(() => _isZooming = false);
                       }
                     },
                     child: Center(
                       child: Hero(
-                        tag: widget.imageUrls[index],
-                        child: Image.network(
-                          widget.imageUrls[index],
-                          fit: BoxFit.contain,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return const Center(
-                              child: CircularProgressIndicator(color: Colors.white70),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildErrorWidget(widget.imageUrls[index]);
-                          },
-                        ),
+                        tag: url,
+                        child: isDicom
+                            ? DicomImageWidget(
+                                url: url,
+                                fit: BoxFit.contain,
+                                showMetadata: true,
+                                loadingWidget: const Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircularProgressIndicator(color: Colors.white70),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Parsing DICOM file...',
+                                        style: TextStyle(color: Colors.white54, fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                errorBuilder: (context) => _buildErrorWidget(url),
+                              )
+                            : Image.network(
+                                url,
+                                fit: BoxFit.contain,
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return const Center(
+                                    child: CircularProgressIndicator(color: Colors.white70),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return _buildErrorWidget(url);
+                                },
+                              ),
                       ),
                     ),
                   );
@@ -150,7 +179,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      const SizedBox(width: 48), // Spacer to balance the close button
+                      const SizedBox(width: 48),
                     ],
                   ),
                 ),
@@ -167,12 +196,10 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
       children: [
         const Icon(Icons.broken_image_rounded, color: Colors.white54, size: 64),
         const SizedBox(height: 16),
-        const Text("Failed to load image", style: TextStyle(color: Colors.white70)),
-        if (url.toLowerCase().endsWith('.dcm')) ...[
-          const SizedBox(height: 8),
-          const Text("(DICOM files cannot be previewed)",
-              style: TextStyle(color: Colors.white38, fontSize: 12)),
-        ]
+        Text(
+          _isDicomUrl(url) ? "Failed to parse DICOM file" : "Failed to load image",
+          style: const TextStyle(color: Colors.white70),
+        ),
       ],
     );
   }

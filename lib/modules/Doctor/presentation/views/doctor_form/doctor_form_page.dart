@@ -35,6 +35,7 @@ import 'widgets/add_doctor_branch_dialog.dart';
 import 'widgets/doctor_examinations_section.dart';
 import '../../manager/get_doctor_examinations_cubit/get_doctor_examinations_cubit.dart';
 import '../../../../../core/widgets/no_internet.dart';
+import '../../../../../core/widgets/confirmation_popuo.dart';
 
 // Helper class for info items
 class _InfoItemData {
@@ -160,8 +161,9 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   }
 
   void _loadDoctorData() {
-    // Data will be loaded via GetSingleDoctorCubit
-    // and populated in the BlocListener
+    if (widget.doctorId != null) {
+      context.read<GetSingleDoctorCubit>().add(GetDoctorByIdEvent(widget.doctorId!));
+    }
   }
 
   @override
@@ -648,7 +650,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             const HeightSpacer(size: 20),
 
             // Clinic Dropdown (if user has permission)
-            if (CacheHelper.getStringList(key: "capabilities")
+            if (_isAddMode && CacheHelper.getStringList(key: "capabilities")
                 .contains("manageCapability"))
               _buildClinicDropdown(context, theme, isDark),
 
@@ -788,6 +790,10 @@ class _DoctorFormViewState extends State<DoctorFormView> {
               setState(() {
                 _passwordController.text = generatedPassword;
               });
+              SnackbarService.showSuccess(
+                context,
+                message: "Password generated successfully",
+              );
             }
           },
           icon: SvgPicture.asset(
@@ -1159,7 +1165,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     }
 
     // Validate clinic selection (if user has permission)
-    if (CacheHelper.getStringList(key: "capabilities")
+    if (_isAddMode && CacheHelper.getStringList(key: "capabilities")
             .contains("manageCapability") &&
         _selectedClinicId == null) {
       SnackbarService.showError(
@@ -1177,7 +1183,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
       qualifications: _qualificationsController.text.trim(),
       birthDate: _birthDate,
       image: _imageUrl,
-      clinic: _selectedClinicId != null
+      clinic: (_isAddMode && _selectedClinicId != null)
           ? Clinic(id: _selectedClinicId, name: null)
           : null,
       capability: _selectedCapabilities.map((c) => c.id).toList(),
@@ -1265,10 +1271,13 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   }
 
   void _confirmDeleteBranch(BuildContext context, BranchElement branch) {
-    getx.Get.defaultDialog(
+    showConfirmationDialog(
+      context: context,
       title: "Delete Branch",
-      middleText: "Are you sure you want to remove this branch?",
-      confirmTextColor: Colors.white,
+      message: "Are you sure you want to remove this branch?",
+      confirmText: "Delete",
+      confirmColor: Colors.red,
+      icon: Icons.delete_outline,
       onConfirm: () {
         context.read<DoctorBranchActionsCubit>().add(
               DeleteDoctorBranchEvent(
@@ -1277,9 +1286,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                     branch.branch?.id?.toString() ?? branch.branchId ?? '',
               ),
             );
-        getx.Get.back();
       },
-      onCancel: () {},
     );
   }
 

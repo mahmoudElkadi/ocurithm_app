@@ -6,6 +6,7 @@ import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/widgets/confirmation_popuo.dart';
+import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
 import 'package:ocurithm/modules/Patient/data/model/scan_records_model.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_scan_details_cubit/get_scan_details_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/scan_actions_cubit/scan_actions_cubit.dart';
@@ -323,6 +324,9 @@ class ScanDetailsPage extends StatelessWidget {
       itemCount: scan.files.length,
       itemBuilder: (context, index) {
         final file = scan.files[index];
+        final isDicom =
+            file.key?.toLowerCase().endsWith('.dcm') == true ||
+                file.url?.toLowerCase().endsWith('.dcm') == true;
         final allImageUrls = scan.files
             .where((f) => f.url != null)
             .map((f) => f.url!)
@@ -351,16 +355,24 @@ class ScanDetailsPage extends StatelessWidget {
               children: [
                 Hero(
                   tag: file.url ?? "scan_image_$index",
-                  child: Image.network(
-                    file.url ?? "",
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return _buildImagePlaceholder(isDark);
-                    },
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildErrorPlaceholder(isDark),
-                  ),
+                  child: isDicom
+                      ? DicomImageWidget(
+                          url: file.url,
+                          fit: BoxFit.cover,
+                          showMetadata: true,
+                          errorBuilder: (context) =>
+                              _buildErrorPlaceholder(isDark),
+                        )
+                      : Image.network(
+                          file.url ?? "",
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return _buildImagePlaceholder(isDark);
+                          },
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildErrorPlaceholder(isDark),
+                        ),
                 ),
                 Positioned(
                   bottom: 0,
@@ -380,7 +392,7 @@ class ScanDetailsPage extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      "Image ${index + 1}",
+                      isDicom ? "DICOM ${index + 1}" : "Image ${index + 1}",
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
