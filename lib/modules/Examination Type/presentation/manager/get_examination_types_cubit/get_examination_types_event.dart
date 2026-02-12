@@ -18,3 +18,9 @@ class SetSearchEvent extends GetExaminationTypesEvent {
 
   const SetSearchEvent(this.query);
 }
+
+class SetClinicFilterEvent extends GetExaminationTypesEvent {
+  final String? clinicId;
+
+  const SetClinicFilterEvent(this.clinicId);
+}

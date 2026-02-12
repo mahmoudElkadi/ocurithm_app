@@ -2,7 +2,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart' hide Transition;
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -10,7 +9,6 @@ import 'package:intl/intl.dart' as intl;
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/utils/format_helper.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/calendar_slider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -18,7 +16,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/confirmation_popuo.dart';
-import '../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/manage_capabilities.dart';
 import '../../../../../core/widgets/search_and_filter.dart';
@@ -659,7 +656,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
     }
 
     return manageCapability(
-      capability: "editAppointmentsReciptionist",
+      capability: "editAppointmentsReceptionist",
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

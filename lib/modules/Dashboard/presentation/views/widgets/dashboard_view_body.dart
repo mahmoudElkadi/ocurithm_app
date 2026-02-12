@@ -58,22 +58,34 @@ class DashboardViewBody extends StatelessWidget {
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(vertical: 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DashboardStatsCards(operational: dashboardData!.operational),
-            const SizedBox(height: 32),
-            TodayAppointmentsWidget(today: dashboardData!.operational?.today),
-            const SizedBox(height: 32),
-            ExaminationTypesChart(distribution: dashboardData!.analytics?.examinationTypeDistribution),
-            const SizedBox(height: 32),
-            ExaminationsTrendChart(trends: dashboardData!.analytics?.examinationsTrend),
-            const SizedBox(height: 32),
-            DashboardComparisons(comparisons: dashboardData!.comparisons),
-            const SizedBox(height: 32),
-            DashboardBottomWidgets(analytics: dashboardData!.analytics),
-            const SizedBox(height: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 32),
+                  TodayAppointmentsWidget(
+                      today: dashboardData!.operational?.today),
+                  const SizedBox(height: 32),
+                  ExaminationTypesChart(
+                      distribution: dashboardData!
+                          .analytics?.examinationTypeDistribution),
+                  const SizedBox(height: 32),
+                  ExaminationsTrendChart(
+                      trends: dashboardData!.analytics?.examinationsTrend),
+                  const SizedBox(height: 32),
+                  DashboardComparisons(comparisons: dashboardData!.comparisons),
+                  const SizedBox(height: 32),
+                  DashboardBottomWidgets(analytics: dashboardData!.analytics),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
           ],
         ),
       ),

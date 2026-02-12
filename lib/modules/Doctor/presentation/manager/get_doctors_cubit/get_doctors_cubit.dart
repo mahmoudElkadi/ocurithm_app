@@ -90,7 +90,9 @@ class GetDoctorsCubit extends Bloc<GetDoctorsEvent, GetDoctorsState> {
   // Set clinic filter
   Future<void> _onSetClinicFilter(
       SetClinicFilterEvent event, Emitter<GetDoctorsState> emit) async {
-    emit(state.copyWith(clinicFilter: event.clinicId, branchFilter: null, page: 1));
+    emit(state.copyWith(
+        clinicFilter: event.clinicId, branchFilter: null, page: 1));
+    add(GetAllDoctorsEvent(noPagination: true));
   }
 
   // Set branch filter

@@ -17,6 +17,7 @@ class GetExaminationTypesState {
   final int currentPage;
   final String searchQuery;
   final bool hasReachedMax;
+  final String? clinicFilter;
 
   const GetExaminationTypesState({
     this.status = GetExaminationTypesStatus.initial,
@@ -25,6 +26,7 @@ class GetExaminationTypesState {
     this.currentPage = 1,
     this.searchQuery = '',
     this.hasReachedMax = false,
+    this.clinicFilter,
   });
 
   GetExaminationTypesState copyWith({
@@ -34,6 +36,7 @@ class GetExaminationTypesState {
     int? currentPage,
     String? searchQuery,
     bool? hasReachedMax,
+    String? clinicFilter,
   }) {
     return GetExaminationTypesState(
       status: status ?? this.status,
@@ -42,6 +45,7 @@ class GetExaminationTypesState {
       currentPage: currentPage ?? this.currentPage,
       searchQuery: searchQuery ?? this.searchQuery,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      clinicFilter: clinicFilter ?? this.clinicFilter,
     );
   }
 

@@ -26,6 +26,7 @@ class GetPaymentMethodsState {
   final int currentPage;
   final String searchQuery;
   final bool hasReachedMax;
+  final String? clinicFilter;
 
   const GetPaymentMethodsState({
     this.state = GetPaymentMethodsStatus.initial,
@@ -34,6 +35,7 @@ class GetPaymentMethodsState {
     this.currentPage = 1,
     this.searchQuery = '',
     this.hasReachedMax = false,
+    this.clinicFilter,
   });
 
   GetPaymentMethodsState copyWith({
@@ -43,6 +45,7 @@ class GetPaymentMethodsState {
     int? currentPage,
     String? searchQuery,
     bool? hasReachedMax,
+    String? clinicFilter,
   }) {
     return GetPaymentMethodsState(
       state: state ?? this.state,
@@ -51,6 +54,7 @@ class GetPaymentMethodsState {
       currentPage: currentPage ?? this.currentPage,
       searchQuery: searchQuery ?? this.searchQuery,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      clinicFilter: clinicFilter ?? this.clinicFilter,
     );
   }
 }

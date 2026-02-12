@@ -34,14 +34,10 @@ class ExaminationActionsCubit extends Cubit<ExaminationActionsState> {
         ));
       }
     } catch (e) {
-      if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-            status: ExaminationActionsStatus.noConnection,
-            error: e.toString()));
-      } else {
+
         emit(state.copyWith(
             status: ExaminationActionsStatus.error, error: e.toString()));
-      }
+
     }
   }
 
@@ -72,14 +68,10 @@ class ExaminationActionsCubit extends Cubit<ExaminationActionsState> {
         ));
       }
     } catch (e) {
-      if (e.toString().toLowerCase().contains('no internet connection')) {
-        emit(state.copyWith(
-            status: ExaminationActionsStatus.noConnection,
-            error: e.toString()));
-      } else {
+
         emit(state.copyWith(
             status: ExaminationActionsStatus.error, error: e.toString()));
-      }
+
     }
   }
   // Add Update/Delete logic if repo supports it

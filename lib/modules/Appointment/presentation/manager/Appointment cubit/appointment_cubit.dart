@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:rxdart/rxdart.dart';
-
-import '../../../../../core/utils/colors.dart';
 import '../../../../Branch/data/model/branches_model.dart' as branch;
 import '../../../../Doctor/data/model/doctor_model.dart';
 import '../../../data/models/appointment_model.dart' as model;
@@ -189,12 +187,12 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
 
   void _onSelectBranch(SelectBranchEvent event, Emitter<AppointmentState> emit) {
     emit(state.copyWith(selectedBranch: event.selectedBranch));
-    add(GetAppointmentsEvent());
+    // add(GetAppointmentsEvent());
   }
 
   void _onSelectDoctor(SelectDoctorEvent event, Emitter<AppointmentState> emit) {
     emit(state.copyWith(selectedDoctor: event.selectedDoctor));
-    add(GetAppointmentsEvent());
+    // add(GetAppointmentsEvent());
   }
 
   void _onSearchChanged(SearchChangedEvent event, Emitter<AppointmentState> emit) {

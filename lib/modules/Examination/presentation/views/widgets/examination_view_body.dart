@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/patient_bottom_sheet.dart';
@@ -20,7 +19,6 @@ import 'package:ocurithm/modules/Examination/presentation/views/widgets/circle_v
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/header_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/navigation_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription.dart';
-import '../../../../Analysis/presentation/manager/analysis_cubit/get_analysis_cubit.dart';
 import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
 import '../../../../../core/utils/services_locator.dart';
 import '../../../../../core/widgets/arrow_text_field.dart';
@@ -95,7 +93,13 @@ class MultiStepFormView extends StatelessWidget {
               ModernStepHeader(
                 currentStep: cubit.currentStep,
                 totalSteps: cubit.totalSteps,
-                onPop: () => cubit.previousStep(),
+                onPop: () {
+                  if (cubit.currentStep > 0) {
+                    cubit.previousStep();
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
                 suffix: IconButton(
                     onPressed: () async {
                       WidgetsBinding.instance.focusManager.primaryFocus
@@ -112,7 +116,7 @@ class MultiStepFormView extends StatelessWidget {
                       }
                     },
                     icon: SvgPicture.asset("assets/icons/patient.svg",
-                        color: Theme.of(context).iconTheme.color)),
+                        colorFilter: ColorFilter.mode(Theme.of(context).iconTheme.color!,BlendMode.srcIn ),)),
               ),
               Expanded(
                 // Wrapped with Expanded
@@ -340,37 +344,30 @@ class _HistoryDetails extends StatelessWidget {
                   ),
                 ),
                 StepNavigation(
-                  onPrevious: () => cubit.previousStep(),
+                  onPrevious: () => cubit.currentStep > 0
+                      ? cubit.previousStep()
+                      : Navigator.pop(context),
                   onNext: () => cubit.nextStep(),
                   isLastStep: cubit.currentStep == cubit.totalSteps - 1,
-                  canGoBack: cubit.currentStep > 0,
+                  canGoBack: true,
                   canContinue: cubit.currentStep < cubit.totalSteps - 1,
                   onSave: () async {
-                    if (cubit.appointmentData != null) {
-                      bool connection =
-                          await InternetConnection().hasInternetAccess;
-                      if (connection) {
+
                         cubit.action = "save";
                         context
                             .read<ExaminationActionsCubit>()
                             .createExamination(data: cubit.examinationData());
-                      } else {
-                      SnackbarService.showWarning(context, message: 'No Internet Connection');
-                      }
-                    }
+
+
                   },
                   onConfirm: () async {
                     if (cubit.appointmentData != null) {
-                      bool connection =
-                          await InternetConnection().hasInternetAccess;
-                      if (connection) {
+
                         cubit.action = "create";
                         context
                             .read<ExaminationActionsCubit>()
                             .createExamination(data: cubit.examinationData());
-                      } else {
-                      SnackbarService.showWarning(context, message: 'No Internet Connection');
-                      }
+
                     }
                   },
                 ),
@@ -534,38 +531,32 @@ class _StepTwoContent extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               StepNavigation(
-                onPrevious: () => cubit.previousStep(),
+                onPrevious: () => cubit.currentStep > 0
+                    ? cubit.previousStep()
+                    : Navigator.pop(context),
                 onNext: () => cubit.nextStep(),
                 isLastStep: cubit.currentStep == cubit.totalSteps - 1,
-                canGoBack: cubit.currentStep > 0,
+                canGoBack: true,
                 canContinue: cubit.currentStep < cubit.totalSteps - 1,
                 onSave: () async {
                   if (cubit.appointmentData != null) {
-                    bool connection =
-                        await InternetConnection().hasInternetAccess;
-                    if (connection) {
+
                       cubit.action = "save";
                       context
                           .read<ExaminationActionsCubit>()
                           .createExamination(data: cubit.examinationData());
-                    } else {
-                      SnackbarService.showWarning(context, message: 'No Internet Connection');
-                    }
+
                   }
                 },
                 onConfirm: () async {
                   if (cubit.appointmentData != null) {
-                    bool connection =
-                        await InternetConnection().hasInternetAccess;
-                    if (connection) {
+
                       cubit.action = "create";
 
                       context
                           .read<ExaminationActionsCubit>()
                           .createExamination(data: cubit.examinationData());
-                    } else {
-                      SnackbarService.showWarning(context, message: 'No Internet Connection');
-                    }
+
                   }
                 },
               ),
@@ -578,7 +569,7 @@ class _StepTwoContent extends StatelessWidget {
 }
 
 class StepThreeContent extends StatefulWidget {
-  const StepThreeContent({Key? key}) : super(key: key);
+  const StepThreeContent({super.key});
 
   @override
   State<StepThreeContent> createState() => _StepThreeContentState();
@@ -589,7 +580,7 @@ class _StepThreeContentState extends State<StepThreeContent> {
   Widget build(BuildContext context) {
     return ListView(
       physics: const ClampingScrollPhysics(),
-      children: [const EyeExaminationView()],
+      children: const [EyeExaminationView()],
     );
   }
 }
@@ -601,11 +592,11 @@ class SegmentLabel extends StatelessWidget {
   final Color color;
 
   const SegmentLabel({
-    Key? key,
+    super.key,
     required this.text,
     required this.index,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -625,12 +616,12 @@ class SegmentLabel extends StatelessWidget {
 }
 
 class EyeExaminationView extends StatelessWidget {
-  const EyeExaminationView({Key? key}) : super(key: key);
+  const EyeExaminationView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ExaminationFormCubit>();
-    final List<Color> _colorList = [
+    final List<Color> colorList = [
       Colors.grey[400]!,
       Colors.black,
       Colors.white,
@@ -658,7 +649,7 @@ class EyeExaminationView extends StatelessWidget {
                     // Left side configuration
                     containerSize: 300,
                     title: "right eye",
-                    colorList: _colorList,
+                    colorList: colorList,
                     tapCounts: [
                       cubit.rightTopLeftTapCount,
                       cubit.rightTopRightTapCount,
@@ -680,7 +671,7 @@ class EyeExaminationView extends StatelessWidget {
                     // Left side configuration
                     containerSize: 300,
                     title: 'left eye',
-                    colorList: _colorList,
+                    colorList: colorList,
                     tapCounts: [
                       cubit.leftTopLeftTapCount,
                       cubit.leftTopRightTapCount,
@@ -705,7 +696,7 @@ class EyeExaminationView extends StatelessWidget {
               style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            IntrinsicHeight(
+            const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
@@ -718,7 +709,7 @@ class EyeExaminationView extends StatelessWidget {
               style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            IntrinsicHeight(
+            const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
@@ -742,7 +733,7 @@ class EyeExaminationView extends StatelessWidget {
                   )),
             ]),
             const HeightSpacer(size: 4),
-            IntrinsicHeight(
+            const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
@@ -758,7 +749,7 @@ class EyeExaminationView extends StatelessWidget {
               style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            IntrinsicHeight(
+            const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
@@ -771,7 +762,7 @@ class EyeExaminationView extends StatelessWidget {
               style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            IntrinsicHeight(
+            const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
@@ -784,7 +775,7 @@ class EyeExaminationView extends StatelessWidget {
               style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            IntrinsicHeight(
+            const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
@@ -797,7 +788,7 @@ class EyeExaminationView extends StatelessWidget {
               style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            IntrinsicHeight(
+            const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
@@ -810,7 +801,7 @@ class EyeExaminationView extends StatelessWidget {
               style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            IntrinsicHeight(
+            const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
@@ -826,7 +817,7 @@ class EyeExaminationView extends StatelessWidget {
               style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
-            IntrinsicHeight(
+            const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
@@ -850,46 +841,33 @@ class EyeExaminationView extends StatelessWidget {
               ],
             ),
             StepNavigation(
-              onPrevious: () => cubit.previousStep(),
+              onPrevious: () => cubit.currentStep > 0
+                  ? cubit.previousStep()
+                  : Navigator.pop(context),
               onNext: () => cubit.nextStep(),
               isLastStep: cubit.currentStep == cubit.totalSteps - 1,
-              canGoBack: cubit.currentStep > 0,
+              canGoBack: true,
               canContinue: cubit.currentStep < cubit.totalSteps - 1,
               onSave: () async {
                 if (cubit.appointmentData != null) {
-                  bool connection =
-                      await InternetConnection().hasInternetAccess;
-                  if (connection) {
+
                     cubit.action = "save";
                     context
                         .read<ExaminationActionsCubit>()
                         .createExamination(data: cubit.examinationData());
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: const Text('No Internet Connection',
-                          style: TextStyle(color: Colors.white)),
-                      backgroundColor: Colorz.redColor,
-                    ));
-                  }
+
+
                 }
               },
               onConfirm: () async {
                 if (cubit.appointmentData != null) {
-                  bool connection =
-                      await InternetConnection().hasInternetAccess;
-                  if (connection) {
+
                     cubit.action = "create";
 
                     context
                         .read<ExaminationActionsCubit>()
                         .createExamination(data: cubit.examinationData());
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: const Text('No Internet Connection',
-                          style: TextStyle(color: Colors.white)),
-                      backgroundColor: Colorz.redColor,
-                    ));
-                  }
+
                 }
               },
             ),
@@ -899,16 +877,10 @@ class EyeExaminationView extends StatelessWidget {
     );
   }
 
-  Widget _buildExpandableContainer(String title, Widget content) {
-    return ModifiedExpandableContainer(
-      title: title,
-      content: content,
-    );
-  }
 }
 
 class RightAutorefContent extends StatelessWidget {
-  const RightAutorefContent({Key? key}) : super(key: key);
+  const RightAutorefContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -968,7 +940,7 @@ class RightAutorefContent extends StatelessWidget {
 }
 
 class LeftAutorefContent extends StatelessWidget {
-  const LeftAutorefContent({Key? key}) : super(key: key);
+  const LeftAutorefContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1088,7 +1060,7 @@ class RightOldGlasses extends StatelessWidget {
 }
 
 class LeftOldGlasses extends StatelessWidget {
-  const LeftOldGlasses({Key? key}) : super(key: key);
+  const LeftOldGlasses({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1152,10 +1124,10 @@ class ModifiedExpandableContainer extends StatefulWidget {
   final Widget content;
 
   const ModifiedExpandableContainer({
-    Key? key,
+    super.key,
     required this.title,
     required this.content,
-  }) : super(key: key);
+  });
 
   @override
   State<ModifiedExpandableContainer> createState() =>
@@ -1220,7 +1192,7 @@ class _ModifiedExpandableContainerState
 }
 
 class RightVisualAcuityContent extends StatefulWidget {
-  const RightVisualAcuityContent({Key? key}) : super(key: key);
+  const RightVisualAcuityContent({super.key});
 
   @override
   State<RightVisualAcuityContent> createState() =>
@@ -1282,7 +1254,7 @@ class _RightVisualAcuityContentState extends State<RightVisualAcuityContent> {
 }
 
 class LeftVisualAcuityContent extends StatefulWidget {
-  const LeftVisualAcuityContent({Key? key}) : super(key: key);
+  const LeftVisualAcuityContent({super.key});
 
   @override
   State<LeftVisualAcuityContent> createState() =>
@@ -1344,7 +1316,7 @@ class _LeftVisualAcuityContentState extends State<LeftVisualAcuityContent> {
 }
 
 class RightPupilsContent extends StatelessWidget {
-  const RightPupilsContent({Key? key}) : super(key: key);
+  const RightPupilsContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1440,7 +1412,7 @@ class RightPupilsContent extends StatelessWidget {
 }
 
 class LeftPupilsContent extends StatelessWidget {
-  const LeftPupilsContent({Key? key}) : super(key: key);
+  const LeftPupilsContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1536,7 +1508,7 @@ class LeftPupilsContent extends StatelessWidget {
 }
 
 class RightRefinedRefractionContent extends StatelessWidget {
-  const RightRefinedRefractionContent({Key? key}) : super(key: key);
+  const RightRefinedRefractionContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1606,7 +1578,7 @@ class RightRefinedRefractionContent extends StatelessWidget {
 }
 
 class LeftRefinedRefractionContent extends StatelessWidget {
-  const LeftRefinedRefractionContent({Key? key}) : super(key: key);
+  const LeftRefinedRefractionContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1675,7 +1647,7 @@ class LeftRefinedRefractionContent extends StatelessWidget {
 }
 
 class RightIOPContent extends StatelessWidget {
-  const RightIOPContent({Key? key}) : super(key: key);
+  const RightIOPContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1738,7 +1710,7 @@ class RightIOPContent extends StatelessWidget {
 }
 
 class LeftIOPContent extends StatelessWidget {
-  const LeftIOPContent({Key? key}) : super(key: key);
+  const LeftIOPContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1803,8 +1775,7 @@ class LeftIOPContent extends StatelessWidget {
 class SlitLampExaminationContent extends StatelessWidget {
   final bool isLeftEye;
 
-  const SlitLampExaminationContent({Key? key, required this.isLeftEye})
-      : super(key: key);
+  const SlitLampExaminationContent({super.key, required this.isLeftEye});
 
   @override
   Widget build(BuildContext context) {
@@ -1907,7 +1878,7 @@ class SlitLampExaminationContent extends StatelessWidget {
 }
 
 class RightAdditionalExaminationContent extends StatelessWidget {
-  const RightAdditionalExaminationContent({Key? key}) : super(key: key);
+  const RightAdditionalExaminationContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1987,7 +1958,7 @@ class RightAdditionalExaminationContent extends StatelessWidget {
 }
 
 class LeftAdditionalExaminationContent extends StatelessWidget {
-  const LeftAdditionalExaminationContent({Key? key}) : super(key: key);
+  const LeftAdditionalExaminationContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -2069,8 +2040,7 @@ class LeftAdditionalExaminationContent extends StatelessWidget {
 class FundusExaminationContent extends StatelessWidget {
   final bool isLeftEye;
 
-  const FundusExaminationContent({Key? key, required this.isLeftEye})
-      : super(key: key);
+  const FundusExaminationContent({super.key, required this.isLeftEye});
 
   @override
   Widget build(BuildContext context) {
@@ -2166,7 +2136,7 @@ class FundusExaminationContent extends StatelessWidget {
 }
 
 class RightEyeLid extends StatelessWidget {
-  const RightEyeLid({Key? key}) : super(key: key);
+  const RightEyeLid({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -2249,7 +2219,7 @@ class RightEyeLid extends StatelessWidget {
 }
 
 class LeftEyeLid extends StatelessWidget {
-  const LeftEyeLid({Key? key}) : super(key: key);
+  const LeftEyeLid({super.key});
 
   @override
   Widget build(BuildContext context) {

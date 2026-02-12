@@ -42,11 +42,12 @@ class PaymentMethodRepoImpl implements PaymentMethodRepo {
 
   @override
   Future<PaymentMethodsModel> getAllPaymentMethods(
-      {int? page, String? search}) async {
+      {int? page, String? search, String? clinic}) async {
     Map<String, dynamic> query = {
       if (page != null) "page": page,
       if (page != null) 'limit': 10,
       if (search != null && search.isNotEmpty) "search": search,
+      if (clinic != null) "clinic": clinic,
     };
 
     try {

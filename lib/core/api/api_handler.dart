@@ -46,7 +46,7 @@ class ApiHandler {
   void _setupInterceptors() {
     final authInterceptor = AuthInterceptor(
       getToken: _getToken,
-      refreshToken: _refreshToken,
+      refreshToken: refreshToken,
       onRefreshFailed: _onRefreshFailed,
     );
 
@@ -66,7 +66,7 @@ class ApiHandler {
     return accessToken;
   }
 
-  Future<void> _refreshToken() async {
+  Future<void> refreshToken() async {
     final refreshToken = CacheHelper.getData(key: 'refreshToken');
     if (refreshToken == null) {
       throw Exception('No refresh token available');

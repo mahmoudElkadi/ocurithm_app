@@ -42,11 +42,12 @@ class ExaminationTypeRepoImpl implements ExaminationTypeRepo {
 
   @override
   Future<ExaminationTypesModel> getAllExaminationTypes(
-      {int? page, String? search}) async {
+      {int? page, String? search, String? clinic}) async {
     Map<String, dynamic> query = {
       if (page != null) "page": page,
       if (page != null) 'limit': 25,
       if (search != null && search.isNotEmpty) "search": search,
+      if (clinic != null) "clinic": clinic,
     };
 
     try {

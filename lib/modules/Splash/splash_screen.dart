@@ -1,13 +1,11 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:lottie/lottie.dart';
 import 'package:ocurithm/core/utils/colors.dart';
@@ -23,7 +21,6 @@ import '../On boarding/presentation/onBoarding.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import '../Login/data/repos/login_repo.dart';
-import '../Login/data/model/login_response.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -93,6 +90,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           try {
             final response = await sl<LoginRepo>().getMe();
             if (response.user != null) {
+              log('capabilitiescapabilitiescapabilities  ${response.user!.capabilities}');
               await CacheHelper.saveUser("user", response.user!);
               await CacheHelper.saveStringList(
                 key: "capabilities",

@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/widgets/DropdownPackage.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/generated/l10n.dart';
 import 'package:ocurithm/modules/Branch/data/model/branches_model.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
@@ -21,7 +23,6 @@ import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_single_patient_cubit/get_single_patient_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/patient_actions_cubit/patient_actions_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_patient_examinations_cubit/get_patient_examinations_cubit.dart';
-import 'package:ocurithm/core/Network/shared.dart';
 import 'package:password_generator/password_generator.dart';
 import 'package:ocurithm/core/utils/constant.dart';
 import 'package:ocurithm/core/utils/auth_service.dart';
@@ -330,16 +331,19 @@ class _PatientFormViewState extends State<PatientFormView> {
         elevation: 0,
         actions: [
           if (widget.mode != PatientFormMode.add)
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _isReadOnlyState = !_isReadOnlyState;
-                  if (_isReadOnlyState && _loadedPatient != null) {
-                    _populateForm(_loadedPatient!);
-                  }
-                });
-              },
-              icon: Icon(_isReadOnly ? Icons.edit : Icons.close),
+            manageCapability(
+              capability: 'managePatients',
+              child: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isReadOnlyState = !_isReadOnlyState;
+                    if (_isReadOnlyState && _loadedPatient != null) {
+                      _populateForm(_loadedPatient!);
+                    }
+                  });
+                },
+                icon: Icon(_isReadOnly ? Icons.edit : Icons.close),
+              ),
             ),
           if (widget.mode != PatientFormMode.add && widget.patientId != null)
             IconButton(
@@ -414,7 +418,7 @@ class _PatientFormViewState extends State<PatientFormView> {
     final p = _loadedPatient!;
 
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         children: [
           _buildDetailHeader(p, theme, isDark),
@@ -696,6 +700,7 @@ class _PatientFormViewState extends State<PatientFormView> {
 
   Widget _buildForm(BuildContext context, ThemeData theme, bool isDark) {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.all(16.w),
       child: Form(
         key: _formKey,
@@ -1335,56 +1340,78 @@ class _PatientFormViewState extends State<PatientFormView> {
   }
 
   Widget _buildMainContent(BuildContext context, ThemeData theme, bool isDark) {
-    if (widget.mode == PatientFormMode.add) {
-      return _buildForm(context, theme, isDark);
-    }
-
-    return BlocBuilder<GetSinglePatientCubit, GetSinglePatientState>(
-      builder: (context, singleState) {
-        if (singleState.isLoading) {
-          return const Center(child: CircularProgressIndicator());
+    return CustomMaterialIndicator(
+      onRefresh: () async {
+        try {
+          if (widget.mode != PatientFormMode.add && widget.patientId != null) {
+            context
+                .read<GetSinglePatientCubit>()
+                .add(GetPatientByIdEvent(widget.patientId!));
+            context
+                .read<GetPatientExaminationsCubit>()
+                .getExaminations(widget.patientId!);
+          }
+          if (AuthService.showClinicSelection) {
+            context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
+          }
+        } catch (e) {
+          log(e.toString());
         }
-
-        if (singleState.noConnection) {
-          return NoInternet(
-            fromTop: 0,
-            onPressed: () {
-              context.read<GetSinglePatientCubit>().add(
-                    GetPatientByIdEvent(widget.patientId!),
-                  );
-            },
-          );
-        }
-
-        if (singleState.isError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 60, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(singleState.errorMessage ?? 'Failed to load patient details'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<GetSinglePatientCubit>().add(
-                          GetPatientByIdEvent(widget.patientId!),
-                        );
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _isReadOnly
-              ? _buildPatientDetailView(theme, isDark)
-              : _buildForm(context, theme, isDark),
-        );
       },
+      indicatorBuilder: (BuildContext context, IndicatorController controller) {
+        return const Image(image: AssetImage("assets/icons/logo.png"));
+      },
+      child: widget.mode == PatientFormMode.add
+          ? _buildForm(context, theme, isDark)
+          : BlocBuilder<GetSinglePatientCubit, GetSinglePatientState>(
+              builder: (context, singleState) {
+                if (singleState.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (singleState.noConnection) {
+                  return NoInternet(
+                    fromTop: 0,
+                    onPressed: () {
+                      context.read<GetSinglePatientCubit>().add(
+                            GetPatientByIdEvent(widget.patientId!),
+                          );
+                    },
+                  );
+                }
+
+                if (singleState.isError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 60, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(singleState.errorMessage ??
+                            'Failed to load patient details'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<GetSinglePatientCubit>().add(
+                                  GetPatientByIdEvent(widget.patientId!),
+                                );
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _isReadOnly
+                      ? _buildPatientDetailView(theme, isDark)
+                      : _buildForm(context, theme, isDark),
+                );
+              },
+            ),
     );
   }
 }

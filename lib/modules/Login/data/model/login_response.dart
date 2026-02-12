@@ -1,4 +1,3 @@
-import '../../../Branch/data/model/branches_model.dart';
 import '../../../Clinics/data/model/clinics_model.dart';
 
 class LoginModel {
@@ -38,6 +37,7 @@ class User {
     required this.userType,
     required this.clinic,
     required this.capabilities,
+    this.image,
   });
 
   final String? id;
@@ -45,6 +45,7 @@ class User {
   final String? userType;
   final Clinic? clinic;
   final List<String> capabilities;
+  final String? image;
 
   factory User.fromJson(Map<String, dynamic> json) {
     final rawCaps = json["capabilities"];
@@ -75,6 +76,7 @@ class User {
       userType: json["userType"],
       clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       capabilities: parsedCapabilities,
+      image: json["image"],
     );
   }
 
@@ -85,6 +87,7 @@ class User {
     "userType": userType,
     "clinic": clinic?.toJson(),
     "capabilities": capabilities.map((x) => x).toList(),
+    "image": image,
   };
 }
 

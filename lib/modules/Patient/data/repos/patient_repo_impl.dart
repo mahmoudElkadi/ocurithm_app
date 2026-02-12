@@ -49,6 +49,7 @@ class PatientRepoImpl implements PatientRepo {
     int? page,
     String? search,
     String? branch,
+    String? clinic,
     bool? isActive,
   }) async {
     Map<String, dynamic> query = {
@@ -56,6 +57,7 @@ class PatientRepoImpl implements PatientRepo {
       if (page != null) 'limit': 10,
       if (search != null && search.isNotEmpty) "search": search,
       if (branch != null) "branch": branch,
+      if (clinic != null) "clinic": clinic,
       if (isActive != null) "isActive": isActive,
     };
 

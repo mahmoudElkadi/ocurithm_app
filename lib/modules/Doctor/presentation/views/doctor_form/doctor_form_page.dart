@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:developer';
 
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -62,10 +65,10 @@ class DoctorFormPage extends StatelessWidget {
   final String? doctorId;
 
   const DoctorFormPage({
-    Key? key,
+    super.key,
     required this.mode,
     this.doctorId,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -105,10 +108,10 @@ class DoctorFormView extends StatefulWidget {
   final String? doctorId;
 
   const DoctorFormView({
-    Key? key,
+    super.key,
     required this.mode,
     this.doctorId,
-  }) : super(key: key);
+  });
 
   @override
   State<DoctorFormView> createState() => _DoctorFormViewState();
@@ -540,6 +543,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
 
   Widget _buildForm(BuildContext context, ThemeData theme, bool isDark) {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.all(16.w),
       child: Form(
         key: _formKey,
@@ -1440,14 +1444,14 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                                       ],
                                     ),
                                   ),
-                                  PopupMenuItem<String>(
+                                  const PopupMenuItem<String>(
                                     value: 'delete',
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.delete,
+                                        Icon(Icons.delete,
                                             size: 20, color: Colors.red),
-                                        const SizedBox(width: 8),
-                                        const Text('Delete',
+                                        SizedBox(width: 8),
+                                        Text('Delete',
                                             style:
                                                 TextStyle(color: Colors.red)),
                                       ],
@@ -1577,7 +1581,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     final doctor = _loadedDoctor!;
 
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         children: [
           _buildDetailHeader(doctor, theme, isDark),
@@ -1782,7 +1786,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             ),
           ),
           const SizedBox(height: 16),
-          ...items.map((item) => _buildInfoRow(item, theme, isDark)).toList(),
+          ...items.map((item) => _buildInfoRow(item, theme, isDark)),
         ],
       ),
     );
@@ -1833,56 +1837,76 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   }
 
   Widget _buildMainContent(BuildContext context, ThemeData theme, bool isDark) {
-    if (widget.mode == DoctorFormMode.add) {
-      return _buildForm(context, theme, isDark);
-    }
-
-    return BlocBuilder<GetSingleDoctorCubit, GetSingleDoctorState>(
-      builder: (context, singleState) {
-        if (singleState.isLoading) {
-          return _buildFormWithShimmer(context, theme, isDark);
+    return CustomMaterialIndicator(
+      onRefresh: () async {
+        try {
+          if (widget.mode != DoctorFormMode.add && widget.doctorId != null) {
+            context
+                .read<GetSingleDoctorCubit>()
+                .add(GetDoctorByIdEvent(widget.doctorId!));
+          }
+          if (AuthService.showClinicSelection) {
+            context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
+          }
+          context.read<GetCapabilitiesCubit>().add(GetAllCapabilitiesEvent());
+        } catch (e) {
+          log(e.toString());
         }
-
-        if (singleState.noConnection) {
-          return NoInternet(
-            fromTop: 0,
-            onPressed: () {
-              context.read<GetSingleDoctorCubit>().add(
-                    GetDoctorByIdEvent(widget.doctorId!),
-                  );
-            },
-          );
-        }
-
-        if (singleState.isError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(singleState.errorMessage ?? 'Failed to load doctor'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<GetSingleDoctorCubit>().add(
-                          GetDoctorByIdEvent(widget.doctorId!),
-                        );
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _isReadOnly
-              ? _buildDoctorDetailView(theme, isDark)
-              : _buildForm(context, theme, isDark),
-        );
       },
+      indicatorBuilder: (BuildContext context, IndicatorController controller) {
+        return const Image(image: AssetImage("assets/icons/logo.png"));
+      },
+      child: _isAddMode
+          ? _buildForm(context, theme, isDark)
+          : BlocBuilder<GetSingleDoctorCubit, GetSingleDoctorState>(
+              builder: (context, singleState) {
+                if (singleState.isLoading) {
+                  return _buildFormWithShimmer(context, theme, isDark);
+                }
+
+                if (singleState.noConnection) {
+                  return NoInternet(
+                    fromTop: 0,
+                    onPressed: () {
+                      context.read<GetSingleDoctorCubit>().add(
+                            GetDoctorByIdEvent(widget.doctorId!),
+                          );
+                    },
+                  );
+                }
+
+                if (singleState.isError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 64, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(singleState.errorMessage ??
+                            'Failed to load doctor'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<GetSingleDoctorCubit>().add(
+                                  GetDoctorByIdEvent(widget.doctorId!),
+                                );
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _isReadOnly
+                      ? _buildDoctorDetailView(theme, isDark)
+                      : _buildForm(context, theme, isDark),
+                );
+              },
+            ),
     );
   }
 }
@@ -1895,12 +1919,12 @@ class ProfileImagePicker extends StatefulWidget {
   final Function() onDelete;
 
   const ProfileImagePicker({
-    Key? key,
+    super.key,
     required this.onImageUploaded,
     this.initialImageUrl,
     this.readOnly = false,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   State<ProfileImagePicker> createState() => _ProfileImagePickerState();
@@ -2166,7 +2190,9 @@ class CloudinaryService {
         throw Exception('Failed to upload image: ${response.body}');
       }
     } catch (e) {
-      print('Error uploading image: $e');
+      if (kDebugMode) {
+        print('Error uploading image: $e');
+      }
       return null;
     }
   }

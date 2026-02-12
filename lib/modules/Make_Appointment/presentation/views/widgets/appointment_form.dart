@@ -8,10 +8,22 @@ import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/manager/Make Appointment cubit/make_appointment_cubit.dart';
 import '../../../../Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import '../../../../Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
-import '../../../../Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart' hide SetClinicFilterEvent;
-import '../../../../Patient/presentation/manager/get_patients_cubit/get_patients_cubit.dart' hide SetClinicFilterEvent, SetBranchFilterEvent;
-import '../../../../Payment Methods/presentation/manager/get_payment_methods_cubit/get_payment_methods_cubit.dart';
-import '../../../../Examination Type/presentation/manager/get_examination_types_cubit/get_examination_types_cubit.dart';
+import '../../../../Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart'
+    hide SetClinicFilterEvent;
+import '../../../../Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart'
+    as doc show SetClinicFilterEvent;
+import '../../../../Patient/presentation/manager/get_patients_cubit/get_patients_cubit.dart'
+    hide SetClinicFilterEvent, SetBranchFilterEvent;
+import '../../../../Patient/presentation/manager/get_patients_cubit/get_patients_cubit.dart'
+    as pat show SetClinicFilterEvent;
+import '../../../../Payment Methods/presentation/manager/get_payment_methods_cubit/get_payment_methods_cubit.dart'
+    hide SetClinicFilterEvent;
+import '../../../../Payment Methods/presentation/manager/get_payment_methods_cubit/get_payment_methods_cubit.dart'
+    as pay show SetClinicFilterEvent;
+import '../../../../Examination Type/presentation/manager/get_examination_types_cubit/get_examination_types_cubit.dart'
+    hide SetClinicFilterEvent;
+import '../../../../Examination Type/presentation/manager/get_examination_types_cubit/get_examination_types_cubit.dart'
+    as exam show SetClinicFilterEvent;
 
 
 import '../../../../../core/utils/colors.dart';
@@ -122,10 +134,18 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
               cubit.add(SelectTimeEvent(null));
 
                   context.read<GetBranchesCubit>().add(SetClinicFilterEvent(item.id));
-                  context.read<GetBranchesCubit>().add(GetAllBranchesEvent(noPagination: true));
-                  context.read<GetPatientsCubit>().add(GetAllPatientsEvent(noPagination: true));
-                  context.read<GetPaymentMethodsCubit>().add(const GetAllPaymentMethodsEvent(noPagination: true));
-                  context.read<GetExaminationTypesCubit>().add(const GetAllExaminationTypesEvent(noPagination: true));
+                  context
+                      .read<GetPatientsCubit>()
+                      .add(pat.SetClinicFilterEvent(item.id));
+                  context
+                      .read<GetPaymentMethodsCubit>()
+                      .add(pay.SetClinicFilterEvent(item.id));
+                  context
+                      .read<GetExaminationTypesCubit>()
+                      .add(exam.SetClinicFilterEvent(item.id));
+                  context
+                      .read<GetDoctorsCubit>()
+                      .add(doc.SetClinicFilterEvent(item.id));
 
           },
           isLoading: clinicState.state == GetClinicsStatus.loading,
@@ -278,10 +298,10 @@ class _FormDataAppointmentState extends State<FormDataAppointment> {
         if (state.selectedClinic != null) {
           final clinic = state.selectedClinic!;
           context.read<GetBranchesCubit>().add(SetClinicFilterEvent(clinic.id));
-          context.read<GetBranchesCubit>().add(GetAllBranchesEvent(noPagination: true));
-          context.read<GetPatientsCubit>().add(GetAllPatientsEvent(noPagination: true));
-          context.read<GetPaymentMethodsCubit>().add(const GetAllPaymentMethodsEvent(noPagination: true));
-          context.read<GetExaminationTypesCubit>().add(const GetAllExaminationTypesEvent(noPagination: true));
+          context.read<GetPatientsCubit>().add(pat.SetClinicFilterEvent(clinic.id));
+          context.read<GetPaymentMethodsCubit>().add(pay.SetClinicFilterEvent(clinic.id));
+          context.read<GetExaminationTypesCubit>().add(exam.SetClinicFilterEvent(clinic.id));
+          context.read<GetDoctorsCubit>().add(doc.SetClinicFilterEvent(clinic.id));
 
           if (state.selectedBranch != null) {
             final branch = state.selectedBranch!;

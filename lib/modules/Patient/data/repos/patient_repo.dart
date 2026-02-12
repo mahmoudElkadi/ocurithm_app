@@ -12,6 +12,7 @@ abstract class PatientRepo {
     int? page,
     String? search,
     String? branch,
+    String? clinic,
     bool? isActive,
   });
 

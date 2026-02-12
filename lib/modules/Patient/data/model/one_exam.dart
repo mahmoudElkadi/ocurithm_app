@@ -1,3 +1,4 @@
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 
 import '../../../Doctor/data/model/doctor_model.dart';
@@ -35,7 +36,6 @@ class Examination {
     this.clinic,
     this.patient,
     this.appointment,
-    this.type,
     required this.measurements,
     this.createdAt,
     this.updatedAt,
@@ -44,10 +44,9 @@ class Examination {
     this.id,
   });
 
-  final String? clinic;
+  final Clinic? clinic;
   final Patient? patient;
   final Appointment? appointment;
-  final Type? type;
   final List<Measurement> measurements;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -57,10 +56,9 @@ class Examination {
 
   factory Examination.fromJson(Map<String, dynamic> json) {
     return Examination(
-      clinic: json["clinic"],
+      clinic:json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       patient: json["patient"] == null ? null : Patient.fromJson(json["patient"]),
       appointment: json["appointment"] == null ? null : Appointment.fromJson(json["appointment"]),
-      type: json["type"] == null ? null : Type.fromJson(json["type"]),
       measurements: json["measurements"] == null
           ? []
           : List<Measurement>.from(json["measurements"]!.map((x) => Measurement.fromJson(x))),
@@ -76,8 +74,7 @@ class Examination {
         "clinic": clinic,
         "patient": patient?.toJson(),
         "appointment": appointment?.toJson(),
-        "type": type?.toJson(),
-        "measurements": measurements.map((x) => x?.toJson()).toList(),
+        "measurements": measurements.map((x) => x.toJson()).toList(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "history": history?.toJson(),
@@ -88,13 +85,7 @@ class Examination {
 
 class Appointment {
   Appointment({
-    this.clinic,
-    this.patient,
-    this.branch,
-    this.doctor,
-    this.examinationType,
     this.datetime,
-    this.paymentMethod,
     this.status,
     this.note,
     this.price,
@@ -104,13 +95,7 @@ class Appointment {
     this.id,
   });
 
-  final String? clinic;
-  final String? patient;
-  final String? branch;
-  final String? doctor;
-  final String? examinationType;
   final DateTime? datetime;
-  final String? paymentMethod;
   final String? status;
   final String? note;
   final num? price;
@@ -121,13 +106,7 @@ class Appointment {
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
     return Appointment(
-      clinic: json["clinic"],
-      patient: json["patient"],
-      branch: json["branch"],
-      doctor: json["doctor"],
-      examinationType: json["examinationType"],
       datetime: DateTime.tryParse(json["datetime"] ?? ""),
-      paymentMethod: json["paymentMethod"],
       status: json["status"],
       note: json["note"],
       price: json["price"],
@@ -139,13 +118,8 @@ class Appointment {
   }
 
   Map<String, dynamic> toJson() => {
-        "clinic": clinic,
-        "patient": patient,
-        "branch": branch,
-        "doctor": doctor,
-        "examinationType": examinationType,
+
         "datetime": datetime?.toIso8601String(),
-        "paymentMethod": paymentMethod,
         "status": status,
         "note": note,
         "price": price,
@@ -446,51 +420,7 @@ class Measurement {
       };
 }
 
-class Type {
-  Type({
-    this.clinic,
-    this.name,
-    this.price,
-    this.duration,
-    this.isActive,
-    this.createdAt,
-    this.updatedAt,
-    this.id,
-  });
 
-  final String? clinic;
-  final String? name;
-  final num? price;
-  final num? duration;
-  final bool? isActive;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  final String? id;
-
-  factory Type.fromJson(Map<String, dynamic> json) {
-    return Type(
-      clinic: json["clinic"],
-      name: json["name"],
-      price: json["price"],
-      duration: json["duration"],
-      isActive: json["isActive"],
-      createdAt: json["createdAt"] == null ? null : DateTime.tryParse(json["createdAt"] ?? "")!.toLocal(),
-      updatedAt: json["updatedAt"] == null ? null : DateTime.tryParse(json["updatedAt"] ?? "")?.toLocal(),
-      id: json["id"],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        "clinic": clinic,
-        "name": name,
-        "price": price,
-        "duration": duration,
-        "isActive": isActive,
-        "createdAt": createdAt?.toIso8601String(),
-        "updatedAt": updatedAt?.toIso8601String(),
-        "id": id,
-      };
-}
 
 class Finalization {
   Finalization({
@@ -526,7 +456,7 @@ class Finalization {
   Map<String, dynamic> toJson() => {
         "examination": examination,
         "diagnosis": diagnosis,
-        "actions": actions.map((x) => x?.toJson()).toList(),
+        "actions": actions.map((x) => x.toJson()).toList(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,

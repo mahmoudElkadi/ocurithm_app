@@ -8,6 +8,7 @@ import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 
+import '../../../modules/Login/data/model/login_response.dart';
 import '../manger/main_cubit.dart';
 import '../manger/main_state.dart';
 import '../../../modules/profile/presentation/views/profile_view.dart';
@@ -201,6 +202,7 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Widget _buildUserInfo(BuildContext context) {
+    final user = CacheHelper.getUser("user");
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -232,54 +234,66 @@ class CustomDrawer extends StatelessWidget {
                               offset: const Offset(0, 0))
                         ],
                       ),
-                      child: CacheHelper.getUser("user")?.name != null
-                          ? Center(
-                              child: Text(
-                                  CacheHelper.getUser("user")
-                                      ?.name
-                                      ?.split("")[0]
-                                      .toUpperCase() as String,
-                                  style: appStyle(
-                                      context,
-                                      50,
-                                      isDark
-                                          ? Colors.grey.shade300
-                                          : Colors.grey.shade700,
-                                      FontWeight.bold)))
-                          : null,
+                      child: ClipOval(
+                        child: (user?.image != null && user!.image!.isNotEmpty)
+                            ? Image.network(
+                                user.image!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildInitial(context, user, isDark),
+                              )
+                            : _buildInitial(context, user, isDark),
+                      ),
                     ),
                     const WidthSpacer(size: 10),
-                    Column(
-                      children: [
-                        Text(
-                          CacheHelper.getUser("user")?.name ?? "Unknown",
-                          style: appStyle(
-                              context,
-                              18,
-                              isDark ? Colors.white : Colors.black,
-                              FontWeight.w600),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const HeightSpacer(size: 5),
-                        Text(
-                          CacheHelper.getUser("user")?.clinic?.name ?? "Clinic",
-                          style: appStyle(
-                              context,
-                              16,
-                              isDark ? Colors.grey.shade400 : Colors.grey,
-                              FontWeight.w500),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const HeightSpacer(size: 5),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            user?.name ?? "Unknown",
+                            style: appStyle(
+                                context,
+                                18,
+                                isDark ? Colors.white : Colors.black,
+                                FontWeight.w600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const HeightSpacer(size: 5),
+                          Text(
+                            user?.clinic?.name ?? "Clinic",
+                            style: appStyle(
+                                context,
+                                16,
+                                isDark ? Colors.grey.shade400 : Colors.grey,
+                                FontWeight.w500),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInitial(BuildContext context, User? user, bool isDark) {
+    return Center(
+      child: Text(
+        user?.name?.isNotEmpty == true ? user!.name![0].toUpperCase() : "U",
+        style: appStyle(
+          context,
+          30,
+          isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+          FontWeight.bold,
         ),
       ),
     );

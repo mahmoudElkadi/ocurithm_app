@@ -17,6 +17,8 @@ import '../../data/models/profile_models.dart';
 import '../manager/get_profile_cubit/get_profile_cubit.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:ocurithm/core/Network/shared.dart';
+import '../../../../modules/Login/data/model/login_response.dart';
 import '../../../../core/utils/snackbar_service.dart';
 import '../manager/profile_actions_cubit/profile_actions_cubit.dart';
 
@@ -79,6 +81,29 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
             // Refresh profile data if update was successful
             if (state.actionType == ProfileActionType.updateProfile &&
                 state.profile != null) {
+              // Update local cache for drawer
+              final currentUser = CacheHelper.getUser("user");
+              if (currentUser != null) {
+                final displayImage = (state.profile!.image != null &&
+                        state.profile!.image!.isNotEmpty)
+                    ? state.profile!.image
+                    : (state.profile!.metadata?.image != null &&
+                            state.profile!.metadata!.image is String &&
+                            state.profile!.metadata!.image.isNotEmpty)
+                        ? state.profile!.metadata!.image as String
+                        : null;
+
+                final updatedUser = User(
+                  id: state.profile!.id,
+                  name: state.profile!.name,
+                  userType: state.profile!.userType,
+                  clinic: state.profile!.clinic,
+                  capabilities: state.profile!.capabilities,
+                  image: displayImage,
+                );
+                CacheHelper.saveUser("user", updatedUser);
+              }
+
               context
                   .read<GetProfileCubit>()
                   .add(UpdateProfileSuccessEvent(state.profile!));
@@ -214,7 +239,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                 border: Border.all(color: Colorz.primaryColor, width: 3),
                 boxShadow: [
                   BoxShadow(
-                      color: Colorz.primaryColor.withOpacity(0.3),
+                      color: Colorz.primaryColor.withValues(alpha: 0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10))
                 ],
@@ -248,7 +273,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.2),
+                  color: Colors.amber.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10.r),
                   border: Border.all(color: Colors.amber, width: 1),
                 ),
@@ -277,7 +302,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
       child: Text(
         title,
         style:
-            appStyle(context, 16, textColor.withOpacity(0.8), FontWeight.w600),
+            appStyle(context, 16, textColor.withValues(alpha: 0.8), FontWeight.w600),
       ),
     );
   }
@@ -285,7 +310,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
   Widget _buildInfoCard(BuildContext context, ProfileModel profile,
       Color cardColor, Color textColor, Color subTextColor, bool isDark) {
     final dividerColor =
-        isDark ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.4);
+        isDark ? Colors.grey.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.4);
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -293,12 +318,12 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
         boxShadow: [
           BoxShadow(
               color: isDark
-                  ? Colors.black.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.08),
+                  ? Colors.black.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.08),
               blurRadius: 15,
               offset: const Offset(0, 8))
         ],
-        border: isDark ? null : Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: isDark ? null : Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       padding: EdgeInsets.all(20.r),
       child: Column(
@@ -333,7 +358,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
         Container(
           padding: EdgeInsets.all(10.r),
           decoration: BoxDecoration(
-            color: Colorz.primaryColor.withOpacity(0.1),
+            color: Colorz.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Icon(icon, color: Colorz.primaryColor, size: 20.sp),
@@ -365,12 +390,12 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
         boxShadow: [
           BoxShadow(
               color: isDark
-                  ? Colors.black.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.08),
+                  ? Colors.black.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.08),
               blurRadius: 15,
               offset: const Offset(0, 8))
         ],
-        border: isDark ? null : Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: isDark ? null : Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -384,8 +409,8 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
           ),
           Divider(
               color: isDark
-                  ? Colors.grey.withOpacity(0.1)
-                  : Colors.grey.withOpacity(0.3),
+                  ? Colors.grey.withValues(alpha: 0.1)
+                  : Colors.grey.withValues(alpha: 0.3),
               height: 1),
           _buildSettingTile(
             context,
@@ -403,7 +428,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
   Widget _buildOrganizationCard(BuildContext context, ProfileModel profile,
       Color cardColor, Color textColor, Color subTextColor, bool isDark) {
     final dividerColor =
-        isDark ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.4);
+        isDark ? Colors.grey.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.4);
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -411,12 +436,12 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
         boxShadow: [
           BoxShadow(
               color: isDark
-                  ? Colors.black.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.08),
+                  ? Colors.black.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.08),
               blurRadius: 15,
               offset: const Offset(0, 8))
         ],
-        border: isDark ? null : Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: isDark ? null : Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       padding: EdgeInsets.all(20.r),
       child: Column(
@@ -447,7 +472,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
       leading: Container(
         padding: EdgeInsets.all(8.r),
         decoration: BoxDecoration(
-          color: isDark ? Colorz.grey200.withOpacity(0.1) : Colorz.grey200,
+          color: isDark ? Colorz.grey200.withValues(alpha: 0.1) : Colorz.grey200,
           shape: BoxShape.circle,
         ),
         child: Icon(icon,
@@ -496,7 +521,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                       width: 50.w,
                       height: 5.h,
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.3),
+                        color: Colors.grey.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -642,7 +667,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                       width: 50.w,
                       height: 5.h,
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.3),
+                        color: Colors.grey.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -761,10 +786,10 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.r),
             borderSide:
-                BorderSide(color: Colorz.primaryColor.withOpacity(0.5))),
+                BorderSide(color: Colorz.primaryColor.withValues(alpha: 0.5))),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.r),
-            borderSide: BorderSide(color: Colorz.grey.withOpacity(0.3))),
+            borderSide: BorderSide(color: Colorz.grey.withValues(alpha: 0.3))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.r),
             borderSide: BorderSide(color: Colorz.primaryColor, width: 1.5)),
@@ -839,10 +864,10 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
             fillColor: cardColor,
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15.r),
-                borderSide: BorderSide(color: Colorz.grey.withOpacity(0.1))),
+                borderSide: BorderSide(color: Colorz.grey.withValues(alpha: 0.1))),
             enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15.r),
-                borderSide: BorderSide(color: Colorz.grey.withOpacity(0.3))),
+                borderSide: BorderSide(color: Colorz.grey.withValues(alpha: 0.3))),
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15.r),
                 borderSide: BorderSide(color: Colorz.primaryColor, width: 1.5)),
@@ -1099,7 +1124,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
             color: theme.cardColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 spreadRadius: 2,
                 blurRadius: 5,
                 offset: const Offset(0, 3),

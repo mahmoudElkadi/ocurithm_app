@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 class FormatHelper {
@@ -32,7 +33,9 @@ class FormatHelper {
       final DateTime date = DateTime.parse(dateString);
       return DateFormat('dd-MM-yyyy').format(date);
     } catch (e) {
-      print('Error parsing date: $e');
+      if (kDebugMode) {
+        print('Error parsing date: $e');
+      }
       return 'Invalid Date'; // or return 'N/A' or any other default value
     }
   }
@@ -42,9 +45,11 @@ class FormatHelper {
 
     try {
       final DateTime date = DateTime.parse(dateString);
-      return DateFormat('HH:mm a').format(date);
+      return DateFormat('hh:mm a').format(date);
     } catch (e) {
-      print('Error parsing date: $e');
+      if (kDebugMode) {
+        print('Error parsing date: $e');
+      }
       return 'Invalid Date'; // or return 'N/A' or any other default value
     }
   }

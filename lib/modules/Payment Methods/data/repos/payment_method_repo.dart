@@ -1,7 +1,7 @@
 import '../model/payment_method_model.dart';
 
 abstract class PaymentMethodRepo {
-  Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? search});
+  Future<PaymentMethodsModel> getAllPaymentMethods({int? page, String? search, String? clinic});
   Future<PaymentMethod> getPaymentMethod({required String id});
   Future<PaymentMethod> createPaymentMethod({required PaymentMethod paymentMethod});
   Future<PaymentMethod> updatePaymentMethod({required String id, required PaymentMethod paymentMethod});

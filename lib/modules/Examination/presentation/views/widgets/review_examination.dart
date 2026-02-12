@@ -262,10 +262,12 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
               ),
 
               StepNavigation(
-                onPrevious: () => cubit.previousStep(),
+                onPrevious: () => cubit.currentStep > 0
+                    ? cubit.previousStep()
+                    : Navigator.pop(context),
                 onNext: () => cubit.nextStep(),
                 isLastStep: cubit.currentStep == cubit.totalSteps - 1,
-                canGoBack: cubit.currentStep > 0,
+                canGoBack: true,
                 canContinue: cubit.currentStep < cubit.totalSteps - 1,
                 onSave: () async {
                   if (cubit.appointmentData != null) {

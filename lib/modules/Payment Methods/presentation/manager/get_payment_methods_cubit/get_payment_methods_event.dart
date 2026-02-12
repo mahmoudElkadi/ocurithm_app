@@ -29,3 +29,9 @@ class SearchPaymentMethodsEvent extends GetPaymentMethodsEvent {
 
   const SearchPaymentMethodsEvent(this.query);
 }
+
+class SetClinicFilterEvent extends GetPaymentMethodsEvent {
+  final String? clinicId;
+
+  const SetClinicFilterEvent(this.clinicId);
+}

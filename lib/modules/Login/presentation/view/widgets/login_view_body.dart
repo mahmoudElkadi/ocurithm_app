@@ -65,7 +65,7 @@ class LoginViewBody extends StatelessWidget {
                               FontWeight.w400)),
                       SvgPicture.asset(
                         "assets/icons/login_icon.svg",
-                        colorFilter: ColorFilter.mode(
+                        colorFilter: const ColorFilter.mode(
                             Colors.transparent, BlendMode.srcIn),
                       ),
                     ],

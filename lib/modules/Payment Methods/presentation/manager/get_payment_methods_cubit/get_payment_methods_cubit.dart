@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../../../data/model/payment_method_model.dart';
@@ -26,6 +25,7 @@ class GetPaymentMethodsCubit
     on<LoadMorePaymentMethodsEvent>(_onLoadMorePaymentMethods);
     on<SetSearchEvent>(_onSetSearch);
     on<SearchPaymentMethodsEvent>(_onSearchPaymentMethods);
+    on<SetClinicFilterEvent>(_onSetClinicFilter);
 
     // Setup debounced search
     _searchSubscription = _searchSubject
@@ -57,6 +57,7 @@ class GetPaymentMethodsCubit
       final result = await paymentMethodRepo.getAllPaymentMethods(
         page: event.noPagination ? null : 1,
         search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        clinic: state.clinicFilter,
       );
 
       emit(state.copyWith(
@@ -94,6 +95,7 @@ class GetPaymentMethodsCubit
       final result = await paymentMethodRepo.getAllPaymentMethods(
         page: nextPage,
         search: state.searchQuery,
+        clinic: state.clinicFilter,
       );
 
       // Merge new payment methods with existing ones
@@ -139,6 +141,7 @@ class GetPaymentMethodsCubit
       final result = await paymentMethodRepo.getAllPaymentMethods(
         page: 1,
         search: event.query,
+        clinic: state.clinicFilter,
       );
 
       emit(state.copyWith(
@@ -160,6 +163,15 @@ class GetPaymentMethodsCubit
         ));
       }
     }
+  }
+
+  /// Set clinic filter
+  void _onSetClinicFilter(
+    SetClinicFilterEvent event,
+    Emitter<GetPaymentMethodsState> emit,
+  ) {
+    emit(state.copyWith(clinicFilter: event.clinicId, currentPage: 1));
+    add(const GetAllPaymentMethodsEvent(noPagination: true));
   }
 
   @override

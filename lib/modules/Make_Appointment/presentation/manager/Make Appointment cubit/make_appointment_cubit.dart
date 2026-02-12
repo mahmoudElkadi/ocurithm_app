@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/modules/Make_Appointment/data/models/make_appointment_model.dart';
 
 import '../../../../../core/Network/shared.dart';
@@ -178,8 +177,6 @@ class MakeAppointmentCubit extends Bloc<MakeAppointmentEvent, MakeAppointmentSta
     state.selectedPatient=event.patient ;
     emit(state.copyWith(
       selectedPatient: event.patient,
-      selectedClinic: event.patient?.clinic ?? state.selectedClinic,
-      selectedBranch: event.patient?.branch ?? state.selectedBranch,
     ));
     add( ValidateFieldEvent('patient', true));
     if (event.patient?.clinic != null) {

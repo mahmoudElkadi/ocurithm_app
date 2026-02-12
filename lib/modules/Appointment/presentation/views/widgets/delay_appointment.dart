@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/network_connection.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import '../../../../../core/utils/booking_calendar/booking_calendar.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/height_spacer.dart';
@@ -203,7 +203,11 @@ class _DelayAppointmentState extends State<DelayAppointment> {
       bloc: widget.cubit,
       listener: (context, state) {
         if (state.status == AppointmentStatus.editSuccess) {
-          Navigator.pop(context, true);
+          Navigator.pop(context); // Pop the loading dialog
+          Navigator.pop(context, true); // Pop the delay appointment screen
+        } else if (state.status == AppointmentStatus.editError) {
+          Navigator.pop(context); // Pop the loading dialog
+          SnackbarService.showError(context, message: state.errorMessage ?? 'An error occurred');
         }
       },
       child: Scaffold(
@@ -278,6 +282,7 @@ class _DelayAppointmentState extends State<DelayAppointment> {
                                 SnackbarService.showWarning(context, message: 'No Internet Connection');
                                 return;
                               }
+                              customLoading(context, 'Updating...');
                               widget.cubit.add(EditAppointmentEvent(
                                 context: context,
                                 id: widget.appointment.id.toString(),
@@ -300,11 +305,15 @@ class _DelayAppointmentState extends State<DelayAppointment> {
                           ),
                         ),
                       ),
+
                     ],
+
                   ),
                 ),
               ),
             ),
+            SizedBox(height: 16.w),
+
           ],
         ),
       ),

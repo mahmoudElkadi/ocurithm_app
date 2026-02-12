@@ -81,7 +81,7 @@ class GetBranchesCubit extends Bloc<GetBranchesEvent, GetBranchesState> {
   Future<void> _onSetClinicFilter(
       SetClinicFilterEvent event, Emitter<GetBranchesState> emit) async {
     emit(state.copyWith(clinicFilter: event.clinicId, page: 1));
-    add(GetAllBranchesEvent());
+    add(GetAllBranchesEvent(noPagination: true));
   }
 
   // Remove branch

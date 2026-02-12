@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/DropdownPackage.dart';
 import 'package:ocurithm/core/widgets/choose_hours_range.dart';
 import 'package:ocurithm/core/widgets/custom_buttons.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/work_day_selector.dart';
 import 'package:ocurithm/generated/l10n.dart';
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
@@ -369,7 +371,9 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
                 const SizedBox(height: 16),
                 _buildBusinessHoursSelector(isLoading),
                 const SizedBox(height: 24),
-                if (!_isReadOnly) _buildSubmitButton(),
+                if (!_isReadOnly) manageCapability(
+                    capability: 'manageBranches',
+                    child: _buildSubmitButton()),
               ],
             ),
           );
@@ -382,12 +386,16 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       key: _formKey,
       child: Column(
         children: [
-          if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
-            _buildClinicDropdown(false),
-          if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
-            const SizedBox(height: 16),
+
+            manageCapability(
+              capability:'manageCapability' ,
+                child:
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildClinicDropdown(false),
+                )
+            ),
+
           _buildCodeField(false),
           const SizedBox(height: 16),
           _buildNameField(false),
@@ -411,12 +419,8 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       return _buildShimmerField();
     }
 
-    // Check if user has permission to manage capabilities
-    final hasmanageCapability = CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability");
-
     // If user has permission, use BlocBuilder to get clinics from cubit
-    if (hasmanageCapability) {
+    if (CapabilityServices.hasCapability('manageCapability')) {
       return BlocBuilder<GetClinicsCubit, GetClinicsState>(
         builder: (context, clinicsState) {
           return DropdownItem(
@@ -438,9 +442,8 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
             onItemSelected: (item) {
               if (!_isReadOnly) {
                 setState(() {
-                  if (item != "Not Found") {
                     selectedClinic = item;
-                  }
+
                 });
               }
             },
@@ -470,9 +473,8 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       onItemSelected: (item) {
         if (!_isReadOnly) {
           setState(() {
-            if (item != "Not Found") {
               selectedClinic = item;
-            }
+
           });
         }
       },
@@ -489,7 +491,9 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       controller: _codeController,
       cursorColor: Theme.of(context).textTheme.bodyLarge?.color,
       readOnly: _isReadOnly,
+      enabled: widget.mode != BranchFormMode.edit,
       decoration: InputDecoration(
+        labelText: 'Code',
         hintText: 'Enter code',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -522,6 +526,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       cursorColor: Theme.of(context).textTheme.bodyLarge?.color,
       readOnly: _isReadOnly,
       decoration: InputDecoration(
+        labelText: 'Name',
         hintText: 'Enter name',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -554,6 +559,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       cursorColor: Theme.of(context).textTheme.bodyLarge?.color,
       readOnly: _isReadOnly,
       decoration: InputDecoration(
+        labelText: 'Address',
         hintText: 'Enter address',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -586,6 +592,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       cursorColor: Theme.of(context).textTheme.bodyLarge?.color,
       readOnly: _isReadOnly,
       decoration: InputDecoration(
+        labelText: 'Phone Number',
         hintText: 'Enter phone number',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

@@ -9,6 +9,8 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import '../../../../../core/utils/audio_services.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/api/api_constants.dart';
+import '../../../../../core/api/api_handler.dart';
+import '../../../../../core/utils/services_locator.dart';
 import '../../../data/models/message_model.dart';
 
 part 'chat_socket_event.dart';
@@ -148,9 +150,27 @@ class ChatSocketBloc extends Bloc<ChatSocketEvent, ChatSocketState> {
       add(_SocketErrorEvent(data.toString()));
     });
 
-    _socket!.on('error', (data) {
+    _socket!.on('error', (data) async {
       print('❌ [ChatSocket] Socket logic error: $data');
       log('[ChatSocket] Error event: $data');
+
+      // Handle Unauthorized error - trigger token refresh and reconnect
+      if (data is Map && data['code'] == 'UNAUTHORIZED') {
+        print(
+            '🔐 [ChatSocket] Unauthorized error detected. Attempting to refresh token...');
+        try {
+          await sl<ApiHandler>().refreshToken();
+          print('✅ [ChatSocket] Token refreshed successfully. Reconnecting...');
+
+          // Disconnect and reconnect with new token
+          _socket?.disconnect();
+          add(ConnectSocketEvent());
+          return;
+        } catch (e) {
+          print('❌ [ChatSocket] Failed to refresh token: $e');
+        }
+      }
+
       if (data is Map && data.containsKey('message')) {
         add(_SocketErrorEvent(data['message']));
       }

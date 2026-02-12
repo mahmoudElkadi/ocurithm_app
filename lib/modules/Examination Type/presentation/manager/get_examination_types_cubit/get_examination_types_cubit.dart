@@ -23,6 +23,7 @@ class GetExaminationTypesCubit
     // Register event handlers
     on<GetAllExaminationTypesEvent>(_onGetAllExaminationTypes);
     on<SetSearchEvent>(_onSetSearch);
+    on<SetClinicFilterEvent>(_onSetClinicFilter);
 
     // Setup debounced search - always resets to page 1
     _searchSubscription = _searchSubject
@@ -59,6 +60,7 @@ class GetExaminationTypesCubit
       final result = await examinationTypeRepo.getAllExaminationTypes(
         page: event.noPagination ? null : (event.page ?? 1),
         search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
+        clinic: state.clinicFilter,
       );
 
       if (result.error == null && result.examinationTypes != null) {
@@ -98,6 +100,15 @@ class GetExaminationTypesCubit
     Emitter<GetExaminationTypesState> emit,
   ) {
     emit(state.copyWith(searchQuery: event.query));
+  }
+
+  /// Set clinic filter
+  void _onSetClinicFilter(
+    SetClinicFilterEvent event,
+    Emitter<GetExaminationTypesState> emit,
+  ) {
+    emit(state.copyWith(clinicFilter: event.clinicId, currentPage: 1));
+    add(const GetAllExaminationTypesEvent(noPagination: true));
   }
 
   @override
