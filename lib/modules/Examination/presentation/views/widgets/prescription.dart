@@ -21,7 +21,7 @@ import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
-import '../../../../Medicine/data/model/medicine_model.dart' as MedicineModel show CommercialName; // Aliased to avoid conflict
+import '../../../../Medicine/data/model/medicine_model.dart' as medicineModel show CommercialName; // Aliased to avoid conflict
 import '../../../../Analysis/presentation/manager/analysis_cubit/get_analysis_cubit.dart';
 import '../../../../Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
 import '../../../../Analysis/presentation/views/widgets/chart_selection_dialog.dart';
@@ -591,7 +591,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
         canPop: false,
         onPopInvokedWithResult: (didPop, result) async {
           if (didPop) return;
-          
+
           await showConfirmationDialog(
             context: context,
             title: "Discard Finalization",
@@ -1018,7 +1018,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
               if (medicationsList.isNotEmpty)
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor.withOpacity(0.5),
+                    color: Theme.of(context).cardColor.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Theme.of(context).dividerColor),
                   ),
@@ -1042,7 +1042,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                                 border: Border.all(color: Theme.of(context).dividerColor),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Theme.of(context).shadowColor.withOpacity(0.1),
+                                    color: Theme.of(context).shadowColor.withValues(alpha:0.1),
                                     spreadRadius: 1,
                                     blurRadius: 3,
                                     offset: const Offset(0, 1),
@@ -1211,7 +1211,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
               // Dropdown for Medicine Name
               BlocBuilder<GetMedicinesCubit, GetMedicinesState>(
                 builder: (context, state) {
-                  return FlutterDropdownSearch<MedicineModel.CommercialName>(
+                  return FlutterDropdownSearch<medicineModel.CommercialName>(
                     hintText: "Select Medicine",
                     isLoading: state.status == GetMedicinesStatus.loading,
                     items: state.medicines,
@@ -1602,11 +1602,19 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
           child: Column(
             children: [
               InkWell(
-                onTap: () {
+                onTap: () async {
                   widget.appointment?.datetime = null;
-                  Get.to(() => MakeAppointmentView(
+                  final result = await Get.to(() => MakeAppointmentView(
                         appointment: widget.appointment,
                       ));
+                  
+                  // If appointment was created successfully, get the selected date/time
+                  if (result != null && result is DateTime) {
+                    setState(() {
+                      selectedDate = result;
+                      selectedTime = TimeOfDay.fromDateTime(result);
+                    });
+                  }
                 },
                 child: Container(
                   padding:
@@ -1721,7 +1729,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
     String minute = selectedTime!.minute.toString().padLeft(2, '0');
     String formattedTime = '$hour:$minute $period';
 
-    return 'As before $formattedDate $formattedTime';
+    return '$formattedDate $formattedTime';
   }
 
   Widget _buildDropdown({
@@ -1770,7 +1778,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colorz.primaryColor.withOpacity(0.3),
+                color: Colorz.primaryColor.withValues(alpha:0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -1827,9 +1835,9 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colorz.primaryColor.withOpacity(0.05),
+                        color: Colorz.primaryColor.withValues(alpha:0.05),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colorz.primaryColor.withOpacity(0.1)),
+                        border: Border.all(color: Colorz.primaryColor.withValues(alpha:0.1)),
                       ),
                       child: Column(
                         children: [

@@ -97,13 +97,12 @@ class PatientRepoImpl implements PatientRepo {
       "name": patient.name?.trim(),
       "phone": patient.phone?.trim(),
       "branch": patient.branch?.id,
-      "email": patient.email?.trim(),
-      "clinic": patient.clinic?.id,
+      if(patient.email !=null&& patient.email!.isNotEmpty) "email": patient.email?.trim(),
       "address": patient.address?.trim(),
       "username": patient.username?.trim(),
       "gender": patient.gender,
       "nationality": patient.nationality?.trim(),
-      "nationalID": patient.nationalId?.trim().toString(),
+      "nationalID": patient.nationalId?.trim().toString(), 
       "serialNumber": patient.nationalId?.trim().toString(),
       if (patient.birthDate != null)
         "birthDate": patient.birthDate!.toIso8601String(),
@@ -262,6 +261,20 @@ class PatientRepoImpl implements PatientRepo {
 
     if (!response.success) {
       throw Exception(response.message ?? "Failed to delete scan");
+    }
+  }
+
+  @override
+  Future<bool> checkDuplicateName({required String name}) async {
+    final response = await _apiHandler.get<Map<String, dynamic>>(
+      ApiConstants.checkDuplicatePatientName,
+      queryParameters: {"name": name},
+    );
+
+    if (response.success && response.data != null) {
+      return response.data!['exists'] ?? false;
+    } else {
+      throw Exception(response.message ?? "Failed to check duplicate name");
     }
   }
 }

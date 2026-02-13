@@ -137,7 +137,6 @@ class ReceptionistRepoImpl implements ReceptionistRepo {
         "name": receptionist.name?.trim(),
         "phone": receptionist.phone?.trim(),
         "branch": receptionist.branch?.id,
-        "clinic": receptionist.clinic?.id,
         if (receptionist.birthDate != null)
           "birthDate": receptionist.birthDate.toString(),
         if (receptionist.capability != null &&

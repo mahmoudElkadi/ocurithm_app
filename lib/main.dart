@@ -10,6 +10,7 @@ import 'core/Network/shared.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/theme/theme_state.dart';
+import 'core/utils/capability_services.dart';
 import 'core/utils/services_locator.dart';
 import 'modules/Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
 import 'modules/Splash/splash_screen.dart';
@@ -58,7 +59,9 @@ class MyApp extends StatelessWidget {
               title: 'Ocurithm',
               home: const LoadingScreen(),
               builder: (context, child) {
-                return FloatingChatWrapper(child: child!);
+                return CapabilityServices.hasCapability("chat")
+                    ? FloatingChatWrapper(child: child!)
+                    : child!;
               },
             );
           },

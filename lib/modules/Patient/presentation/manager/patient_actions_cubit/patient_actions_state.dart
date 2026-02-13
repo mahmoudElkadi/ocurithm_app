@@ -39,6 +39,8 @@ class PatientActionsState {
   final String? errorMessage;
   final String? successMessage;
   final Patient? patient;
+  final bool? isNameDuplicate;
+  final bool isCheckingDuplicateName;
 
   const PatientActionsState({
     this.state = PatientActionsStatus.initial,
@@ -46,6 +48,8 @@ class PatientActionsState {
     this.errorMessage,
     this.successMessage,
     this.patient,
+    this.isNameDuplicate,
+    this.isCheckingDuplicateName = false,
   });
 
   PatientActionsState copyWith({
@@ -54,6 +58,8 @@ class PatientActionsState {
     String? errorMessage,
     String? successMessage,
     Patient? patient,
+    bool? isNameDuplicate,
+    bool? isCheckingDuplicateName,
   }) {
     return PatientActionsState(
       state: state ?? this.state,
@@ -61,6 +67,8 @@ class PatientActionsState {
       errorMessage: errorMessage ?? this.errorMessage,
       successMessage: successMessage ?? this.successMessage,
       patient: patient ?? this.patient,
+      isNameDuplicate: isNameDuplicate ?? this.isNameDuplicate,
+      isCheckingDuplicateName: isCheckingDuplicateName ?? this.isCheckingDuplicateName,
     );
   }
 }

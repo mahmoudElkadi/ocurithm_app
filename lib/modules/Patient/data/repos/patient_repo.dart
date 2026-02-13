@@ -52,4 +52,6 @@ abstract class PatientRepo {
     required String patientId,
     required String scanId,
   });
+
+  Future<bool> checkDuplicateName({required String name});
 }

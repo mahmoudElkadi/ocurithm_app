@@ -23,3 +23,9 @@ class DeletePatientEvent extends PatientActionsEvent {
 }
 
 class ResetPatientActionsEvent extends PatientActionsEvent {}
+
+class CheckDuplicateNameEvent extends PatientActionsEvent {
+  final String name;
+
+  CheckDuplicateNameEvent(this.name);
+}

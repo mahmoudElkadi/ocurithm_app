@@ -65,4 +65,7 @@ class ApiConstants {
   // WebSocket
   static String get chatSocketUrl => baseUrl.replaceFirst('/api/', '');
   static String get chatSocketNamespace => "/chat";
+
+  // Patient
+  static String get checkDuplicatePatientName => "patients/check-duplicate-name";
 }

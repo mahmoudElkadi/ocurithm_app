@@ -72,40 +72,102 @@ class ApiHandler {
       throw Exception('No refresh token available');
     }
 
-    try {
-      // Use the existing dio instance
-      // Authentication headers are skipped for auth/refresh in AuthInterceptor
-      final response = await _dio.post(
-        ApiConstants.refreshToken,
-        data: {'refreshToken': refreshToken},
-      );
+    // Create a separate Dio instance for refresh requests to avoid interceptor conflicts
+    final refreshDio = Dio(
+      BaseOptions(
+        baseUrl: ApiConstants.baseUrl,
+        connectTimeout: const Duration(
+          milliseconds: ApiConstants.connectionTimeout,
+        ),
+        receiveTimeout: const Duration(
+          milliseconds: ApiConstants.receiveTimeout,
+        ),
+        sendTimeout: const Duration(milliseconds: ApiConstants.sendTimeout),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ),
+    );
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        // Adjust these keys based on your API response structure
-        // Usually it's either data['accessToken'] or data['data']['accessToken']
-        final newAccessToken = data['accessToken'] ??
-            (data['data'] is Map ? data['data']['accessToken'] : null);
-        final newRefreshToken = data['refreshToken'] ??
-            (data['data'] is Map ? data['data']['refreshToken'] : null);
+    // Add logging interceptor only for debugging
+    refreshDio.interceptors.add(LoggingInterceptor());
 
-        if (newAccessToken != null) {
-          await CacheHelper.saveString(key: "token", value: newAccessToken);
-          if (newRefreshToken != null) {
-            await CacheHelper.saveString(
-                key: "refreshToken", value: newRefreshToken);
+    const maxRetries = 3;
+    const baseDelay = Duration(milliseconds: 500);
+
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        log('Token refresh attempt $attempt/$maxRetries');
+
+        final response = await refreshDio.post(
+          ApiConstants.refreshToken,
+          data: {'refreshToken': refreshToken},
+        );
+
+        if (response.statusCode == 200) {
+          final data = response.data;
+          // Adjust these keys based on your API response structure
+          // Usually it's either data['accessToken'] or data['data']['accessToken']
+          final newAccessToken = data['accessToken'] ??
+              (data['data'] is Map ? data['data']['accessToken'] : null);
+          final newRefreshToken = data['refreshToken'] ??
+              (data['data'] is Map ? data['data']['refreshToken'] : null);
+
+          if (newAccessToken != null) {
+            await CacheHelper.saveString(key: "token", value: newAccessToken);
+            if (newRefreshToken != null) {
+              await CacheHelper.saveString(
+                  key: "refreshToken", value: newRefreshToken);
+            }
+            log('Token refreshed successfully on attempt $attempt');
+            return;
+          } else {
+            throw Exception('No access token in response');
           }
-          log('Token refreshed successfully');
+        } else if (response.statusCode == 401) {
+          // Refresh token is invalid/expired, don't retry
+          throw Exception('Refresh token is invalid or expired (401)');
         } else {
-          throw Exception('No access token in response');
+          throw Exception('Failed to refresh token: ${response.statusCode}');
         }
-      } else {
-        throw Exception('Failed to refresh token: ${response.statusCode}');
+      } catch (e) {
+        log('Token refresh attempt $attempt failed: $e');
+
+        // If this is the last attempt or the error is not retryable, throw
+        if (attempt == maxRetries || _isNonRetryableError(e)) {
+          log('Token refresh failed after $attempt attempts');
+          rethrow;
+        }
+
+        // Exponential backoff: delay increases with each attempt
+        final delay = baseDelay * (1 << (attempt - 1));
+        log('Waiting ${delay.inMilliseconds}ms before retry...');
+        await Future.delayed(delay);
       }
-    } catch (e) {
-      log('Error during token refresh: $e');
-      rethrow;
     }
+  }
+
+  /// Check if an error is non-retryable (should not retry)
+  bool _isNonRetryableError(dynamic error) {
+    if (error is DioException) {
+      // Don't retry on 401 (invalid refresh token) or 400 (bad request)
+      if (error.response?.statusCode == 401 ||
+          error.response?.statusCode == 400) {
+        return true;
+      }
+      // Don't retry on cancellation
+      if (error.type == DioExceptionType.cancel) {
+        return true;
+      }
+    }
+    // Check error message for specific non-retryable conditions
+    final errorMessage = error.toString().toLowerCase();
+    if (errorMessage.contains('no refresh token available') ||
+        errorMessage.contains('invalid or expired')) {
+      return true;
+    }
+    return false;
   }
 
   // Callback when refresh token fails - clear data and navigate to login

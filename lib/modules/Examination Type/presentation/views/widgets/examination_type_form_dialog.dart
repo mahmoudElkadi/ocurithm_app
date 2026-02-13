@@ -99,23 +99,30 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
 
     // Submit the form
   Future<void> _submitForm() async {
-    setState(() {
-      clinicValidation = selectedClinic != null;
-    });
+    // Only validate clinic selection in add mode
+    if (widget.mode == ExaminationTypeFormMode.add) {
+      setState(() {
+        clinicValidation = selectedClinic != null;
+      });
 
-    if (!_formKey.currentState!.validate() || !clinicValidation) {
+      if (!clinicValidation) {
+        return;
+      }
+    }
+
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
     // Show loading dialog
     customLoading(context, "");
 
-    // Create examination type model
+    // Create examination type model - only include clinic in add mode
     final examinationType = ExaminationType(
       name: _nameController.text.trim(),
       price: num.tryParse(_priceController.text.trim()),
       duration: num.tryParse(_durationController.text.trim()),
-      clinic: selectedClinic,
+      clinic: widget.mode == ExaminationTypeFormMode.add ? selectedClinic : null,
     );
 
     // Dispatch appropriate event based on mode
@@ -326,11 +333,14 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
             key: _formKey,
             child: Column(
               children: [
-                if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageCapability"))
+                // Only show clinic dropdown in add mode
+                if (widget.mode == ExaminationTypeFormMode.add &&
+                    CacheHelper.getStringList(key: "capabilities")
+                        .contains("manageCapability"))
                   _buildClinicDropdown(isLoading),
-                if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageCapability"))
+                if (widget.mode == ExaminationTypeFormMode.add &&
+                    CacheHelper.getStringList(key: "capabilities")
+                        .contains("manageCapability"))
                   const SizedBox(height: 16),
                 _buildNameField(isLoading),
                 const SizedBox(height: 16),

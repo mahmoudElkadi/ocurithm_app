@@ -102,7 +102,12 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
       clinicValidation = selectedClinic != null;
     });
 
-    if (!_formKey.currentState!.validate() || !clinicValidation) {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Only validate clinic in add mode
+    if (widget.mode == PaymentMethodFormMode.add && !clinicValidation) {
       return;
     }
 
@@ -123,10 +128,11 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
     }
 
     // Create payment method model
+    // Only include clinic in add mode
     final paymentMethod = PaymentMethod(
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
-      clinic: selectedClinic,
+     // clinic: widget.mode == PaymentMethodFormMode.add ? selectedClinic : null,
     );
 
     // Dispatch appropriate event based on mode
@@ -205,7 +211,10 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
                 _titleController.text = state.paymentMethod?.title ?? '';
                 _descriptionController.text =
                     state.paymentMethod?.description ?? '';
-                selectedClinic = state.paymentMethod?.clinic;
+                // Don't set selectedClinic in edit mode since it won't be sent
+                if (widget.mode == PaymentMethodFormMode.view) {
+                  selectedClinic = state.paymentMethod?.clinic;
+                }
                 setState(() {});
               }
 
@@ -312,11 +321,14 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
             key: _formKey,
             child: Column(
               children: [
-                if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageCapability"))
+                // Only show clinic dropdown in add mode
+                if (widget.mode == PaymentMethodFormMode.add &&
+                    CacheHelper.getStringList(key: "capabilities")
+                        .contains("manageCapability"))
                   _buildClinicDropdown(isLoading),
-                if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageCapability"))
+                if (widget.mode == PaymentMethodFormMode.add &&
+                    CacheHelper.getStringList(key: "capabilities")
+                        .contains("manageCapability"))
                   const SizedBox(height: 16),
                 _buildTitleField(isLoading),
                 const SizedBox(height: 16),

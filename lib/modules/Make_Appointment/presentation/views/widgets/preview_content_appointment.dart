@@ -38,7 +38,8 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           SnackbarService.showSuccess(context, 
             message: widget.isUpdated ? "Appointment Updated successfully" : "Appointment created successfully"
           );
-          Navigator.pop(context, true); // Close the view
+          // Return the selected date/time when appointment is created successfully
+          Navigator.pop(context, state.selectedTime);
         } else if (state.status == MakeAppointmentStatus.error) {
           Navigator.pop(context); // Dismiss loading
           SnackbarService.showError(context, message: state.errorMessage ?? "An error occurred");

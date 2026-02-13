@@ -544,9 +544,9 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
               const HeightSpacer(size: 20),
             ],
 
-            // Clinic Dropdown (if user has permission)
+            // Clinic Dropdown (if user has permission and in add mode)
             if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapability"))
+                .contains("manageCapability") && _isAddMode)
               _buildClinicDropdown(context, theme, isDark),
 
             // Branch Dropdown
@@ -1025,7 +1025,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
       phone: _phoneController.text.trim(),
       password: _isAddMode ? _passwordController.text : null,
       branch: selectedBranch,
-      clinic: selectedClinic ?? Clinic(id: _selectedClinicId),
+      clinic: _isAddMode ? (selectedClinic ?? Clinic(id: _selectedClinicId)) : null,
       birthDate: _birthDate,
       image: _imageUrl,
       capability: _selectedCapabilities.map((c) => c.id).toList(),

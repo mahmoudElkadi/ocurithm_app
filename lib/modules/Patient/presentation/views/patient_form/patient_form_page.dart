@@ -707,7 +707,7 @@ class _PatientFormViewState extends State<PatientFormView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (AuthService.showClinicSelection)
+            if (AuthService.showClinicSelection && widget.mode == PatientFormMode.add)
               _buildClinicDropdown(theme),
             _buildBranchDropdown(theme),
             const HeightSpacer(size: 20),
@@ -718,6 +718,56 @@ class _PatientFormViewState extends State<PatientFormView> {
               icon: 'assets/icons/profile.svg',
               showBorder: true,
               validator: (v) => v!.isEmpty ? S.of(context).mustUsername : null,
+              onChanged: (value) {
+                if (!_isReadOnly && value.isNotEmpty) {
+                  context.read<PatientActionsCubit>().add(
+                        CheckDuplicateNameEvent(value),
+                      );
+                }
+              },
+            ),
+            BlocBuilder<PatientActionsCubit, PatientActionsState>(
+              builder: (context, state) {
+                if (state.isCheckingDuplicateName) {
+                  return const Padding(
+                    padding: EdgeInsets.only(left: 10, top: 4),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Checking name...',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                if (state.isNameDuplicate == true) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 10, top: 4),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded,
+                            color: Colors.orange, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          'This patient name already exists',
+                          style: const TextStyle(
+                            color: Colors.orange,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
             const HeightSpacer(size: 20),
             _buildLabel(S.of(context).emailAddress, theme),
@@ -856,6 +906,7 @@ class _PatientFormViewState extends State<PatientFormView> {
     Widget? suffixIcon,
     bool showBorder = true,
     String? Function(String?)? validator,
+    void Function(String)? onChanged,
   }) {
     final theme = Theme.of(context);
     final borderColor = showBorder ? theme.primaryColor : Colors.transparent;
@@ -866,6 +917,7 @@ class _PatientFormViewState extends State<PatientFormView> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
+      onChanged: onChanged,
       style: theme.textTheme.bodyLarge,
       decoration: InputDecoration(
         hintText: hintText,
@@ -1299,6 +1351,16 @@ class _PatientFormViewState extends State<PatientFormView> {
     // Validate
     if (!_formKey.currentState!.validate()) return;
 
+    // Check for duplicate name
+    final patientActionsState = context.read<PatientActionsCubit>().state;
+    if (patientActionsState.isNameDuplicate == true) {
+      SnackbarService.showError(
+        context,
+        message: 'A patient with this name already exists. Please use a different name.',
+      );
+      return;
+    }
+
     // Manual Validation
     setState(() {
       _isClinicValid = selectedClinic != null || !AuthService.showClinicSelection;
@@ -1326,7 +1388,7 @@ class _PatientFormViewState extends State<PatientFormView> {
       nationality: _selectedNationality?.value,
       birthDate: _birthDate,
       gender: _selectedGender,
-      clinic: selectedClinic,
+      clinic: widget.mode == PatientFormMode.add ? selectedClinic : null,
       branch: _selectedBranch,
     );
 

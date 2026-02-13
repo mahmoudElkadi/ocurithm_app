@@ -16,6 +16,7 @@ class PatientActionsCubit
     on<UpdatePatientEvent>(_onUpdatePatient);
     on<DeletePatientEvent>(_onDeletePatient);
     on<ResetPatientActionsEvent>(_onResetPatientActions);
+    on<CheckDuplicateNameEvent>(_onCheckDuplicateName);
   }
 
   static PatientActionsCubit get(BuildContext context) =>
@@ -162,5 +163,33 @@ class PatientActionsCubit
   Future<void> _onResetPatientActions(
       ResetPatientActionsEvent event, Emitter<PatientActionsState> emit) async {
     emit(const PatientActionsState());
+  }
+
+  // Check Duplicate Name
+  Future<void> _onCheckDuplicateName(
+      CheckDuplicateNameEvent event, Emitter<PatientActionsState> emit) async {
+    if (event.name.trim().isEmpty) {
+      emit(state.copyWith(
+        isNameDuplicate: false,
+        isCheckingDuplicateName: false,
+      ));
+      return;
+    }
+
+    try {
+      emit(state.copyWith(isCheckingDuplicateName: true));
+
+      final isDuplicate = await patientRepo.checkDuplicateName(name: event.name);
+
+      emit(state.copyWith(
+        isNameDuplicate: isDuplicate,
+        isCheckingDuplicateName: false,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        isNameDuplicate: false,
+        isCheckingDuplicateName: false,
+      ));
+    }
   }
 }

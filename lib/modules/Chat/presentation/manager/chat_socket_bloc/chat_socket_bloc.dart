@@ -20,6 +20,7 @@ class ChatSocketBloc extends Bloc<ChatSocketEvent, ChatSocketState> {
   IO.Socket? _socket;
   String? _currentUserId;
   StreamSubscription<InternetStatus>? _connectivitySubscription;
+  Timer? _connectionCheckTimer;
 
   ChatSocketBloc() : super(const ChatSocketState()) {
     on<ConnectSocketEvent>(_onConnect);
@@ -69,14 +70,51 @@ class ChatSocketBloc extends Bloc<ChatSocketEvent, ChatSocketState> {
         }
       }
     });
+
+    // Start periodic connection check every 2 minutes
+    _startConnectionCheckTimer();
   }
 
   @override
   Future<void> close() {
     _connectivitySubscription?.cancel();
+    _connectionCheckTimer?.cancel();
     _socket?.disconnect();
     _socket?.dispose();
     return super.close();
+  }
+
+  void _startConnectionCheckTimer() {
+    print('⏰ [ChatSocket] Starting periodic connection check (every 2 minutes)');
+    log('[ChatSocket] Starting periodic connection check (every 2 minutes)');
+    
+    _connectionCheckTimer = Timer.periodic(
+      const Duration(minutes: 2),
+      (timer) {
+        _checkAndReconnect();
+      },
+    );
+  }
+
+  void _checkAndReconnect() {
+    print('🔍 [ChatSocket] Periodic connection check...');
+    log('[ChatSocket] Periodic connection check');
+    
+    if (_socket == null) {
+      print('❌ [ChatSocket] Socket is null, attempting reconnection...');
+      log('[ChatSocket] Socket is null, attempting reconnection');
+      add(ConnectSocketEvent());
+      return;
+    }
+    
+    if (!_socket!.connected) {
+      print('❌ [ChatSocket] Socket is disconnected, attempting reconnection...');
+      log('[ChatSocket] Socket is disconnected, attempting reconnection');
+      add(ConnectSocketEvent());
+    } else {
+      print('✅ [ChatSocket] Socket is connected');
+      log('[ChatSocket] Socket is connected');
+    }
   }
 
   Future<void> _onConnect(

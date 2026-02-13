@@ -4,7 +4,7 @@ import 'package:ocurithm/core/utils/capability_services.dart';
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/text_field.dart';
-import '../../../../../core/widgets/height_spacer.dart';
+import '../../../../../core/widgets/height_spacer.dart'; 
 import '../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../data/model/active_ingredient_model.dart';
 import '../../../data/model/medicine_model.dart';
@@ -326,7 +326,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (CapabilityServices.hasCapability('manageCapability') && !widget.isEdit) ...[
+        if (CapabilityServices.hasCapability('manageCapability') && !widget.isEdit && !widget.isDetails) ...[
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 5),
             child: Text("Clinic",
@@ -336,7 +336,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           _buildClinicDropdown(isDark, onMedicineForm: true),
           const HeightSpacer(size: 15),
         ],
-        if (!widget.isEdit)
+        if (!widget.isEdit || widget.isDetails)
           BlocBuilder<GetActiveIngredientsCubit, GetActiveIngredientsState>(
             builder: (context, state) {
               List<ActiveIngredient> items = [];
@@ -350,16 +350,18 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!widget.isDetails)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0, bottom: 5),
-                      child: Text("Active Ingredient",
-                          style: appStyle(
-                              context,
-                              14,
-                              isDark ? Colors.white70 : Colors.black54,
-                              FontWeight.bold)),
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0, bottom: 5),
+                    child: Text("Active Ingredient",
+                        style: appStyle(
+                            context,
+                            18,
+                            Theme.of(context).primaryColor == Colors.black
+                                ? Colors.black
+                                : Theme.of(context).textTheme.bodyLarge?.color ??
+                                    Colors.black,
+                            FontWeight.bold)),
+                  ),
                   DropdownItem<ActiveIngredient>(
                     radius: 10,
                     color: isDark ? const Color(0xff2C2C2C) : Colors.white,
@@ -416,7 +418,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (CapabilityServices.hasCapability('manageCapability') &&
-            !widget.isEdit) ...[
+            !widget.isEdit && !widget.isDetails) ...[
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 5),
             child: Text("Clinic",
@@ -426,7 +428,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           _buildClinicDropdown(isDark),
         ],
         if (CapabilityServices.hasCapability('manageCapability') &&
-            !widget.isEdit)
+            !widget.isEdit && !widget.isDetails)
           const HeightSpacer(size: 15),
         _buildTextField(
           controller: _aiNameController,
@@ -484,7 +486,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
                     color: Colors.white, strokeWidth: 2))
             : Text(text,
                 style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 16,  
                     color: Colors.white,
                     fontWeight: FontWeight.bold)),
       ),
