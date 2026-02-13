@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
 import '../../../../core/utils/services_locator.dart';
 import '../../data/models/chat_models.dart';
 import '../manager/chat_threads_bloc/chat_threads_bloc.dart';
@@ -507,11 +506,6 @@ class _ThreadTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      if (thread.lastMessage != null &&
-                          thread.lastMessage!.isMine) ...[
-                        _buildStatusIcon(context, thread.lastMessage!.status),
-                        const SizedBox(width: 4),
-                      ],
                       Expanded(
                         child: Text(
                           thread.lastMessage?.content ?? 'No messages yet',

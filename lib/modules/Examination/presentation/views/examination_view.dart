@@ -5,11 +5,10 @@ import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart'
 import 'package:ocurithm/modules/Examination/presentation/manager/get_single_examination_cubit/get_single_examination_cubit.dart';
 import 'package:ocurithm/modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
 import 'package:ocurithm/modules/Examination/presentation/manager/examination_form_cubit/examination_form_cubit.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/examination_view_body.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/examination_shimmer.dart';
+import 'package:ocurithm/modules/Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
 
 class MultiStepFormPage extends StatelessWidget {
   const MultiStepFormPage(
@@ -43,6 +42,9 @@ class MultiStepFormPage extends StatelessWidget {
               }
               return cubit;
             },
+          ),
+          BlocProvider(
+            create: (_) => sl<AppointmentCubit>(),
           ),
         ],
         child:

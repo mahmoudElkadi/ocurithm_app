@@ -22,6 +22,7 @@ import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescrip
 import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
 import '../../../../../core/utils/services_locator.dart';
 import '../../../../../core/widgets/arrow_text_field.dart';
+import 'package:ocurithm/modules/Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
 
 class MultiStepFormView extends StatelessWidget {
   const MultiStepFormView({super.key, required this.appointment});
@@ -48,24 +49,11 @@ class MultiStepFormView extends StatelessWidget {
                 message: state.message ?? "Saved Successfully",
               );
             } else if (state.result != null && state.result.examination != null) {
-              Navigator.pushReplacement(
+              // Show popup with Finalization and Cancel buttons
+              _showFinalizationDialog(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider(
-                          create: (context) => sl<ExaminationActionsCubit>()),
-                      BlocProvider(
-                          create: (context) =>
-                              sl<GetMedicinesCubit>()..getMedicines()),
-                    ],
-                    child: MedicalTreeForm(
-                      examination: state.result.examination,
-                      appointment: appointment,
-                      doctor: state.result.doctor,
-                    ),
-                  ),
-                ),
+                state.result.examination,
+                state.result.doctor,
               );
             } else {
               // Fallback if result is empty? usually means just close.
@@ -97,7 +85,7 @@ class MultiStepFormView extends StatelessWidget {
                   if (cubit.currentStep > 0) {
                     cubit.previousStep();
                   } else {
-                    Navigator.pop(context);
+                    Navigator.pop(context); 
                   }
                 },
                 suffix: IconButton(
@@ -144,6 +132,164 @@ class MultiStepFormView extends StatelessWidget {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  void _showFinalizationDialog(
+    BuildContext context,
+    dynamic examination,
+    dynamic doctor,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.0),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha:  isDark ? 0.5 : 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colorz.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check_circle_outline,
+                    size: 32,
+                    color: Colorz.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Examination Created',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'The examination has been created successfully. Would you like to proceed with finalization?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                          // Update appointment status to completed (proceed)
+                          context.read<AppointmentCubit>().add(
+                                EditAppointmentEvent(
+                                  context: context,
+                                  id: appointment.id.toString(),
+                                  action: 'proceed',
+                                ),
+                              );
+                          // Pop the MultiStepFormPage
+                          Navigator.pop(context, true);
+                          SnackbarService.showSuccess(
+                            context,
+                            message: 'Appointment marked as completed',
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                          // Navigate to finalization page
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MultiBlocProvider(
+                                providers: [
+                                  BlocProvider(
+                                      create: (context) =>
+                                          sl<ExaminationActionsCubit>()),
+                                  BlocProvider(
+                                      create: (context) =>
+                                          sl<GetMedicinesCubit>()..getMedicines()),
+                                ],
+                                child: MedicalTreeForm(
+                                  examination: examination,
+                                  appointment: appointment,
+                                  doctor: doctor,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colorz.primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Finalization',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

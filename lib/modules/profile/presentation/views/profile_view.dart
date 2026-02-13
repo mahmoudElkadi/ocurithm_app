@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,7 +16,6 @@ import '../../../../core/utils/colors.dart';
 import '../../../../core/utils/services_locator.dart';
 import '../../data/models/profile_models.dart';
 import '../manager/get_profile_cubit/get_profile_cubit.dart';
-import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import '../../../../modules/Login/data/model/login_response.dart';
@@ -488,8 +488,15 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
   void _showEditProfileDialog(BuildContext context, ProfileModel profile) {
     final nameController = TextEditingController(text: profile.name);
     final emailController = TextEditingController(text: profile.email);
-    String? phoneNumber = profile.phone?.toString();
-    String? currentImageUrl = profile.image;
+    final phoneController = TextEditingController(text: profile.phone?.toString() ?? '');
+    final displayImage = (profile.image != null && profile.image!.isNotEmpty)
+        ? profile.image
+        : (profile.metadata?.image != null &&
+                profile.metadata!.image is String &&
+                profile.metadata!.image.isNotEmpty)
+            ? profile.metadata!.image as String
+            : null;
+    String? currentImageUrl = displayImage;
     bool isImageRemoved = false;
     final formKey = GlobalKey<FormState>();
 
@@ -511,7 +518,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                     currentImageUrl != profile.image || isImageRemoved;
                 bool hasDataToUpdate = nameController.text != profile.name ||
                     emailController.text != profile.email ||
-                    (phoneNumber != profile.phone?.toString()) ||
+                    (phoneController.text != profile.phone?.toString()) ||
                     imageChanged;
 
                 return Column(
@@ -559,17 +566,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                         context, emailController, "Email", Icons.email,
                         isEmail: true, onChanged: (_) => setState(() {})),
                     SizedBox(height: 15.h),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel(context, "Phone Number"),
-                        _buildPhoneField(context, phoneNumber, (val) {
-                          setState(() {
-                            phoneNumber = val;
-                          });
-                        }),
-                      ],
-                    ),
+                    _buildPhoneField(context, phoneController),
                     SizedBox(height: 30.h),
                     SizedBox(
                       width: double.infinity,
@@ -577,7 +574,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                           BlocBuilder<ProfileActionsCubit, ProfileActionsState>(
                         builder: (context, state) {
                           if (state.isLoading) {
-                            return Center(child: CircularProgressIndicator());
+                            return const Center(child: CircularProgressIndicator());
                           }
                           return ElevatedButton(
                             onPressed: (hasDataToUpdate && !state.isLoading)
@@ -593,9 +590,9 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                                                   profile.email
                                               ? emailController.text
                                               : null,
-                                          phone: phoneNumber !=
+                                          phone: phoneController.text !=
                                                   profile.phone?.toString()
-                                              ? phoneNumber
+                                              ? phoneController.text
                                               : null,
                                           image:
                                               (imageChanged && !isImageRemoved)
@@ -770,52 +767,49 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
     );
   }
 
-  Widget _buildPhoneField(
-      BuildContext context, String? initialValue, Function(String) onChanged) {
+  Widget _buildPhoneField(BuildContext context, TextEditingController controller) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor =
         Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor;
 
-    return IntlPhoneField(
-      initialValue: initialValue ?? '',
-      decoration: InputDecoration(
-        hintText: "Phone Number",
-        fillColor: cardColor,
-        filled: true,
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 15.w),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.r),
-            borderSide:
-                BorderSide(color: Colorz.primaryColor.withValues(alpha: 0.5))),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.r),
-            borderSide: BorderSide(color: Colorz.grey.withValues(alpha: 0.3))),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.r),
-            borderSide: BorderSide(color: Colorz.primaryColor, width: 1.5)),
-        errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.r),
-            borderSide: BorderSide(color: Colorz.errorColor)),
-        suffixIcon: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Icon(Icons.phone_iphone, color: Colorz.primaryColor, size: 20),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(context, "Phone Number"),
+        TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.phone,
+          style: appStyle(context, 15, isDark ? Colors.white : Colors.black,
+              FontWeight.normal),
+          onChanged: (_) {},
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return null;
+            }
+            if (!RegExp(r'^01[0125][0-9]{8}$').hasMatch(value)) {
+              return "Invalid phone number";
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            hintText: "Phone Number",
+            hintStyle: appStyle(context, 14, isDark ? Colors.grey : Colors.grey,
+                FontWeight.normal),
+            prefixIcon: Icon(Icons.phone_iphone, color: Colorz.primaryColor),
+            filled: true,
+            fillColor: cardColor,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15.r),
+                borderSide: BorderSide(color: Colorz.grey.withValues(alpha: 0.1))),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15.r),
+                borderSide: BorderSide(color: Colorz.grey.withValues(alpha: 0.3))),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15.r),
+                borderSide: BorderSide(color: Colorz.primaryColor, width: 1.5)),
+          ),
         ),
-      ),
-      initialCountryCode: 'EG',
-      dropdownIconPosition: IconPosition.leading,
-      languageCode: "en",
-      validator: (phone) {
-        if (phone == null || phone.number.isEmpty) return null;
-        try {
-          if (phone.isValidNumber()) return null;
-          return "Invalid phone number";
-        } catch (e) {
-          return null;
-        }
-      },
-      onChanged: (phone) {
-        onChanged(phone.completeNumber);
-      },
+      ],
     );
   }
 
@@ -900,7 +894,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                 Container(
                   width: 100.r,
                   height: 100.r,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,
                   ),
@@ -1023,12 +1017,12 @@ class ProfileImagePicker extends StatefulWidget {
   final Function() onDelete;
 
   const ProfileImagePicker({
-    Key? key,
+    super.key,
     required this.onImageUploaded,
     this.initialImageUrl,
     this.readOnly = false,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   State<ProfileImagePicker> createState() => _ProfileImagePickerState();
@@ -1196,64 +1190,121 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
   }
 
   void _showImageSourceDialog(Function() onDelete) {
+    final hasExistingImage = widget.initialImageUrl != null && !_isImageDeleted;
+    
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (BuildContext context) => CupertinoActionSheet(
-        title: const Text('Select Image Source'),
-        actions: <CupertinoActionSheetAction>[
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _pickImage(ImageSource.gallery);
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.photo, color: CupertinoColors.activeBlue),
-                SizedBox(width: 8),
-                Text('Choose from Gallery'),
+      builder: (BuildContext context) => Container(
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Current image preview if exists
+              if (hasExistingImage) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Current Photo',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.systemGrey.resolveFrom(context),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ClipOval(
+                    child: Image.network(
+                      widget.initialImageUrl!,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGrey5.resolveFrom(context),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          CupertinoIcons.person,
+                          size: 50,
+                          color: CupertinoColors.systemGrey.resolveFrom(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Divider(
+                  color: CupertinoColors.separator.resolveFrom(context),
+                  height: 1,
+                ),
               ],
-            ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _pickImage(ImageSource.camera);
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.camera, color: CupertinoColors.activeBlue),
-                SizedBox(width: 8),
-                Text('Take a Photo'),
-              ],
-            ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              onDelete();
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.delete, color: CupertinoColors.activeBlue),
-                SizedBox(width: 8),
-                Text('Delete Photo'),
-              ],
-            ),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text(
-            'Cancel',
-            style: TextStyle(
-              color: CupertinoColors.destructiveRed,
-              fontWeight: FontWeight.w600,
-            ),
+              CupertinoActionSheet(
+                title: Text(hasExistingImage ? 'Change Photo' : 'Select Image Source'),
+                actions: <CupertinoActionSheetAction>[
+                  CupertinoActionSheetAction(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _pickImage(ImageSource.gallery);
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(CupertinoIcons.photo, color: CupertinoColors.activeBlue),
+                        SizedBox(width: 8),
+                        Text('Choose from Gallery'),
+                      ],
+                    ),
+                  ),
+                  CupertinoActionSheetAction(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _pickImage(ImageSource.camera);
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(CupertinoIcons.camera, color: CupertinoColors.activeBlue),
+                        SizedBox(width: 8),
+                        Text('Take a Photo'),
+                      ],
+                    ),
+                  ),
+                  if (hasExistingImage)
+                    CupertinoActionSheetAction(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onDelete();
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(CupertinoIcons.delete, color: CupertinoColors.systemRed),
+                          SizedBox(width: 8),
+                          Text('Delete Photo'),
+                        ],
+                      ),
+                    ),
+                ],
+                cancelButton: CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: CupertinoColors.destructiveRed,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1294,7 +1345,9 @@ class CloudinaryService {
         throw Exception('Failed to upload image: ${response.body}');
       }
     } catch (e) {
-      print('Error uploading image: $e');
+      if (kDebugMode) {
+        print('Error uploading image: $e');
+      }
       return null;
     }
   }

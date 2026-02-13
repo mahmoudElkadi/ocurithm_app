@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' as getx;
@@ -9,7 +8,6 @@ import 'package:ocurithm/modules/Examination%20Type/presentation/views/examinati
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
 import '../../../modules/Medicine/presentation/views/medicine_view.dart';
-
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
 import '../../../modules/Appointment/presentation/views/appointment_view.dart';
