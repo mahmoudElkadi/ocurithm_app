@@ -1,14 +1,15 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors
-
 import 'dart:async';
 import 'dart:developer';
 
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:lottie/lottie.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/core/utils/network_connection.dart';
+import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -16,11 +17,9 @@ import '../../Main/presentation/views/main_view.dart';
 import '../../core/Network/shared.dart';
 import '../../core/widgets/height_spacer.dart';
 import '../../core/widgets/no_internet.dart';
+import '../Login/data/repos/login_repo.dart';
 import '../Login/presentation/view/login_view.dart';
 import '../On boarding/presentation/onBoarding.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
-import 'package:ocurithm/core/utils/services_locator.dart';
-import '../Login/data/repos/login_repo.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -62,13 +61,14 @@ class _LoadingScreenState extends State<LoadingScreen> {
 }
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
@@ -80,17 +80,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Future<void> checkAuthAndNavigate() async {
     try {
       // Get the stored token
-      result = await InternetConnection().hasInternetAccess;
+      result = await NetworkStatus().hasInternetConnection();
       setState(() {});
       if (result == true) {
         final String? token = CacheHelper.getData(key: "token");
         // Prepare headers with token if available
-        if (token!=null) {
+        if (token != null) {
           // User is authenticated, navigate to Main View
           try {
             final response = await sl<LoginRepo>().getMe();
             if (response.user != null) {
-              log('capabilitiescapabilitiescapabilities  ${response.user!.capabilities}');
               await CacheHelper.saveUser("user", response.user!);
               await CacheHelper.saveStringList(
                 key: "capabilities",
@@ -98,13 +97,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               );
             }
           } catch (e) {
-             log("Error fetching user data: $e");
-             // Even if getMe fails, we might still want to proceed if token is valid,
-             // but usually it's better to force login if we can't get basic info.
+            log("Error fetching user data: $e");
+            // Even if getMe fails, we might still want to proceed if token is valid,
+            // but usually it's better to force login if we can't get basic info.
           }
 
           Get.offAll(
-                () => UpgradeAlert(
+            () => UpgradeAlert(
               showIgnore: false,
               showReleaseNotes: false,
               dialogStyle: UpgradeDialogStyle.cupertino,
@@ -122,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           CacheHelper.removeData(key: "token");
           CacheHelper.removeData(key: "user");
           Get.offAll(
-                () => UpgradeAlert(
+            () => UpgradeAlert(
                 showIgnore: false,
                 showReleaseNotes: false,
                 dialogStyle: UpgradeDialogStyle.cupertino,
@@ -135,8 +134,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             duration: const Duration(seconds: 1),
           );
         }
-
-
       }
     } catch (e) {
       if (!mounted) return;
@@ -162,7 +159,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.5 - 40),
+                  SizedBox(
+                      height: MediaQuery.sizeOf(context).height * 0.5 - 40),
                   Image.asset(
                     "assets/icons/logo.png",
                     width: 80,

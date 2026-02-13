@@ -1,9 +1,10 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../data/repos/examination_repo.dart';
 
-part 'examination_actions_state.dart';
 part 'examination_actions_event.dart';
+part 'examination_actions_state.dart';
 
 class ExaminationActionsCubit extends Cubit<ExaminationActionsState> {
   final ExaminationRepo examinationRepo;
@@ -34,10 +35,8 @@ class ExaminationActionsCubit extends Cubit<ExaminationActionsState> {
         ));
       }
     } catch (e) {
-
-        emit(state.copyWith(
-            status: ExaminationActionsStatus.error, error: e.toString()));
-
+      emit(state.copyWith(
+          status: ExaminationActionsStatus.error, error: e.toString()));
     }
   }
 
@@ -68,11 +67,9 @@ class ExaminationActionsCubit extends Cubit<ExaminationActionsState> {
         ));
       }
     } catch (e) {
-
-        emit(state.copyWith(
-            status: ExaminationActionsStatus.error, error: e.toString()));
-
+      emit(state.copyWith(
+          status: ExaminationActionsStatus.error, error: e.toString()));
     }
   }
-  // Add Update/Delete logic if repo supports it
+// Add Update/Delete logic if repo supports it
 }

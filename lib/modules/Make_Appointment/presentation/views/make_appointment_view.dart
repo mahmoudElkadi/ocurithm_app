@@ -17,7 +17,8 @@ import '../../../Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit
 import '../../../Examination Type/presentation/manager/get_examination_types_cubit/get_examination_types_cubit.dart';
 import '../../../Patient/presentation/manager/get_patients_cubit/get_patients_cubit.dart';
 import '../../../Payment Methods/presentation/manager/get_payment_methods_cubit/get_payment_methods_cubit.dart';
-import '../manager/Make Appointment cubit/make_appointment_cubit.dart' hide GetDoctorsEvent;
+import '../manager/Make Appointment cubit/make_appointment_cubit.dart'
+    hide GetDoctorsEvent;
 
 class HorizontalStepper extends StatelessWidget {
   final int currentStep;
@@ -25,11 +26,11 @@ class HorizontalStepper extends StatelessWidget {
   final Function(int) onStepTapped;
 
   const HorizontalStepper({
-    Key? key,
+    super.key,
     required this.currentStep,
     required this.steps,
     required this.onStepTapped,
-  }) : super(key: key);
+  });
 
   // Helper method to determine divider color
   Color getDividerColor(
@@ -98,7 +99,7 @@ class HorizontalStepper extends StatelessWidget {
                         Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colorz.primaryColor.withOpacity(0.1),
+                            color: Colorz.primaryColor.withValues(alpha: 0.1),
                           ),
                         ),
                       Container(
@@ -108,17 +109,22 @@ class HorizontalStepper extends StatelessWidget {
                           shape: BoxShape.circle,
                           color: isCompleted || isCurrent
                               ? Colorz.primaryColor
-                              : isDark ? Theme.of(context).scaffoldBackgroundColor : Colors.white,
+                              : isDark
+                                  ? Theme.of(context).scaffoldBackgroundColor
+                                  : Colors.white,
                           border: Border.all(
                             color: isCompleted || isCurrent
                                 ? Colorz.primaryColor
-                                : isDark ? Colors.grey[600]! : Colors.grey.shade300,
+                                : isDark
+                                    ? Colors.grey[600]!
+                                    : Colors.grey.shade300,
                             width: 2,
                           ),
                           boxShadow: isCurrent
                               ? [
                                   BoxShadow(
-                                    color: Colorz.primaryColor.withOpacity(0.3),
+                                    color: Colorz.primaryColor
+                                        .withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     spreadRadius: 2,
                                   ),
@@ -145,7 +151,9 @@ class HorizontalStepper extends StatelessWidget {
                                     style: TextStyle(
                                       color: isCurrent
                                           ? Colors.white
-                                          : isDark ? Colors.grey[400] : Colors.grey.shade600,
+                                          : isDark
+                                              ? Colors.grey[400]
+                                              : Colors.grey.shade600,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 16,
                                     ),
@@ -202,6 +210,7 @@ class MakeAppointmentView extends StatefulWidget {
 class _MakeAppointmentViewState extends State<MakeAppointmentView>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+
   // ignore: unused_field
   late Animation<double> _animation;
 
@@ -275,13 +284,17 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView>
         BlocProvider(
           create: (context) {
             final cubit = sl<MakeAppointmentCubit>();
-            if (widget.patient != null) cubit.add(SetPatientEvent(widget.patient));
+            if (widget.patient != null)
+              cubit.add(SetPatientEvent(widget.patient));
             cubit.add(InitialDataEvent());
-            if (widget.appointment != null) cubit.add(SetDataEvent(widget.appointment!));
+            if (widget.appointment != null)
+              cubit.add(SetDataEvent(widget.appointment!));
             return cubit;
           },
         ),
-        BlocProvider(create: (context) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent(noPagination: true))),
+        BlocProvider(
+            create: (context) => sl<GetClinicsCubit>()
+              ..add(GetAllClinicsEvent(noPagination: true))),
         BlocProvider(create: (context) => sl<GetBranchesCubit>()),
         BlocProvider(create: (context) => sl<GetDoctorsCubit>()),
         BlocProvider(create: (context) => sl<GetPatientsCubit>()),
@@ -299,7 +312,8 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView>
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               elevation: 0,
               title: Text("Appointments",
-                  style: appStyle(context, 20, isDark ? Colors.white : Colorz.black, FontWeight.w600)),
+                  style: appStyle(context, 20,
+                      isDark ? Colors.white : Colorz.black, FontWeight.w600)),
               centerTitle: true,
               leading: IconButton(
                 onPressed: () {
@@ -309,18 +323,20 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView>
                     Get.back();
                   }
                 },
-                icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colorz.black),
+                icon: Icon(Icons.arrow_back,
+                    color: isDark ? Colors.white : Colorz.black),
               ),
             ),
-            body: state.status != MakeAppointmentStatus.noConnection // Using status enum
+            body: state.status !=
+                    MakeAppointmentStatus.noConnection // Using status enum
                 ? Column(
                     children: [
                       HorizontalStepper(
                         currentStep: state.currentStep,
                         steps: steps, // User defined list
                         onStepTapped: (index) {
-                           // Optional: Allow jumping steps if possible
-                           // cubit.add(ChangeStepEvent(index));
+                          // Optional: Allow jumping steps if possible
+                          // cubit.add(ChangeStepEvent(index));
                         },
                       ),
                       Expanded(
@@ -343,4 +359,3 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView>
     );
   }
 }
-

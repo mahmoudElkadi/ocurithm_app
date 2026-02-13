@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/modules/Make_Appointment/data/models/make_appointment_model.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -34,7 +33,7 @@ class MakeAppointmentCubit
       : super(MakeAppointmentState()) {
     on<InitialDataEvent>(_onInitialData);
     // Removed Get... handlers as they are now handled by separate Cubits
-    on<GetAppointmentsEvent>(_onGetAppointments);
+    // on<GetAppointmentsEvent>(_onGetAppointments);
     on<CreateAppointmentEvent>(_onCreateAppointment);
     on<EditAppointmentEvent>(_onEditAppointment);
     on<SetDataEvent>(_onSetData);
@@ -98,33 +97,33 @@ class MakeAppointmentCubit
 
   // Removed _onGetClinics, _onGetDoctors, _onGetBranches, _onGetPatients, _onGetPaymentMethods, _onGetExaminationTypes
 
-  Future<void> _onGetAppointments(
-      GetAppointmentsEvent event, Emitter<MakeAppointmentState> emit) async {
-    emit(state.copyWith(appointmentStatus: DataStatus.loading));
-    if (await _hasNoInternet()) {
-      emit(state.copyWith(
-          appointmentStatus: DataStatus.error,
-          errorMessage: "No Internet Connection"));
-      return;
-    }
-    try {
-      final appointments = await makeAppointmentRepo.getAllAppointment(
-        date: event.date,
-        branch: event.branch ?? state.selectedBranch?.id,
-        doctor: event.doctor ?? state.selectedDoctor?.id,
-      );
-      if (appointments.error == null && appointments.appointments.isNotEmpty) {
-        emit(state.copyWith(
-            appointmentStatus: DataStatus.success, appointments: appointments));
-      } else {
-        emit(state.copyWith(
-            appointmentStatus:
-                DataStatus.error)); // Or success with empty list?
-      }
-    } catch (e) {
-      emit(state.copyWith(appointmentStatus: DataStatus.error));
-    }
-  }
+  // Future<void> _onGetAppointments(
+  //     GetAppointmentsEvent event, Emitter<MakeAppointmentState> emit) async {
+  //   emit(state.copyWith(appointmentStatus: DataStatus.loading));
+  //   if (await _hasNoInternet()) {
+  //     emit(state.copyWith(
+  //         appointmentStatus: DataStatus.error,
+  //         errorMessage: "No Internet Connection"));
+  //     return;
+  //   }
+  //   try {
+  //     final appointments = await makeAppointmentRepo.getAllAppointment(
+  //       date: event.date,
+  //       branch: event.branch ?? state.selectedBranch?.id,
+  //       doctor: event.doctor ?? state.selectedDoctor?.id,
+  //     );
+  //     if (appointments.error == null && appointments.appointments.isNotEmpty) {
+  //       emit(state.copyWith(
+  //           appointmentStatus: DataStatus.success, appointments: appointments));
+  //     } else {
+  //       emit(state.copyWith(
+  //           appointmentStatus:
+  //               DataStatus.error)); // Or success with empty list?
+  //     }
+  //   } catch (e) {
+  //     emit(state.copyWith(appointmentStatus: DataStatus.error));
+  //   }
+  // }
 
   Future<void> _onCreateAppointment(
       CreateAppointmentEvent event, Emitter<MakeAppointmentState> emit) async {
@@ -253,11 +252,6 @@ class MakeAppointmentCubit
 
     emit(state.copyWith(
         validationState: newValidationState, areAllFieldsFilled: allFilled));
-  }
-
-  Future<bool> _hasNoInternet() async {
-    final hasInternet = await InternetConnection().hasInternetAccess;
-    return !hasInternet;
   }
 
   // PageController needs to be accessible if UI uses it from Cubit (legacy support)

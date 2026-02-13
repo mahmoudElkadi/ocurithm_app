@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
 
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
-import '../../manager/examination_form_cubit/examination_form_cubit.dart';
 import '../../manager/examination_actions_cubit/examination_actions_cubit.dart';
+import '../../manager/examination_form_cubit/examination_form_cubit.dart';
 import 'circle_view.dart';
-import 'navigation_view.dart';
 import 'examination_pdf_service.dart';
+import 'navigation_view.dart';
 
 class ExaminationReviewScreen extends StatefulWidget {
   const ExaminationReviewScreen({super.key, required this.appointment});
@@ -100,19 +98,23 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
               Column(
                 spacing: 10,
                 children: [
-                   _buildEyeTitleRow(),
-                   _buildSynchronizedQuadrantSection(),
-                   _buildSynchronizedExaminationSection(
+                  _buildEyeTitleRow(),
+                  _buildSynchronizedQuadrantSection(),
+                  _buildSynchronizedExaminationSection(
                     title: 'Old-Glasses',
                     sectionIndex: 0,
                     dataLE: {
-                      'Spherical': FormatHelper.formatPositiveValue(cubit.leftOldSpherical),
-                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.leftOldCylindrical),
+                      'Spherical': FormatHelper.formatPositiveValue(
+                          cubit.leftOldSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(
+                          cubit.leftOldCylindrical),
                       'Axis': cubit.leftOldAxis,
                     },
                     dataRE: {
-                      'Spherical': FormatHelper.formatPositiveValue(cubit.rightOldSpherical),
-                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.rightOldCylindrical),
+                      'Spherical': FormatHelper.formatPositiveValue(
+                          cubit.rightOldSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(
+                          cubit.rightOldCylindrical),
                       'Axis': cubit.rightOldAxis,
                     },
                   ),
@@ -120,13 +122,17 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                     title: 'Auto-refraction',
                     sectionIndex: 0,
                     dataLE: {
-                      'Spherical': FormatHelper.formatPositiveValue(cubit.leftAurorefSpherical),
-                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.leftAurorefCylindrical),
+                      'Spherical': FormatHelper.formatPositiveValue(
+                          cubit.leftAurorefSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(
+                          cubit.leftAurorefCylindrical),
                       'Axis': cubit.leftAurorefAxis,
                     },
                     dataRE: {
-                      'Spherical': FormatHelper.formatPositiveValue(cubit.rightAurorefSpherical),
-                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.rightAurorefSpherical),
+                      'Spherical': FormatHelper.formatPositiveValue(
+                          cubit.rightAurorefSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(
+                          cubit.rightAurorefSpherical),
                       'Axis': cubit.rightAurorefAxis,
                     },
                   ),
@@ -134,19 +140,25 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                     title: 'Refined Refraction',
                     sectionIndex: 2,
                     dataLE: {
-                      'Spherical': FormatHelper.formatPositiveValue(cubit.leftRefinedRefractionSpherical),
-                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.leftRefinedRefractionCylindrical),
+                      'Spherical': FormatHelper.formatPositiveValue(
+                          cubit.leftRefinedRefractionSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(
+                          cubit.leftRefinedRefractionCylindrical),
                       'Axis': cubit.leftRefinedRefractionAxis,
-                      'NearVision': FormatHelper.formatPositiveValue(cubit.leftNearVisionAddition),
+                      'NearVision': FormatHelper.formatPositiveValue(
+                          cubit.leftNearVisionAddition),
                     },
                     dataRE: {
-                      'Spherical': FormatHelper.formatPositiveValue(cubit.rightRefinedRefractionSpherical),
-                      'Cylindrical': FormatHelper.formatPositiveValue(cubit.rightRefinedRefractionCylindrical),
+                      'Spherical': FormatHelper.formatPositiveValue(
+                          cubit.rightRefinedRefractionSpherical),
+                      'Cylindrical': FormatHelper.formatPositiveValue(
+                          cubit.rightRefinedRefractionCylindrical),
                       'Axis': cubit.rightRefinedRefractionAxis,
-                      'NearVision': FormatHelper.formatPositiveValue(cubit.rightNearVisionAddition),
+                      'NearVision': FormatHelper.formatPositiveValue(
+                          cubit.rightNearVisionAddition),
                     },
                   ),
-                   _buildSynchronizedExaminationSection(
+                  _buildSynchronizedExaminationSection(
                     title: 'Visual Acuity',
                     sectionIndex: 1,
                     dataLE: {
@@ -164,12 +176,14 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                     dataLE: {
                       'IOP Value': cubit.leftIOP,
                       'Measurement Method': cubit.leftMeansOfMeasurement,
-                      'Additional Measurement': cubit.leftAcquireAnotherIOPMeasurement,
+                      'Additional Measurement':
+                          cubit.leftAcquireAnotherIOPMeasurement,
                     },
                     dataRE: {
                       'IOP Value': cubit.rightIOP,
                       'Measurement Method': cubit.rightMeansOfMeasurement,
-                      'Additional Measurement': cubit.rightAcquireAnotherIOPMeasurement,
+                      'Additional Measurement':
+                          cubit.rightAcquireAnotherIOPMeasurement,
                     },
                   ),
                   _buildSynchronizedExaminationSection(
@@ -179,14 +193,16 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                       'Shape': cubit.leftPupilsShape,
                       'Light Reflex': cubit.leftPupilsLightReflexTest,
                       'Near Reflex': cubit.leftPupilsNearReflexTest,
-                      'Swinging Flashlight': cubit.leftPupilsSwingingFlashLightTest,
+                      'Swinging Flashlight':
+                          cubit.leftPupilsSwingingFlashLightTest,
                       'Other Disorders': cubit.leftPupilsOtherDisorders,
                     },
                     dataRE: {
                       'Shape': cubit.rightPupilsShape,
                       'Light Reflex': cubit.rightPupilsLightReflexTest,
                       'Near Reflex': cubit.rightPupilsNearReflexTest,
-                      'Swinging Flashlight': cubit.rightPupilsSwingingFlashLightTest,
+                      'Swinging Flashlight':
+                          cubit.rightPupilsSwingingFlashLightTest,
                       'Other Disorders': cubit.rightPupilsOtherDisorders,
                     },
                   ),
@@ -197,13 +213,15 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                       'Eyelid Ptosis': cubit.leftEyelidPtosis,
                       'Lagophthalmos': cubit.leftEyelidLagophthalmos,
                       'Palpable Lymph Nodes': cubit.leftPalpableLymphNodes,
-                      'Papable Temporal Artery': cubit.leftPapableTemporalArtery,
+                      'Papable Temporal Artery':
+                          cubit.leftPapableTemporalArtery,
                     },
                     dataRE: {
                       'Eyelid Ptosis': cubit.rightEyelidPtosis,
                       'Lagophthalmos': cubit.rightEyelidLagophthalmos,
                       'Palpable Lymph Nodes': cubit.rightPalpableLymphNodes,
-                      'Papable Temporal Artery': cubit.rightPapableTemporalArtery,
+                      'Papable Temporal Artery':
+                          cubit.rightPapableTemporalArtery,
                     },
                   ),
                   _buildSynchronizedExaminationSection(
@@ -214,17 +232,19 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                       'Anterior Chambre': cubit.leftAnteriorChambre.join(', '),
                       'Iris': cubit.leftIris.join(', '),
                       'Lens': cubit.leftLens.join(', '),
-                      'Anterior Vitreous': cubit.leftAnteriorVitreous.join(', '),
+                      'Anterior Vitreous':
+                          cubit.leftAnteriorVitreous.join(', '),
                     },
                     dataRE: {
                       'Cornea': cubit.rightCornea.join(', '),
                       'Anterior Chambre': cubit.rightAnteriorChambre.join(', '),
                       'Iris': cubit.rightIris.join(', '),
                       'Lens': cubit.rightLens.join(', '),
-                      'Anterior Vitreous': cubit.rightAnteriorVitreous.join(', '),
+                      'Anterior Vitreous':
+                          cubit.rightAnteriorVitreous.join(', '),
                     },
                   ),
-                   _buildSynchronizedExaminationSection(
+                  _buildSynchronizedExaminationSection(
                     title: 'Fundus Examination',
                     sectionIndex: 8,
                     dataLE: {
@@ -271,30 +291,18 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                 canContinue: cubit.currentStep < cubit.totalSteps - 1,
                 onSave: () async {
                   if (cubit.appointmentData != null) {
-                    bool connection =
-                        await InternetConnection().hasInternetAccess;
-                    if (connection) {
-                      cubit.action = "save";
-                      context
-                          .read<ExaminationActionsCubit>()
-                          .createExamination(data: cubit.examinationData());
-                    } else {
-                      SnackbarService.showWarning(context, message: 'No Internet Connection');
-                    }
+                    cubit.action = "save";
+                    context
+                        .read<ExaminationActionsCubit>()
+                        .createExamination(data: cubit.examinationData());
                   }
                 },
                 onConfirm: () async {
                   if (cubit.appointmentData != null) {
-                    bool connection =
-                        await InternetConnection().hasInternetAccess;
-                    if (connection) {
-                      cubit.action = "create";
-                      context
-                          .read<ExaminationActionsCubit>()
-                          .createExamination(data: cubit.examinationData());
-                    } else {
-                      SnackbarService.showWarning(context, message: 'No Internet Connection');
-                    }
+                    cubit.action = "create";
+                    context
+                        .read<ExaminationActionsCubit>()
+                        .createExamination(data: cubit.examinationData());
                   }
                 },
               ),

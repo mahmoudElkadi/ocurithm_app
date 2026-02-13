@@ -2,32 +2,34 @@ import 'package:flutter/material.dart' hide Action;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription_pdf.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/make_appointment_view.dart';
 import 'package:ocurithm/modules/Patient/data/model/one_exam.dart'
     hide Appointment;
+import 'package:rxdart/rxdart.dart'; // For robust stream handling
 
 import '../../../../../core/utils/format_helper.dart';
+import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../core/widgets/custom_column_section.dart';
 import '../../../../../core/widgets/custom_freeze_loading.dart';
-import '../../../../Appointment/data/models/appointment_model.dart';
-import '../../../../Doctor/data/model/doctor_model.dart';
-import 'package:ocurithm/modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
-import 'package:ocurithm/core/utils/services_locator.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
-import '../../../../../core/widgets/DropdownPackage.dart';
-import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
-import '../../../../Medicine/data/model/medicine_model.dart' as medicineModel show CommercialName; // Aliased to avoid conflict
+import '../../../../Analysis/data/models/analysis_model.dart'
+    as analysis_model; // Added for type safety
 import '../../../../Analysis/presentation/manager/analysis_cubit/get_analysis_cubit.dart';
-import '../../../../Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
+import '../../../../Analysis/presentation/views/widgets/analysis_view_body.dart'
+    as analysis_view; // Aliased
 import '../../../../Analysis/presentation/views/widgets/chart_selection_dialog.dart';
-import '../../../../Analysis/presentation/views/widgets/analysis_view_body.dart' as analysis_view; // Aliased
-import '../../../../Analysis/data/models/analysis_model.dart' as analysis_model; // Added for type safety
-import 'package:rxdart/rxdart.dart'; // For robust stream handling
+import '../../../../Appointment/data/models/appointment_model.dart';
+import '../../../../Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
+import '../../../../Doctor/data/model/doctor_model.dart';
+import '../../../../Medicine/data/model/medicine_model.dart' as medicineModel
+    show CommercialName; // Aliased to avoid conflict
+import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
 
 class MedicalTreeForm extends StatelessWidget {
   const MedicalTreeForm(
@@ -54,7 +56,7 @@ class MedicalTreeForm extends StatelessWidget {
         appointment: appointment,
       ),
     );
-  } 
+  }
 }
 
 class _MedicalTreeFormBody extends StatefulWidget {
@@ -75,7 +77,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
   final TextEditingController IPDController = TextEditingController();
   final TextEditingController typeOfLens = TextEditingController();
   final TextEditingController diagnosisController = TextEditingController();
-  
+
   @override
   void initState() {
     super.initState();
@@ -93,17 +95,20 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
     var analysisState = analysisCubit.state;
 
     // Robust wait for analysis data if not already successful
-    if (!analysisState.isSuccess && (analysisState.isInitial || analysisState.isLoading)) {
+    if (!analysisState.isSuccess &&
+        (analysisState.isInitial || analysisState.isLoading)) {
       // If still initial, trigger fetch manually if patientId is available
       if (analysisState.isInitial) {
-        final patientId = widget.examination?.patient?.id ?? widget.appointment?.patient;
+        final patientId =
+            widget.examination?.patient?.id ?? widget.appointment?.patient;
         if (patientId != null) {
-          analysisCubit.add(GetPatientAnalysisEvent(patientId: patientId.toString()));
+          analysisCubit
+              .add(GetPatientAnalysisEvent(patientId: patientId.toString()));
         }
       }
 
       customLoading(context, "Preparing analysis report...");
-      
+
       try {
         // Use RxDart to include current state and wait for completion
         analysisState = await analysisCubit.stream
@@ -113,7 +118,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
       } catch (e) {
         analysisState = analysisCubit.state;
       }
-      
+
       if (mounted) Navigator.pop(context); // Dismiss loading
     }
 
@@ -128,8 +133,8 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
               currentAction,
               showPrescriptionTable,
               prescriptionList,
-              analysis: analysisState.analysis, 
-              selectedChartKeys: selectedKeys,  
+              analysis: analysisState.analysis,
+              selectedChartKeys: selectedKeys,
               eyeSelection: eyeSelection,
             );
           },
@@ -524,7 +529,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
       TextEditingController();
   final TextEditingController medicationDurationController =
       TextEditingController();
-  
+
   String? selectedMedicineId; // Store selected medicine ID
 
   @override
@@ -541,117 +546,122 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<ExaminationActionsCubit, ExaminationActionsState>(
-      listenWhen: (previous, current) => previous.status != current.status,
-      listener: (context, state) {
-        if (state.status == ExaminationActionsStatus.loading) {
-          customLoading(context, "");
-        } else {
-          // Attempt to dismiss the loading dialog.
-          // Using rootNavigator: true because showDialog usually uses the root navigator.
-          // wrapping in a try-catch to avoid crashing if pop fails, though unlikely.
-          try {
-             Navigator.of(context, rootNavigator: true).pop();
-          } catch (e) {
-            // log error
-          }
-
-          if (state.status == ExaminationActionsStatus.success) {
-            // Mark appointment as Completed LOCALLY
-            final appointmentId = widget.examination?.appointment?.id ?? widget.appointment?.id;
-            if (appointmentId != null) {
-              context.read<AppointmentCubit>().add(LocalUpdateAppointmentStatusEvent(
-                id: appointmentId.toString(),
-                status: 'Completed',
-              ));
+        listenWhen: (previous, current) => previous.status != current.status,
+        listener: (context, state) {
+          if (state.status == ExaminationActionsStatus.loading) {
+            customLoading(context, "");
+          } else {
+            // Attempt to dismiss the loading dialog.
+            // Using rootNavigator: true because showDialog usually uses the root navigator.
+            // wrapping in a try-catch to avoid crashing if pop fails, though unlikely.
+            try {
+              Navigator.of(context, rootNavigator: true).pop();
+            } catch (e) {
+              // log error
             }
 
-            // Return to Appointment page
-            // We use the regular navigator to pop the page.
-            if (mounted) {
-               Navigator.of(context).pop(true);
-               Navigator.of(context).pop(true);
+            if (state.status == ExaminationActionsStatus.success) {
+              // Mark appointment as Completed LOCALLY
+              final appointmentId =
+                  widget.examination?.appointment?.id ?? widget.appointment?.id;
+              if (appointmentId != null) {
+                context
+                    .read<AppointmentCubit>()
+                    .add(LocalUpdateAppointmentStatusEvent(
+                      id: appointmentId.toString(),
+                      status: 'Completed',
+                    ));
+              }
+
+              // Return to Appointment page
+              // We use the regular navigator to pop the page.
+              if (mounted) {
+                Navigator.of(context).pop(true);
+                Navigator.of(context).pop(true);
+              }
+
+              SnackbarService.showSuccess(
+                context,
+                message: state.message ?? "Finalized Successfully",
+              );
+            } else if (state.status == ExaminationActionsStatus.error ||
+                state.status == ExaminationActionsStatus.noConnection) {
+              SnackbarService.showError(
+                context,
+                message: state.error ??
+                    "Failed to finalize visit. Please try again.",
+              );
+              Navigator.of(context).pop(true);
             }
-            
-            SnackbarService.showSuccess(
-              context,
-              message: state.message ?? "Finalized Successfully",
-            );
-          } else if (state.status == ExaminationActionsStatus.error ||
-              state.status == ExaminationActionsStatus.noConnection) {
-            SnackbarService.showError(
-              context,
-              message: state.error ?? "Failed to finalize visit. Please try again.",
-            );
-            Navigator.of(context).pop(true);
-
           }
-        }
-      },
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) async {
-          if (didPop) return;
-
-          await showConfirmationDialog(
-            context: context,
-            title: "Discard Finalization",
-            message: "Are you sure you want to go back? Any unsaved changes in this finalization step will be lost.",
-            confirmText: "Go Back",
-            cancelText: "Stay",
-            confirmColor: Colors.red,
-            icon: Icons.warning_amber_rounded,
-            onConfirm: () => Navigator.pop(context),
-          );
         },
-        child: Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colorz.primaryColor),
-              onPressed: () {
-                Navigator.maybePop(context);
-              },
+        child: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
+
+            await showConfirmationDialog(
+              context: context,
+              title: "Discard Finalization",
+              message:
+                  "Are you sure you want to go back? Any unsaved changes in this finalization step will be lost.",
+              confirmText: "Go Back",
+              cancelText: "Stay",
+              confirmColor: Colors.red,
+              icon: Icons.warning_amber_rounded,
+              onConfirm: () => Navigator.pop(context),
+            );
+          },
+          child: Scaffold(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Colorz.primaryColor),
+                onPressed: () {
+                  Navigator.maybePop(context);
+                },
+              ),
+              title: Column(
+                spacing: 10,
+                children: [
+                  Text('Visit Finalization',
+                      style: TextStyle(color: Colorz.primaryColor)),
+                  Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      width: MediaQuery.of(context).size.width,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: Colorz.primaryColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ))
+                ],
+              ),
+              actions: const [
+                SizedBox.shrink(),
+              ],
             ),
-          title: Column(
-            spacing: 10,
-            children: [
-              Text('Visit Finalization',
-                  style: TextStyle(color: Colorz.primaryColor)),
-              Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  width: MediaQuery.of(context).size.width,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: Colorz.primaryColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ))
-            ],
+            body: SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildFinalDiagnosisForm(),
+                  SizedBox(height: 20.h),
+                  _buildMainOptions(),
+                  if (selectedMainOptions.isNotEmpty)
+                    Column(
+                      children: [
+                        SizedBox(height: 20.h),
+                        _buildSaveButton(context),
+                      ],
+                    ),
+                ],
+              ),
+            ),
           ),
-          actions: const [
-            SizedBox.shrink(),
-          ],
-        ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildFinalDiagnosisForm(),
-              SizedBox(height: 20.h),
-              _buildMainOptions(),
-              if (selectedMainOptions.isNotEmpty)
-                Column(
-                  children: [
-                    SizedBox(height: 20.h),
-                    _buildSaveButton(context),
-                  ],
-                ),
-            ],
-          ),
-        ),
-      ),
-    ));
+        ));
   }
 
   Future<void> clearOrOptions() async {
@@ -692,8 +702,9 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                       Icon(
                         categoryIcons[category],
                         size: 24.sp,
-                        color:
-                            isSelected ? Colorz.primaryColor : Theme.of(context).iconTheme.color,
+                        color: isSelected
+                            ? Colorz.primaryColor
+                            : Theme.of(context).iconTheme.color,
                       ),
                       SizedBox(width: 16.w),
                       Expanded(
@@ -1039,10 +1050,13 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                               decoration: BoxDecoration(
                                 color: Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Theme.of(context).dividerColor),
+                                border: Border.all(
+                                    color: Theme.of(context).dividerColor),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Theme.of(context).shadowColor.withValues(alpha:0.1),
+                                    color: Theme.of(context)
+                                        .shadowColor
+                                        .withValues(alpha: 0.1),
                                     spreadRadius: 1,
                                     blurRadius: 3,
                                     offset: const Offset(0, 1),
@@ -1064,21 +1078,33 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                                           _buildMedicationField(
                                             'Name',
                                             medication.name ?? '',
-                                            Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                                            Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.color ??
+                                                Colors.black,
                                           ),
                                           const SizedBox(height: 8),
                                           // Dosage
                                           _buildMedicationField(
                                             'Dosage',
                                             medication.dosage ?? '',
-                                            Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                                            Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.color ??
+                                                Colors.black,
                                           ),
                                           const SizedBox(height: 8),
                                           // Duration
                                           _buildMedicationField(
                                             'Duration',
                                             medication.duration ?? '',
-                                            Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                                            Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.color ??
+                                                Colors.black,
                                           ),
                                         ],
                                       ),
@@ -1146,10 +1172,10 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                         backgroundColor: Colorz.primaryColor,
                       ),
                       icon: const Icon(Icons.print, color: Colors.white),
-                    onPressed: () => _onPrintPressed(
-                        actionName: 'prescribe medications',
-                        showPrescriptionTable: false,
-                        prescriptionList: medicationsList),
+                      onPressed: () => _onPrintPressed(
+                          actionName: 'prescribe medications',
+                          showPrescriptionTable: false,
+                          prescriptionList: medicationsList),
                     ),
                   ),
                 ],
@@ -1202,8 +1228,8 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
           backgroundColor: Theme.of(context).cardColor,
           title: Text(
             'Add Medication',
-            style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color),
+            style:
+                TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1219,7 +1245,9 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                     border: Theme.of(context).dividerColor,
                     itemAsString: (item) => item.name ?? '',
                     onChanged: (value) {
-                       context.read<GetMedicinesCubit>().getMedicines(search: value);
+                      context
+                          .read<GetMedicinesCubit>()
+                          .getMedicines(search: value);
                     },
                     onItemSelected: (selectedItem) {
                       medicationNameController.text = selectedItem.name ?? '';
@@ -1258,7 +1286,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                         dosage: medicationDosageController.text,
                         duration: medicationDurationController.text,
                         medicineId: selectedMedicineId // Pass the ID
-                    ));
+                        ));
                     updatePrescription();
                   });
                   Navigator.pop(dialogContext);
@@ -1266,7 +1294,8 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
               },
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colorz.primaryColor),
-              child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+              child:
+                  const Text('Confirm', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -1402,7 +1431,9 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
         title,
         style: TextStyle(
           fontSize: 15.sp,
-          color: value ? Colorz.primaryColor : Theme.of(context).textTheme.bodyLarge?.color,
+          color: value
+              ? Colorz.primaryColor
+              : Theme.of(context).textTheme.bodyLarge?.color,
         ),
       ),
       value: value,
@@ -1423,7 +1454,9 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
         title,
         style: TextStyle(
           fontSize: 15.sp,
-          color: title == groupValue ? Colorz.primaryColor : Theme.of(context).textTheme.bodyLarge?.color,
+          color: title == groupValue
+              ? Colorz.primaryColor
+              : Theme.of(context).textTheme.bodyLarge?.color,
         ),
       ),
       value: title,
@@ -1607,7 +1640,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                   final result = await Get.to(() => MakeAppointmentView(
                         appointment: widget.appointment,
                       ));
-                  
+
                   // If appointment was created successfully, get the selected date/time
                   if (result != null && result is DateTime) {
                     setState(() {
@@ -1778,7 +1811,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colorz.primaryColor.withValues(alpha:0.3),
+                color: Colorz.primaryColor.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -1809,8 +1842,8 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
               }
 
               final finalizationData = getFinalizationData();
-              final diagnosis = diagnosisController.text.isNotEmpty 
-                  ? diagnosisController.text 
+              final diagnosis = diagnosisController.text.isNotEmpty
+                  ? diagnosisController.text
                   : 'Not specified';
 
               showConfirmationDialog(
@@ -1826,7 +1859,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                       "Review the summary below before completing the visit. This action cannot be undone.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 14, 
+                        fontSize: 14,
                         color: Theme.of(context).textTheme.bodySmall?.color,
                         height: 1.4,
                       ),
@@ -1835,17 +1868,23 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colorz.primaryColor.withValues(alpha:0.05),
+                        color: Colorz.primaryColor.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colorz.primaryColor.withValues(alpha:0.1)),
+                        border: Border.all(
+                            color: Colorz.primaryColor.withValues(alpha: 0.1)),
                       ),
                       child: Column(
                         children: [
-                          _buildSummaryRow(Icons.description_outlined, "Diagnosis", diagnosis),
+                          _buildSummaryRow(Icons.description_outlined,
+                              "Diagnosis", diagnosis),
                           if (medicationsList.isNotEmpty)
-                            _buildSummaryRow(Icons.medication_outlined, "Medications", "${medicationsList.length} prescribed"),
+                            _buildSummaryRow(
+                                Icons.medication_outlined,
+                                "Medications",
+                                "${medicationsList.length} prescribed"),
                           if (selectedMainOptions.isNotEmpty)
-                            _buildSummaryRow(Icons.list_alt_rounded, "Actions", "${selectedMainOptions.length} categories"),
+                            _buildSummaryRow(Icons.list_alt_rounded, "Actions",
+                                "${selectedMainOptions.length} categories"),
                         ],
                       ),
                     ),
@@ -1853,14 +1892,15 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                 ),
                 onConfirm: () async {
                   customLoading(context, "");
-                  bool value = await InternetConnection().hasInternetAccess;
-                  if (!value) {
-                    Navigator.pop(context);
-                    SnackbarService.showWarning(context, message: 'No Internet Connection');
-                    return;
-                  }
+                  // bool value = await InternetConnection().hasInternetAccess;
+                  // if (!value) {
+                  //   Navigator.pop(context);
+                  //   SnackbarService.showWarning(context, message: 'No Internet Connection');
+                  //   return;
+                  // }
 
                   // Send the entire prescriptions list
+
                   context.read<ExaminationActionsCubit>().makeFinalization(
                       id: widget.examination?.id ?? '', data: finalizationData);
                 },

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:ocurithm/core/utils/network_connection.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart';
@@ -399,7 +399,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
-                bool connection = await InternetConnection().hasInternetAccess;
+                bool connection = await NetworkStatus().hasInternetConnection();
                 if (!connection) {
                   SnackbarService.showError(
                     context,

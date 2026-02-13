@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/network_connection.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/DropdownPackage.dart';
 import 'package:ocurithm/core/widgets/custom_buttons.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
-import 'package:ocurithm/generated/l10n.dart';
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:shimmer/shimmer.dart';
@@ -115,7 +114,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
     customLoading(context, "");
 
     // Check internet connection
-    final hasConnection = await InternetConnection().hasInternetAccess;
+    final hasConnection = await NetworkStatus().hasInternetConnection();
     if (!mounted) return;
 
     if (!hasConnection) {
@@ -132,7 +131,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
     final paymentMethod = PaymentMethod(
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
-     // clinic: widget.mode == PaymentMethodFormMode.add ? selectedClinic : null,
+      // clinic: widget.mode == PaymentMethodFormMode.add ? selectedClinic : null,
     );
 
     // Dispatch appropriate event based on mode
@@ -249,15 +248,15 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
         borderRadius: BorderRadius.circular(16),
         border: isDark
             ? Border.all(
-                color: Colors.white.withValues(alpha:0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               )
             : null,
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withValues(alpha:0.5)
-                : Colors.black.withValues(alpha:0.15),
+                ? Colors.black.withValues(alpha: 0.5)
+                : Colors.black.withValues(alpha: 0.15),
             blurRadius: 20,
             offset: const Offset(0, 4),
             spreadRadius: 2,
@@ -427,7 +426,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.payment,
-          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -460,7 +459,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.description,
-          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
