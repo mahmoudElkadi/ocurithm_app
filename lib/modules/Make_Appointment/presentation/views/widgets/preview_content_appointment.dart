@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:intl/intl.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart';
 
 import '../../../../../core/utils/colors.dart';
@@ -34,15 +34,27 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
         if (state.status == MakeAppointmentStatus.loading) {
           customLoading(context, "Saving appointment...");
         } else if (state.status == MakeAppointmentStatus.success) {
-          Navigator.pop(context); // Dismiss loading
-          SnackbarService.showSuccess(context, 
-            message: widget.isUpdated ? "Appointment Updated successfully" : "Appointment created successfully"
-          );
-          // Return the selected date/time when appointment is created successfully
-          Navigator.pop(context, state.selectedTime);
+          // Dismiss the loading dialog first
+          // Using rootNavigator: true to target the dialog
+          Navigator.of(context, rootNavigator: true).pop();
+
+          SnackbarService.showSuccess(context,
+              message: widget.isUpdated
+                  ? "Appointment Updated successfully"
+                  : "Appointment created successfully");
+
+          // Use a small delay for the final pop to ensure the dialog pop is finished
+          // and we are not in a build/layout cycle
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              // Return the selected date/time when appointment is created successfully
+              Navigator.pop(context, state.selectedTime);
+            }
+          });
         } else if (state.status == MakeAppointmentStatus.error) {
-          Navigator.pop(context); // Dismiss loading
-          SnackbarService.showError(context, message: state.errorMessage ?? "An error occurred");
+          Navigator.of(context, rootNavigator: true).pop(); // Dismiss loading
+          SnackbarService.showError(context,
+              message: state.errorMessage ?? "An error occurred");
         }
       },
       builder: (context, state) => Column(
@@ -73,7 +85,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 5,
             blurRadius: 10,
             offset: const Offset(0, 3),
@@ -111,7 +123,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
-              color: Colorz.primaryColor.withOpacity(0.1),
+              color: Colorz.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
@@ -246,7 +258,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Icon(
@@ -288,7 +300,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
     // Note controller is still in cubit for text editing handling
     final cubit = context.read<MakeAppointmentCubit>();
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -296,7 +308,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, 1),
@@ -318,7 +330,8 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           TextField(
             controller: cubit.noteController,
             maxLines: 3,
-            style: TextStyle(fontSize: 15.sp, color: isDark ? Colors.white : Colors.black),
+            style: TextStyle(
+                fontSize: 15.sp, color: isDark ? Colors.white : Colors.black),
             decoration: InputDecoration(
               hintText: 'Add a note (optional)',
               hintStyle: TextStyle(
@@ -342,14 +355,14 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
   Widget _buildBottomButtons(BuildContext context, MakeAppointmentState state) {
     final cubit = context.read<MakeAppointmentCubit>();
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: isDark ? Colors.grey[850] : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -1),
@@ -361,7 +374,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
           Expanded(
             child: OutlinedButton(
               onPressed: () {
-                cubit.add(PreviousStepEvent()); 
+                cubit.add(PreviousStepEvent());
               },
               style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -395,20 +408,21 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
                 } else {
                   if (widget.isUpdated == true) {
                     cubit.add(EditAppointmentEvent(
-                         model: MakeAppointmentModel(
-                            id: widget.appointment?.id,
-                            doctor: state.selectedDoctor?.id,
-                            branch: state.selectedBranch?.id,
-                            datetime: state.selectedTime?.toUtc(),
-                            paymentMethod: state.selectedPaymentMethod?.id,
-                            examinationType: state.selectedExaminationType?.id,
-                            patient: state.selectedPatient?.id,
-                            status: "Scheduled",
-                            clinic: state.selectedClinic?.id,
-                            note: cubit.noteController.text),
+                      model: MakeAppointmentModel(
+                          id: widget.appointment?.id,
+                          doctor: state.selectedDoctor?.id,
+                          branch: state.selectedBranch?.id,
+                          datetime: state.selectedTime?.toUtc(),
+                          paymentMethod: state.selectedPaymentMethod?.id,
+                          examinationType: state.selectedExaminationType?.id,
+                          patient: state.selectedPatient?.id,
+                          status: "Scheduled",
+                          clinic: state.selectedClinic?.id,
+                          note: cubit.noteController.text),
                     ));
                   } else {
-                    cubit.add(CreateAppointmentEvent(note: cubit.noteController.text));
+                    cubit.add(CreateAppointmentEvent(
+                        note: cubit.noteController.text));
                   }
                 }
               },

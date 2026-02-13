@@ -34,15 +34,18 @@ class GetDoctorExaminationsState {
     String? startDateFilter,
     String? endDateFilter,
     bool? hasReachedMax,
+    bool clearPatientFilter = false,
+    bool clearStartDateFilter = false,
+    bool clearEndDateFilter = false,
   }) {
     return GetDoctorExaminationsState(
       status: status ?? this.status,
       examinations: examinations ?? this.examinations,
       errorMessage: errorMessage ?? this.errorMessage,
       page: page ?? this.page,
-      patientIdFilter: patientIdFilter ?? this.patientIdFilter,
-      startDateFilter: startDateFilter ?? this.startDateFilter,
-      endDateFilter: endDateFilter ?? this.endDateFilter,
+      patientIdFilter: clearPatientFilter ? null : (patientIdFilter ?? this.patientIdFilter),
+      startDateFilter: clearStartDateFilter ? null : (startDateFilter ?? this.startDateFilter),
+      endDateFilter: clearEndDateFilter ? null : (endDateFilter ?? this.endDateFilter),
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
     );
   }

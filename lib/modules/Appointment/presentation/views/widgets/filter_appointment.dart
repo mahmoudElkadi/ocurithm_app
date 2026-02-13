@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
@@ -97,49 +98,55 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                 color: isDark ? theme.dividerColor : Colorz.grey200,
               ),
               const HeightSpacer(size: 15),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: DropdownItem(
-                  radius: 30,
-                  color: isDark ? theme.canvasColor : Colorz.white,
-                  isShadow: true,
-                  iconData: Icon(
-                    Icons.arrow_drop_down_circle,
-                    color: Colorz.primaryColor,
+              manageCapability(
+                capability: 'showDoctors',
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: DropdownItem(
+                    radius: 30,
+                    color: isDark ? theme.canvasColor : Colorz.white,
+                    isShadow: true,
+                    iconData: Icon(
+                      Icons.arrow_drop_down_circle,
+                      color: Colorz.primaryColor,
+                    ),
+                    items: state.doctors?.doctors,
+                    selectedValue: state.selectedDoctor?.name,
+                    hintText: 'Select Doctor',
+                    itemAsString: (item) => item.name.toString(),
+                    onItemSelected: (item) {
+                      if (item != "Not Found") {
+                        widget.cubit.add(SelectDoctorEvent(item));
+                      }
+                    },
+                    isLoading: state.status == AppointmentStatus.loadingDoctors,
                   ),
-                  items: state.doctors?.doctors,
-                  selectedValue: state.selectedDoctor?.name,
-                  hintText: 'Select Doctor',
-                  itemAsString: (item) => item.name.toString(),
-                  onItemSelected: (item) {
-                    if (item != "Not Found") {
-                      widget.cubit.add(SelectDoctorEvent(item));
-                    }
-                  },
-                  isLoading: state.status == AppointmentStatus.loadingDoctors,
                 ),
               ),
               const HeightSpacer(size: 15),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: DropdownItem(
-                  radius: 30,
-                  color: isDark ? theme.canvasColor : Colorz.white,
-                  isShadow: true,
-                  iconData: Icon(
-                    Icons.arrow_drop_down_circle,
-                    color: Colorz.primaryColor,
+              manageCapability(
+                capability: 'showBranches',
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: DropdownItem(
+                    radius: 30,
+                    color: isDark ? theme.canvasColor : Colorz.white,
+                    isShadow: true,
+                    iconData: Icon(
+                      Icons.arrow_drop_down_circle,
+                      color: Colorz.primaryColor,
+                    ),
+                    items: state.branches?.branches,
+                    selectedValue: state.selectedBranch?.name,
+                    hintText: 'Select Branch',
+                    itemAsString: (item) => item.name.toString(),
+                    onItemSelected: (item) {
+                      if (item != "Not Found") {
+                        widget.cubit.add(SelectBranchEvent(item));
+                      }
+                    },
+                    isLoading: state.status == AppointmentStatus.loadingBranches,
                   ),
-                  items: state.branches?.branches,
-                  selectedValue: state.selectedBranch?.name,
-                  hintText: 'Select Branch',
-                  itemAsString: (item) => item.name.toString(),
-                  onItemSelected: (item) {
-                    if (item != "Not Found") {
-                      widget.cubit.add(SelectBranchEvent(item));
-                    }
-                  },
-                  isLoading: state.status == AppointmentStatus.loadingBranches,
                 ),
               ),
               const HeightSpacer(size: 15),

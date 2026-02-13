@@ -6,8 +6,8 @@ import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/appointment_view_body.dart';
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/make_appointment_view.dart';
+
 import '../../../../core/utils/colors.dart';
-import '../../../../core/utils/services_locator.dart';
 import '../manager/Appointment cubit/appointment_cubit.dart';
 
 class AppointmentView extends StatelessWidget {
@@ -34,10 +34,10 @@ class AppointmentView extends StatelessWidget {
               capability: 'addAppointments',
               child: IconButton(
                 onPressed: () async {
-                  bool? isChanged =
+                  DateTime? isChanged =
                       await Get.to(() => const MakeAppointmentView());
-                  if (isChanged == true) {
-                    cubit.add(GetAppointmentsEvent());
+                  if (isChanged != null) {
+                    cubit.add(SelectDateEvent(isChanged));
                   }
                 },
                 icon: Icon(Icons.add, color: Colorz.primaryColor),

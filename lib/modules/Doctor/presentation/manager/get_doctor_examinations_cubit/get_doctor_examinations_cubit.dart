@@ -101,9 +101,9 @@ class GetDoctorExaminationsBloc
   void _onResetFilters(
       ResetFiltersEvent event, Emitter<GetDoctorExaminationsState> emit) {
     emit(state.copyWith(
-      patientIdFilter: null,
-      startDateFilter: null,
-      endDateFilter: null,
+      clearPatientFilter: true,
+      clearStartDateFilter: true,
+      clearEndDateFilter: true,
       page: 1,
     ));
     add(FetchExaminationsEvent());

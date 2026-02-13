@@ -157,6 +157,15 @@ class _FilterSheetContentState extends State<_FilterSheetContent> {
     if (bloc.state.endDateFilter != null) {
       _endDate = DateTime.tryParse(bloc.state.endDateFilter!);
     }
+    // Load selected patient from bloc state
+    if (bloc.state.patientIdFilter != null) {
+      final patientsCubit = context.read<GetPatientsCubit>();
+      final patients = patientsCubit.state.patients?.patients ?? [];
+      _selectedPatient = patients.firstWhere(
+        (p) => p.id == bloc.state.patientIdFilter,
+        orElse: () => patients.first,
+      );
+    }
     _dateController = TextEditingController(
       text: _formatDateRange(_startDate, _endDate),
     );
@@ -253,6 +262,14 @@ class _FilterSheetContentState extends State<_FilterSheetContent> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
+                    // Clear local state variables
+                    setState(() {
+                      _startDate = null;
+                      _endDate = null;
+                      _selectedPatient = null;
+                      _dateController.text = '';
+                    });
+                    // Reset filters in the bloc
                     context
                         .read<doc_bloc.GetDoctorExaminationsBloc>()
                         .add(doc_bloc.ResetFiltersEvent());

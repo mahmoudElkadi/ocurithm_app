@@ -80,4 +80,7 @@ class ChatThreadsState {
           : loadingActionId ?? this.loadingActionId,
     );
   }
+  /// Get total unread count from all loaded threads
+  int get totalUnreadCount =>
+      threads.fold<int>(0, (sum, thread) => sum + thread.unreadCount);
 }

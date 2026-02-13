@@ -244,30 +244,37 @@ class _ExaminationTypeListViewState extends State<ExaminationTypeListView> {
     return BlocListener<ExaminationTypeActionsCubit,
         ExaminationTypeActionsState>(
       listener: (context, state) {
-        // Handle delete success
-        if (state.isDeleteSuccess) {
+        // Handle success (Add, Update, Delete)
+        if (state.isSuccess) {
           SnackbarService.showSuccess(
             context,
-            message:
-                state.successMessage ?? 'Examination type deleted successfully',
+            message: state.successMessage ?? 'Operation successful',
           );
-          // Refresh the list
+
           final getCubit = context.read<GetExaminationTypesCubit>();
-          getCubit.changePage(getCubit.state.currentPage);
+          if (state.isAddSuccess) {
+            // Reset search and refresh to first page for new additions
+            if (getCubit.state.searchQuery.isNotEmpty) {
+              getCubit.onSearchChanged('');
+            } else {
+              getCubit.changePage(1);
+            }
+          } else {
+            // For update and delete, stay on current page
+            getCubit.changePage(getCubit.state.currentPage);
+          }
         }
 
-        // Handle delete error
-        if (state.status == ExaminationTypeActionStatus.error &&
-            state.actionType == ExaminationTypeActionType.delete) {
+        // Handle error (Add, Update, Delete)
+        if (state.isError) {
           SnackbarService.showError(
             context,
-            message: state.errorMessage ?? 'Failed to delete examination type',
+            message: state.errorMessage ?? 'An error occurred',
           );
         }
 
-        // Handle no connection for delete
-        if (state.noConnection &&
-            state.actionType == ExaminationTypeActionType.delete) {
+        // Handle no connection
+        if (state.noConnection) {
           SnackbarService.showWarning(
             context,
             message: state.errorMessage ?? 'No internet connection',

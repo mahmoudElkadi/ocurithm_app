@@ -13,7 +13,9 @@ import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/text_field.dart';
 import '../../../../../core/Network/shared.dart';
+import '../../../../../core/utils/services_locator.dart';
 import '../../manger/login_cubit/login_cubit.dart';
+import '../../../../Chat/presentation/manager/chat_socket_bloc/chat_socket_bloc.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -48,6 +50,10 @@ class _LoginFormState extends State<LoginForm> {
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.isSuccess) {
+          // Connect to chat socket after successful login
+          final chatSocketBloc = sl<ChatSocketBloc>();
+          chatSocketBloc.add(ConnectSocketEvent());
+          
           Get.offAll(() => const MainView());
         } else if (state.isError) {
           _showPopup(context, "Login Failed",
@@ -101,7 +107,7 @@ class _LoginFormState extends State<LoginForm> {
                             color: Colorz.primaryColor),
                         fillColor: Theme.of(context).cardColor,
                         borderColor: Colorz.primaryColor,
-                        hintText: S.of(context).username,
+                        hintText: 'Username / Phone Number',
                         required: true,
                       )),
                 ),
@@ -254,7 +260,7 @@ class _LoginFormState extends State<LoginForm> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+                      child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
                     ),
                     ElevatedButton(
                       onPressed: () {

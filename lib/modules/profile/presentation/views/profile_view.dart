@@ -449,14 +449,14 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
           if (profile.clinic != null)
             _buildInfoRow(context, Icons.local_hospital_outlined, "Clinic",
                 profile.clinic!.name ?? "-", textColor, subTextColor),
-          if (profile.clinic != null && (profile.branch != null))
+          if (profile.clinic != null && (profile.branch?.name != null))
             Divider(color: dividerColor, height: 30.h),
-          if (profile.branch != null)
+          if (profile.branch?.name != null)
             _buildInfoRow(
                 context,
                 Icons.location_on_outlined,
                 "Branch",
-                profile.branch.toString(),
+                 profile.branch!.name.toString(),
                 textColor,
                 subTextColor), // branch is dynamic in model
         ],

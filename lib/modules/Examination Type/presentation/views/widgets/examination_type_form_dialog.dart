@@ -97,7 +97,7 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
     });
   }
 
-    // Submit the form
+  // Submit the form
   Future<void> _submitForm() async {
     // Only validate clinic selection in add mode
     if (widget.mode == ExaminationTypeFormMode.add) {
@@ -122,7 +122,7 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
       name: _nameController.text.trim(),
       price: num.tryParse(_priceController.text.trim()),
       duration: num.tryParse(_durationController.text.trim()),
-      clinic: widget.mode == ExaminationTypeFormMode.add ? selectedClinic : null,
+      clinic: selectedClinic,
     );
 
     // Dispatch appropriate event based on mode
@@ -189,28 +189,7 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
 
             // Handle success
             if (state.isAddSuccess || state.isUpdateSuccess) {
-              SnackbarService.showSuccess(
-                context,
-                message:
-                    state.successMessage ?? 'Operation completed successfully',
-              );
               Navigator.of(context).pop(); // Close form dialog
-            }
-
-            // Handle error
-            if (state.isError) {
-              SnackbarService.showError(
-                context,
-                message: state.errorMessage ?? 'An error occurred',
-              );
-            }
-
-            // Handle no connection
-            if (state.noConnection) {
-              SnackbarService.showWarning(
-                context,
-                message: state.errorMessage ?? 'No internet connection',
-              );
             }
           },
         ),
@@ -261,15 +240,15 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
         borderRadius: BorderRadius.circular(16),
         border: isDark
             ? Border.all(
-                color: Colors.white.withValues(alpha:0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               )
             : null,
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withValues(alpha:0.5)
-                : Colors.black.withValues(alpha:0.15),
+                ? Colors.black.withValues(alpha: 0.5)
+                : Colors.black.withValues(alpha: 0.15),
             blurRadius: 20,
             offset: const Offset(0, 4),
             spreadRadius: 2,
@@ -443,7 +422,7 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.medical_services,
-          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -479,7 +458,7 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.attach_money,
-          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -519,7 +498,7 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
         ),
         prefixIcon: Icon(
           Icons.timer,
-          color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6),
+          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
         ),
         suffixText: 'min',
         focusedBorder: OutlineInputBorder(
@@ -562,6 +541,9 @@ void showExaminationTypeFormDialog(
   required ExaminationTypeActionsCubit actionsCubit,
   String? examinationTypeId,
 }) {
+  // Reset actions state before showing dialog
+  actionsCubit.add(ResetExaminationTypeActionsEvent());
+
   // Check if user has permission to manage capabilities (needs clinic selection)
   final needsClinicCubit = CacheHelper.getStringList(key: "capabilities")
       .contains("manageCapability");

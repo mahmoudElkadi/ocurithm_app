@@ -241,7 +241,7 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
               CircleAvatar(
                 radius: 18,
                 backgroundColor:
-                    Theme.of(context).primaryColor.withOpacity(0.2),
+                    Theme.of(context).primaryColor.withValues(alpha:  0.2),
                 child: Text(
                   widget.thread.participant.name.isNotEmpty
                       ? widget.thread.participant.name[0].toUpperCase()
@@ -378,7 +378,7 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
             color: Theme.of(context).cardColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha:0.05),
                 blurRadius: 5,
                 offset: const Offset(0, -2),
               ),
@@ -425,7 +425,7 @@ class _ChatDetailContentState extends State<_ChatDetailContent>
                               ? Theme.of(context).scaffoldBackgroundColor
                               : Theme.of(context)
                                   .scaffoldBackgroundColor
-                                  .withOpacity(0.5),
+                                  .withValues(alpha:0.5),
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: TextField(
@@ -508,7 +508,7 @@ class _MessageBubble extends StatelessWidget {
             boxShadow: [
               if (!message.isMine)
                 BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha:0.05),
                     blurRadius: 2,
                     offset: const Offset(0, 1)),
             ],

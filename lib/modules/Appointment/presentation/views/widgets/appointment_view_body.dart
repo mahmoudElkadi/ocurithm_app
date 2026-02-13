@@ -44,7 +44,7 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
     // Use addPostFrameCallback to trigger initial fetch
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final cubit = context.read<AppointmentCubit>();
-      cubit.add(GetAppointmentsEvent(date: DateTime.now()));
+      cubit.add(SelectDateEvent(DateTime.now()));
     });
   }
 
@@ -82,9 +82,11 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
                     controller: _searchController,
                     backgroundColor: isDark ? theme.cardColor : Colors.white,
                     withShadow: true,
+                    isFiltered: CapabilityServices.hasCapability('showBranches') || CapabilityServices.hasCapability('showDoctors') ,
                     onChanged: () {
                       cubit.onSearchChanged(_searchController.text);
                     },
+                    
                     onTap: () => filterAppointment(context, cubit),
                   ),
                 ),

@@ -9,8 +9,7 @@ import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
 class OneExaminationContent extends StatelessWidget {
   final ExaminationModel examination;
 
-  const OneExaminationContent({Key? key, required this.examination})
-      : super(key: key);
+  const OneExaminationContent({super.key, required this.examination});
 
   @override
   Widget build(BuildContext context) {
@@ -730,11 +729,11 @@ class OneExaminationContent extends StatelessWidget {
                   label: 'Gender',
                   value: examination.examination?.patient?.gender ?? 'N/A',
                 ),
-                _buildInfoItem(
-                  icon: Icons.phone,
-                  label: 'Contact',
-                  value: examination.examination?.patient?.phone ?? 'N/A',
-                ),
+                // _buildInfoItem(
+                //   icon: Icons.phone,
+                //   label: 'Contact',
+                //   value: examination.examination?.patient?.phone ?? 'N/A',
+                // ),
               ],
             ),
           ],

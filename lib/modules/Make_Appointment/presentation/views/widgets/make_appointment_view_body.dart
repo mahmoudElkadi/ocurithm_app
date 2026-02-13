@@ -4,14 +4,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../core/api/api_handler.dart'; 
+import 'package:ocurithm/core/utils/snackbar_service.dart';
+
 import '../../../../../core/utils/booking_calendar/booking_calendar.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../../../Patient/data/model/patients_model.dart';
 import '../../manager/Make Appointment cubit/make_appointment_cubit.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'booking_slots_shimmer.dart';
 
 class MakeAppointmentViewBody extends StatefulWidget {
   const MakeAppointmentViewBody({super.key, this.isUpdate = false});
@@ -19,7 +20,8 @@ class MakeAppointmentViewBody extends StatefulWidget {
   final bool isUpdate;
 
   @override
-  State<MakeAppointmentViewBody> createState() => _MakeAppointmentViewBodyState();
+  State<MakeAppointmentViewBody> createState() =>
+      _MakeAppointmentViewBodyState();
 }
 
 class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
@@ -27,7 +29,8 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
   late StreamController<List<Appointment>> _controller;
   bool _disposed = false;
   bool _viewOnly = false;
-  bool isFirst = true;
+
+  // bool isFirst = true;
 
   List<String> getHolidayDays({List<String>? workingDays}) {
     final Map<String, String> dayMapping = {
@@ -40,12 +43,22 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
       'sun': 'sunday',
     };
 
-    final List<String> allDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    final List<String> allDays = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday'
+    ];
 
-    final List<String>? workingDaysFull =
-        workingDays?.map((day) => dayMapping[day.toLowerCase()] ?? day.toLowerCase()).toList();
+    final List<String>? workingDaysFull = workingDays
+        ?.map((day) => dayMapping[day.toLowerCase()] ?? day.toLowerCase())
+        .toList();
 
-    final List<String> holidays = allDays.where((day) => !workingDaysFull!.contains(day)).toList();
+    final List<String> holidays =
+        allDays.where((day) => !workingDaysFull!.contains(day)).toList();
 
     return holidays;
   }
@@ -73,18 +86,24 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
     final availableFrom = getTimeOfDay(
         state.selectedDoctor?.branches
-                ?.firstWhere((branch) => branch.branch?.id == state.selectedBranch?.id, orElse: () => state.selectedDoctor!.branches!.first)
+                ?.firstWhere(
+                    (branch) => branch.branch?.id == state.selectedBranch?.id,
+                    orElse: () => state.selectedDoctor!.branches!.first)
                 .availableFrom ??
             "8:00",
         const TimeOfDay(hour: 8, minute: 0));
     final availableTo = getTimeOfDay(
         state.selectedDoctor?.branches
-                ?.firstWhere((branch) => branch.branch?.id == state.selectedBranch?.id, orElse: () => state.selectedDoctor!.branches!.first)
+                ?.firstWhere(
+                    (branch) => branch.branch?.id == state.selectedBranch?.id,
+                    orElse: () => state.selectedDoctor!.branches!.first)
                 .availableTo ??
             "18:00",
         const TimeOfDay(hour: 18, minute: 0));
 
-    final duration = int.tryParse(state.selectedExaminationType?.duration?.toString() ?? "10") ?? 10;
+    final duration = int.tryParse(
+            state.selectedExaminationType?.duration?.toString() ?? "10") ??
+        10;
 
     bookingService = BookingService(
       serviceName: 'Appointment Reservation',
@@ -110,29 +129,21 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
 
   Future<void> fetchInitialData({required DateTime date}) async {
     if (_disposed) return;
-    
+
     final cubit = context.read<MakeAppointmentCubit>();
     try {
-      final appointmentsModel = await cubit.makeAppointmentRepo.getAllAppointment(
+      final appointmentsModel =
+          await cubit.makeAppointmentRepo.getAllAppointment(
         date: date,
         branch: cubit.state.selectedBranch?.id,
         doctor: cubit.state.selectedDoctor?.id,
       );
-      
-      if (isFirst) {
-        isFirst = false;
-        fetchInitialData(date: date);
-      }
+
       if (_disposed) return;
-      
-      if (appointmentsModel.appointments.isNotEmpty) {
-           _controller.add(appointmentsModel.appointments);
-      } else {
-         _controller.add([]);
-      }
+
+      _controller.add(appointmentsModel.appointments);
     } catch (e) {
       if (_disposed) return;
-      // Handle error cleanly, maybe send empty list
       _controller.add([]);
     }
   }
@@ -160,11 +171,11 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     required Patient patient,
   }) async {
     // This looks like legacy/unused code given the Cubit handles appointment creation.
-    // However, keeping structure as requested. 
+    // However, keeping structure as requested.
     // It seems BookingCalendar calls this on 'Book' button click.
-    // If we want to use the Cubit's makeAppointment, we should return success here 
+    // If we want to use the Cubit's makeAppointment, we should return success here
     // and let the 'Next' button handle the actual creation in the Preview step?
-    // Or if this button IS the create button... 
+    // Or if this button IS the create button...
     // The previous code posted to 'appointment' (singular) endpoint.
     // I'll return a success dummy message because the main 'Next' button calls cubit.changeStep(2)
     // which goes to Preview, where I assume the final confirmation happens.
@@ -179,20 +190,21 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
     if (streamResult is List<Appointment>) {
       for (var item in streamResult) {
         if (item.datetime != null) {
-             final start = item.datetime!.toLocal();
-             final duration = item.examinationType?.duration ?? 10; // Default or fetch
-             dateTimeRanges.add({
-              "Time": DateTimeRange(
-                start: start,
-                end: start.add(Duration(minutes: duration.toInt())),
-              ),
-              "phoneNumber": item.patient?.phone,
-              "name": item.patient?.name,
-              "manualId": item.id,
-              "examination_type": item.examinationType?.name,
-              "branch": item.branch?.name,
-              "status": item.status,
-            });
+          final start = item.datetime!.toLocal();
+          final duration =
+              item.examinationType?.duration ?? 10; // Default or fetch
+          dateTimeRanges.add({
+            "Time": DateTimeRange(
+              start: start,
+              end: start.add(Duration(minutes: duration.toInt())),
+            ),
+            "phoneNumber": item.patient?.phone,
+            "name": item.patient?.name,
+            "manualId": item.id,
+            "examination_type": item.examinationType?.name,
+            "branch": item.branch?.name,
+            "status": item.status,
+          });
         }
       }
     }
@@ -203,26 +215,30 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return BlocBuilder<MakeAppointmentCubit, MakeAppointmentState>(
-      builder: (context, state) {
-        final cubit = context.read<MakeAppointmentCubit>();
-        return Column(
+        builder: (context, state) {
+      final cubit = context.read<MakeAppointmentCubit>();
+      return Column(
         children: [
           HeightSpacer(size: 10.h),
           Expanded(
             child: BookingCalendar(
               bookingService: bookingService,
-              convertStreamResultToDateTimeRanges: convertStreamResultToDateTimeRanges,
+              convertStreamResultToDateTimeRanges:
+                  convertStreamResultToDateTimeRanges,
               getBookingStream: getBookingStream,
               uploadBooking: uploadBooking,
               hideBreakTime: false,
-              loadingWidget: const Text('Fetching data...'),
+              loadingWidget: const BookingSlotsShimmer(),
               uploadingWidget: const CircularProgressIndicator(),
               selectedDate: state.selectedTime,
               locale: 'en',
               startingDayOfWeek: StartingDayOfWeek.saturday,
-              wholeDayIsBookedWidget: Text('Sorry, for this day everything is booked', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+              wholeDayIsBookedWidget: Text(
+                  'Sorry, for this day everything is booked',
+                  style:
+                      TextStyle(color: isDark ? Colors.white : Colors.black)),
               branch: state.selectedBranch,
               doctor: state.selectedDoctor,
               viewOnly: _viewOnly,
@@ -243,14 +259,18 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
               ),
               holidayWeekdays: getHolidayDays(
                   workingDays: state.selectedDoctor?.branches
-                      ?.firstWhere((branch) => branch.branch?.id == state.selectedBranch?.id, orElse: () => state.selectedDoctor!.branches!.first)
-                      .availableDays), // Added orElse to prevent crash
-              
+                      ?.firstWhere(
+                          (branch) =>
+                              branch.branch?.id == state.selectedBranch?.id,
+                          orElse: () => state.selectedDoctor!.branches!.first)
+                      .availableDays),
+              // Added orElse to prevent crash
+
               availableSlotColor: Colorz.primaryColor,
               bookedSlotColor: Colors.redAccent,
               selectedSlotColor: Colors.orange,
               pauseSlotColor: Colors.grey,
-              
+
               onDateSelected: (DateTime date) {
                 cubit.add(SelectTimeEvent(date));
               },
@@ -263,8 +283,9 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () {
-                           cubit.add(PreviousStepEvent()); // OR ChangeStepEvent(0)
-                           cubit.add(ChangeStepEvent(0));
+                            cubit.add(
+                                PreviousStepEvent()); // OR ChangeStepEvent(0)
+                            cubit.add(ChangeStepEvent(0));
                           },
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -291,19 +312,21 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                         onPressed: () async {
                           if (state.selectedTime != null) {
                             if (state.selectedTime!.isBefore(DateTime.now())) {
-                               // Allow selecting today if internal time is later? 
-                               // Logic: isBefore(now) checks exact time. 
-                               // If user picks today, selectedTime might be 00:00 or current time?
-                               // BookingCalendar returns generic date. 
-                               // Let's assume standard behavior.
-                               if (DateUtils.isSameDay(state.selectedTime, DateTime.now()) || state.selectedTime!.isAfter(DateTime.now())) {
-                                  cubit.add(ChangeStepEvent(2));
-                               } else {
-                                  SnackbarService.showError(
-                                    context,
-                                    message: 'Please select a valid date',
-                                  );
-                               }
+                              // Allow selecting today if internal time is later?
+                              // Logic: isBefore(now) checks exact time.
+                              // If user picks today, selectedTime might be 00:00 or current time?
+                              // BookingCalendar returns generic date.
+                              // Let's assume standard behavior.
+                              if (DateUtils.isSameDay(
+                                      state.selectedTime, DateTime.now()) ||
+                                  state.selectedTime!.isAfter(DateTime.now())) {
+                                cubit.add(ChangeStepEvent(2));
+                              } else {
+                                SnackbarService.showError(
+                                  context,
+                                  message: 'Please select a valid date',
+                                );
+                              }
                             } else {
                               cubit.add(ChangeStepEvent(2));
                             }
@@ -326,10 +349,9 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
                         child: Text(
                           widget.isUpdate == true ? 'Update' : 'Next',
                           style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white
-                          ),
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white),
                         ),
                       ),
                     ),
@@ -340,7 +362,6 @@ class _MakeAppointmentViewBodyState extends State<MakeAppointmentViewBody> {
           ),
         ],
       );
-     }
-    );
+    });
   }
 }

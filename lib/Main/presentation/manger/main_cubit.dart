@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' as getx;
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:ocurithm/core/utils/network_connection.dart';
+import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/branch_view.dart';
+import 'package:ocurithm/modules/Chat/presentation/manager/chat_socket_bloc/chat_socket_bloc.dart';
 import 'package:ocurithm/modules/Examination%20Type/presentation/views/examination_type_view.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
-import '../../../modules/Medicine/presentation/views/medicine_view.dart';
+
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
 import '../../../modules/Appointment/presentation/views/appointment_view.dart';
@@ -15,10 +19,8 @@ import '../../../modules/Clinics/presentation/views/clinic_view.dart';
 import '../../../modules/Dashboard/presentation/views/dashboard_view.dart';
 import '../../../modules/Doctor/presentation/views/Doctor Dashboard/presentation/views/doctor_view.dart';
 import '../../../modules/Login/presentation/view/login_view.dart';
+import '../../../modules/Medicine/presentation/views/medicine_view.dart';
 import '../../../modules/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
-import 'dart:developer';
-import 'package:ocurithm/core/utils/services_locator.dart';
-import 'package:ocurithm/modules/Chat/presentation/manager/chat_socket_bloc/chat_socket_bloc.dart';
 import 'main_state.dart';
 
 class MainCubit extends Cubit<MainState> {
@@ -90,7 +92,7 @@ class MainCubit extends Cubit<MainState> {
   bool? result;
 
   Future<void> check() async {
-    result = await InternetConnection().hasInternetAccess;
+    result = await NetworkStatus().hasInternetConnection();
     emit(ConnectionSuccess());
   }
 

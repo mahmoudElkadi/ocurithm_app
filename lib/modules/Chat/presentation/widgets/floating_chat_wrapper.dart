@@ -1,41 +1,92 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/Network/shared.dart';
 import '../../../../core/utils/services_locator.dart';
-import '../manager/chat_threads_bloc/chat_threads_bloc.dart';
 import '../manager/chat_socket_bloc/chat_socket_bloc.dart';
+import '../manager/chat_threads_bloc/chat_threads_bloc.dart';
 import '../views/chat_list_view.dart';
 
 class FloatingChatWrapper extends StatefulWidget {
   final Widget child;
+
   const FloatingChatWrapper({super.key, required this.child});
 
   @override
   State<FloatingChatWrapper> createState() => _FloatingChatWrapperState();
 }
 
-class _FloatingChatWrapperState extends State<FloatingChatWrapper> {
+class _FloatingChatWrapperState extends State<FloatingChatWrapper>
+    with WidgetsBindingObserver {
   Offset position = Offset.zero;
   bool isDragging = false;
   bool isInitialized = false;
   bool isChatOpen = false;
+  ChatSocketStatus? _lastSocketStatus;
 
   late ChatThreadsBloc _threadsBloc;
   late ChatSocketBloc _socketBloc;
 
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _threadsBloc = sl<ChatThreadsBloc>();
     _socketBloc = sl<ChatSocketBloc>();
+    _lastSocketStatus = _socketBloc.state.status;
 
     // Connect to socket
     _socketBloc.add(ConnectSocketEvent());
 
     // Initial fetch
     _threadsBloc.add(FetchThreadsEvent());
+
+    // Periodic check for connection and route
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+
+      final token = CacheHelper.getData(key: 'token');
+      if (token != null && _socketBloc.state.isDisconnected) {
+        _socketBloc.add(ConnectSocketEvent());
+      }
+
+      // We can also trigger a setState if we want to refresh visibility based on route
+      // which is safer than doing it in a StreamBuilder and adding events there.
+      setState(() {});
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Small delay to ensure network is fully restored by OS
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+
+        // Refresh chats when app comes to foreground to catch up on missed messages
+        final token = CacheHelper.getData(key: 'token');
+        if (token != null) {
+          _threadsBloc.add(RefreshThreadsEvent());
+
+          // Also ensure socket is connected
+          if (!_socketBloc.state.isConnected) {
+            _socketBloc.add(ConnectSocketEvent());
+          }
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -81,9 +132,20 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper> {
           return previous.lastNewMessage != current.lastNewMessage ||
               previous.lastThreadUpdate != current.lastThreadUpdate ||
               previous.lastMessagesRead != current.lastMessagesRead ||
-              previous.lastEventType != current.lastEventType;
+              previous.lastEventType != current.lastEventType ||
+              previous.status != current.status;
         },
         listener: (context, socketState) {
+          // Handle reconnection
+          if (_lastSocketStatus != ChatSocketStatus.connected &&
+              socketState.status == ChatSocketStatus.connected) {
+            final token = CacheHelper.getData(key: 'token');
+            if (token != null) {
+              _threadsBloc.add(FetchThreadsEvent());
+            }
+          }
+          _lastSocketStatus = socketState.status;
+
           // Listen for new messages to update the badge in real-time
           if (socketState.lastEventType == ChatSocketEventType.newMessage &&
               socketState.lastNewMessage != null) {
@@ -111,72 +173,61 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper> {
           child: Stack(
             children: [
               widget.child,
-              StreamBuilder<void>(
-                  stream: Stream.periodic(const Duration(seconds: 1)),
-                  builder: (context, _) {
-                    final token = CacheHelper.getData(key: 'token');
-                    final currentRoute = Get.currentRoute;
+              Builder(builder: (context) {
+                final token = CacheHelper.getData(key: 'token');
+                final currentRoute = Get.currentRoute;
 
-                    final bool isAuthScreen = currentRoute == '/LoginView' ||
-                        currentRoute == '/SplashScreen' ||
-                        currentRoute == '/LoadingScreen' ||
-                        currentRoute == '' ||
-                        currentRoute == '/';
+                final bool isAuthScreen = currentRoute == '/LoginView' ||
+                    currentRoute == '/SplashScreen' ||
+                    currentRoute == '/LoadingScreen' ||
+                    currentRoute == '' ||
+                    currentRoute == '/';
 
-                    if (token != null && _socketBloc.state.isDisconnected) {
-                      _socketBloc.add(ConnectSocketEvent());
-                    }
+                if (token == null || isAuthScreen) {
+                  return const SizedBox.shrink();
+                }
 
-                    if (token == null || isAuthScreen) {
-                      return const SizedBox.shrink();
-                    }
-
-                    return AnimatedPositioned(
-                      duration: isDragging
-                          ? Duration.zero
-                          : const Duration(milliseconds: 300),
-                      curve: Curves.easeOutBack,
-                      left: position.dx,
-                      top: position.dy,
-                      child: IgnorePointer(
-                        ignoring: isChatOpen,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 200),
-                          opacity: isChatOpen ? 0.0 : 1.0,
-                          child: GestureDetector(
-                            onPanStart: (_) =>
-                                setState(() => isDragging = true),
-                            onPanUpdate: (details) {
-                              setState(() {
-                                position += details.delta;
-                              });
+                return AnimatedPositioned(
+                  duration: isDragging
+                      ? Duration.zero
+                      : const Duration(milliseconds: 300),
+                  curve: Curves.easeOutBack,
+                  left: position.dx,
+                  top: position.dy,
+                  child: IgnorePointer(
+                    ignoring: isChatOpen,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 200),
+                      opacity: isChatOpen ? 0.0 : 1.0,
+                      child: GestureDetector(
+                        onPanStart: (_) => setState(() => isDragging = true),
+                        onPanUpdate: (details) {
+                          setState(() {
+                            position += details.delta;
+                          });
+                        },
+                        onPanEnd: (details) {
+                          setState(() => isDragging = false);
+                          _snapToEdge();
+                        },
+                        onTap: _showChatList,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: BlocBuilder<ChatThreadsBloc, ChatThreadsState>(
+                            builder: (context, state) {
+                              final unreadCount = state.totalUnreadCount;
+                              return _ChatBubble(
+                                isDragging: isDragging,
+                                unreadCount: unreadCount,
+                              );
                             },
-                            onPanEnd: (details) {
-                              setState(() => isDragging = false);
-                              _snapToEdge();
-                            },
-                            onTap: _showChatList,
-                            child: MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: BlocBuilder<ChatThreadsBloc,
-                                  ChatThreadsState>(
-                                builder: (context, state) {
-                                  final unreadCount = state.threads.fold<int>(
-                                    0,
-                                    (sum, thread) => sum + thread.unreadCount,
-                                  );
-                                  return _ChatBubble(
-                                    isDragging: isDragging,
-                                    unreadCount: unreadCount,
-                                  );
-                                },
-                              ),
-                            ),
                           ),
                         ),
                       ),
-                    );
-                  }),
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
         ),
@@ -205,6 +256,7 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper> {
 class _ChatBubble extends StatelessWidget {
   final bool isDragging;
   final int unreadCount;
+
   const _ChatBubble({required this.isDragging, required this.unreadCount});
 
   @override
@@ -222,7 +274,7 @@ class _ChatBubble extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withOpacity(0.8),
+                  Theme.of(context).primaryColor.withValues(alpha: 0.8),
                   Theme.of(context).primaryColor.withBlue(255).withRed(100),
                 ],
                 begin: Alignment.topLeft,
@@ -231,7 +283,7 @@ class _ChatBubble extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).primaryColor.withOpacity(0.4),
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.4),
                   blurRadius: 15,
                   offset: const Offset(0, 8),
                 ),
