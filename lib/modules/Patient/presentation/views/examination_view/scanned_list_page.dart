@@ -225,7 +225,7 @@ class _ScannedListPageState extends State<ScannedListPage> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -437,7 +437,7 @@ class _ScannedListPageState extends State<ScannedListPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -452,7 +452,7 @@ class _ScannedListPageState extends State<ScannedListPage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colorz.primaryColor.withOpacity(0.1),
+                  Colorz.primaryColor.withValues(alpha: 0.1),
                   Colors.transparent,
                 ],
                 begin: Alignment.topLeft,
@@ -468,7 +468,7 @@ class _ScannedListPageState extends State<ScannedListPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colorz.primaryColor.withOpacity(0.15),
+                    color: Colorz.primaryColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -531,7 +531,7 @@ class _ScannedListPageState extends State<ScannedListPage> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colorz.primaryColor.withOpacity(0.1),
+                    color: Colorz.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -597,35 +597,6 @@ class _ScannedListPageState extends State<ScannedListPage> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                // Images Preview
-                if (scan.files.isNotEmpty) ...[
-                  SizedBox(
-                    height: 80,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: scan.files.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 10),
-                      itemBuilder: (context, index) {
-                        return Container(
-                          width: 80,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            image: DecorationImage(
-                              image: NetworkImage(scan.files[index].url ?? ""),
-                              fit: BoxFit.cover,
-                            ),
-                            border: Border.all(
-                                color: isDark
-                                    ? Colors.grey[800]!
-                                    : Colors.grey[200]!),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
                 // View Details Button
                 SizedBox(
                   width: double.infinity,
@@ -654,7 +625,7 @@ class _ScannedListPageState extends State<ScannedListPage> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colorz.primaryColor,
                       side: BorderSide(
-                          color: Colorz.primaryColor.withOpacity(0.5)),
+                          color: Colorz.primaryColor.withValues(alpha: 0.5)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),

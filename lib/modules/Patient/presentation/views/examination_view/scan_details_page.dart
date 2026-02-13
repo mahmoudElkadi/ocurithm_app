@@ -12,6 +12,7 @@ import 'package:ocurithm/modules/Patient/presentation/manager/get_scan_details_c
 import 'package:ocurithm/modules/Patient/presentation/manager/scan_actions_cubit/scan_actions_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/scan_pdf_service.dart';
 import 'package:ocurithm/core/widgets/fullscreen_image_viewer.dart';
+import 'package:ocurithm/core/widgets/real_dicom_viewer.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ScanDetailsPage extends StatelessWidget {
@@ -181,7 +182,7 @@ class ScanDetailsPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:  0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -194,7 +195,7 @@ class ScanDetailsPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colorz.primaryColor.withOpacity(0.1),
+                  color: Colorz.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(Icons.calendar_today, color: Colorz.primaryColor),
@@ -230,7 +231,7 @@ class ScanDetailsPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(Icons.person_pin, color: Colors.orange),
@@ -335,17 +336,31 @@ class ScanDetailsPage extends StatelessWidget {
         return GestureDetector(
           onTap: () {
             if (file.url != null) {
-              Navigator.push(
-                context,
-                PageRouteBuilder(
-                  opaque: false,
-                  barrierColor: Colors.transparent,
-                  pageBuilder: (context, _, __) => FullscreenImageViewer(
-                    imageUrls: allImageUrls,
-                    initialIndex: allImageUrls.indexOf(file.url!),
+              if (isDicom) {
+                // Use real DICOM viewer that extracts all frames from file
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RealDicomViewer(
+                      url: file.url,
+                        showMetadata:true
+                    ),
                   ),
-                ),
-              );
+                );
+              } else {
+                // Use fullscreen image viewer for regular images
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    opaque: false,
+                    barrierColor: Colors.transparent,
+                    pageBuilder: (context, _, __) => FullscreenImageViewer(
+                      imageUrls: allImageUrls,
+                      initialIndex: allImageUrls.indexOf(file.url!),
+                    ),
+                  ),
+                );
+              }
             }
           },
           child: ClipRRect(
@@ -386,7 +401,7 @@ class ScanDetailsPage extends StatelessWidget {
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
                         colors: [
-                          Colors.black.withOpacity(0.7),
+                          Colors.black.withValues(alpha: 0.7),
                           Colors.transparent
                         ],
                       ),

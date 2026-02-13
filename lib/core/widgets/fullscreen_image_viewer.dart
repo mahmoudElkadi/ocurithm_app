@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
+
 
 class FullscreenImageViewer extends StatefulWidget {
   final List<String> imageUrls;
@@ -97,42 +97,23 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
                 },
                 itemBuilder: (context, index) {
                   final url = widget.imageUrls[index];
-                  final isDicom = _isDicomUrl(url);
 
-                  return InteractiveViewer(
-                    transformationController: _transformationController,
-                    minScale: 1.0,
-                    maxScale: 5.0,
-                    onInteractionStart: (_) => setState(() => _isZooming = true),
-                    onInteractionEnd: (_) {
-                      if (_transformationController.value.getMaxScaleOnAxis() <= 1.0) {
-                        setState(() => _isZooming = false);
-                      }
-                    },
-                    child: Center(
-                      child: Hero(
-                        tag: url,
-                        child: isDicom
-                            ? DicomImageWidget(
-                                url: url,
-                                fit: BoxFit.contain,
-                                showMetadata: true,
-                                loadingWidget: const Center(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      CircularProgressIndicator(color: Colors.white70),
-                                      SizedBox(height: 16),
-                                      Text(
-                                        'Parsing DICOM file...',
-                                        style: TextStyle(color: Colors.white54, fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                errorBuilder: (context) => _buildErrorWidget(url),
-                              )
-                            : Image.network(
+                  return
+
+                    InteractiveViewer(
+                          transformationController: _transformationController,
+                          minScale: 1.0,
+                          maxScale: 5.0,
+                          onInteractionStart: (_) => setState(() => _isZooming = true),
+                          onInteractionEnd: (_) {
+                            if (_transformationController.value.getMaxScaleOnAxis() <= 1.0) {
+                              setState(() => _isZooming = false);
+                            }
+                          },
+                          child: Center(
+                            child: Hero(
+                              tag: url,
+                              child: Image.network(
                                 url,
                                 fit: BoxFit.contain,
                                 loadingBuilder: (context, child, loadingProgress) {
@@ -145,9 +126,9 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
                                   return _buildErrorWidget(url);
                                 },
                               ),
-                      ),
-                    ),
-                  );
+                            ),
+                          ),
+                        );
                 },
               ),
             ),
