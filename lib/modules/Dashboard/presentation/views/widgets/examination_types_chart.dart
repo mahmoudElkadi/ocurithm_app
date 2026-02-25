@@ -202,6 +202,15 @@ class _ExaminationTypesChartState extends State<ExaminationTypesChart> {
       Colors.amber,
       Colors.redAccent,
       Colors.purple,
+      Colors.indigo,
+      Colors.green,
+      Colors.pinkAccent,
+      Colors.cyan,
+      Colors.brown,
+      Colors.blueGrey,
+      Colors.deepPurple,
+      Colors.lime,
+      Colors.lightBlue,
     ];
     return colors[index % colors.length];
   }

@@ -129,7 +129,11 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
 
   Future<void> _onEditAppointment(
       EditAppointmentEvent event, Emitter<AppointmentState> emit) async {
-    emit(state.copyWith(status: AppointmentStatus.editLoading));
+    emit(state.copyWith(
+      status: AppointmentStatus.editLoading,
+      updatingAppointmentId: event.id,
+      updatingAction: event.action,
+    ));
     try {
       final result = await appointmentRepo.editAppointment(
         id: event.id,
@@ -145,27 +149,36 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
 
       // Update local state if needed
       if (state.appointments != null) {
-        final updatedList = List<model.Appointment>.from(state.appointments!.appointments);
+        final updatedList =
+            List<model.Appointment>.from(state.appointments!.appointments);
         final index = updatedList.indexWhere((e) => e.id == event.id);
         if (index != -1) {
           updatedList[index] = result;
         }
-        
+
         final newAppointments = model.AppointmentModel(
           appointments: updatedList,
           total: state.appointments!.total,
-          totalPages: state.appointments!.totalPages, error: '',
+          totalPages: state.appointments!.totalPages,
+          error: '',
         );
-        
-        final grouped = AppointmentHelper.groupAppointmentsByTimeSlot(updatedList);
-        
+
+        final grouped =
+            AppointmentHelper.groupAppointmentsByTimeSlot(updatedList);
+
         emit(state.copyWith(
           status: AppointmentStatus.editSuccess,
           appointments: newAppointments,
           groupedAppointments: grouped,
+          updatingAppointmentId: null,
+          updatingAction: null,
         ));
       } else {
-        emit(state.copyWith(status: AppointmentStatus.editSuccess));
+        emit(state.copyWith(
+          status: AppointmentStatus.editSuccess,
+          updatingAppointmentId: null,
+          updatingAction: null,
+        ));
       }
     } catch (e) {
       log(e.toString());
@@ -176,6 +189,8 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
       emit(state.copyWith(
         status: AppointmentStatus.editError,
         errorMessage: e.toString(),
+        updatingAppointmentId: null,
+        updatingAction: null,
       ));
     }
   }

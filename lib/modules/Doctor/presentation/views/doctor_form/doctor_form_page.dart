@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:developer';
+import 'dart:io';
+
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -8,37 +9,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:get/get.dart' as getx;
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:ocurithm/Services/whatsapp_confirmation.dart';
+import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/auth_service.dart';
+import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/capabilities_section.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/text_field.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:ocurithm/generated/l10n.dart';
+import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
+import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:ocurithm/modules/Doctor/presentation/manager/doctor_actions_cubit/doctor_actions_cubit.dart';
 import 'package:ocurithm/modules/Doctor/presentation/manager/get_single_doctor_cubit/get_single_doctor_cubit.dart';
-import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
-import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/manager/get_capabilities_cubit/get_capabilities_cubit.dart';
-import 'package:ocurithm/core/Network/shared.dart';
-import 'package:ocurithm/core/utils/services_locator.dart';
-import 'package:ocurithm/core/widgets/capabilities_section.dart';
-import 'package:ocurithm/Services/whatsapp_confirmation.dart';
-import 'package:ocurithm/core/utils/auth_service.dart';
 import 'package:password_generator/password_generator.dart';
-import 'package:get/get.dart' as getx;
-import '../../../../../core/widgets/DropdownPackage.dart';
-import '../../../data/model/doctor_model.dart';
-import '../../../../Clinics/data/model/clinics_model.dart';
+import 'package:shimmer/shimmer.dart';
+
 import '../../../../../../modules/Login/data/model/login_response.dart';
+import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../../core/widgets/confirmation_popuo.dart';
+import '../../../../../core/widgets/no_internet.dart';
+import '../../../../Clinics/data/model/clinics_model.dart';
+import '../../../data/model/doctor_model.dart';
 import '../../manager/doctor_branch_actions_cubit/doctor_branch_actions_cubit.dart';
+import '../../manager/get_doctor_examinations_cubit/get_doctor_examinations_cubit.dart';
 import 'widgets/add_doctor_branch_dialog.dart';
 import 'widgets/doctor_examinations_section.dart';
-import '../../manager/get_doctor_examinations_cubit/get_doctor_examinations_cubit.dart';
-import '../../../../../core/widgets/no_internet.dart';
-import '../../../../../core/widgets/confirmation_popuo.dart';
 
 // Helper class for info items
 class _InfoItemData {
@@ -170,7 +172,9 @@ class _DoctorFormViewState extends State<DoctorFormView> {
 
   void _loadDoctorData() {
     if (widget.doctorId != null) {
-      context.read<GetSingleDoctorCubit>().add(GetDoctorByIdEvent(widget.doctorId!));
+      context
+          .read<GetSingleDoctorCubit>()
+          .add(GetDoctorByIdEvent(widget.doctorId!));
     }
   }
 
@@ -184,6 +188,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   }
 
   bool get _isReadOnly => _isReadOnlyState;
+
   bool get _isAddMode => widget.mode == DoctorFormMode.add;
 
   String get _pageTitle {
@@ -303,7 +308,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                 _loadDoctorData();
                 SnackbarService.showSuccess(
                   context,
-                  message: state.successMessage ?? "Branch operation successful",
+                  message:
+                      state.successMessage ?? "Branch operation successful",
                 );
               } else if (state.isError) {
                 SnackbarService.showError(
@@ -317,7 +323,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
         child: AuthService.showClinicSelection
             ? BlocBuilder<GetClinicsCubit, GetClinicsState>(
                 builder: (context, clinicsState) {
-                  return BlocBuilder<GetCapabilitiesCubit, GetCapabilitiesState>(
+                  return BlocBuilder<GetCapabilitiesCubit,
+                      GetCapabilitiesState>(
                     builder: (context, capabilitiesState) {
                       // If any critical dependency has NO CONNECTION, show NoInternet
                       if (clinicsState.noConnection ||
@@ -326,7 +333,9 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                           fromTop: 0,
                           onPressed: () {
                             if (clinicsState.noConnection) {
-                              context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
+                              context
+                                  .read<GetClinicsCubit>()
+                                  .add(GetAllClinicsEvent());
                             }
                             if (capabilitiesState.noConnection) {
                               context
@@ -502,8 +511,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
               theme,
               isDark,
             ),
-          if (AuthService.showClinicSelection)
-              const HeightSpacer(size: 20),
+          if (AuthService.showClinicSelection) const HeightSpacer(size: 20),
 
           // Capabilities Shimmer
           _buildShimmer(
@@ -610,7 +618,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             // Password Field (Add mode only)
             if (_isAddMode) ...[
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     flex: 4,
@@ -991,8 +999,9 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                     context: context,
                     initialDate: _birthDate ?? DateTime(2000),
                     firstDate: DateTime(1900),
-                    lastDate: DateTime.now()
-                        .subtract(const Duration(days: 6570)), // 18 years
+                    lastDate:
+                        DateTime.now().subtract(const Duration(days: 6570)),
+                    // 18 years
                     builder: (context, child) {
                       return Theme(
                         data: theme.copyWith(
@@ -1149,7 +1158,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     }
 
     // Validate clinic selection (if user has permission)
-    if (_isAddMode && AuthService.showClinicSelection &&
+    if (_isAddMode &&
+        AuthService.showClinicSelection &&
         _selectedClinicId == null) {
       SnackbarService.showError(
         context,
@@ -1194,13 +1204,13 @@ class _DoctorFormViewState extends State<DoctorFormView> {
       _qualificationsController.text = doctor.qualifications ?? '';
       _birthDate = doctor.birthDate;
       _imageUrl = doctor.image;
-      
+
       if (!AuthService.isAdmin) {
         _selectedClinicId = AuthService.userClinic?.id;
       } else {
         _selectedClinicId = doctor.clinic?.id;
       }
-      
+
       _isConsultant = doctor.isConsultant ?? false;
 
       // Load branches if clinic is selected

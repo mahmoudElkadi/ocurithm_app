@@ -1,5 +1,3 @@
-import '../Network/shared.dart';
-
 class ApiConstants {
   static const int connectionTimeout = 15000; // 15 seconds
   static const int receiveTimeout = 15000;
@@ -7,15 +5,15 @@ class ApiConstants {
 
   // API Endpoints
 
-  // static String get baseUrl => "https://ocurithm.com/api/";
+  static String get baseUrl => "https://beta.ocurithm.com/api/";
 
-  static String get baseUrl {
-    String? ip = CacheHelper.getData(key: 'ip_address');
-    if (ip != null && ip.isNotEmpty) {
-      return "http://$ip:3000/api/";
-    }
-    return "http://192.168.1.24:3000/api/";
-  }
+  // static String get baseUrl {
+  //   String? ip = CacheHelper.getData(key: 'ip_address');
+  //   if (ip != null && ip.isNotEmpty) {
+  //     return "http://$ip:3000/api/";
+  //   }
+  //   return "http://192.168.1.6:3000/api/";
+  // }
 
   static String get login => "auth/login";
 
@@ -57,15 +55,20 @@ class ApiConstants {
 
   // Chat Module
   static String get chatUsers => "chat/users";
+
   static String get chatThreads => "chat/threads";
+
   static String chatThread(String threadId) => "chat/threads/$threadId";
+
   static String chatMessages(String threadId) =>
       "chat/threads/$threadId/messages";
 
   // WebSocket
   static String get chatSocketUrl => baseUrl.replaceFirst('/api/', '');
+
   static String get chatSocketNamespace => "/chat";
 
   // Patient
-  static String get checkDuplicatePatientName => "patients/check-duplicate-name";
+  static String get checkDuplicatePatientName =>
+      "patients/check-duplicate-name";
 }

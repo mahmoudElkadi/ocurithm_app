@@ -620,7 +620,8 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colorz.primaryColor,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () async {
                   if (CapabilityServices.hasCapability("manageExaminations")) {
@@ -637,19 +638,43 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                     }
                   }
                 },
-                child: const Text("Examine", style: TextStyle(color: Colors.white)),
+                child:
+                    const Text("Examine", style: TextStyle(color: Colors.white)),
               ),
             ),
             Expanded(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: () {
-                  _showActionDialog(context, cubit, appointment, 'wait', 'Wait');
+              child: BlocBuilder<AppointmentCubit, AppointmentState>(
+                builder: (context, state) {
+                  final isThisAppointmentLoading =
+                      state.updatingAppointmentId == appointment.id.toString();
+                  final isWaitLoading = isThisAppointmentLoading &&
+                      state.updatingAction == 'wait';
+
+                  return ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: isThisAppointmentLoading
+                        ? null
+                        : () {
+                            _showActionDialog(
+                                context, cubit, appointment, 'wait', 'Wait');
+                          },
+                    child: isWaitLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text("Wait",
+                            style: TextStyle(color: Colors.white)),
+                  );
                 },
-                child: const Text("Wait", style: TextStyle(color: Colors.white)),
               ),
             ),
           ],
@@ -659,48 +684,64 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
 
     return manageCapability(
       capability: "editAppointmentsReceptionist",
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildActionButton(Icons.done, Colors.green, () {
-            _showActionDialog(context, cubit, appointment, 'proceed', 'Proceed');
-          }, isFirst: true),
-          const WidthSpacer(size: 1),
-          _buildActionButtonSvg("assets/icons/sand_watch.svg", Colorz.secondaryColor, () {
-             showConfirmationDialog(
-              context: context,
-              title: "Delay Appointment",
-              message: "Do you want to delay the appointment for ${appointment.patient?.name ?? 'this patient'}?",
-              icon: Icons.history,
-              confirmColor: Colorz.secondaryColor,
-              onConfirm: () async {
-                bool? isResult = await Get.to(() => DelayAppointment(
-                      appointment: appointment,
-                      cubit: cubit,
-                    ));
-                if (isResult == true) {
-                  cubit.add(GetAppointmentsEvent());
-                }
-              },
-              onCancel: () {},
-            );
-          }),
-          const WidthSpacer(size: 1),
-          _buildActionButtonSvg("assets/icons/circle_half.svg", Colors.yellow.shade800, () {
-            _showActionDialog(context, cubit, appointment, 'late', 'Late');
-          }),
-          const WidthSpacer(size: 1),
-          _buildActionButton(Icons.close, Colors.red, () {
-            _showActionDialog(context, cubit, appointment, 'cancel', 'Cancel');
-          }, isLast: true),
-        ],
+      child: BlocBuilder<AppointmentCubit, AppointmentState>(
+        builder: (context, state) {
+          final isThisAppointmentLoading =
+              state.updatingAppointmentId == appointment.id.toString();
+          
+          final isProceedLoading = isThisAppointmentLoading && state.updatingAction == 'proceed';
+          final isLateLoading = isThisAppointmentLoading && state.updatingAction == 'late';
+          final isCancelLoading = isThisAppointmentLoading && state.updatingAction == 'cancel';
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildActionButton(Icons.done, Colors.green, () {
+                _showActionDialog(context, cubit, appointment, 'proceed', 'Proceed');
+              }, isFirst: true, isLoading: isProceedLoading, isDisabled: isThisAppointmentLoading),
+              const WidthSpacer(size: 1),
+              _buildActionButtonSvg(
+                  "assets/icons/sand_watch.svg", Colorz.secondaryColor, () {
+                showConfirmationDialog(
+                  context: context,
+                  title: "Delay Appointment",
+                  message:
+                      "Do you want to delay the appointment for ${appointment.patient?.name ?? 'this patient'}?",
+                  icon: Icons.history,
+                  confirmColor: Colorz.secondaryColor,
+                  onConfirm: () async {
+                    bool? isResult = await Get.to(() => DelayAppointment(
+                          appointment: appointment,
+                          cubit: cubit,
+                        ));
+                    if (isResult == true) {
+                      cubit.add(GetAppointmentsEvent());
+                    }
+                  },
+                  onCancel: () {},
+                );
+              }, isDisabled: isThisAppointmentLoading),
+              const WidthSpacer(size: 1),
+              _buildActionButtonSvg("assets/icons/circle_half.svg",
+                  Colors.yellow.shade800, () {
+                _showActionDialog(context, cubit, appointment, 'late', 'Late');
+              }, isLoading: isLateLoading, isDisabled: isThisAppointmentLoading),
+              const WidthSpacer(size: 1),
+              _buildActionButton(Icons.close, Colors.red, () {
+                _showActionDialog(context, cubit, appointment, 'cancel', 'Cancel');
+              }, isLast: true, isLoading: isCancelLoading, isDisabled: isThisAppointmentLoading),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildActionButton(IconData icon, Color color, VoidCallback onPressed, {bool isFirst = false, bool isLast = false}) {
+  Widget _buildActionButton(IconData icon, Color color, VoidCallback onPressed,
+      {bool isFirst = false, bool isLast = false, bool isLoading = false, bool isDisabled = false}) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
+        fixedSize: const Size(64, 40),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             topLeft: isFirst ? const Radius.circular(8) : Radius.zero,
@@ -711,19 +752,41 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
         ),
         side: BorderSide(color: color),
       ),
-      onPressed: onPressed,
-      child: Icon(icon, color: color, size: 25),
+      onPressed: (isLoading || isDisabled) ? null : onPressed,
+      child: isLoading
+          ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: color,
+                strokeWidth: 2,
+              ),
+            )
+          : Icon(icon, color: color, size: 25),
     );
   }
 
-  Widget _buildActionButtonSvg(String asset, Color color, VoidCallback onPressed) {
+  Widget _buildActionButtonSvg(String asset, Color color, VoidCallback onPressed, {bool isLoading = false, bool isDisabled = false}) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
+        fixedSize: const Size(64, 40),
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         side: BorderSide(color: color),
       ),
-      onPressed: onPressed,
-      child: SvgPicture.asset(asset, colorFilter: ColorFilter.mode(color, BlendMode.srcIn), width: 20, height: 20),
+      onPressed: (isLoading || isDisabled) ? null : onPressed,
+      child: isLoading
+          ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: color,
+                strokeWidth: 2,
+              ),
+            )
+          : SvgPicture.asset(asset,
+              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+              width: 20,
+              height: 20),
     );
   }
 

@@ -117,8 +117,12 @@ class _ComparisonCard extends StatelessWidget {
            ),
            const SizedBox(height: 16),
            if (items.isEmpty) Text("No data available", style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey)),
-           ...sortedItems.take(5).map((item) {
+           ...sortedItems.take(5).toList().asMap().entries.map((entry) {
+             final index = entry.key;
+             final item = entry.value;
              final percentage = maxVal > 0 ? item.value / maxVal : 0.0;
+             final itemColor = _getItemColor(index);
+
              return Padding(
                padding: const EdgeInsets.symmetric(vertical: 8.0),
                child: Row(
@@ -133,7 +137,7 @@ class _ComparisonCard extends StatelessWidget {
                        children: [
                          Container(height: 24, 
                            decoration: BoxDecoration(
-                             color: color, 
+                             color: itemColor, 
                              borderRadius: const BorderRadius.only(topRight: Radius.circular(4), bottomRight: Radius.circular(4))
                            ),
                            width:  (MediaQuery.of(context).size.width) * percentage * 0.5, // approximate
@@ -150,6 +154,21 @@ class _ComparisonCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _getItemColor(int index) {
+    // Start with the base color but provide variations or use a palette
+    final palette = [
+      color,
+      Colors.teal,
+      Colors.amber,
+      Colors.indigo,
+      Colors.redAccent,
+      Colors.purple,
+      Colors.green,
+      Colors.cyan,
+    ];
+    return palette[index % palette.length];
   }
 }
 

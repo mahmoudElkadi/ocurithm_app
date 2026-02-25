@@ -1696,58 +1696,6 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
     );
   }
 
-// Add this method to handle date and time picking
-//   void _showDateTimePicker() async {
-//     final DateTime? pickedDate = await showDatePicker(
-//       context: context,
-//       initialDate: DateTime.now().add(const Duration(days: 1)),
-//       firstDate: DateTime.now(),
-//       lastDate: DateTime.now().add(const Duration(days: 365)),
-//       builder: (context, child) {
-//         return Theme(
-//           data: Theme.of(context).copyWith(
-//             colorScheme: Theme.of(context).colorScheme.copyWith(
-//               primary: Colorz.primaryColor,
-//               onPrimary: Colors.white,
-//             ),
-//           ),
-//           child: child!,
-//         );
-//       },
-//     );
-//
-//     if (pickedDate != null) {
-//       final TimeOfDay? pickedTime = await showTimePicker(
-//         context: context,
-//         initialTime: TimeOfDay.now(),
-//         builder: (context, child) {
-//           return Theme(
-//             data: Theme.of(context).copyWith(
-//               colorScheme: Theme.of(context).colorScheme.copyWith(
-//                 primary: Colorz.primaryColor,
-//                 onPrimary: Colors.white,
-//               ),
-//             ),
-//             child: child!,
-//           );
-//         },
-//       );
-//
-//       if (pickedTime != null) {
-//         setState(() {
-//           selectedDate = DateTime(
-//             pickedDate.year,
-//             pickedDate.month,
-//             pickedDate.day,
-//             pickedTime.hour,
-//             pickedTime.minute,
-//           );
-//           selectedTime = pickedTime;
-//         });
-//       }
-//     }
-//   }
-
 // Add this method to format the date and time
   String _formatAppointmentDateTime() {
     if (selectedDate == null) return '';

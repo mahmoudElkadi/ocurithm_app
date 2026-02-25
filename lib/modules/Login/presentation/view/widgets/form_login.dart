@@ -8,14 +8,14 @@ import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/generated/l10n.dart';
 
 import '../../../../../Main/presentation/views/main_view.dart';
+import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
+import '../../../../../core/utils/services_locator.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/text_field.dart';
-import '../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/services_locator.dart';
-import '../../manger/login_cubit/login_cubit.dart';
 import '../../../../Chat/presentation/manager/chat_socket_bloc/chat_socket_bloc.dart';
+import '../../manger/login_cubit/login_cubit.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -33,7 +33,8 @@ class _LoginFormState extends State<LoginForm> {
   @override
   void initState() {
     super.initState();
-    ipController.text = CacheHelper.getData(key: 'ip_address') ?? '192.168.1.24';
+    ipController.text =
+        CacheHelper.getData(key: 'ip_address') ?? '192.168.1.24';
   }
 
   @override
@@ -53,7 +54,7 @@ class _LoginFormState extends State<LoginForm> {
           // Connect to chat socket after successful login
           final chatSocketBloc = sl<ChatSocketBloc>();
           chatSocketBloc.add(ConnectSocketEvent());
-          
+
           Get.offAll(() => const MainView());
         } else if (state.isError) {
           _showPopup(context, "Login Failed",
@@ -67,22 +68,22 @@ class _LoginFormState extends State<LoginForm> {
             padding: EdgeInsets.symmetric(horizontal: 15.w),
             child: Column(
               children: [
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () {
-                      _showIPDialog(context);
-                    },
-                    icon: Icon(Icons.settings_ethernet,
-                        color: Colorz.primaryColor, size: 20),
-                    label: Text(
-                      "Change IP: ${ipController.text}",
-                      style: appStyle(
-                          context, 14, Colorz.primaryColor, FontWeight.w500),
-                    ),
-                  ),
-                ),
-                const HeightSpacer(size: 10),
+                // Align(
+                //   alignment: Alignment.centerRight,
+                //   child: TextButton.icon(
+                //     onPressed: () {
+                //       _showIPDialog(context);
+                //     },
+                //     icon: Icon(Icons.settings_ethernet,
+                //         color: Colorz.primaryColor, size: 20),
+                //     label: Text(
+                //       "Change IP: ${ipController.text}",
+                //       style: appStyle(
+                //           context, 14, Colorz.primaryColor, FontWeight.w500),
+                //     ),
+                //   ),
+                // ),
+                // const HeightSpacer(size: 10),
                 Container(
                   width: MediaQuery.of(context).size.width,
                   decoration: BoxDecoration(
@@ -174,7 +175,7 @@ class _LoginFormState extends State<LoginForm> {
                     },
                     boxShadow: [
                       BoxShadow(
-                        color: HexColor("#3E86DD").withValues(alpha:0.3),
+                        color: HexColor("#3E86DD").withValues(alpha: 0.3),
                         spreadRadius: 2,
                         blurRadius: 4,
                         offset: const Offset(0, 3),
@@ -260,7 +261,8 @@ class _LoginFormState extends State<LoginForm> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+                      child: const Text("Cancel",
+                          style: TextStyle(color: Colors.grey)),
                     ),
                     ElevatedButton(
                       onPressed: () {
@@ -307,7 +309,7 @@ class _LoginFormState extends State<LoginForm> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha:0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 10,
                   spreadRadius: 5,
                 ),

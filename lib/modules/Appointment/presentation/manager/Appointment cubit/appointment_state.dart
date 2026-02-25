@@ -35,6 +35,8 @@ class AppointmentState {
   final Map<String, List<model.Appointment>>? groupedAppointments;
   final branch.BranchesModel? branches;
   final DoctorModel? doctors;
+  final String? updatingAppointmentId;
+  final String? updatingAction;
 
   AppointmentState({
     this.status = AppointmentStatus.initial,
@@ -47,6 +49,8 @@ class AppointmentState {
     this.groupedAppointments,
     this.branches,
     this.doctors,
+    this.updatingAppointmentId,
+    this.updatingAction,
   }) : selectedDate = selectedDate ?? DateTime.now();
 
   AppointmentState copyWith({
@@ -60,6 +64,8 @@ class AppointmentState {
     Map<String, List<model.Appointment>>? groupedAppointments,
     branch.BranchesModel? branches,
     DoctorModel? doctors,
+    Object? updatingAppointmentId = _sentinel,
+    Object? updatingAction = _sentinel,
   }) {
     return AppointmentState(
       status: status ?? this.status,
@@ -76,6 +82,12 @@ class AppointmentState {
       groupedAppointments: groupedAppointments ?? this.groupedAppointments,
       branches: branches ?? this.branches,
       doctors: doctors ?? this.doctors,
+      updatingAppointmentId: updatingAppointmentId == _sentinel
+          ? this.updatingAppointmentId
+          : updatingAppointmentId as String?,
+      updatingAction: updatingAction == _sentinel
+          ? this.updatingAction
+          : updatingAction as String?,
     );
   }
 

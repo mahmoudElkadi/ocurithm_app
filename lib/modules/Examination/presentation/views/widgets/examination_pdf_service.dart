@@ -1,12 +1,12 @@
-import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:intl/intl.dart';
+
+import '../../../../../core/utils/format_helper.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../manager/examination_form_cubit/examination_form_cubit.dart';
-import '../../../../../core/utils/format_helper.dart';
 
 class ExaminationPdfService {
   static final PdfColor primaryBlue = PdfColor.fromHex('#4A98F7');

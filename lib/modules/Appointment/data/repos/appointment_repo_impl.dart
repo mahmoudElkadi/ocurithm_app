@@ -15,8 +15,6 @@ class AppointmentRepoImpl implements AppointmentRepo {
   }) async {
     try {
       Map<String, dynamic> query = {
-        "page": 1,
-        'limit': 10,
         if (branch != null) "branch": branch,
         if (isActive != null) "isActive": isActive,
       };
@@ -67,11 +65,11 @@ class AppointmentRepoImpl implements AppointmentRepo {
     try {
       Map<String, dynamic> query = {
         if (date != null)
-          "startDate":
-              DateTime(date.year, date.month, date.day, 0, 0, 0).toIso8601String(),
+          "startDate": DateTime(date.year, date.month, date.day, 0, 0, 0)
+              .toIso8601String(),
         if (date != null)
-          "endDate":
-              DateTime(date.year, date.month, date.day, 23, 59, 59).toIso8601String(),
+          "endDate": DateTime(date.year, date.month, date.day, 23, 59, 59)
+              .toIso8601String(),
         if (doctor != null) "doctor": doctor,
         if (branch != null) "branch": branch,
         if (search != null && search.isNotEmpty) "search": search
@@ -125,4 +123,3 @@ class AppointmentRepoImpl implements AppointmentRepo {
     }
   }
 }
-
