@@ -30,6 +30,7 @@ class _AppointmentPreviewContentState extends State<AppointmentPreviewContent> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<MakeAppointmentCubit, MakeAppointmentState>(
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status == MakeAppointmentStatus.loading) {
           customLoading(context, "Saving appointment...");

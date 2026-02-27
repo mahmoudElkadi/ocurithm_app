@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../utils/app_style.dart';
 
 class ArrowTextField extends StatefulWidget {
@@ -43,7 +44,7 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
     super.didUpdateWidget(oldWidget);
     if (widget.selectedValue != oldWidget.selectedValue) {
       if (_controller.text != widget.selectedValue) {
-        // Only update text if the user hasn't typed something that caused an error mismatch, 
+        // Only update text if the user hasn't typed something that caused an error mismatch,
         // or effectively we want to sync with parent only if no error?
         // Actually, if parent forces a value, we should probably accept it and clear error.
         _controller.text = widget.selectedValue ?? '';
@@ -59,7 +60,7 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
   void _validateAndSet() {
     String value = _controller.text;
     final stringItems = widget.items.map((e) => e.toString()).toList();
-    
+
     // 1. Direct match
     if (stringItems.contains(value)) {
       setState(() {
@@ -67,8 +68,8 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
       });
       widget.onChanged(value);
       return;
-    } 
-    
+    }
+
     // 2. Numeric match (e.g. "1" matches "1.00")
     double? valueNum = double.tryParse(value);
     if (valueNum != null) {
@@ -80,7 +81,7 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
           break;
         }
       }
-      
+
       if (matchedItem != null) {
         // Automatically correct input to match list format
         _controller.text = matchedItem;
@@ -95,7 +96,7 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
     // 3. Empty string handler
     if (value.isEmpty) {
       setState(() {
-          _errorText = null;
+        _errorText = null;
       });
       widget.onChanged("");
     } else {
@@ -116,34 +117,35 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
 
     // If text match failed, maybe widget.selectedValue matches?
     if (currentIndex == -1) {
-       currentIndex = stringItems.indexOf(widget.selectedValue ?? "");
+      currentIndex = stringItems.indexOf(widget.selectedValue ?? "");
     }
 
     if (currentIndex == -1) {
       if (stringItems.contains("0")) {
-          currentIndex = stringItems.indexOf("0");
+        currentIndex = stringItems.indexOf("0");
       } else if (stringItems.contains("0.0")) {
-          currentIndex = stringItems.indexOf("0.0");
+        currentIndex = stringItems.indexOf("0.0");
       } else if (stringItems.contains("0.00")) {
-          currentIndex = stringItems.indexOf("0.00");
+        currentIndex = stringItems.indexOf("0.00");
       } else {
-         currentIndex = 0;
+        currentIndex = 0;
       }
     } else {
       currentIndex += change;
     }
 
     if (currentIndex < 0) currentIndex = 0;
-    if (currentIndex >= stringItems.length) currentIndex = stringItems.length - 1;
+    if (currentIndex >= stringItems.length)
+      currentIndex = stringItems.length - 1;
 
     String newValue = stringItems[currentIndex];
-    
+
     // update controller text first so user sees change immediately
     _controller.text = newValue;
     if (_errorText != null) {
-        setState(() {
-            _errorText = null;
-        });
+      setState(() {
+        _errorText = null;
+      });
     }
     // Notify parent
     widget.onChanged(newValue);
@@ -166,7 +168,9 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
             padding: const EdgeInsets.only(bottom: 8.0, left: 12),
             child: Text(
               widget.textRow,
-              style: appStyle(context, 14,
+              style: appStyle(
+                  context,
+                  14,
                   Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey,
                   FontWeight.w600),
             ),
@@ -175,20 +179,20 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Theme.of(context).dividerColor),
+            // border: Border.all(color: Theme.of(context).dividerColor),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).shadowColor.withValues(alpha:0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
+                color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
           child: Row(
             children: [
               IconButton(
-                icon: Icon(Icons.chevron_left,
-                    color: Theme.of(context).iconTheme.color),
+                icon: const Icon(Icons.chevron_left, color: Colors.grey),
                 onPressed: () => _onArrowPressed(-1),
               ),
               Expanded(
@@ -211,8 +215,7 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.chevron_right,
-                    color: Theme.of(context).iconTheme.color),
+                icon: const Icon(Icons.chevron_right, color: Colors.grey),
                 onPressed: () => _onArrowPressed(1),
               ),
             ],

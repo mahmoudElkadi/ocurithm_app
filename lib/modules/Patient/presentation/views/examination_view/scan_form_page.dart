@@ -1,25 +1,26 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/core/utils/custom_pop_scope.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/DropdownPackage.dart';
 import 'package:ocurithm/core/widgets/custom_date_picker.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
 import 'package:ocurithm/modules/Doctor/data/model/doctor_model.dart';
 import 'package:ocurithm/modules/Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart';
-import 'package:ocurithm/modules/Storage/presentation/manager/storage_cubit/storage_cubit.dart';
-import 'package:ocurithm/modules/Storage/data/model/upload_response_model.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/scan_actions_cubit/scan_actions_cubit.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
-import 'package:ocurithm/core/utils/custom_pop_scope.dart';
+import 'package:ocurithm/modules/Storage/data/model/upload_response_model.dart';
+import 'package:ocurithm/modules/Storage/presentation/manager/storage_cubit/storage_cubit.dart';
 
 class ScanFormPage extends StatefulWidget {
   final String patientId;
+
   const ScanFormPage({super.key, required this.patientId});
 
   @override
@@ -184,8 +185,8 @@ class _ScanFormPageState extends State<ScanFormPage> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-            create: (context) =>
-                sl<GetDoctorsCubit>()..add(GetAllDoctorsEvent())),
+            create: (context) => sl<GetDoctorsCubit>()
+              ..add(GetAllDoctorsEvent(noPagination: true))),
         BlocProvider(create: (context) => sl<StorageCubit>()),
         BlocProvider(create: (context) => sl<ScanActionsCubit>()),
       ],

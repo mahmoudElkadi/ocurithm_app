@@ -48,31 +48,19 @@ class StepHeader extends StatelessWidget {
   final Widget? suffix;
 
   const StepHeader({
-    Key? key,
+    super.key,
     required this.currentStep,
     required this.totalSteps,
     required this.onPop,
     this.suffix,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final singleStepWidth =
-        (screenWidth - 40 - (8 * (totalSteps - 1))) / totalSteps;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colorz.primaryColor.withValues(alpha:0.2),
-        //     blurRadius: 8,
-        //     spreadRadius: 1,
-        //     offset: const Offset(0, 2),
-        //   ),
-        // ],
       ),
       child: Column(
         children: [
@@ -80,23 +68,20 @@ class StepHeader extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Builder(builder: (context) {
-                return IconButton(
-                  onPressed: onPop,
-                  icon: Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8),
-                    child: Icon(
-                      Icons.arrow_back_ios,
-                      color: Theme.of(context).iconTheme.color,
-                    ),
+              InkWell(
+                onTap: onPop,
+                child: Container(
+                  color: Colors.transparent,
+                  padding: const EdgeInsets.all(12).copyWith(left: 16),
+                  child: Icon(
+                    Icons.arrow_back_ios,
+                    color: Theme.of(context).iconTheme.color,
                   ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                );
-              }),
+                ),
+              ),
               Row(
                 children: [
-                  const WidthSpacer(size: 20),
+                  const WidthSpacer(size: 10),
                   Text(
                     _getStepTitle(currentStep),
                     style: TextStyle(
@@ -136,7 +121,7 @@ class StepHeader extends StatelessWidget {
                             height: 3,
                             width: constraints.maxWidth,
                             decoration: BoxDecoration(
-                              color: Colorz.primaryColor.withValues(alpha:0.2),
+                              color: Colorz.primaryColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(1.5),
                             ),
                           ),
@@ -190,12 +175,12 @@ class ModernStepHeader extends StatelessWidget {
   final Widget? suffix;
 
   const ModernStepHeader({
-    Key? key,
+    super.key,
     required this.currentStep,
     required this.totalSteps,
     required this.onPop,
     this.suffix,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

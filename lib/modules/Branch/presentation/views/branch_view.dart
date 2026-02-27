@@ -4,16 +4,16 @@ import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
-import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/auth_service.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Branch/presentation/manager/branch_actions_cubit/branch_actions_cubit.dart';
 import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/widgets/branch_form_dialog.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/widgets/branch_view_body.dart';
-import 'package:ocurithm/core/utils/auth_service.dart';
 
 class AdminBranchView extends StatelessWidget {
   const AdminBranchView({super.key});
@@ -34,9 +34,9 @@ class AdminBranchView extends StatelessWidget {
         builder: (context, state) => CustomScaffold(
           title: "Branches",
           actions: [
-            if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageBranches"))
-              IconButton(
+            manageCapability(
+              capability: 'manageBranches',
+              child: IconButton(
                 onPressed: () {
                   final actionsCubit = context.read<BranchActionsCubit>();
 
@@ -52,6 +52,7 @@ class AdminBranchView extends StatelessWidget {
                   color: Theme.of(context).primaryColor,
                 ),
               ),
+            ),
           ],
           body: MultiBlocListener(
             listeners: [
@@ -72,9 +73,8 @@ class AdminBranchView extends StatelessWidget {
                     }
 
                     // Refresh the branches list
-                    context
-                        .read<GetBranchesCubit>()
-                        .add(SetClinicFilterEvent(AuthService.getEffectiveClinic()?.id));
+                    context.read<GetBranchesCubit>().add(SetClinicFilterEvent(
+                        AuthService.getEffectiveClinic()?.id));
                   } else if (actionState.isDeleteError) {
                     Navigator.of(context, rootNavigator: true)
                         .pop(); // Close loading dialog
@@ -110,9 +110,9 @@ class AdminBranchView extends StatelessWidget {
                   child: state.noConnection
                       ? NoInternet(
                           onPressed: () {
-                            context
-                                .read<GetBranchesCubit>()
-                                .add(SetClinicFilterEvent(AuthService.getEffectiveClinic()?.id));
+                            context.read<GetBranchesCubit>().add(
+                                SetClinicFilterEvent(
+                                    AuthService.getEffectiveClinic()?.id));
                           },
                         )
                       : const BranchViewBody(),

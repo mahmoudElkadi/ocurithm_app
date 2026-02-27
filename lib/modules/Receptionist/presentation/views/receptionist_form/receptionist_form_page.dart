@@ -4,33 +4,33 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../Clinics/data/model/clinics_model.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
-import 'package:intl/intl.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:ocurithm/core/widgets/height_spacer.dart';
-import 'package:ocurithm/core/widgets/text_field.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:ocurithm/generated/l10n.dart';
-import 'package:ocurithm/modules/Receptionist/presentation/manager/receptionist_actions_cubit/receptionist_actions_cubit.dart';
-import 'package:ocurithm/modules/Receptionist/presentation/manager/get_single_receptionist_cubit/get_single_receptionist_cubit.dart';
-import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
-import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
-import 'package:ocurithm/modules/Receptionist/presentation/manager/get_capabilities_cubit/get_capabilities_cubit.dart';
+import 'package:intl/intl.dart';
+import 'package:ocurithm/Services/whatsapp_confirmation.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/capabilities_section.dart';
-import 'package:ocurithm/Services/whatsapp_confirmation.dart';
+import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/core/widgets/text_field.dart';
+import 'package:ocurithm/generated/l10n.dart';
+import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
+import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
+import 'package:ocurithm/modules/Receptionist/presentation/manager/get_capabilities_cubit/get_capabilities_cubit.dart';
+import 'package:ocurithm/modules/Receptionist/presentation/manager/get_single_receptionist_cubit/get_single_receptionist_cubit.dart';
+import 'package:ocurithm/modules/Receptionist/presentation/manager/receptionist_actions_cubit/receptionist_actions_cubit.dart';
 import 'package:password_generator/password_generator.dart';
+import 'package:shimmer/shimmer.dart';
+
+import '../../../../../../modules/Login/data/model/login_response.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../Branch/data/model/branches_model.dart';
+import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/models/receptionists_model.dart';
-import '../../../../../../modules/Login/data/model/login_response.dart';
 
 /// Form mode enum
 enum ReceptionistFormMode { add, edit, view }
@@ -73,7 +73,8 @@ class ReceptionistFormPage extends StatelessWidget {
               ..add(GetReceptionistByIdEvent(receptionistId!)),
           ),
         BlocProvider(
-          create: (_) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),
+          create: (_) => sl<GetClinicsCubit>()
+            ..add(GetAllClinicsEvent(noPagination: true)),
         ),
         BlocProvider(
           create: (_) => sl<GetBranchesCubit>(),
@@ -116,6 +117,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
   DateTime? _birthDate;
   String? _selectedClinicId;
   Clinic? selectedClinic;
+
   // String? _selectedBranchId;
   Branch? selectedBranch;
   List<Capability> _selectedCapabilities = [];
@@ -183,6 +185,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
   }
 
   bool get _isReadOnly => _isReadOnlyState;
+
   bool get _isAddMode => widget.mode == ReceptionistFormMode.add;
 
   String get _pageTitle {
@@ -201,130 +204,133 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_pageTitle),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          // Edit button in view mode
-          if (widget.mode != ReceptionistFormMode.add)
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _isReadOnlyState = !_isReadOnlyState;
-                  // If reverting to read-only, reset form data
-                  if (_isReadOnlyState && _loadedReceptionist != null) {
-                    _populateForm(_loadedReceptionist!);
-                  }
-                });
-              },
-              icon: Icon(
-                _isReadOnly ? Icons.edit : Icons.close,
+    return GestureDetector(
+      onTap: () => WidgetsBinding.instance.focusManager.primaryFocus!.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_pageTitle),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          actions: [
+            // Edit button in view mode
+            if (widget.mode != ReceptionistFormMode.add)
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isReadOnlyState = !_isReadOnlyState;
+                    // If reverting to read-only, reset form data
+                    if (_isReadOnlyState && _loadedReceptionist != null) {
+                      _populateForm(_loadedReceptionist!);
+                    }
+                  });
+                },
+                icon: Icon(
+                  _isReadOnly ? Icons.edit : Icons.close,
+                ),
               ),
-            ),
-        ],
-      ),
-      body: MultiBlocListener(
-        listeners: [
-          // Listen to single receptionist fetch (for edit/view)
-          if (widget.mode != ReceptionistFormMode.add)
-            BlocListener<GetSingleReceptionistCubit,
-                GetSingleReceptionistState>(
-              listener: (context, state) {
-                if (state.isSuccess && state.receptionist != null) {
-                  _populateForm(state.receptionist!);
-                }
-              },
-            ),
-          // Listen to capabilities fetch to map them if receptionist is already loaded
-          if (widget.mode != ReceptionistFormMode.add)
-            BlocListener<GetCapabilitiesCubit, GetCapabilitiesState>(
-              listener: (context, state) {
-                if (state.isSuccess &&
-                    state.capabilities != null &&
-                    _loadedReceptionist != null) {
-                  _mapCapabilities(_loadedReceptionist!, state.capabilities!);
-                }
-              },
-            ),
-          // Listen to actions (add/update)
-          BlocListener<ReceptionistActionsCubit, ReceptionistActionsState>(
-            listener: (context, state) async {
-              if (state.isAddSuccess || state.isUpdateSuccess) {
-                // Send WhatsApp message only for add success
-                if (state.isAddSuccess && _isAddMode) {
-                  await WhatsAppConfirmation().sendWhatsAppMessage(
-                    _phoneController.text,
-                    "Welcome to our clinics ❤️ .\n You can now sign in, by downloading Ocurithm application. \n Your credentials: \n username: ${_phoneController.text} \n password: ${_passwordController.text} \n Thank you.",
-                  );
-                }
-
-                SnackbarService.showSuccess(
-                  context,
-                  message: state.successMessage ?? 'Success',
-                );
-                Navigator.of(context)
-                    .pop(true); // Return true to indicate success
-              } else if (state.isAddError || state.isUpdateError) {
-                SnackbarService.showError(
-                  context,
-                  message: state.errorMessage ?? 'Error occurred',
-                );
-              } else if (state.noConnection) {
-                SnackbarService.showWarning(
-                  context,
-                  message: 'No internet connection',
-                );
-              }
-            },
-          ),
-        ],
-        child: widget.mode == ReceptionistFormMode.add
-            ? _buildForm(context, theme, isDark)
-            : BlocBuilder<GetSingleReceptionistCubit,
-                GetSingleReceptionistState>(
-                builder: (context, singleState) {
-                  if (singleState.isLoading) {
-                    return _buildFormWithShimmer(context, theme, isDark);
+          ],
+        ),
+        body: MultiBlocListener(
+          listeners: [
+            // Listen to single receptionist fetch (for edit/view)
+            if (widget.mode != ReceptionistFormMode.add)
+              BlocListener<GetSingleReceptionistCubit,
+                  GetSingleReceptionistState>(
+                listener: (context, state) {
+                  if (state.isSuccess && state.receptionist != null) {
+                    _populateForm(state.receptionist!);
                   }
-
-                  if (singleState.isError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error_outline,
-                              size: 64, color: Colors.red),
-                          const SizedBox(height: 16),
-                          Text(singleState.errorMessage ??
-                              'Failed to load receptionist'),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              context.read<GetSingleReceptionistCubit>().add(
-                                    GetReceptionistByIdEvent(
-                                        widget.receptionistId!),
-                                  );
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
+                },
+              ),
+            // Listen to capabilities fetch to map them if receptionist is already loaded
+            if (widget.mode != ReceptionistFormMode.add)
+              BlocListener<GetCapabilitiesCubit, GetCapabilitiesState>(
+                listener: (context, state) {
+                  if (state.isSuccess &&
+                      state.capabilities != null &&
+                      _loadedReceptionist != null) {
+                    _mapCapabilities(_loadedReceptionist!, state.capabilities!);
+                  }
+                },
+              ),
+            // Listen to actions (add/update)
+            BlocListener<ReceptionistActionsCubit, ReceptionistActionsState>(
+              listener: (context, state) async {
+                if (state.isAddSuccess || state.isUpdateSuccess) {
+                  // Send WhatsApp message only for add success
+                  if (state.isAddSuccess && _isAddMode) {
+                    await WhatsAppConfirmation().sendWhatsAppMessage(
+                      _phoneController.text,
+                      "Welcome to our clinics ❤️ .\n You can now sign in, by downloading Ocurithm application. \n Your credentials: \n username: ${_phoneController.text} \n password: ${_passwordController.text} \n Thank you.",
                     );
                   }
 
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: _isReadOnly
-                        ? _buildReceptionistDetailView(theme, isDark)
-                        : _buildForm(context, theme, isDark),
+                  SnackbarService.showSuccess(
+                    context,
+                    message: state.successMessage ?? 'Success',
                   );
-                },
-              ),
+                  Navigator.of(context)
+                      .pop(true); // Return true to indicate success
+                } else if (state.isAddError || state.isUpdateError) {
+                  SnackbarService.showError(
+                    context,
+                    message: state.errorMessage ?? 'Error occurred',
+                  );
+                } else if (state.noConnection) {
+                  SnackbarService.showWarning(
+                    context,
+                    message: 'No internet connection',
+                  );
+                }
+              },
+            ),
+          ],
+          child: widget.mode == ReceptionistFormMode.add
+              ? _buildForm(context, theme, isDark)
+              : BlocBuilder<GetSingleReceptionistCubit,
+                  GetSingleReceptionistState>(
+                  builder: (context, singleState) {
+                    if (singleState.isLoading) {
+                      return _buildFormWithShimmer(context, theme, isDark);
+                    }
+
+                    if (singleState.isError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline,
+                                size: 64, color: Colors.red),
+                            const SizedBox(height: 16),
+                            Text(singleState.errorMessage ??
+                                'Failed to load receptionist'),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<GetSingleReceptionistCubit>().add(
+                                      GetReceptionistByIdEvent(
+                                          widget.receptionistId!),
+                                    );
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: _isReadOnly
+                          ? _buildReceptionistDetailView(theme, isDark)
+                          : _buildForm(context, theme, isDark),
+                    );
+                  },
+                ),
+        ),
+        bottomNavigationBar:
+            _isReadOnly ? null : _buildBottomBar(context, theme, isDark),
       ),
-      bottomNavigationBar:
-          _isReadOnly ? null : _buildBottomBar(context, theme, isDark),
     );
   }
 
@@ -546,7 +552,8 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
 
             // Clinic Dropdown (if user has permission and in add mode)
             if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapability") && _isAddMode)
+                    .contains("manageCapability") &&
+                _isAddMode)
               _buildClinicDropdown(context, theme, isDark),
 
             // Branch Dropdown
@@ -585,7 +592,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
 
     return TextField2(
       controller: controller,
-      required: true, 
+      required: true,
       type: keyboardType,
       hintText: hintText,
       fillColor: theme.cardColor,
@@ -649,8 +656,9 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
           color: theme.cardColor,
           boxShadow: [
             BoxShadow(
-              color:
-                  isDark ? Colors.white.withValues(alpha:0.1) : Colors.grey.shade200,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.grey.shade200,
               spreadRadius: 2,
               blurRadius: 3,
               offset: const Offset(0, 0),
@@ -828,8 +836,9 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
                     context: context,
                     initialDate: _birthDate ?? DateTime(2000),
                     firstDate: DateTime(1900),
-                    lastDate: DateTime.now()
-                        .subtract(const Duration(days: 6570)), // 18 years
+                    lastDate:
+                        DateTime.now().subtract(const Duration(days: 6570)),
+                    // 18 years
                     builder: (context, child) {
                       return Theme(
                         data: theme.copyWith(
@@ -848,10 +857,12 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
                                   onSurface: theme.textTheme.bodyLarge?.color ??
                                       Colors.black,
                                 ),
-                          dialogBackgroundColor: isDark ? theme.cardColor : Colors.white,
+                          dialogBackgroundColor:
+                              isDark ? theme.cardColor : Colors.white,
                           textButtonTheme: TextButtonThemeData(
                             style: TextButton.styleFrom(
-                              foregroundColor: isDark ? Colors.white : theme.primaryColor,
+                              foregroundColor:
+                                  isDark ? Colors.white : theme.primaryColor,
                             ),
                           ),
                         ),
@@ -1025,7 +1036,8 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
       phone: _phoneController.text.trim(),
       password: _isAddMode ? _passwordController.text : null,
       branch: selectedBranch,
-      clinic: _isAddMode ? (selectedClinic ?? Clinic(id: _selectedClinicId)) : null,
+      clinic:
+          _isAddMode ? (selectedClinic ?? Clinic(id: _selectedClinicId)) : null,
       birthDate: _birthDate,
       image: _imageUrl,
       capability: _selectedCapabilities.map((c) => c.id).toList(),
@@ -1201,12 +1213,27 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
               ],
             ),
             child: ClipOval(
-              child: receptionist.image != null && receptionist.image!.isNotEmpty
-                  ? Image.network(
-                      receptionist.image!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
+              child:
+                  receptionist.image != null && receptionist.image!.isNotEmpty
+                      ? Image.network(
+                          receptionist.image!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Text(
+                                receptionist.name?.isNotEmpty == true
+                                    ? receptionist.name![0].toUpperCase()
+                                    : 'R',
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : Center(
                           child: Text(
                             receptionist.name?.isNotEmpty == true
                                 ? receptionist.name![0].toUpperCase()
@@ -1217,21 +1244,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
                               color: Colors.white,
                             ),
                           ),
-                        );
-                      },
-                    )
-                  : Center(
-                      child: Text(
-                        receptionist.name?.isNotEmpty == true
-                            ? receptionist.name![0].toUpperCase()
-                            : 'R',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
                         ),
-                      ),
-                    ),
             ),
           ),
           const SizedBox(height: 16),
@@ -1250,7 +1263,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
               color: theme.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child:  Text(
+            child: Text(
               'Receptionist',
               style: TextStyle(
                 color: Colorz.primaryColor,
@@ -1453,7 +1466,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
             color: theme.cardColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withValues(alpha:0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 spreadRadius: 2,
                 blurRadius: 5,
                 offset: const Offset(0, 3),

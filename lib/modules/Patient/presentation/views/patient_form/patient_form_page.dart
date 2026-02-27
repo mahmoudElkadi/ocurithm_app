@@ -65,7 +65,8 @@ class PatientFormPage extends StatelessWidget {
         ],
         if (AuthService.showClinicSelection)
           BlocProvider(
-              create: (_) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent())),
+              create: (_) => sl<GetClinicsCubit>()
+                ..add(GetAllClinicsEvent(noPagination: true))),
         BlocProvider(
           create: (_) => sl<GetBranchesCubit>()
             ..add(SetClinicFilterEvent(AuthService.getEffectiveClinic()?.id)),
@@ -313,8 +314,9 @@ class _PatientFormViewState extends State<PatientFormView> {
               if (clinicsState.noConnection) {
                 return NoInternet(
                   fromTop: 0,
-                  onPressed: () =>
-                      context.read<GetClinicsCubit>().add(GetAllClinicsEvent()),
+                  onPressed: () => context
+                      .read<GetClinicsCubit>()
+                      .add(GetAllClinicsEvent(noPagination: true)),
                 );
               }
               if (clinicsState.isError) {
@@ -325,91 +327,95 @@ class _PatientFormViewState extends State<PatientFormView> {
           )
         : _buildMainContent(context, theme, isDark);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_pageTitle),
-        elevation: 0,
-        actions: [
-          if (widget.mode != PatientFormMode.add)
-            manageCapability(
-              capability: 'managePatients',
-              child: IconButton(
-                onPressed: () {
-                  setState(() {
-                    _isReadOnlyState = !_isReadOnlyState;
-                    if (_isReadOnlyState && _loadedPatient != null) {
-                      _populateForm(_loadedPatient!);
-                    }
-                  });
-                },
-                icon: Icon(_isReadOnly ? Icons.edit : Icons.close),
+    return GestureDetector(
+      onTap: () => WidgetsBinding.instance.focusManager.primaryFocus!.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_pageTitle),
+          elevation: 0,
+          actions: [
+            if (widget.mode != PatientFormMode.add)
+              manageCapability(
+                capability: 'managePatients',
+                child: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _isReadOnlyState = !_isReadOnlyState;
+                      if (_isReadOnlyState && _loadedPatient != null) {
+                        _populateForm(_loadedPatient!);
+                      }
+                    });
+                  },
+                  icon: Icon(_isReadOnly ? Icons.edit : Icons.close),
+                ),
               ),
-            ),
-          if (widget.mode != PatientFormMode.add && widget.patientId != null)
-            IconButton(
-              onPressed: () {
-                Get.to(
-                    () => AnalysisView(patientId: widget.patientId.toString()));
-              },
-              icon: const Icon(Icons.analytics_outlined),
-            ),
-        ],
-      ),
-      body: MultiBlocListener(
-        listeners: [
-          if (widget.mode != PatientFormMode.add)
-            BlocListener<GetSinglePatientCubit, GetSinglePatientState>(
+            if (widget.mode != PatientFormMode.add && widget.patientId != null)
+              IconButton(
+                onPressed: () {
+                  Get.to(() =>
+                      AnalysisView(patientId: widget.patientId.toString()));
+                },
+                icon: const Icon(Icons.analytics_outlined),
+              ),
+          ],
+        ),
+        body: MultiBlocListener(
+          listeners: [
+            if (widget.mode != PatientFormMode.add)
+              BlocListener<GetSinglePatientCubit, GetSinglePatientState>(
+                listener: (context, state) {
+                  if (state.isSuccess && state.patient != null) {
+                    _populateForm(state.patient!);
+                  }
+                },
+              ),
+            BlocListener<PatientActionsCubit, PatientActionsState>(
               listener: (context, state) {
-                if (state.isSuccess && state.patient != null) {
-                  _populateForm(state.patient!);
+                if (state.isLoading) {
+                  customLoading(
+                      context,
+                      (state.actionType == PatientActionType.add)
+                          ? "Adding Patient..."
+                          : "Updating Patient...");
+                } else if (state.isSuccess) {
+                  // Pop the loading dialog
+                  Navigator.pop(context);
+
+                  SnackbarService.showSuccess(
+                    context,
+                    message: state.successMessage ?? 'Success',
+                  );
+                  if (state.actionType == PatientActionType.add &&
+                      state.patient != null) {
+                    _showPostAddDialog(context, state.patient!);
+                  } else if (state.actionType == PatientActionType.update &&
+                      state.patient != null) {
+                    _populateForm(state.patient!);
+                    setState(() {
+                      _isReadOnlyState = true;
+                    });
+                  } else {
+                    Navigator.pop(context, true);
+                  }
+                } else if (state.isError || state.noConnection) {
+                  // Pop the loading dialog
+                  Navigator.pop(context);
+
+                  SnackbarService.showError(
+                    context,
+                    message: state.errorMessage ?? 'Error',
+                  );
                 }
               },
-            ),
-          BlocListener<PatientActionsCubit, PatientActionsState>(
-            listener: (context, state) {
-              if (state.isLoading) {
-                customLoading(
-                    context,
-                    (state.actionType == PatientActionType.add)
-                        ? "Adding Patient..."
-                        : "Updating Patient...");
-              } else if (state.isSuccess) {
-                // Pop the loading dialog
-                Navigator.pop(context);
-
-                SnackbarService.showSuccess(
-                  context,
-                  message: state.successMessage ?? 'Success',
-                );
-                if (state.actionType == PatientActionType.add &&
-                    state.patient != null) {
-                  _showPostAddDialog(context, state.patient!);
-                } else if (state.actionType == PatientActionType.update &&
-                    state.patient != null) {
-                  _populateForm(state.patient!);
-                  setState(() {
-                    _isReadOnlyState = true;
-                  });
-                } else {
-                  Navigator.pop(context, true);
-                }
-              } else if (state.isError || state.noConnection) {
-                // Pop the loading dialog
-                Navigator.pop(context);
-
-                SnackbarService.showError(
-                  context,
-                  message: state.errorMessage ?? 'Error',
-                );
-              }
-            },
-          )
-        ],
-        child: bodyContent,
+            )
+          ],
+          child: bodyContent,
+        ),
+        bottomNavigationBar:
+            (!_isReadOnly || widget.mode == PatientFormMode.add)
+                ? _buildBottomBar(context, theme)
+                : null,
       ),
-      bottomNavigationBar: (!_isReadOnly || widget.mode == PatientFormMode.add)
-          ? _buildBottomBar(context, theme)
-          : null,
     );
   }
 
@@ -1409,7 +1415,9 @@ class _PatientFormViewState extends State<PatientFormView> {
                 .getExaminations(widget.patientId!);
           }
           if (AuthService.showClinicSelection) {
-            context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
+            context
+                .read<GetClinicsCubit>()
+                .add(GetAllClinicsEvent(noPagination: true));
           }
         } catch (e) {
           log(e.toString());

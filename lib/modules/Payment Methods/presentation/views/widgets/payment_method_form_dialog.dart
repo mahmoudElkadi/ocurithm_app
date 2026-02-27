@@ -131,7 +131,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
     final paymentMethod = PaymentMethod(
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
-      // clinic: widget.mode == PaymentMethodFormMode.add ? selectedClinic : null,
+      clinic: widget.mode == PaymentMethodFormMode.add ? selectedClinic : null,
     );
 
     // Dispatch appropriate event based on mode
@@ -241,37 +241,40 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
 
   Widget _buildDialogContent() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: isDark
-            ? Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
-              )
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.5)
-                : Colors.black.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(),
-            const Divider(),
-            const SizedBox(height: 16),
-            _buildForm(),
+    return GestureDetector(
+      onTap: () => WidgetsBinding.instance.focusManager.primaryFocus!.unfocus(),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: isDark
+              ? Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                )
+              : null,
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.5)
+                  : Colors.black.withValues(alpha: 0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+              spreadRadius: 2,
+            ),
           ],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(),
+              const Divider(),
+              const SizedBox(height: 16),
+              _buildForm(),
+            ],
+          ),
         ),
       ),
     );
@@ -528,7 +531,8 @@ void showPaymentMethodFormDialog(
       // If user needs clinic selection, provide GetClinicsCubit
       if (needsClinicCubit) {
         return BlocProvider(
-          create: (_) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),
+          create: (_) => sl<GetClinicsCubit>()
+            ..add(GetAllClinicsEvent(noPagination: true)),
           child: dialog,
         );
       }

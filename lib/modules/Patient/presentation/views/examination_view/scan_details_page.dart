@@ -343,7 +343,8 @@ class ScanDetailsPage extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (context) => RealDicomViewer(
                       url: file.url,
-                        showMetadata:true
+                      showMetadata: true,
+                      heroTag: file.url ?? "scan_image_$index",
                     ),
                   ),
                 );

@@ -1,13 +1,11 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 import 'package:ocurithm/modules/Clinics/data/repos/clinic_repo.dart';
 import 'package:rxdart/rxdart.dart';
 
-part 'get_clinics_state.dart';
 part 'get_clinics_event.dart';
+part 'get_clinics_state.dart';
 
 class GetClinicsCubit extends Bloc<GetClinicsEvent, GetClinicsState> {
   final ClinicRepo clinicRepo;
@@ -43,12 +41,11 @@ class GetClinicsCubit extends Bloc<GetClinicsEvent, GetClinicsState> {
   // Get GetClinics
   Future<void> _onGetAllClinics(
       GetAllClinicsEvent event, Emitter<GetClinicsState> emit) async {
-    log('message');
     try {
       emit(state.copyWith(state: GetClinicsStatus.loading));
 
       final clinics = await clinicRepo.getAllClinics(
-          page: event.noPagination ? null : state.page, 
+          page: event.noPagination ? null : state.page,
           search: (state.search?.isNotEmpty ?? false) ? state.search : null);
 
       emit(state.copyWith(state: GetClinicsStatus.success, clinics: clinics));

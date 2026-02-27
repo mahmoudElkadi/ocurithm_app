@@ -306,53 +306,57 @@ class _MakeAppointmentViewState extends State<MakeAppointmentView>
           final cubit = MakeAppointmentCubit.get(context);
           final isDark = Theme.of(context).brightness == Brightness.dark;
 
-          return Scaffold(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            appBar: AppBar(
+          return GestureDetector(
+            onTap: () =>
+                WidgetsBinding.instance.focusManager.primaryFocus!.unfocus(),
+            child: Scaffold(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              elevation: 0,
-              title: Text("Appointments",
-                  style: appStyle(context, 20,
-                      isDark ? Colors.white : Colorz.black, FontWeight.w600)),
-              centerTitle: true,
-              leading: IconButton(
-                onPressed: () {
-                  if (state.currentStep > 0) {
-                    cubit.add(PreviousStepEvent());
-                  } else {
-                    Get.back();
-                  }
-                },
-                icon: Icon(Icons.arrow_back,
-                    color: isDark ? Colors.white : Colorz.black),
+              appBar: AppBar(
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                elevation: 0,
+                title: Text("Appointments",
+                    style: appStyle(context, 20,
+                        isDark ? Colors.white : Colorz.black, FontWeight.w600)),
+                centerTitle: true,
+                leading: IconButton(
+                  onPressed: () {
+                    if (state.currentStep > 0) {
+                      cubit.add(PreviousStepEvent());
+                    } else {
+                      Get.back();
+                    }
+                  },
+                  icon: Icon(Icons.arrow_back,
+                      color: isDark ? Colors.white : Colorz.black),
+                ),
               ),
+              body: state.status !=
+                      MakeAppointmentStatus.noConnection // Using status enum
+                  ? Column(
+                      children: [
+                        HorizontalStepper(
+                          currentStep: state.currentStep,
+                          steps: steps, // User defined list
+                          onStepTapped: (index) {
+                            // Optional: Allow jumping steps if possible
+                            // cubit.add(ChangeStepEvent(index));
+                          },
+                        ),
+                        Expanded(
+                          child: _buildStepContent(state.currentStep, context),
+                        ),
+                      ],
+                    )
+                  : NoInternet(
+                      onPressed: () {
+                        if (state.doctors == null) {
+                          // cubit.add(GetDoctorsEvent());
+                          // cubit.add(GetBranchesEvent());
+                        }
+                        cubit.add(InitialDataEvent());
+                      },
+                    ),
             ),
-            body: state.status !=
-                    MakeAppointmentStatus.noConnection // Using status enum
-                ? Column(
-                    children: [
-                      HorizontalStepper(
-                        currentStep: state.currentStep,
-                        steps: steps, // User defined list
-                        onStepTapped: (index) {
-                          // Optional: Allow jumping steps if possible
-                          // cubit.add(ChangeStepEvent(index));
-                        },
-                      ),
-                      Expanded(
-                        child: _buildStepContent(state.currentStep, context),
-                      ),
-                    ],
-                  )
-                : NoInternet(
-                    onPressed: () {
-                      if (state.doctors == null) {
-                        // cubit.add(GetDoctorsEvent());
-                        // cubit.add(GetBranchesEvent());
-                      }
-                      cubit.add(InitialDataEvent());
-                    },
-                  ),
           );
         },
       ),

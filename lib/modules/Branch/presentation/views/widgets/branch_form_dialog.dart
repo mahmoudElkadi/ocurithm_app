@@ -14,11 +14,11 @@ import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/work_day_selector.dart';
 import 'package:ocurithm/generated/l10n.dart';
-import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
-import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:ocurithm/modules/Branch/data/model/add_branch_model.dart';
 import 'package:ocurithm/modules/Branch/presentation/manager/branch_actions_cubit/branch_actions_cubit.dart';
 import 'package:ocurithm/modules/Branch/presentation/manager/get_single_branch_cubit/get_single_branch_cubit.dart';
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
+import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../../../core/utils/colors.dart';
@@ -127,7 +127,11 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
     }
 
     // Show loading dialog
-    customLoading(context, widget.mode == BranchFormMode.add ? "Adding Branch..." : "Updating Branch...");
+    customLoading(
+        context,
+        widget.mode == BranchFormMode.add
+            ? "Adding Branch..."
+            : "Updating Branch...");
 
     // Create branch model
     final branchModel = AddBranchModel(
@@ -211,7 +215,8 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
             if (state.isSuccess) {
               SnackbarService.showSuccess(
                 context,
-                message: state.successMessage ?? 'Operation completed successfully',
+                message:
+                    state.successMessage ?? 'Operation completed successfully',
               );
               // Pop the Form Dialog with true to indicate success
               Navigator.of(context).pop(true);
@@ -274,38 +279,41 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
 
   Widget _buildDialogContent() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        // Add subtle border in dark mode for better definition
-        border: isDark
-            ? Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
-              )
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.5)
-                : Colors.black.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(),
-            const Divider(),
-            const SizedBox(height: 16),
-            _buildForm(),
+    return GestureDetector(
+      onTap: () => WidgetsBinding.instance.focusManager.primaryFocus!.unfocus(),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          // Add subtle border in dark mode for better definition
+          border: isDark
+              ? Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                )
+              : null,
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.5)
+                  : Colors.black.withValues(alpha: 0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+              spreadRadius: 2,
+            ),
           ],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(),
+              const Divider(),
+              const SizedBox(height: 16),
+              _buildForm(),
+            ],
+          ),
         ),
       ),
     );
@@ -371,9 +379,10 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
                 const SizedBox(height: 16),
                 _buildBusinessHoursSelector(isLoading),
                 const SizedBox(height: 24),
-                if (!_isReadOnly) manageCapability(
-                    capability: 'manageBranches',
-                    child: _buildSubmitButton()),
+                if (!_isReadOnly)
+                  manageCapability(
+                      capability: 'manageBranches',
+                      child: _buildSubmitButton()),
               ],
             ),
           );
@@ -386,16 +395,12 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       key: _formKey,
       child: Column(
         children: [
-
-            manageCapability(
-              capability:'manageCapability' ,
-                child:
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildClinicDropdown(false),
-                )
-            ),
-
+          manageCapability(
+              capability: 'manageCapability',
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildClinicDropdown(false),
+              )),
           _buildCodeField(false),
           const SizedBox(height: 16),
           _buildNameField(false),
@@ -442,8 +447,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
             onItemSelected: (item) {
               if (!_isReadOnly) {
                 setState(() {
-                    selectedClinic = item;
-
+                  selectedClinic = item;
                 });
               }
             },
@@ -473,8 +477,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       onItemSelected: (item) {
         if (!_isReadOnly) {
           setState(() {
-              selectedClinic = item;
-
+            selectedClinic = item;
           });
         }
       },
@@ -722,10 +725,9 @@ void showBranchFormDialog(
 
       // If user needs clinic selection, provide GetClinicsCubit
       if (needsClinicCubit) {
-        log('needsClinicCubitssss $needsClinicCubit');
-
         return BlocProvider(
-          create: (_) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),
+          create: (_) => sl<GetClinicsCubit>()
+            ..add(GetAllClinicsEvent(noPagination: true)),
           child: dialog,
         );
       }

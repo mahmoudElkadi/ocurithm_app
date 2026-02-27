@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../../../core/utils/services_locator.dart';
@@ -93,7 +92,6 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
     customLoading(context, "");
 
     // Check internet connection
-
 
     // Create clinic model
     final clinic = Clinic(
@@ -222,38 +220,41 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
 
   Widget _buildDialogContent() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        // Add subtle border in dark mode for better definition
-        border: isDark
-            ? Border.all(
-                color: Colors.white.withValues(alpha:0.1),
-                width: 1,
-              )
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha:0.5)
-                : Colors.black.withValues(alpha:0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(),
-            const Divider(),
-            const SizedBox(height: 16),
-            _buildForm(),
+    return GestureDetector(
+      onTap: () => WidgetsBinding.instance.focusManager.primaryFocus!.unfocus(),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          // Add subtle border in dark mode for better definition
+          border: isDark
+              ? Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                )
+              : null,
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.5)
+                  : Colors.black.withValues(alpha: 0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+              spreadRadius: 2,
+            ),
           ],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(),
+              const Divider(),
+              const SizedBox(height: 16),
+              _buildForm(),
+            ],
+          ),
         ),
       ),
     );
@@ -343,7 +344,7 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
           borderRadius: BorderRadius.circular(8),
         ),
         prefixIcon: Icon(Icons.business,
-            color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6)),
+            color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Theme.of(context).primaryColor),
@@ -373,7 +374,7 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
           borderRadius: BorderRadius.circular(8),
         ),
         prefixIcon: Icon(Icons.description,
-            color: Theme.of(context).iconTheme.color?.withValues(alpha:0.6)),
+            color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Theme.of(context).primaryColor),

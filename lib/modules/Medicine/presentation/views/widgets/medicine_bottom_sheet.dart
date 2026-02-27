@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/utils/capability_services.dart';
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart'
+    as clinic_model;
+import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
+
+import '../../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/app_style.dart';
+import '../../../../../core/utils/snackbar_service.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
-import '../../../../../core/widgets/text_field.dart';
-import '../../../../../core/widgets/height_spacer.dart'; 
 import '../../../../../core/widgets/custom_freeze_loading.dart';
+import '../../../../../core/widgets/height_spacer.dart';
+import '../../../../../core/widgets/text_field.dart';
 import '../../../data/model/active_ingredient_model.dart';
 import '../../../data/model/medicine_model.dart';
 import '../../manager/get_active_ingredients_cubit/get_active_ingredients_cubit.dart';
-
-import '../../manager/medicine_actions_cubit/medicine_actions_cubit.dart';
 import '../../manager/get_medicines_cubit/get_medicines_cubit.dart';
-
-import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
-import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart'
-    as clinic_model;
-import '../../../../../../core/Network/shared.dart';
-import '../../../../../core/utils/snackbar_service.dart';
+import '../../manager/medicine_actions_cubit/medicine_actions_cubit.dart';
 
 enum MedicineFormType { medicine, activeIngredient }
 
@@ -134,12 +133,16 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
 
   bool _isFormValid() {
     if (_visibleType == MedicineFormType.medicine) {
-      return (widget.isEdit || !_hasManageCapability || _selectedClinic != null) &&
+      return (widget.isEdit ||
+              !_hasManageCapability ||
+              _selectedClinic != null) &&
           (widget.isEdit || _selectedActiveIngredient != null) &&
           _nameController.text.trim().isNotEmpty &&
           _concentrationController.text.trim().isNotEmpty;
     } else {
-      return (widget.isEdit || !_hasManageCapability || _selectedClinic != null) &&
+      return (widget.isEdit ||
+              !_hasManageCapability ||
+              _selectedClinic != null) &&
           _aiNameController.text.trim().isNotEmpty;
     }
   }
@@ -170,57 +173,62 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
         }
       },
       builder: (context, state) {
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xff1f1f1f) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 60,
-                    height: 4,
-                    decoration: BoxDecoration(
-                        color: Colors.grey,
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
-                  Align( 
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                            color: Colors.grey, shape: BoxShape.circle),
-                        child: Icon(
-                          Icons.close,
-                          size: 18,
-                          color: isDark ? Colors.white : Colors.black,
+        return GestureDetector(
+          onTap: () =>
+              WidgetsBinding.instance.focusManager.primaryFocus!.unfocus(),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xff1f1f1f) : Colors.white,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 4,
+                      decoration: BoxDecoration(
+                          color: Colors.grey,
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                              color: Colors.grey, shape: BoxShape.circle),
+                          child: Icon(
+                            Icons.close,
+                            size: 18,
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
-                  // Only show toggle if NOT edit/details
-                  if (!widget.isEdit && !widget.isDetails) ...[
-                    _buildAnimatedToggle(isDark),
+                    // Only show toggle if NOT edit/details
+                    if (!widget.isEdit && !widget.isDetails) ...[
+                      _buildAnimatedToggle(isDark),
+                      const HeightSpacer(size: 20),
+                    ],
+                    if (_visibleType == MedicineFormType.medicine)
+                      _buildMedicineForm(isDark)
+                    else
+                      _buildActiveIngredientForm(isDark),
                     const HeightSpacer(size: 20),
+                    if (!widget.isDetails) _buildSubmitButton(state, isDark),
                   ],
-                  if (_visibleType == MedicineFormType.medicine)
-                    _buildMedicineForm(isDark)
-                  else
-                    _buildActiveIngredientForm(isDark),
-                  const HeightSpacer(size: 20),
-                  if (!widget.isDetails) _buildSubmitButton(state, isDark),
-                ],
+                ),
               ),
             ),
           ),
@@ -326,7 +334,9 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (CapabilityServices.hasCapability('manageCapability') && !widget.isEdit && !widget.isDetails) ...[
+        if (CapabilityServices.hasCapability('manageCapability') &&
+            !widget.isEdit &&
+            !widget.isDetails) ...[
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 5),
             child: Text("Clinic",
@@ -358,7 +368,10 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
                             18,
                             Theme.of(context).primaryColor == Colors.black
                                 ? Colors.black
-                                : Theme.of(context).textTheme.bodyLarge?.color ??
+                                : Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.color ??
                                     Colors.black,
                             FontWeight.bold)),
                   ),
@@ -418,7 +431,8 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (CapabilityServices.hasCapability('manageCapability') &&
-            !widget.isEdit && !widget.isDetails) ...[
+            !widget.isEdit &&
+            !widget.isDetails) ...[
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 5),
             child: Text("Clinic",
@@ -428,7 +442,8 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
           _buildClinicDropdown(isDark),
         ],
         if (CapabilityServices.hasCapability('manageCapability') &&
-            !widget.isEdit && !widget.isDetails)
+            !widget.isEdit &&
+            !widget.isDetails)
           const HeightSpacer(size: 15),
         _buildTextField(
           controller: _aiNameController,
@@ -486,7 +501,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
                     color: Colors.white, strokeWidth: 2))
             : Text(text,
                 style: const TextStyle(
-                    fontSize: 16,  
+                    fontSize: 16,
                     color: Colors.white,
                     fontWeight: FontWeight.bold)),
       ),

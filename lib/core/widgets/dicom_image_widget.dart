@@ -39,6 +39,16 @@ class DicomImageWidget extends StatefulWidget {
 
   @override
   State<DicomImageWidget> createState() => _DicomImageWidgetState();
+
+  // Static cache to store parsed image bytes and metadata
+  static final Map<String, Uint8List> _imageCache = {};
+  static final Map<String, String?> _modalityCache = {};
+
+  /// Clear the DICOM cache (useful on logout or memory pressure)
+  static void clearCache() {
+    _imageCache.clear();
+    _modalityCache.clear();
+  }
 }
 
 class _DicomImageWidgetState extends State<DicomImageWidget> {
@@ -61,7 +71,20 @@ class _DicomImageWidgetState extends State<DicomImageWidget> {
     }
   }
 
+  String get _cacheKey => widget.url ?? widget.filePath ?? "";
+
   Future<void> _parseDicom() async {
+    final key = _cacheKey;
+    if (DicomImageWidget._imageCache.containsKey(key)) {
+      setState(() {
+        _imageBytes = DicomImageWidget._imageCache[key];
+        _modality = DicomImageWidget._modalityCache[key];
+        _isLoading = false;
+        _error = null;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -98,6 +121,10 @@ class _DicomImageWidgetState extends State<DicomImageWidget> {
           await dicomParser.parseDICOMFile(fileBytes);
 
       if (dicomModel != null && dicomModel.imageBytes != null) {
+        // Store in cache
+        DicomImageWidget._imageCache[key] = dicomModel.imageBytes!;
+        DicomImageWidget._modalityCache[key] = dicomModel.getModality();
+
         if (mounted) {
           setState(() {
             _imageBytes = dicomModel.imageBytes;
@@ -125,6 +152,22 @@ class _DicomImageWidgetState extends State<DicomImageWidget> {
     }
 
     if (_error != null || _imageBytes == null) {
+      // Fallback: try to show as regular image if parsing fails
+      if (widget.url != null) {
+        return Image.network(
+          widget.url!,
+          fit: widget.fit,
+          errorBuilder: (context, error, stackTrace) =>
+              widget.errorBuilder?.call(context) ?? _buildDefaultError(),
+        );
+      } else if (widget.filePath != null) {
+        return Image.file(
+          File(widget.filePath!),
+          fit: widget.fit,
+          errorBuilder: (context, error, stackTrace) =>
+              widget.errorBuilder?.call(context) ?? _buildDefaultError(),
+        );
+      }
       return widget.errorBuilder?.call(context) ?? _buildDefaultError();
     }
 

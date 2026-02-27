@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
 
 
 class FullscreenImageViewer extends StatefulWidget {
@@ -97,38 +98,47 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
                 },
                 itemBuilder: (context, index) {
                   final url = widget.imageUrls[index];
+                  final isDcm = _isDicomUrl(url);
 
-                  return
-
-                    InteractiveViewer(
-                          transformationController: _transformationController,
-                          minScale: 1.0,
-                          maxScale: 5.0,
-                          onInteractionStart: (_) => setState(() => _isZooming = true),
-                          onInteractionEnd: (_) {
-                            if (_transformationController.value.getMaxScaleOnAxis() <= 1.0) {
-                              setState(() => _isZooming = false);
-                            }
-                          },
-                          child: Center(
-                            child: Hero(
-                              tag: url,
-                              child: Image.network(
+                  return InteractiveViewer(
+                    transformationController: _transformationController,
+                    minScale: 1.0,
+                    maxScale: 5.0,
+                    onInteractionStart: (_) =>
+                        setState(() => _isZooming = true),
+                    onInteractionEnd: (_) {
+                      if (_transformationController.value.getMaxScaleOnAxis() <=
+                          1.0) {
+                        setState(() => _isZooming = false);
+                      }
+                    },
+                    child: Center(
+                      child: Hero(
+                        tag: url,
+                        child: isDcm
+                            ? DicomImageWidget(
+                                url: url,
+                                fit: BoxFit.contain,
+                                showMetadata: true,
+                              )
+                            : Image.network(
                                 url,
                                 fit: BoxFit.contain,
-                                loadingBuilder: (context, child, loadingProgress) {
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;
                                   return const Center(
-                                    child: CircularProgressIndicator(color: Colors.white70),
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white70),
                                   );
                                 },
                                 errorBuilder: (context, error, stackTrace) {
                                   return _buildErrorWidget(url);
                                 },
                               ),
-                            ),
-                          ),
-                        );
+                      ),
+                    ),
+                  );
                 },
               ),
             ),

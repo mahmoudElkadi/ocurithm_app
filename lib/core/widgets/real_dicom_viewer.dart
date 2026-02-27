@@ -17,11 +17,15 @@ class RealDicomViewer extends StatefulWidget {
   /// Whether to show metadata panel
   final bool showMetadata;
 
+  /// Optional Hero tag for animations
+  final String? heroTag;
+
   const RealDicomViewer({
     super.key,
     this.filePath,
     this.url,
     this.showMetadata = false,
+    this.heroTag,
   }) : assert(filePath != null || url != null,
   'Either filePath or url must be provided');
 
@@ -41,6 +45,7 @@ class _RealDicomViewerState extends State<RealDicomViewer> {
   Timer? _playbackTimer;
   double _playbackSpeed = 1.0;
   bool _isZooming = false;
+  bool _showFallbackImage = false;
 
   // DICOM metadata
   Map<String, String> _metadata = {};
@@ -80,6 +85,7 @@ class _RealDicomViewerState extends State<RealDicomViewer> {
       _frames = [];
       _currentFrameIndex = 0;
       _isPlaying = false;
+      _showFallbackImage = false;
       _playbackTimer?.cancel();
     });
 
@@ -568,9 +574,33 @@ class _RealDicomViewerState extends State<RealDicomViewer> {
       appBar: _buildAppBar(),
       body: _isLoading
           ? _buildLoadingState()
-          : _error != null
+          : (_error != null && !_showFallbackImage)
           ? _buildErrorState()
+          : _showFallbackImage
+          ? _buildFallbackImageViewer()
           : _buildViewer(),
+    );
+  }
+
+  Widget _buildFallbackImageViewer() {
+    final heroTag = widget.heroTag ?? widget.url ?? widget.filePath ?? "dicom_fallback";
+    return Center(
+      child: InteractiveViewer(
+        minScale: 0.5,
+        maxScale: 10.0,
+        child: Hero(
+          tag: heroTag,
+          child: Image.network(
+            widget.url ?? "",
+            fit: BoxFit.contain,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const Center(child: CircularProgressIndicator(color: Colors.white));
+            },
+            errorBuilder: (context, error, stackTrace) => _buildErrorState(),
+          ),
+        ),
+      ),
     );
   }
 
@@ -679,6 +709,13 @@ class _RealDicomViewerState extends State<RealDicomViewer> {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: () => setState(() => _showFallbackImage = true),
+              icon: const Icon(Icons.image, color: Colors.white70),
+              label: const Text('View as regular Image', 
+                style: TextStyle(color: Colors.white70)),
+            ),
           ],
         ),
       ),
@@ -700,25 +737,28 @@ class _RealDicomViewerState extends State<RealDicomViewer> {
               onInteractionStart: _onZoomStart,
               onInteractionEnd: _onZoomEnd,
               child: Center(
-                child: Image.memory(
-                  _frames[_currentFrameIndex],
-                  fit: BoxFit.contain,
-                  gaplessPlayback: true,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.broken_image, color: Colors.white54, size: 64),
-                          SizedBox(height: 16),
-                          Text(
-                            'Failed to display frame',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                child: Hero(
+                  tag: widget.heroTag ?? widget.url ?? widget.filePath ?? "dicom_image",
+                  child: Image.memory(
+                    _frames[_currentFrameIndex],
+                    fit: BoxFit.contain,
+                    gaplessPlayback: true,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.broken_image, color: Colors.white54, size: 64),
+                            SizedBox(height: 16),
+                            Text(
+                              'Failed to display frame',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),

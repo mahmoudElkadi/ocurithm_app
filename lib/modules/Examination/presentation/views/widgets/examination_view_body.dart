@@ -2,27 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ocurithm/core/utils/colors.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
-import 'package:ocurithm/modules/Examination/presentation/views/widgets/patient_bottom_sheet.dart';
-import 'package:ocurithm/modules/Examination/presentation/views/widgets/review_examination.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+import 'package:ocurithm/modules/Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
+import 'package:ocurithm/modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
+import 'package:ocurithm/modules/Examination/presentation/manager/examination_form_cubit/examination_form_cubit.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/circle_view.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/header_view.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/navigation_view.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/patient_bottom_sheet.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/review_examination.dart';
 
 import '../../../../../core/utils/app_style.dart';
+import '../../../../../core/utils/services_locator.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../../core/widgets/arrow_text_field.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/multi_select.dart';
 import '../../../../../core/widgets/text_field.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
-import 'package:ocurithm/modules/Examination/presentation/manager/examination_form_cubit/examination_form_cubit.dart';
-import 'package:ocurithm/modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
-import 'package:ocurithm/modules/Examination/presentation/views/widgets/circle_view.dart';
-import 'package:ocurithm/modules/Examination/presentation/views/widgets/header_view.dart';
-import 'package:ocurithm/modules/Examination/presentation/views/widgets/navigation_view.dart';
-import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription.dart';
 import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
-import '../../../../../core/utils/services_locator.dart';
-import '../../../../../core/widgets/arrow_text_field.dart';
-import 'package:ocurithm/modules/Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
 
 class MultiStepFormView extends StatelessWidget {
   const MultiStepFormView({super.key, required this.appointment});
@@ -48,7 +48,8 @@ class MultiStepFormView extends StatelessWidget {
                 context,
                 message: state.message ?? "Saved Successfully",
               );
-            } else if (state.result != null && state.result.examination != null) {
+            } else if (state.result != null &&
+                state.result.examination != null) {
               // Show popup with Finalization and Cancel buttons
               _showFinalizationDialog(
                 context,
@@ -68,7 +69,8 @@ class MultiStepFormView extends StatelessWidget {
             Navigator.pop(context); // Close loading
             SnackbarService.showError(
               context,
-              message: state.error ?? "Failed to finalize visit. Please try again.",
+              message:
+                  state.error ?? "Failed to finalize visit. Please try again.",
             );
           }
         },
@@ -85,7 +87,7 @@ class MultiStepFormView extends StatelessWidget {
                   if (cubit.currentStep > 0) {
                     cubit.previousStep();
                   } else {
-                    Navigator.pop(context); 
+                    Navigator.pop(context);
                   }
                 },
                 suffix: IconButton(
@@ -103,8 +105,11 @@ class MultiStepFormView extends StatelessWidget {
                         );
                       }
                     },
-                    icon: SvgPicture.asset("assets/icons/patient.svg",
-                        colorFilter: ColorFilter.mode(Theme.of(context).iconTheme.color!,BlendMode.srcIn ),)),
+                    icon: SvgPicture.asset(
+                      "assets/icons/patient.svg",
+                      colorFilter: ColorFilter.mode(
+                          Theme.of(context).iconTheme.color!, BlendMode.srcIn),
+                    )),
               ),
               Expanded(
                 // Wrapped with Expanded
@@ -158,7 +163,7 @@ class MultiStepFormView extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha:  isDark ? 0.5 : 0.1),
+                  color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -253,7 +258,8 @@ class MultiStepFormView extends StatelessWidget {
                                           sl<ExaminationActionsCubit>()),
                                   BlocProvider(
                                       create: (context) =>
-                                          sl<GetMedicinesCubit>()..getMedicines()),
+                                          sl<GetMedicinesCubit>()
+                                            ..getMedicines()),
                                 ],
                                 child: MedicalTreeForm(
                                   examination: examination,
@@ -315,7 +321,8 @@ class _HistoryDetails extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
+                    color: Theme.of(context).textTheme.bodyLarge?.color ??
+                        Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -328,7 +335,9 @@ class _HistoryDetails extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).shadowColor.withValues(alpha:0.05),
+                        color: Theme.of(context)
+                            .shadowColor
+                            .withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -360,7 +369,8 @@ class _HistoryDetails extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
+                    color: Theme.of(context).textTheme.bodyLarge?.color ??
+                        Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -373,7 +383,9 @@ class _HistoryDetails extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).shadowColor.withValues(alpha:0.05),
+                        color: Theme.of(context)
+                            .shadowColor
+                            .withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -405,7 +417,8 @@ class _HistoryDetails extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
+                    color: Theme.of(context).textTheme.bodyLarge?.color ??
+                        Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -418,7 +431,9 @@ class _HistoryDetails extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).shadowColor.withValues(alpha:0.05),
+                        color: Theme.of(context)
+                            .shadowColor
+                            .withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -450,7 +465,8 @@ class _HistoryDetails extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
+                    color: Theme.of(context).textTheme.bodyLarge?.color ??
+                        Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -463,7 +479,9 @@ class _HistoryDetails extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).shadowColor.withValues(alpha:0.05),
+                        color: Theme.of(context)
+                            .shadowColor
+                            .withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -498,22 +516,17 @@ class _HistoryDetails extends StatelessWidget {
                   canGoBack: true,
                   canContinue: cubit.currentStep < cubit.totalSteps - 1,
                   onSave: () async {
-
-                        cubit.action = "save";
-                        context
-                            .read<ExaminationActionsCubit>()
-                            .createExamination(data: cubit.examinationData());
-
-
+                    cubit.action = "save";
+                    context
+                        .read<ExaminationActionsCubit>()
+                        .createExamination(data: cubit.examinationData());
                   },
                   onConfirm: () async {
                     if (cubit.appointmentData != null) {
-
-                        cubit.action = "create";
-                        context
-                            .read<ExaminationActionsCubit>()
-                            .createExamination(data: cubit.examinationData());
-
+                      cubit.action = "create";
+                      context
+                          .read<ExaminationActionsCubit>()
+                          .createExamination(data: cubit.examinationData());
                     }
                   },
                 ),
@@ -546,7 +559,8 @@ class _StepTwoContent extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
+                  color: Theme.of(context).textTheme.bodyLarge?.color ??
+                      Colors.grey[800],
                 ),
               ),
               const SizedBox(height: 8),
@@ -559,7 +573,8 @@ class _StepTwoContent extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadowColor.withValues(alpha:0.05),
+                      color:
+                          Theme.of(context).shadowColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -591,7 +606,8 @@ class _StepTwoContent extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
+                  color: Theme.of(context).textTheme.bodyLarge?.color ??
+                      Colors.grey[800],
                 ),
               ),
               const SizedBox(height: 8),
@@ -604,7 +620,8 @@ class _StepTwoContent extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadowColor.withValues(alpha:0.05),
+                      color:
+                          Theme.of(context).shadowColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -636,7 +653,8 @@ class _StepTwoContent extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey[800],
+                  color: Theme.of(context).textTheme.bodyLarge?.color ??
+                      Colors.grey[800],
                 ),
               ),
               const SizedBox(height: 8),
@@ -649,7 +667,8 @@ class _StepTwoContent extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadowColor.withValues(alpha:0.05),
+                      color:
+                          Theme.of(context).shadowColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -686,23 +705,19 @@ class _StepTwoContent extends StatelessWidget {
                 canContinue: cubit.currentStep < cubit.totalSteps - 1,
                 onSave: () async {
                   if (cubit.appointmentData != null) {
-
-                      cubit.action = "save";
-                      context
-                          .read<ExaminationActionsCubit>()
-                          .createExamination(data: cubit.examinationData());
-
+                    cubit.action = "save";
+                    context
+                        .read<ExaminationActionsCubit>()
+                        .createExamination(data: cubit.examinationData());
                   }
                 },
                 onConfirm: () async {
                   if (cubit.appointmentData != null) {
+                    cubit.action = "create";
 
-                      cubit.action = "create";
-
-                      context
-                          .read<ExaminationActionsCubit>()
-                          .createExamination(data: cubit.examinationData());
-
+                    context
+                        .read<ExaminationActionsCubit>()
+                        .createExamination(data: cubit.examinationData());
                   }
                 },
               ),
@@ -839,7 +854,11 @@ class EyeExaminationView extends StatelessWidget {
             const HeightSpacer(size: 10),
             Text(
               "Old Glasses",
-              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
             const IntrinsicHeight(
@@ -852,7 +871,11 @@ class EyeExaminationView extends StatelessWidget {
             const HeightSpacer(size: 8),
             Text(
               "Auto-refraction",
-              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
             const IntrinsicHeight(
@@ -866,7 +889,12 @@ class EyeExaminationView extends StatelessWidget {
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text(
                 "Refined Refraction",
-                style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+                style: appStyle(
+                    context,
+                    18,
+                    Theme.of(context).textTheme.bodyLarge?.color ??
+                        Colors.black,
+                    FontWeight.bold),
               ),
               TextButton(
                   onPressed: () {
@@ -892,20 +920,31 @@ class EyeExaminationView extends StatelessWidget {
             const HeightSpacer(size: 8),
             Text(
               "Visual Acuity",
-              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
             const IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 10,
-                children: [RightVisualAcuityContent(), LeftVisualAcuityContent()],
+                children: [
+                  RightVisualAcuityContent(),
+                  LeftVisualAcuityContent()
+                ],
               ),
             ),
             const HeightSpacer(size: 8),
             Text(
               "IOP (mmHg)",
-              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
             const IntrinsicHeight(
@@ -918,7 +957,11 @@ class EyeExaminationView extends StatelessWidget {
             const HeightSpacer(size: 8),
             Text(
               "Pupils",
-              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
             const IntrinsicHeight(
@@ -931,7 +974,11 @@ class EyeExaminationView extends StatelessWidget {
             const HeightSpacer(size: 8),
             Text(
               "EyeLid & Physical",
-              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
             const IntrinsicHeight(
@@ -944,7 +991,11 @@ class EyeExaminationView extends StatelessWidget {
             const HeightSpacer(size: 8),
             Text(
               "Eye Structure",
-              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
             const IntrinsicHeight(
@@ -960,7 +1011,11 @@ class EyeExaminationView extends StatelessWidget {
             const HeightSpacer(size: 8),
             Text(
               "Fundus Examination",
-              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
             ),
             const HeightSpacer(size: 4),
             const IntrinsicHeight(
@@ -976,7 +1031,11 @@ class EyeExaminationView extends StatelessWidget {
             const HeightSpacer(size: 8),
             Text(
               "External Features ",
-              style: appStyle(context, 18, Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
             ),
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -996,24 +1055,19 @@ class EyeExaminationView extends StatelessWidget {
               canContinue: cubit.currentStep < cubit.totalSteps - 1,
               onSave: () async {
                 if (cubit.appointmentData != null) {
-
-                    cubit.action = "save";
-                    context
-                        .read<ExaminationActionsCubit>()
-                        .createExamination(data: cubit.examinationData());
-
-
+                  cubit.action = "save";
+                  context
+                      .read<ExaminationActionsCubit>()
+                      .createExamination(data: cubit.examinationData());
                 }
               },
               onConfirm: () async {
                 if (cubit.appointmentData != null) {
+                  cubit.action = "create";
 
-                    cubit.action = "create";
-
-                    context
-                        .read<ExaminationActionsCubit>()
-                        .createExamination(data: cubit.examinationData());
-
+                  context
+                      .read<ExaminationActionsCubit>()
+                      .createExamination(data: cubit.examinationData());
                 }
               },
             ),
@@ -1022,7 +1076,6 @@ class EyeExaminationView extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class RightAutorefContent extends StatelessWidget {
@@ -1294,7 +1347,7 @@ class _ModifiedExpandableContainerState
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).shadowColor.withValues(alpha:0.1),
+              color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
               spreadRadius: 2,
               blurRadius: 4,
             ),
@@ -1817,11 +1870,9 @@ class RightIOPContent extends StatelessWidget {
                           Colors.black,
                       FontWeight.bold)),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['IOP'] ?? [],
                 textRow: "IOP :",
-                radius: 15,
-                height: 40,
                 selectedValue: cubit.rightIOP,
                 onChanged: (selected) {
                   cubit.updateRightEyeField('iop', selected);
@@ -1838,7 +1889,7 @@ class RightIOPContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AcquireAnotherIOPMeasurement'] ?? [],
                 textRow: "Another IOP:",
                 selectedValue: cubit.rightAcquireAnotherIOPMeasurement,
@@ -1880,11 +1931,9 @@ class LeftIOPContent extends StatelessWidget {
                           Colors.black,
                       FontWeight.bold)),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['IOP'] ?? [],
                 textRow: "IOP :",
-                radius: 15,
-                height: 40,
                 selectedValue: cubit.leftIOP,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField('iop', selected);
@@ -1901,7 +1950,7 @@ class LeftIOPContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 8),
-              CustomColumnDropdown(
+              ArrowTextField(
                 items: cubit.data['AcquireAnotherIOPMeasurement'] ?? [],
                 textRow: "Another IOP:",
                 selectedValue: cubit.leftAcquireAnotherIOPMeasurement,

@@ -84,7 +84,8 @@ class DoctorFormPage extends StatelessWidget {
           ),
         if (AuthService.showClinicSelection)
           BlocProvider(
-            create: (_) => sl<GetClinicsCubit>()..add(GetAllClinicsEvent()),
+            create: (_) => sl<GetClinicsCubit>()
+              ..add(GetAllClinicsEvent(noPagination: true)),
           ),
         BlocProvider(
           create: (_) => sl<DoctorBranchActionsCubit>(),
@@ -207,216 +208,218 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_pageTitle),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          // Edit button in view mode
-          if (widget.mode != DoctorFormMode.add)
-            manageCapability(
-              capability: 'manageDoctors',
-              child: IconButton(
-                onPressed: () {
-                  setState(() {
-                    _isReadOnlyState = !_isReadOnlyState;
-                    // If reverting to read-only, reset form data
-                    if (_isReadOnlyState && _loadedDoctor != null) {
-                      _populateForm(_loadedDoctor!);
-                    }
-                  });
-                },
-                icon: Icon(
-                  _isReadOnly ? Icons.edit : Icons.close,
+    return GestureDetector(
+      onTap: () => WidgetsBinding.instance.focusManager.primaryFocus!.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_pageTitle),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          actions: [
+            // Edit button in view mode
+            if (widget.mode != DoctorFormMode.add)
+              manageCapability(
+                capability: 'manageDoctors',
+                child: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _isReadOnlyState = !_isReadOnlyState;
+                      // If reverting to read-only, reset form data
+                      if (_isReadOnlyState && _loadedDoctor != null) {
+                        _populateForm(_loadedDoctor!);
+                      }
+                    });
+                  },
+                  icon: Icon(
+                    _isReadOnly ? Icons.edit : Icons.close,
+                  ),
                 ),
               ),
-            ),
-          // Add Branch button
-          if (widget.mode != DoctorFormMode.add &&
-              CacheHelper.getStringList(key: "capabilities")
-                  .contains("manageDoctors") &&
-              _loadedDoctor != null)
-            IconButton(
-              onPressed: () {
-                _showAddBranchDialog(context);
-              },
-              icon: SvgPicture.asset(
-                "assets/icons/add_branch.svg",
-                colorFilter: ColorFilter.mode(
-                    isDark ? Colors.white : Colors.black, BlendMode.srcIn),
-              ),
-            ),
-        ],
-      ),
-      body: MultiBlocListener(
-        listeners: [
-          // Listen to single doctor fetch (for edit/view)
-          if (widget.mode != DoctorFormMode.add)
-            BlocListener<GetSingleDoctorCubit, GetSingleDoctorState>(
-              listener: (context, state) {
-                if (state.isSuccess && state.doctor != null) {
-                  _populateForm(state.doctor!);
-                }
-              },
-            ),
-          // Listen to capabilities fetch to map them if doctor is already loaded
-          if (widget.mode != DoctorFormMode.add)
-            BlocListener<GetCapabilitiesCubit, GetCapabilitiesState>(
-              listener: (context, state) {
-                if (state.isSuccess &&
-                    state.capabilities != null &&
-                    _loadedDoctor != null) {
-                  _mapCapabilities(_loadedDoctor!, state.capabilities!);
-                }
-              },
-            ),
-          // Listen to actions (add/update)
-          BlocListener<DoctorActionsCubit, DoctorActionsState>(
-            listener: (context, state) async {
-              if (state.isSuccess &&
-                  (state.actionType == DoctorActionType.add ||
-                      state.actionType == DoctorActionType.update)) {
-                // Send WhatsApp message only for add success
-                if (state.actionType == DoctorActionType.add && _isAddMode) {
-                  await WhatsAppConfirmation().sendWhatsAppMessage(
-                    _phoneController.text,
-                    "Welcome to our clinics ❤️ .\n You can now sign in, by downloading Ocurithm application. \n Your credentials: \n username: ${_phoneController.text} \n password: ${_passwordController.text} \n Thank you.",
-                  );
-                }
-
-                SnackbarService.showSuccess(
-                  context,
-                  message: state.successMessage ?? 'Success',
-                );
-
-                // Refresh list if manager is available in context (it might not be if we popped)
-                // But usually we return result
-                Navigator.of(context).pop(true);
-              } else if (state.isError) {
-                SnackbarService.showError(
-                  context,
-                  message: state.errorMessage ?? 'Error occurred',
-                );
-              }
-            },
-          ),
-          BlocListener<DoctorBranchActionsCubit, DoctorBranchActionsState>(
-            listener: (context, state) {
-              if (state.isSuccess) {
-                // Refresh doctor data
-                _loadDoctorData();
-                SnackbarService.showSuccess(
-                  context,
-                  message:
-                      state.successMessage ?? "Branch operation successful",
-                );
-              } else if (state.isError) {
-                SnackbarService.showError(
-                  context,
-                  message: state.errorMessage ?? "An error occurred",
-                );
-              }
-            },
-          ),
-        ],
-        child: AuthService.showClinicSelection
-            ? BlocBuilder<GetClinicsCubit, GetClinicsState>(
-                builder: (context, clinicsState) {
-                  return BlocBuilder<GetCapabilitiesCubit,
-                      GetCapabilitiesState>(
-                    builder: (context, capabilitiesState) {
-                      // If any critical dependency has NO CONNECTION, show NoInternet
-                      if (clinicsState.noConnection ||
-                          capabilitiesState.noConnection) {
-                        return NoInternet(
-                          fromTop: 0,
-                          onPressed: () {
-                            if (clinicsState.noConnection) {
-                              context
-                                  .read<GetClinicsCubit>()
-                                  .add(GetAllClinicsEvent());
-                            }
-                            if (capabilitiesState.noConnection) {
-                              context
-                                  .read<GetCapabilitiesCubit>()
-                                  .add(GetAllCapabilitiesEvent());
-                            }
-                            if (widget.mode != DoctorFormMode.add) {
-                              context.read<GetSingleDoctorCubit>().add(
-                                    GetDoctorByIdEvent(widget.doctorId!),
-                                  );
-                            }
-                          },
-                        );
-                      }
-
-                      // If any critical dependency has an ERROR (not noConnection), show error view
-                      if (clinicsState.isError || capabilitiesState.isError) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.error_outline,
-                                  size: 64, color: Colors.red),
-                              const SizedBox(height: 16),
-                              Text(clinicsState.errorMessage ??
-                                  capabilitiesState.errorMessage ??
-                                  'Failed to load required data'),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () {
-                                  if (clinicsState.isError) {
-                                    context
-                                        .read<GetClinicsCubit>()
-                                        .add(GetAllClinicsEvent());
-                                  }
-                                  if (capabilitiesState.isError) {
-                                    context
-                                        .read<GetCapabilitiesCubit>()
-                                        .add(GetAllCapabilitiesEvent());
-                                  }
-                                },
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      return _buildMainContent(context, theme, isDark);
-                    },
-                  );
+            // Add Branch button
+            if (widget.mode != DoctorFormMode.add &&
+                CacheHelper.getStringList(key: "capabilities")
+                    .contains("manageDoctors") &&
+                _loadedDoctor != null)
+              IconButton(
+                onPressed: () {
+                  _showAddBranchDialog(context);
                 },
-              )
-            : BlocBuilder<GetCapabilitiesCubit, GetCapabilitiesState>(
-                builder: (context, capabilitiesState) {
-                  if (capabilitiesState.noConnection) {
-                    return NoInternet(
-                      fromTop: 0,
-                      onPressed: () {
-                        context
-                            .read<GetCapabilitiesCubit>()
-                            .add(GetAllCapabilitiesEvent());
-                        if (widget.mode != DoctorFormMode.add) {
-                          context.read<GetSingleDoctorCubit>().add(
-                                GetDoctorByIdEvent(widget.doctorId!),
-                              );
+                icon: SvgPicture.asset(
+                  "assets/icons/add_branch.svg",
+                  colorFilter: ColorFilter.mode(
+                      isDark ? Colors.white : Colors.black, BlendMode.srcIn),
+                ),
+              ),
+          ],
+        ),
+        body: MultiBlocListener(
+          listeners: [
+            // Listen to single doctor fetch (for edit/view)
+            if (widget.mode != DoctorFormMode.add)
+              BlocListener<GetSingleDoctorCubit, GetSingleDoctorState>(
+                listener: (context, state) {
+                  if (state.isSuccess && state.doctor != null) {
+                    _populateForm(state.doctor!);
+                  }
+                },
+              ),
+            // Listen to capabilities fetch to map them if doctor is already loaded
+            if (widget.mode != DoctorFormMode.add)
+              BlocListener<GetCapabilitiesCubit, GetCapabilitiesState>(
+                listener: (context, state) {
+                  if (state.isSuccess &&
+                      state.capabilities != null &&
+                      _loadedDoctor != null) {
+                    _mapCapabilities(_loadedDoctor!, state.capabilities!);
+                  }
+                },
+              ),
+            // Listen to actions (add/update)
+            BlocListener<DoctorActionsCubit, DoctorActionsState>(
+              listener: (context, state) async {
+                if (state.isSuccess &&
+                    (state.actionType == DoctorActionType.add ||
+                        state.actionType == DoctorActionType.update)) {
+                  // Send WhatsApp message only for add success
+                  if (state.actionType == DoctorActionType.add && _isAddMode) {
+                    await WhatsAppConfirmation().sendWhatsAppMessage(
+                      _phoneController.text,
+                      "Welcome to our clinics ❤️ .\n You can now sign in, by downloading Ocurithm application. \n Your credentials: \n username: ${_phoneController.text} \n password: ${_passwordController.text} \n Thank you.",
+                    );
+                  }
+
+                  SnackbarService.showSuccess(
+                    context,
+                    message: state.successMessage ?? 'Success',
+                  );
+
+                  // Refresh list if manager is available in context (it might not be if we popped)
+                  // But usually we return result
+                  Navigator.of(context).pop(true);
+                } else if (state.isError) {
+                  SnackbarService.showError(
+                    context,
+                    message: state.errorMessage ?? 'Error occurred',
+                  );
+                }
+              },
+            ),
+            BlocListener<DoctorBranchActionsCubit, DoctorBranchActionsState>(
+              listener: (context, state) {
+                if (state.isSuccess) {
+                  // Refresh doctor data
+                  _loadDoctorData();
+                  SnackbarService.showSuccess(
+                    context,
+                    message:
+                        state.successMessage ?? "Branch operation successful",
+                  );
+                } else if (state.isError) {
+                  SnackbarService.showError(
+                    context,
+                    message: state.errorMessage ?? "An error occurred",
+                  );
+                }
+              },
+            ),
+          ],
+          child: AuthService.showClinicSelection
+              ? BlocBuilder<GetClinicsCubit, GetClinicsState>(
+                  builder: (context, clinicsState) {
+                    return BlocBuilder<GetCapabilitiesCubit,
+                        GetCapabilitiesState>(
+                      builder: (context, capabilitiesState) {
+                        // If any critical dependency has NO CONNECTION, show NoInternet
+                        if (clinicsState.noConnection ||
+                            capabilitiesState.noConnection) {
+                          return NoInternet(
+                            fromTop: 0,
+                            onPressed: () {
+                              if (clinicsState.noConnection) {
+                                context.read<GetClinicsCubit>().add(
+                                    GetAllClinicsEvent(noPagination: true));
+                              }
+                              if (capabilitiesState.noConnection) {
+                                context
+                                    .read<GetCapabilitiesCubit>()
+                                    .add(GetAllCapabilitiesEvent());
+                              }
+                              if (widget.mode != DoctorFormMode.add) {
+                                context.read<GetSingleDoctorCubit>().add(
+                                      GetDoctorByIdEvent(widget.doctorId!),
+                                    );
+                              }
+                            },
+                          );
                         }
+
+                        // If any critical dependency has an ERROR (not noConnection), show error view
+                        if (clinicsState.isError || capabilitiesState.isError) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.error_outline,
+                                    size: 64, color: Colors.red),
+                                const SizedBox(height: 16),
+                                Text(clinicsState.errorMessage ??
+                                    capabilitiesState.errorMessage ??
+                                    'Failed to load required data'),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (clinicsState.isError) {
+                                      context.read<GetClinicsCubit>().add(
+                                          GetAllClinicsEvent(
+                                              noPagination: true));
+                                    }
+                                    if (capabilitiesState.isError) {
+                                      context
+                                          .read<GetCapabilitiesCubit>()
+                                          .add(GetAllCapabilitiesEvent());
+                                    }
+                                  },
+                                  child: const Text('Retry'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return _buildMainContent(context, theme, isDark);
                       },
                     );
-                  }
-                  if (capabilitiesState.isError) {
-                    return Center(
-                      child: Text(capabilitiesState.errorMessage ?? 'Error'),
-                    );
-                  }
-                  return _buildMainContent(context, theme, isDark);
-                },
-              ),
+                  },
+                )
+              : BlocBuilder<GetCapabilitiesCubit, GetCapabilitiesState>(
+                  builder: (context, capabilitiesState) {
+                    if (capabilitiesState.noConnection) {
+                      return NoInternet(
+                        fromTop: 0,
+                        onPressed: () {
+                          context
+                              .read<GetCapabilitiesCubit>()
+                              .add(GetAllCapabilitiesEvent());
+                          if (widget.mode != DoctorFormMode.add) {
+                            context.read<GetSingleDoctorCubit>().add(
+                                  GetDoctorByIdEvent(widget.doctorId!),
+                                );
+                          }
+                        },
+                      );
+                    }
+                    if (capabilitiesState.isError) {
+                      return Center(
+                        child: Text(capabilitiesState.errorMessage ?? 'Error'),
+                      );
+                    }
+                    return _buildMainContent(context, theme, isDark);
+                  },
+                ),
+        ),
+        bottomNavigationBar:
+            _isReadOnly ? null : _buildBottomBar(context, theme, isDark),
       ),
-      bottomNavigationBar:
-          _isReadOnly ? null : _buildBottomBar(context, theme, isDark),
     );
   }
 
@@ -1854,7 +1857,9 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                 .add(GetDoctorByIdEvent(widget.doctorId!));
           }
           if (AuthService.showClinicSelection) {
-            context.read<GetClinicsCubit>().add(GetAllClinicsEvent());
+            context
+                .read<GetClinicsCubit>()
+                .add(GetAllClinicsEvent(noPagination: true));
           }
           context.read<GetCapabilitiesCubit>().add(GetAllCapabilitiesEvent());
         } catch (e) {
