@@ -40,7 +40,7 @@ class TodayAppointmentsWidget extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.deepPurple.withOpacity(0.2)
+                      ? Colors.deepPurple.withValues(alpha: 0.2)
                       : Colors.deepPurple.shade50,
                   borderRadius: BorderRadius.circular(8)),
               child: const Icon(Icons.show_chart, color: Colors.deepPurple),
@@ -104,10 +104,10 @@ class TodayAppointmentsWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: (today?.total ?? 0) > 0 ? 1 : 0,
-                        color: Colorz.primaryColor,
+                        color: Colorz.secondaryColor,
                         backgroundColor: isDark
-                            ? Colorz.primaryColor.withOpacity(0.2)
-                            : Colorz.primaryColor.withOpacity(0.1),
+                            ? Colorz.secondaryColor.withValues(alpha: 0.2)
+                            : Colorz.secondaryColor.withValues(alpha: 0.1),
                         minHeight: 6,
                       ),
                     ),

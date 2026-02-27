@@ -112,8 +112,8 @@ class ExaminationsTrendChart extends StatelessWidget {
                     show: true,
                     gradient: LinearGradient(
                       colors: [
-                        Colors.deepOrange.withOpacity(0.3),
-                        Colors.deepOrange.withOpacity(0.0),
+                        Colors.deepOrange.withValues(alpha: 0.3),
+                        Colors.deepOrange.withValues(alpha: 0.0),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,

@@ -31,7 +31,7 @@ Future<void> showConfirmationDialog({
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.5 : 0.1),
+                color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -44,8 +44,8 @@ Future<void> showConfirmationDialog({
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color:
-                        (confirmColor ?? Colorz.primaryColor).withOpacity(0.1),
+                    color: (confirmColor ?? Colorz.primaryColor)
+                        .withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

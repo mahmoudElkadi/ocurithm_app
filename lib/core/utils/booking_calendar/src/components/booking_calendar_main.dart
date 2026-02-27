@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -99,12 +98,20 @@ class BookingCalendarMain extends StatefulWidget {
     this.selectedDate,
   }) : super(key: key);
 
-  final Stream<dynamic>? Function({required DateTime start, required DateTime end, required String branch}) getBookingStream;
+  final Stream<dynamic>? Function(
+      {required DateTime start,
+      required DateTime end,
+      required String branch}) getBookingStream;
   final Future<dynamic> Function(
-      {required BookingService newBooking, required Patient patient, required String branch, required String examinationType}) uploadBooking;
+      {required BookingService newBooking,
+      required Patient patient,
+      required String branch,
+      required String examinationType}) uploadBooking;
+
   // final List<DateTimeRange> Function({required dynamic streamResult})
   //     convertStreamResultToDateTimeRanges;
-  final List<Map<String, dynamic>> Function({required dynamic streamResult}) convertStreamResultToDateTimeRanges;
+  final List<Map<String, dynamic>> Function({required dynamic streamResult})
+      convertStreamResultToDateTimeRanges;
 
   ///Customizable
   final Appointment? appointment;
@@ -123,6 +130,7 @@ class BookingCalendarMain extends StatefulWidget {
   final List<String> holidayWeekdays;
   final DateTime? selectedDate;
   final Widget? actionButton;
+
 //Added optional TextStyle to available, booked and selected cards.
   final String? bookedSlotText;
   final String? selectedSlotText;
@@ -173,6 +181,7 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
   bool isFirst = true;
   late BookingController controller;
   bool _dataFetched = false;
+
   @override
   void initState() {
     super.initState();
@@ -205,7 +214,9 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
   }
 
   void _initializeHolidayWeeks() {
-    _holidayWeekdayNumbers = widget.holidayWeekdays.map((day) => day.toWeekDay().toDayNumber()).toList();
+    _holidayWeekdayNumbers = widget.holidayWeekdays
+        .map((day) => day.toWeekDay().toDayNumber())
+        .toList();
   }
 
   void selectNewDateRange() {
@@ -223,11 +234,10 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
     });
   }
 
-
-
   void fetchAppointmentsAndUpdateSlots() async {
     try {
-      final stream = widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch ?? "");
+      final stream = widget.getBookingStream(
+          start: startOfDay, end: endOfDay, branch: branch ?? "");
 
       if (stream == null) return;
 
@@ -235,7 +245,8 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       await for (final data in stream) {
         if (!mounted) break;
 
-        final convertedData = widget.convertStreamResultToDateTimeRanges(streamResult: data);
+        final convertedData =
+            widget.convertStreamResultToDateTimeRanges(streamResult: data);
 
         // Update controller with new data
 
@@ -262,7 +273,8 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
   }
 
   bool _isWeeklyOff(DateTime date) {
-    return _holidayWeekdayNumbers.contains(date.weekday) || (widget.disabledDates?.any((d) => isSameDay(d, date)) ?? false);
+    return _holidayWeekdayNumbers.contains(date.weekday) ||
+        (widget.disabledDates?.any((d) => isSameDay(d, date)) ?? false);
   }
 
   bool _isDateSelectable(DateTime date) {
@@ -302,29 +314,37 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
               startingDayOfWeek: StartingDayOfWeek.monday,
               weekendDays: _holidayWeekdayNumbers,
               firstDay: DateTime.now(),
-              lastDay: widget.lastDay ?? DateTime.now().add(const Duration(days: 365)),
+              lastDay: widget.lastDay ??
+                  DateTime.now().add(const Duration(days: 365)),
               focusedDay: _focusedDay,
               calendarFormat: _calendarFormat,
               selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
               enabledDayPredicate: _isDateSelectable,
               calendarStyle: CalendarStyle(
-                defaultTextStyle: TextStyle(color: isDark ? Colors.white : Colors.black),
-                weekendTextStyle: TextStyle(color: isDark ? Colors.red[300] : Colors.red),
-                outsideTextStyle: TextStyle(color: isDark ? Colors.grey[600] : Colors.grey),
-                todayTextStyle: TextStyle(color: isDark ? Colors.white : Colors.black),
+                defaultTextStyle:
+                    TextStyle(color: isDark ? Colors.white : Colors.black),
+                weekendTextStyle:
+                    TextStyle(color: isDark ? Colors.red[300] : Colors.red),
+                outsideTextStyle:
+                    TextStyle(color: isDark ? Colors.grey[600] : Colors.grey),
+                todayTextStyle:
+                    TextStyle(color: isDark ? Colors.white : Colors.black),
                 todayDecoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
                   shape: BoxShape.circle,
                 ),
-                disabledTextStyle: TextStyle(color: isDark ? Colors.red[200] : Colors.red),
+                disabledTextStyle:
+                    TextStyle(color: isDark ? Colors.red[200] : Colors.red),
                 selectedDecoration: BoxDecoration(
                   color: Theme.of(context).primaryColor,
                   shape: BoxShape.circle,
                 ),
               ),
               daysOfWeekStyle: DaysOfWeekStyle(
-                weekdayStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
-                weekendStyle: TextStyle(color: isDark ? Colors.red[300] : Colors.red),
+                weekdayStyle: TextStyle(
+                    color: isDark ? Colors.grey[400] : Colors.grey[700]),
+                weekendStyle:
+                    TextStyle(color: isDark ? Colors.red[300] : Colors.red),
               ),
               onFormatChanged: (format) {
                 if (_calendarFormat != format) {
@@ -353,7 +373,8 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
               onDaySelected: (selectedDay, focusedDay) {
                 if (!isSameDay(_selectedDay, selectedDay)) {
                   if (_isWeeklyOff(selectedDay)) {
-                    final nearestNonHolidayDate = findNearestNonHolidayDate(selectedDay);
+                    final nearestNonHolidayDate =
+                        findNearestNonHolidayDate(selectedDay);
                     setState(() {
                       _selectedDay = nearestNonHolidayDate;
                       _focusedDay = nearestNonHolidayDate;
@@ -372,37 +393,41 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
           const SizedBox(height: 15),
           widget.bookingExplanation ??
               Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 20,
-            runSpacing: 10,
-            direction: Axis.horizontal,
-            children: [
-              BookingExplanation(
-                  color: widget.availableSlotColor ?? Colors.greenAccent,
-                  text: widget.availableSlotText ?? 'Available'),
-              BookingExplanation(
-                  color: widget.selectedSlotColor ?? Colors.orangeAccent,
-                  text: widget.selectedSlotText ?? 'Selected'),
-              BookingExplanation(
-                  color: widget.bookedSlotColor ?? Colors.redAccent,
-                  text: widget.bookedSlotText ?? 'Booked'),
-            ],
-          ),
+                alignment: WrapAlignment.center,
+                spacing: 20,
+                runSpacing: 10,
+                direction: Axis.horizontal,
+                children: [
+                  BookingExplanation(
+                      color: widget.availableSlotColor ?? Colors.greenAccent,
+                      text: widget.availableSlotText ?? 'Available'),
+                  BookingExplanation(
+                      color: widget.selectedSlotColor ?? Colors.orangeAccent,
+                      text: widget.selectedSlotText ?? 'Selected'),
+                  BookingExplanation(
+                      color: widget.bookedSlotColor ?? Colors.redAccent,
+                      text: widget.bookedSlotText ?? 'Booked'),
+                ],
+              ),
           const SizedBox(height: 8),
           StreamBuilder<dynamic>(
             key: ValueKey(_selectedDay),
-            stream: widget.getBookingStream(start: startOfDay, end: endOfDay, branch: branch ?? ""),
+            stream: widget.getBookingStream(
+                start: startOfDay, end: endOfDay, branch: branch ?? ""),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return widget.errorWidget ?? Center(child: Text(snapshot.error.toString()));
+                return widget.errorWidget ??
+                    Center(child: Text(snapshot.error.toString()));
               }
 
               if (!snapshot.hasData) {
-                return widget.loadingWidget ?? const Center(child: CircularProgressIndicator());
+                return widget.loadingWidget ??
+                    const Center(child: CircularProgressIndicator());
               }
 
               final data = snapshot.requireData;
-              final convertedData = widget.convertStreamResultToDateTimeRanges(streamResult: data);
+              final convertedData = widget.convertStreamResultToDateTimeRanges(
+                  streamResult: data);
 
               Future.microtask(() {
                 if (mounted && controller.bookedSlots != convertedData) {
@@ -413,18 +438,21 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
               return Expanded(
                 child: Consumer<BookingController>(
                   builder: (context, bookingController, child) {
-                    if (widget.wholeDayIsBookedWidget != null && bookingController.isWholeDayBooked()) {
+                    if (widget.wholeDayIsBookedWidget != null &&
+                        bookingController.isWholeDayBooked()) {
                       return widget.wholeDayIsBookedWidget!;
                     }
                     return GridView.builder(
-                      physics: widget.gridScrollPhysics ?? const BouncingScrollPhysics(),
+                      physics: widget.gridScrollPhysics ??
+                          const BouncingScrollPhysics(),
                       itemCount: bookingController.allBookingSlots.length,
                       itemBuilder: (context, index) {
                         return _buildBookingSlot(bookingController, index);
                       },
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: widget.bookingGridCrossAxisCount ?? 3,
-                        childAspectRatio: widget.bookingGridChildAspectRatio ?? 2.1,
+                        childAspectRatio:
+                            widget.bookingGridChildAspectRatio ?? 2.1,
                         crossAxisSpacing: 20,
                         mainAxisSpacing: 10,
                       ),
@@ -494,7 +522,8 @@ class _BookingCalendarMainState extends State<BookingCalendarMain> {
       controller.selectSlot(index);
       if (widget.onDateSelected != null) {
         if (controller.selectedSlot != -1) {
-          widget.onDateSelected!(controller.allBookingSlots[controller.selectedSlot]);
+          widget.onDateSelected!(
+              controller.allBookingSlots[controller.selectedSlot]);
         }
       }
       setState(() {});

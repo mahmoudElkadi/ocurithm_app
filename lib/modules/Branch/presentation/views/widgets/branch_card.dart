@@ -6,8 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/widgets/confirmation_popuo.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/pagination.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
@@ -23,6 +23,7 @@ class BranchCard extends StatefulWidget {
     required this.isLoading,
     this.branch,
   });
+
   final bool isLoading;
   final Branch? branch;
 
@@ -70,7 +71,7 @@ class _BranchCardState extends State<BranchCard> {
             // Add subtle border in dark mode for better definition
             border: isDark
                 ? Border.all(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     width: 1,
                   )
                 : null,

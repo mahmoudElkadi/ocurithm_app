@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:ocurithm/core/widgets/search_fileld.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
-import '../../../../../core/utils/services_locator.dart';
+import 'package:ocurithm/core/widgets/search_fileld.dart';
+import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
+import 'package:shimmer/shimmer.dart';
+
 import '../../../../../core/utils/app_style.dart';
-import '../../data/model/medicine_model.dart';
+import '../../../../../core/utils/services_locator.dart';
+import '../../../../core/widgets/no_internet.dart';
+import '../../../../core/widgets/pagination.dart';
 import '../../data/model/active_ingredient_model.dart';
+import '../../data/model/medicine_model.dart';
 import '../manager/get_active_ingredients_cubit/get_active_ingredients_cubit.dart';
 import '../manager/get_medicines_cubit/get_medicines_cubit.dart';
 import '../manager/medicine_actions_cubit/medicine_actions_cubit.dart';
 import 'widgets/medicine_bottom_sheet.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
-import '../../../../core/widgets/no_internet.dart';
-import '../../../../core/widgets/pagination.dart';
 
 class MedicineView extends StatelessWidget {
   const MedicineView({super.key});
@@ -137,7 +138,7 @@ class _MedicineViewBodyState extends State<_MedicineViewBody> {
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
               ),
               child: Stack(
                 children: [
@@ -371,6 +372,7 @@ class _ActiveIngredientsList extends StatelessWidget {
 
 class _ActiveIngredientCard extends StatelessWidget {
   final ActiveIngredient activeIngredient;
+
   const _ActiveIngredientCard({required this.activeIngredient});
 
   @override
@@ -566,6 +568,7 @@ class _MedicinesList extends StatelessWidget {
 
 class _MedicineCard extends StatelessWidget {
   final CommercialName medicine;
+
   const _MedicineCard({required this.medicine});
 
   @override

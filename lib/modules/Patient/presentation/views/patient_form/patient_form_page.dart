@@ -3,39 +3,39 @@ import 'dart:developer';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:ocurithm/core/utils/auth_service.dart';
+import 'package:ocurithm/core/utils/constant.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/DropdownPackage.dart';
+import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/generated/l10n.dart';
 import 'package:ocurithm/modules/Branch/data/model/branches_model.dart';
-import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:ocurithm/modules/Branch/presentation/manager/get_branches_cubit/get_branches_cubit.dart';
-import 'package:ocurithm/core/utils/snackbar_service.dart';
-
+import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
+import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
+import 'package:ocurithm/modules/Patient/data/model/nationality_model.dart';
 import 'package:ocurithm/modules/Patient/data/model/patient_examination.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
-
+import 'package:ocurithm/modules/Patient/presentation/manager/get_patient_examinations_cubit/get_patient_examinations_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_single_patient_cubit/get_single_patient_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/patient_actions_cubit/patient_actions_cubit.dart';
-import 'package:ocurithm/modules/Patient/presentation/manager/get_patient_examinations_cubit/get_patient_examinations_cubit.dart';
 import 'package:password_generator/password_generator.dart';
-import 'package:ocurithm/core/utils/constant.dart';
-import 'package:ocurithm/core/utils/auth_service.dart';
-import 'package:ocurithm/modules/Patient/data/model/nationality_model.dart';
-import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
-import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
-import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
+
+import '../../../../../core/widgets/no_internet.dart';
 import '../../../../Analysis/presentation/views/analysis_view.dart';
+import '../../../../Make_Appointment/presentation/views/make_appointment_view.dart';
 import '../examination_view/one_examination_view.dart';
 import '../examination_view/scan_form_page.dart';
 import '../examination_view/scanned_list_page.dart';
-import '../../../../Make_Appointment/presentation/views/make_appointment_view.dart';
-import '../../../../../core/widgets/no_internet.dart';
+
 enum PatientFormMode { add, edit, view }
 
 class PatientFormPage extends StatelessWidget {
@@ -707,7 +707,8 @@ class _PatientFormViewState extends State<PatientFormView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (AuthService.showClinicSelection && widget.mode == PatientFormMode.add)
+            if (AuthService.showClinicSelection &&
+                widget.mode == PatientFormMode.add)
               _buildClinicDropdown(theme),
             _buildBranchDropdown(theme),
             const HeightSpacer(size: 20),
@@ -802,7 +803,8 @@ class _PatientFormViewState extends State<PatientFormView> {
               controller: _addressController,
               hintText: S.of(context).address,
               icon: 'assets/icons/home.svg',
-              showBorder: true, // Always bordered as per request
+              showBorder: true,
+              // Always bordered as per request
               required: false,
               validator: (v) => null,
             ),
@@ -813,7 +815,8 @@ class _PatientFormViewState extends State<PatientFormView> {
               hintText: S.of(context).nationalId,
               icon: 'assets/icons/national_id.svg',
               keyboardType: TextInputType.number,
-              showBorder: true, // Always bordered
+              showBorder: true,
+              // Always bordered
               validator: (v) => v!.isEmpty ? S.of(context).mustNotEmpty : null,
             ),
             const HeightSpacer(size: 20),
@@ -1041,7 +1044,8 @@ class _PatientFormViewState extends State<PatientFormView> {
 
   Widget _buildPhoneField(ThemeData theme) {
     return IntlPhoneField(
-      key: ValueKey(_phoneNumber), // Force rebuild when phone number changes
+      key: ValueKey(_phoneNumber),
+      // Force rebuild when phone number changes
       initialValue: _phoneNumber ?? '',
       decoration: InputDecoration(
         hintText: S.of(context).phone,
@@ -1351,19 +1355,10 @@ class _PatientFormViewState extends State<PatientFormView> {
     // Validate
     if (!_formKey.currentState!.validate()) return;
 
-    // Check for duplicate name
-    final patientActionsState = context.read<PatientActionsCubit>().state;
-    if (patientActionsState.isNameDuplicate == true) {
-      SnackbarService.showError(
-        context,
-        message: 'A patient with this name already exists. Please use a different name.',
-      );
-      return;
-    }
-
     // Manual Validation
     setState(() {
-      _isClinicValid = selectedClinic != null || !AuthService.showClinicSelection;
+      _isClinicValid =
+          selectedClinic != null || !AuthService.showClinicSelection;
       _isBranchValid = _selectedBranch != null;
       _isNationalityValid = _selectedNationality != null;
       _isBirthDateValid = _birthDate != null;
