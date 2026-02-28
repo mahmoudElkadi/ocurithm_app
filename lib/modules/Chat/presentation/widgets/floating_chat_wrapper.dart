@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/Network/shared.dart';
+import '../../../../core/utils/capability_services.dart';
 import '../../../../core/utils/services_locator.dart';
 import '../manager/chat_socket_bloc/chat_socket_bloc.dart';
 import '../manager/chat_threads_bloc/chat_threads_bloc.dart';
@@ -46,17 +48,27 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper>
     // Initial fetch
     _threadsBloc.add(FetchThreadsEvent());
 
-    // Periodic check for connection and route
+    // Periodic check for connection, identity, and route
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
 
       final token = CacheHelper.getData(key: 'token');
-      if (token != null && _socketBloc.state.isDisconnected) {
-        _socketBloc.add(ConnectSocketEvent());
+      final hasChatCapability = CapabilityServices.hasCapability("chat");
+
+      if (token != null && hasChatCapability) {
+        // Ensure socket is connected if we should have chat
+        if (_socketBloc.state.isDisconnected) {
+          log('[FloatingChat] Reconnecting socket via periodic timer');
+          _socketBloc.add(ConnectSocketEvent());
+        }
+
+        // Fetch once if we have no threads loaded yet
+        if (_threadsBloc.state.status == ChatThreadsStatus.initial) {
+          _threadsBloc.add(FetchThreadsEvent());
+        }
       }
 
-      // We can also trigger a setState if we want to refresh visibility based on route
-      // which is safer than doing it in a StreamBuilder and adding events there.
+      // Re-evaluate visibility (route, token, capability)
       setState(() {});
     });
   }
@@ -183,7 +195,10 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper>
                     currentRoute == '' ||
                     currentRoute == '/';
 
-                if (token == null || isAuthScreen) {
+                final bool hasChatCapability =
+                    CapabilityServices.hasCapability("chat");
+
+                if (token == null || isAuthScreen || !hasChatCapability) {
                   return const SizedBox.shrink();
                 }
 

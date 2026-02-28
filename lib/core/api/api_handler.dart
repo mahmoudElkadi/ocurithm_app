@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -19,7 +20,11 @@ class ApiHandler {
 
   // Store cancel tokens by key
   final Map<String, CancelToken> _cancelTokens = {};
-  final String? token = CacheHelper.getData(key: "token");
+
+  String? get _cachedToken => CacheHelper.getData(key: "token");
+
+  // Mutex for token refresh
+  Completer<void>? _refreshCompleter;
 
   ApiHandler._internal() {
     _dio = Dio(
@@ -35,7 +40,7 @@ class ApiHandler {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          if (token != null) 'Cookie': 'ocurithmToken=$token'
+          if (_cachedToken != null) 'Cookie': 'ocurithmToken=$_cachedToken'
         },
       ),
     );
@@ -67,84 +72,102 @@ class ApiHandler {
   }
 
   Future<void> refreshToken() async {
-    final refreshToken = CacheHelper.getData(key: 'refreshToken');
-    if (refreshToken == null) {
-      throw Exception('No refresh token available');
+    // If a refresh is already in progress, wait for it
+    if (_refreshCompleter != null && !_refreshCompleter!.isCompleted) {
+      log('Token refresh already in progress (mutex), waiting for existing attempt...');
+      return _refreshCompleter!.future;
     }
 
-    // Create a separate Dio instance for refresh requests to avoid interceptor conflicts
-    final refreshDio = Dio(
-      BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
-        connectTimeout: const Duration(
-          milliseconds: ApiConstants.connectionTimeout,
-        ),
-        receiveTimeout: const Duration(
-          milliseconds: ApiConstants.receiveTimeout,
-        ),
-        sendTimeout: const Duration(milliseconds: ApiConstants.sendTimeout),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      ),
-    );
+    _refreshCompleter = Completer<void>();
 
-    // Add logging interceptor only for debugging
-    refreshDio.interceptors.add(LoggingInterceptor());
-
-    const maxRetries = 3;
-    const baseDelay = Duration(milliseconds: 500);
-
-    for (int attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        log('Token refresh attempt $attempt/$maxRetries');
-
-        final response = await refreshDio.post(
-          ApiConstants.refreshToken,
-          data: {'refreshToken': refreshToken},
-        );
-
-        if (response.statusCode == 200) {
-          final data = response.data;
-          // Adjust these keys based on your API response structure
-          // Usually it's either data['accessToken'] or data['data']['accessToken']
-          final newAccessToken = data['accessToken'] ??
-              (data['data'] is Map ? data['data']['accessToken'] : null);
-          final newRefreshToken = data['refreshToken'] ??
-              (data['data'] is Map ? data['data']['refreshToken'] : null);
-
-          if (newAccessToken != null) {
-            await CacheHelper.saveString(key: "token", value: newAccessToken);
-            if (newRefreshToken != null) {
-              await CacheHelper.saveString(
-                  key: "refreshToken", value: newRefreshToken);
-            }
-            log('Token refreshed successfully on attempt $attempt');
-            return;
-          } else {
-            throw Exception('No access token in response');
-          }
-        } else if (response.statusCode == 401) {
-          // Refresh token is invalid/expired, don't retry
-          throw Exception('Refresh token is invalid or expired (401)');
-        } else {
-          throw Exception('Failed to refresh token: ${response.statusCode}');
-        }
-      } catch (e) {
-        log('Token refresh attempt $attempt failed: $e');
-
-        // If this is the last attempt or the error is not retryable, throw
-        if (attempt == maxRetries || _isNonRetryableError(e)) {
-          log('Token refresh failed after $attempt attempts');
-          rethrow;
-        }
-
-        // Exponential backoff: delay increases with each attempt
-        final delay = baseDelay * (1 << (attempt - 1));
-        log('Waiting ${delay.inMilliseconds}ms before retry...');
-        await Future.delayed(delay);
+    try {
+      final refreshTokenValue = CacheHelper.getData(key: 'refreshToken');
+      if (refreshTokenValue == null) {
+        throw Exception('No refresh token available');
       }
+
+      // Create a separate Dio instance for refresh requests to avoid interceptor conflicts
+      final refreshDio = Dio(
+        BaseOptions(
+          baseUrl: ApiConstants.baseUrl,
+          connectTimeout: const Duration(
+            milliseconds: ApiConstants.connectionTimeout,
+          ),
+          receiveTimeout: const Duration(
+            milliseconds: ApiConstants.receiveTimeout,
+          ),
+          sendTimeout: const Duration(milliseconds: ApiConstants.sendTimeout),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      // Add logging interceptor only for debugging
+      refreshDio.interceptors.add(LoggingInterceptor());
+
+      const maxRetries = 3;
+      const baseDelay = Duration(milliseconds: 500);
+
+      for (int attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          log('Token refresh attempt $attempt/$maxRetries');
+
+          final response = await refreshDio.post(
+            ApiConstants.refreshToken,
+            data: {'refreshToken': refreshTokenValue},
+          );
+
+          if (response.statusCode == 200) {
+            final data = response.data;
+            final newAccessToken = data['accessToken'] ??
+                (data['data'] is Map ? data['data']['accessToken'] : null);
+            final newRefreshToken = data['refreshToken'] ??
+                (data['data'] is Map ? data['data']['refreshToken'] : null);
+
+            if (newAccessToken != null) {
+              await CacheHelper.saveString(key: "token", value: newAccessToken);
+              if (newRefreshToken != null) {
+                await CacheHelper.saveString(
+                    key: "refreshToken", value: newRefreshToken);
+              }
+              log('Token refreshed successfully on attempt $attempt');
+
+              // Complete the mutex
+              if (!_refreshCompleter!.isCompleted) {
+                _refreshCompleter!.complete();
+              }
+              return;
+            } else {
+              throw Exception('No access token in response');
+            }
+          } else if (response.statusCode == 401) {
+            throw Exception('Refresh token is invalid or expired (401)');
+          } else {
+            throw Exception('Failed to refresh token: ${response.statusCode}');
+          }
+        } catch (e) {
+          log('Token refresh attempt $attempt failed: $e');
+
+          if (attempt == maxRetries || _isNonRetryableError(e)) {
+            log('Token refresh failed after $attempt attempts');
+            rethrow;
+          }
+
+          final delay = baseDelay * (1 << (attempt - 1));
+          log('Waiting ${delay.inMilliseconds}ms before retry...');
+          await Future.delayed(delay);
+        }
+      }
+    } catch (e) {
+      // Final failure
+      if (!_refreshCompleter!.isCompleted) {
+        _refreshCompleter!.completeError(e);
+      }
+      rethrow;
+    } finally {
+      _refreshCompleter = null;
     }
   }
 
@@ -586,21 +609,7 @@ class ApiHandler {
   ) {
     // Check for invalid token message (similar to dio_handler.dart)
     if (response.data is Map && response.data['message'] == "Invalid token") {
-      // Clear authentication data
-      CacheHelper.removeData(key: "token");
-      CacheHelper.removeData(key: "id");
-      CacheHelper.removeData(key: "domain");
-      CacheHelper.removeData(key: "accessToken");
-      CacheHelper.removeData(key: "refreshToken");
-      CacheHelper.removeData(key: "user");
-
-      // Navigate to login using GetX
-      try {
-        Get.offAll(() => const LoginView());
-      } catch (e) {
-        log('Error navigating to login: $e');
-      }
-
+      log('Invalid token detected in response payload (200 OK)');
       return ApiResponse.error(
         'Invalid token. Please login again.',
         statusCode: 401,

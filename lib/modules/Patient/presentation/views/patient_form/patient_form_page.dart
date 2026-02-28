@@ -1105,8 +1105,15 @@ class _PatientFormViewState extends State<PatientFormView> {
                   _obscurePassword ? Icons.visibility_off : Icons.visibility),
               color: theme.primaryColor,
             ),
-            validator: (value) =>
-                value!.isEmpty ? S.of(context).mustPassword : null,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return S.of(context).mustPassword;
+              }
+              if (value.length < 8) {
+                return 'Password must be at least 8 characters';
+              }
+              return null;
+            },
           ),
         ),
         if (!_isReadOnly) ...[

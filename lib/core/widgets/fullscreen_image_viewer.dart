@@ -1,9 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
 
-
 class FullscreenImageViewer extends StatefulWidget {
-  final List<String> imageUrls;
+  final List<dynamic> imageUrls; // Can be String (URL) or File
   final int initialIndex;
 
   const FullscreenImageViewer({
@@ -16,13 +17,15 @@ class FullscreenImageViewer extends StatefulWidget {
   State<FullscreenImageViewer> createState() => _FullscreenImageViewerState();
 }
 
-class _FullscreenImageViewerState extends State<FullscreenImageViewer> with SingleTickerProviderStateMixin {
+class _FullscreenImageViewerState extends State<FullscreenImageViewer>
+    with SingleTickerProviderStateMixin {
   late PageController _pageController;
   late int _currentIndex;
   double _verticalOffset = 0.0;
   double _backgroundOpacity = 1.0;
   bool _isZooming = false;
-  final TransformationController _transformationController = TransformationController();
+  final TransformationController _transformationController =
+      TransformationController();
 
   @override
   void initState() {
@@ -59,7 +62,6 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
   }
 
   bool _isDicomUrl(String url) {
-    // Check the URL path (before query params) for .dcm extension
     final uri = Uri.tryParse(url);
     if (uri != null) {
       return uri.path.toLowerCase().endsWith('.dcm');
@@ -73,15 +75,12 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Dynamic black background for fade effect
           Positioned.fill(
             child: Opacity(
               opacity: _backgroundOpacity,
               child: Container(color: Colors.black),
             ),
           ),
-          
-          // Image Content with Swipe and Transform
           Transform.translate(
             offset: Offset(0, _verticalOffset),
             child: GestureDetector(
@@ -90,15 +89,18 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: widget.imageUrls.length,
-                physics: _isZooming ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
+                physics: _isZooming
+                    ? const NeverScrollableScrollPhysics()
+                    : const BouncingScrollPhysics(),
                 onPageChanged: (index) {
                   setState(() {
                     _currentIndex = index;
                   });
                 },
                 itemBuilder: (context, index) {
-                  final url = widget.imageUrls[index];
-                  final isDcm = _isDicomUrl(url);
+                  final item = widget.imageUrls[index];
+                  final isFile = item is File;
+                  final isDcm = !isFile && _isDicomUrl(item as String);
 
                   return InteractiveViewer(
                     transformationController: _transformationController,
@@ -114,28 +116,33 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
                     },
                     child: Center(
                       child: Hero(
-                        tag: url,
-                        child: isDcm
-                            ? DicomImageWidget(
-                                url: url,
+                        tag: item,
+                        child: isFile
+                            ? Image.file(
+                                item,
                                 fit: BoxFit.contain,
-                                showMetadata: true,
                               )
-                            : Image.network(
-                                url,
-                                fit: BoxFit.contain,
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                        color: Colors.white70),
-                                  );
-                                },
-                                errorBuilder: (context, error, stackTrace) {
-                                  return _buildErrorWidget(url);
-                                },
-                              ),
+                            : isDcm
+                                ? DicomImageWidget(
+                                    url: item as String,
+                                    fit: BoxFit.contain,
+                                    showMetadata: true,
+                                  )
+                                : Image.network(
+                                    item as String,
+                                    fit: BoxFit.contain,
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return const Center(
+                                        child: CircularProgressIndicator(
+                                            color: Colors.white70),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildErrorWidget(item as String);
+                                    },
+                                  ),
                       ),
                     ),
                   );
@@ -143,8 +150,6 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
               ),
             ),
           ),
-          
-          // UI Controls (Close button and Index)
           if (!_isZooming)
             Positioned(
               top: MediaQuery.of(context).padding.top + 10,
@@ -158,7 +163,8 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                        icon: const Icon(Icons.close,
+                            color: Colors.white, size: 28),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       if (widget.imageUrls.length > 1)
@@ -188,7 +194,9 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> with Sing
         const Icon(Icons.broken_image_rounded, color: Colors.white54, size: 64),
         const SizedBox(height: 16),
         Text(
-          _isDicomUrl(url) ? "Failed to parse DICOM file" : "Failed to load image",
+          _isDicomUrl(url)
+              ? "Failed to parse DICOM file"
+              : "Failed to load image",
           style: const TextStyle(color: Colors.white70),
         ),
       ],

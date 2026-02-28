@@ -28,6 +28,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../../../modules/Login/data/model/login_response.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
+import '../../../../../core/widgets/fullscreen_image_viewer.dart';
 import '../../../../Branch/data/model/branches_model.dart';
 import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/models/receptionists_model.dart';
@@ -637,9 +638,9 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
           setState(() => _isPasswordValid = false);
           return S.of(context).mustPassword;
         }
-        if (value.length < 6) {
+        if (value.length < 8) {
           setState(() => _isPasswordValid = false);
-          return 'Password must be at least 6 characters';
+          return 'Password must be at least 8 characters';
         }
         setState(() => _isPasswordValid = true);
         return null;
@@ -1215,23 +1216,43 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
             child: ClipOval(
               child:
                   receptionist.image != null && receptionist.image!.isNotEmpty
-                      ? Image.network(
-                          receptionist.image!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Center(
-                              child: Text(
-                                receptionist.name?.isNotEmpty == true
-                                    ? receptionist.name![0].toUpperCase()
-                                    : 'R',
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                      ? GestureDetector(
+                          onTap: () {
+                            if (receptionist.image != null &&
+                                receptionist.image!.isNotEmpty) {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  opaque: false,
+                                  pageBuilder: (context, _, __) =>
+                                      FullscreenImageViewer(
+                                    imageUrls: [receptionist.image!],
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
                           },
+                          child: Hero(
+                            tag: receptionist.image!,
+                            child: Image.network(
+                              receptionist.image!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Text(
+                                    receptionist.name?.isNotEmpty == true
+                                        ? receptionist.name![0].toUpperCase()
+                                        : 'R',
+                                    style: const TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         )
                       : Center(
                           child: Text(
@@ -1492,21 +1513,59 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                 )
               : ClipOval(
                   child: _imageFile != null
-                      ? Image.file(
-                          _imageFile!,
-                          fit: BoxFit.cover,
-                          width: 120,
-                          height: 120,
-                        )
-                      : (!_isImageDeleted && widget.initialImageUrl != null)
-                          ? Image.network(
-                              widget.initialImageUrl!,
+                      ? GestureDetector(
+                          onTap: () {
+                            if (_imageFile != null) {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  opaque: false,
+                                  pageBuilder: (context, _, __) =>
+                                      FullscreenImageViewer(
+                                    imageUrls: [_imageFile!],
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Hero(
+                            tag: _imageFile!,
+                            child: Image.file(
+                              _imageFile!,
                               fit: BoxFit.cover,
                               width: 120,
                               height: 120,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.person,
-                                      size: 60, color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      : (!_isImageDeleted && widget.initialImageUrl != null)
+                          ? GestureDetector(
+                              onTap: () {
+                                if (widget.initialImageUrl != null) {
+                                  Navigator.push(
+                                    context,
+                                    PageRouteBuilder(
+                                      opaque: false,
+                                      pageBuilder: (context, _, __) =>
+                                          FullscreenImageViewer(
+                                        imageUrls: [widget.initialImageUrl!],
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Hero(
+                                tag: widget.initialImageUrl!,
+                                child: Image.network(
+                                  widget.initialImageUrl!,
+                                  fit: BoxFit.cover,
+                                  width: 120,
+                                  height: 120,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.person,
+                                          size: 60, color: Colors.grey),
+                                ),
+                              ),
                             )
                           : const Icon(Icons.person,
                               size: 60, color: Colors.grey),

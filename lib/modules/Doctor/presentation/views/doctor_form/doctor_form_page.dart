@@ -34,6 +34,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../../../modules/Login/data/model/login_response.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/confirmation_popuo.dart';
+import '../../../../../core/widgets/fullscreen_image_viewer.dart';
 import '../../../../../core/widgets/no_internet.dart';
 import '../../../../Clinics/data/model/clinics_model.dart';
 import '../../../data/model/doctor_model.dart';
@@ -749,8 +750,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             if (value == null || value.isEmpty) {
               return S.of(context).mustPassword;
             }
-            if (value.length < 6) {
-              return 'Password must be at least 6 characters';
+            if (value.length < 8) {
+              return 'Password must be at least 8 characters';
             }
             return null;
           },
@@ -1704,23 +1705,42 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             ),
             child: ClipOval(
               child: doctor.image != null && doctor.image!.isNotEmpty
-                  ? Image.network(
-                      doctor.image!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Text(
-                            doctor.name?.isNotEmpty == true
-                                ? doctor.name![0].toUpperCase()
-                                : 'D',
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                  ? GestureDetector(
+                      onTap: () {
+                        if (doctor.image != null && doctor.image!.isNotEmpty) {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              opaque: false,
+                              pageBuilder: (context, _, __) =>
+                                  FullscreenImageViewer(
+                                imageUrls: [doctor.image!],
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       },
+                      child: Hero(
+                        tag: doctor.image!,
+                        child: Image.network(
+                          doctor.image!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Text(
+                                doctor.name?.isNotEmpty == true
+                                    ? doctor.name![0].toUpperCase()
+                                    : 'D',
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     )
                   : Center(
                       child: Text(
@@ -2058,21 +2078,59 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                 )
               : ClipOval(
                   child: _imageFile != null
-                      ? Image.file(
-                          _imageFile!,
-                          fit: BoxFit.cover,
-                          width: 120,
-                          height: 120,
-                        )
-                      : (!_isImageDeleted && widget.initialImageUrl != null)
-                          ? Image.network(
-                              widget.initialImageUrl!,
+                      ? GestureDetector(
+                          onTap: () {
+                            if (_imageFile != null) {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  opaque: false,
+                                  pageBuilder: (context, _, __) =>
+                                      FullscreenImageViewer(
+                                    imageUrls: [_imageFile!],
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Hero(
+                            tag: _imageFile!,
+                            child: Image.file(
+                              _imageFile!,
                               fit: BoxFit.cover,
                               width: 120,
                               height: 120,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.person,
-                                      size: 60, color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      : (!_isImageDeleted && widget.initialImageUrl != null)
+                          ? GestureDetector(
+                              onTap: () {
+                                if (widget.initialImageUrl != null) {
+                                  Navigator.push(
+                                    context,
+                                    PageRouteBuilder(
+                                      opaque: false,
+                                      pageBuilder: (context, _, __) =>
+                                          FullscreenImageViewer(
+                                        imageUrls: [widget.initialImageUrl!],
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Hero(
+                                tag: widget.initialImageUrl!,
+                                child: Image.network(
+                                  widget.initialImageUrl!,
+                                  fit: BoxFit.cover,
+                                  width: 120,
+                                  height: 120,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.person,
+                                          size: 60, color: Colors.grey),
+                                ),
+                              ),
                             )
                           : const Icon(Icons.person,
                               size: 60, color: Colors.grey),

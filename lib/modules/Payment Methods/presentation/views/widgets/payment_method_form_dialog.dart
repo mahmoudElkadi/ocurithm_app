@@ -397,9 +397,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
             onItemSelected: (item) {
               if (!_isReadOnly) {
                 setState(() {
-                  if (item != "Not Found") {
-                    selectedClinic = item;
-                  }
+                  selectedClinic = item;
                 });
               }
             },
@@ -536,7 +534,6 @@ void showPaymentMethodFormDialog(
           child: dialog,
         );
       }
-
       return dialog;
     },
   );

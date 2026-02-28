@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../../../../../../core/utils/app_style.dart';
 import '../../../../../../../../../core/utils/colors.dart';
@@ -96,23 +97,45 @@ class _DoctorCardState extends State<DoctorCard> {
                   //     ?
                   Expanded(
                       flex: 1,
-                      child: widget.doctor?.image != null
+                      child: widget.doctor?.image != null &&
+                              widget.doctor!.image!.isNotEmpty
                           ? AspectRatio(
                               aspectRatio: 1,
-                              child: Container(
-                                height: 50,
-                                width: 50,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  image: DecorationImage(
-                                      image: NetworkImage(widget
-                                              .doctor?.image ??
-                                          "https://via.placeholder.com/150"),
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center),
+                              child: ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: widget.doctor!.image!,
+                                  height: 50,
+                                  width: 50,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Center(
+                                    child: Text(
+                                      widget.doctor?.name != null
+                                          ? widget.doctor!.name![0].toUpperCase()
+                                          : 'D',
+                                      style: appStyle(
+                                        context,
+                                        25,
+                                        Colors.grey.shade700,
+                                        FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => Center(
+                                    child: Text(
+                                      widget.doctor?.name != null
+                                          ? widget.doctor!.name![0].toUpperCase()
+                                          : 'D',
+                                      style: appStyle(
+                                        context,
+                                        25,
+                                        Colors.grey.shade700,
+                                        FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ))
+                              ),
+                            )
                           : Container(
                               height: 50,
                               width: 50,

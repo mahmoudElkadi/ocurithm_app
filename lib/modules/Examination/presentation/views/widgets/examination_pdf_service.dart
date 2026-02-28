@@ -458,7 +458,29 @@ class ExaminationPdfService {
     PdfColor getColor(num count) {
       if (count == 1) return PdfColors.black;
       if (count == 2) return PdfColors.white;
-      return PdfColors.grey300;
+      return PdfColors.grey400;
+    }
+
+    pw.Widget buildQuadrant(num count, pw.BorderRadius borderRadius) {
+      return pw.Container(
+        width: 35,
+        height: 35,
+        decoration: pw.BoxDecoration(
+          color: getColor(count),
+          borderRadius: borderRadius,
+          border: pw.Border.all(color: PdfColors.white, width: 0.5),
+        ),
+        child: pw.Center(
+          child: pw.Text(
+            count == 2 ? 'CF' : '',
+            style: pw.TextStyle(
+              font: boldFont,
+              fontSize: 10,
+              color: PdfColors.black,
+            ),
+          ),
+        ),
+      );
     }
 
     return pw.Column(
@@ -470,45 +492,25 @@ class ExaminationPdfService {
         pw.Container(
           width: 70,
           height: 70,
-          decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.black, width: 0.8)),
           child: pw.Column(
             children: [
-              pw.Expanded(
-                child: pw.Row(
-                  children: [
-                    pw.Expanded(
-                        child: pw.Container(
-                            decoration: pw.BoxDecoration(
-                                color: getColor(counts[0]),
-                                border: pw.Border.all(
-                                    color: PdfColors.white, width: 0.2)))),
-                    pw.Expanded(
-                        child: pw.Container(
-                            decoration: pw.BoxDecoration(
-                                color: getColor(counts[1]),
-                                border: pw.Border.all(
-                                    color: PdfColors.white, width: 0.2)))),
-                  ],
-                ),
+              pw.Row(
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  buildQuadrant(counts[0],
+                      const pw.BorderRadius.only(topLeft: pw.Radius.circular(35))),
+                  buildQuadrant(counts[1],
+                      const pw.BorderRadius.only(topRight: pw.Radius.circular(35))),
+                ],
               ),
-              pw.Expanded(
-                child: pw.Row(
-                  children: [
-                    pw.Expanded(
-                        child: pw.Container(
-                            decoration: pw.BoxDecoration(
-                                color: getColor(counts[2]),
-                                border: pw.Border.all(
-                                    color: PdfColors.white, width: 0.2)))),
-                    pw.Expanded(
-                        child: pw.Container(
-                            decoration: pw.BoxDecoration(
-                                color: getColor(counts[3]),
-                                border: pw.Border.all(
-                                    color: PdfColors.white, width: 0.2)))),
-                  ],
-                ),
+              pw.Row(
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  buildQuadrant(counts[2],
+                      const pw.BorderRadius.only(bottomLeft: pw.Radius.circular(35))),
+                  buildQuadrant(counts[3],
+                      const pw.BorderRadius.only(bottomRight: pw.Radius.circular(35))),
+                ],
               ),
             ],
           ),

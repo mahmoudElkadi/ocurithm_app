@@ -7,6 +7,8 @@ class ApiConstants {
 
   static String get baseUrl => "https://beta.ocurithm.com/api/";
 
+  // static String get baseUrl => "http://192.168.1.13:3000/api/";
+
   // static String get baseUrl {
   //   String? ip = CacheHelper.getData(key: 'ip_address');
   //   if (ip != null && ip.isNotEmpty) {

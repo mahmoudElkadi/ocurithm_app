@@ -59,9 +59,7 @@ class MyApp extends StatelessWidget {
               title: 'Ocurithm',
               home: const LoadingScreen(),
               builder: (context, child) {
-                return CapabilityServices.hasCapability("chat")
-                    ? FloatingChatWrapper(child: child!)
-                    : child!;
+                return FloatingChatWrapper(child: child!);
               },
             );
           },

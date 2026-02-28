@@ -90,11 +90,32 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    // Some APIs return 200 OK with "Invalid token" message in the body
+    if (response.data is Map && response.data['message'] == "Invalid token") {
+      log('Unauthorized detected in onResponse payload, rejecting with 401 behavior');
+      return handler.reject(
+        DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        ),
+        true, // This will call the onError method
+      );
+    }
+    super.onResponse(response, handler);
+  }
+
+  @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    // Handle 401 Unauthorized errors
-    if (err.response?.statusCode == 401) {
+    // Handle 401 Unauthorized errors or "Invalid token" messages
+    final isUnauthorized = err.response?.statusCode == 401 ||
+        (err.response?.data is Map &&
+            err.response?.data['message'] == "Invalid token");
+
+    if (isUnauthorized) {
       final requestPath = err.requestOptions.path;
-      log('Received 401 error for path: $requestPath');
+      log('Received unauthorized error for path: $requestPath');
 
       // Don't retry if it's the refresh or login endpoint itself
       if (requestPath.contains('auth/refresh')) {
