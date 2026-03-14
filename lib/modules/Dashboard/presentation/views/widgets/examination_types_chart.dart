@@ -79,7 +79,7 @@ class _ExaminationTypesChartState extends State<ExaminationTypesChart> {
                               },
                             ),
                             sectionsSpace: 4,
-                            centerSpaceRadius: 60,
+                            centerSpaceRadius: 70, // Increased for a more premium donut look
                             sections: _showingSections(data),
                           ),
                         ),
@@ -89,16 +89,16 @@ class _ExaminationTypesChartState extends State<ExaminationTypesChart> {
                             AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
                               transitionBuilder: (Widget child, Animation<double> animation) {
-                                return ScaleTransition(scale: animation, child: child);
+                                return FadeTransition(opacity: animation, child: ScaleTransition(scale: animation, child: child));
                               },
                               child: Text(
                                 centerValue,
                                 key: ValueKey<String>(centerValue),
-                                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            Text(centerLabel, style: TextStyle(fontSize: 14, color: isDark ? Colors.grey.shade400 : Colors.grey), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            Text(centerLabel, style: TextStyle(fontSize: 14, color: isDark ? Colors.grey.shade400 : Colors.grey, fontWeight: FontWeight.w500), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
                           ],
                         )
                       ],
@@ -124,7 +124,7 @@ class _ExaminationTypesChartState extends State<ExaminationTypesChart> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("RANKED LIST", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.grey.shade400 : Colors.grey)),
+        Text("RANKED LIST", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2, color: isDark ? Colors.grey.shade400 : Colors.blueGrey)),
         const SizedBox(height: 16),
         ...data.asMap().entries.map((entry) {
           final index = entry.key;
@@ -140,7 +140,7 @@ class _ExaminationTypesChartState extends State<ExaminationTypesChart> {
                     children: [
                       Text("#${index + 1}", style: TextStyle(fontSize: 12, color: isDark ? Colors.grey.shade400 : Colors.grey)),
                       const SizedBox(width: 8),
-                      Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                      Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(item.typeName ?? "Unknown", 
@@ -154,9 +154,9 @@ class _ExaminationTypesChartState extends State<ExaminationTypesChart> {
                 const SizedBox(width: 8),
                 Row(
                   children: [
-                    Text(item.count?.toString() ?? "0", style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 8),
-                    Text("${item.percentage ?? 0}%", style: TextStyle(fontSize: 12, color: isDark ? Colors.grey.shade400 : Colors.grey)),
+                    Text(item.count?.toString() ?? "0", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(width: 12),
+                    Text("${item.percentage?.toDouble().toStringAsFixed(1) ?? 0}%", style: TextStyle(fontSize: 13, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
                   ],
                 )
               ],
@@ -170,29 +170,39 @@ class _ExaminationTypesChartState extends State<ExaminationTypesChart> {
   List<PieChartSectionData> _showingSections(List<ExaminationTypeDistribution> data) {
     return List.generate(data.length, (i) {
       final isTouched = i == touchedIndex;
-      final radius = isTouched ? 65.0 : 55.0;
+      final radius = isTouched ? 50.0 : 40.0;
       final item = data[i];
       final color = _getColor(i);
 
       return PieChartSectionData(
         color: color,
         value: (item.count ?? 0).toDouble(),
-        title: '', // Hiding title on the chart itself to match clean design
+        title: '',
         radius: radius,
         badgeWidget: isTouched ? Container(
-             padding: const EdgeInsets.all(4),
-             decoration: const BoxDecoration(
+             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+             decoration: BoxDecoration(
                color: Colors.white,
-               shape: BoxShape.circle,
-               boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)]
+               borderRadius: BorderRadius.circular(12),
+               boxShadow: [
+                 BoxShadow(
+                   color: Colors.black.withOpacity(0.15),
+                   blurRadius: 8,
+                   offset: const Offset(0, 2),
+                 )
+               ]
              ),
-             child: Text('${item.percentage}%', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color))
+             child: Text(
+               '${item.percentage?.toDouble().toStringAsFixed(1) ?? 0}%', 
+               style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)
+             )
           ) : null,
-        badgePositionPercentageOffset: .98,
+        badgePositionPercentageOffset: .9,
         showTitle: false,
       );
     });
   }
+
 
   Color _getColor(int index) {
     const colors = [

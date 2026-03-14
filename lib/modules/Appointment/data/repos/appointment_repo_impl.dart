@@ -72,7 +72,8 @@ class AppointmentRepoImpl implements AppointmentRepo {
               .toIso8601String(),
         if (doctor != null) "doctor": doctor,
         if (branch != null) "branch": branch,
-        if (search != null && search.isNotEmpty) "search": search
+        if (search != null && search.isNotEmpty) "search": search,
+        "pagination": false
       };
 
       final response = await _apiHandler.get<AppointmentModel>(
