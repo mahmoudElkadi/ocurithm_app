@@ -1,7 +1,7 @@
 class ApiConstants {
-  static const int connectionTimeout = 20000; // 15 seconds
-  static const int receiveTimeout = 20000;
-  static const int sendTimeout = 20000;
+  static const int connectionTimeout = 25000; // 15 seconds
+  static const int receiveTimeout = 25000;
+  static const int sendTimeout = 25000;
 
   // API Endpoints
 
