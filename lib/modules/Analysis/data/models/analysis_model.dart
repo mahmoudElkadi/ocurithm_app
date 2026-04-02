@@ -40,12 +40,14 @@ class Trends {
     required this.refinedRefraction,
     required this.nearVision,
     required this.iop,
+    required this.visualAcuity,
   });
 
   final Refraction? autoRefraction;
   final Refraction? refinedRefraction;
   final NearVision? nearVision;
   final Iop? iop;
+  final VisualAcuity? visualAcuity;
 
   factory Trends.fromJson(Map<String, dynamic> json){
     return Trends(
@@ -53,6 +55,7 @@ class Trends {
       refinedRefraction: json["refinedRefraction"] == null ? null : Refraction.fromJson(json["refinedRefraction"]),
       nearVision: json["nearVision"] == null ? null : NearVision.fromJson(json["nearVision"]),
       iop: json["iop"] == null ? null : Iop.fromJson(json["iop"]),
+      visualAcuity: json["visualAcuity"] == null ? null : VisualAcuity.fromJson(json["visualAcuity"]),
     );
   }
 
@@ -61,6 +64,7 @@ class Trends {
     "refinedRefraction": refinedRefraction?.toJson(),
     "nearVision": nearVision?.toJson(),
     "iop": iop?.toJson(),
+    "visualAcuity": visualAcuity?.toJson(),
   };
 
 }
@@ -128,10 +132,29 @@ class Left {
 
   factory Left.fromJson(Map<String, dynamic> json){
     return Left(
-      value: json["value"],
+      value: _parseValue(json["value"]),
       date: DateTime.tryParse(json["date"] ?? ""),
       examinationId: json["examinationId"],
     );
+  }
+
+  static num? _parseValue(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v;
+    if (v is String) {
+      final n = double.tryParse(v);
+      if (n != null) return n;
+      // Handle VA specific strings based on clinical mapping
+      switch (v.toUpperCase()) {
+        case 'NLP':
+        case 'NPL': return 0.000;
+        case 'PL': return 0.001;
+        case 'HM': return 0.005;
+        case 'CF 1M': return 0.010;
+        case 'CF 2M': return 0.020;
+      }
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() => {
@@ -180,6 +203,29 @@ class NearVision {
 
   Map<String, dynamic> toJson() => {
     "addition": addition?.toJson(),
+  };
+
+}
+
+class VisualAcuity {
+  VisualAcuity({
+    required this.ucva,
+    required this.bcva,
+  });
+
+  final Axis? ucva;
+  final Axis? bcva;
+
+  factory VisualAcuity.fromJson(Map<String, dynamic> json){
+    return VisualAcuity(
+      ucva: json["ucva"] == null ? null : Axis.fromJson(json["ucva"]),
+      bcva: json["bcva"] == null ? null : Axis.fromJson(json["bcva"]),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    "ucva": ucva?.toJson(),
+    "bcva": bcva?.toJson(),
   };
 
 }

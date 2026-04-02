@@ -1,6 +1,6 @@
 import '../../../Branch/data/model/data.dart';
 import '../../../Patient/data/model/one_exam.dart';
-import 'package:ocurithm/modules/Patient/data/model/patient_examination.dart';
+import '../model/patient_overview_model.dart';
 import '../model/saved_Exam.dart';
 
 abstract class ExaminationRepo {
@@ -13,4 +13,6 @@ abstract class ExaminationRepo {
   Future<SavedExaminationModel> getOneExamination(
       {required String appointmentId});
 
+  Future<PatientOverviewModel> getPatientOverview(
+      {required String patientId});
 }

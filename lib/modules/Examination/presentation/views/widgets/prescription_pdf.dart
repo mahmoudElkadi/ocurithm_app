@@ -320,13 +320,10 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(examination
-                                                  .examination?.measurements[1].refinedRefractionSpherical !=
-                                              null
-                                          ? FormatHelper.formatPositiveValue(
-                                                  examination.examination?.measurements[1].refinedRefractionSpherical)
-                                              .toString()
-                                          : '-'),
+                                      child: pw.Text(FormatHelper.formatPositiveValue(
+                                              examination.examination?.measurements[1]
+                                                  .refinedRefractionSpherical) ??
+                                          '-'),
                                     ),
                                   ),
                                   pw.Container(
@@ -423,7 +420,8 @@ Future<void> generateAndPrintPrescription(
                                     height: 20,
                                     child: pw.Center(
                                       child: pw.Text(FormatHelper.formatPositiveValue(
-                                              examination.examination?.measurements[0].refinedRefractionSpherical) ??
+                                              examination.examination?.measurements[0]
+                                                  .refinedRefractionSpherical) ??
                                           '-'),
                                     ),
                                   ),

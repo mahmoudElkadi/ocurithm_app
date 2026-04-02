@@ -8,6 +8,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/services_locator.dart';
+import '../../../../core/widgets/DropdownPackage.dart';
 import '../../../../core/widgets/no_internet.dart';
 import '../../../../core/widgets/pagination.dart';
 import '../../data/model/active_ingredient_model.dart';
@@ -236,31 +237,180 @@ class _MedicineViewBodyState extends State<_MedicineViewBody> {
   }
 
   Widget _buildSearchField(BuildContext context) {
-    return SearchField(
-      onTextFieldChanged: () async {
-        if (_isMedicines) {
-          context.read<GetMedicinesCubit>().getMedicines(
-                search: searchController.text,
-                isRefresh: true,
+    return Row(
+      children: [
+        const SizedBox(width: 16),
+        Expanded(
+          child: SearchField(
+            onTextFieldChanged: () async {
+              if (_isMedicines) {
+                context.read<GetMedicinesCubit>().getMedicines(
+                      search: searchController.text,
+                      isRefresh: true,
+                    );
+              } else {
+                context.read<GetActiveIngredientsCubit>().getActiveIngredients(
+                      search: searchController.text,
+                      page: 1,
+                    );
+              }
+            },
+            searchController: searchController,
+            onClose: () {
+              searchController.clear();
+              if (_isMedicines) {
+                context.read<GetMedicinesCubit>().getMedicines(isRefresh: true);
+              } else {
+                context
+                    .read<GetActiveIngredientsCubit>()
+                    .getActiveIngredients(page: 1);
+              }
+            },
+          ),
+        ),
+        if (_isMedicines)
+          IconButton(
+            icon: const Icon(Icons.tune),
+            onPressed: () {
+              _showActiveIngredientFilter(context);
+            },
+          ),
+        const SizedBox(width: 16),
+      ],
+    );
+  }
+
+  void _showActiveIngredientFilter(BuildContext parentContext) {
+    showModalBottomSheet(
+      context: parentContext,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(
+              value: parentContext.read<GetActiveIngredientsCubit>()),
+          BlocProvider.value(value: parentContext.read<GetMedicinesCubit>()),
+        ],
+        child: const _ActiveIngredientFilterSheet(),
+      ),
+    );
+  }
+}
+
+class _ActiveIngredientFilterSheet extends StatefulWidget {
+  const _ActiveIngredientFilterSheet();
+
+  @override
+  State<_ActiveIngredientFilterSheet> createState() =>
+      _ActiveIngredientFilterSheetState();
+}
+
+class _ActiveIngredientFilterSheetState
+    extends State<_ActiveIngredientFilterSheet> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch non-paginated active ingredients for dropdown
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context
+          .read<GetActiveIngredientsCubit>()
+          .getActiveIngredients(pagination: false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xff1f1f1f) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 50,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Filter Medicines",
+                style: appStyle(context, 18,
+                    isDark ? Colors.white : Colors.black, FontWeight.bold),
+              ),
+              IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          BlocBuilder<GetActiveIngredientsCubit, GetActiveIngredientsState>(
+            builder: (context, state) {
+              List<ActiveIngredient> items = [];
+              bool isLoading =
+                  state.status == GetActiveIngredientsStatus.loading;
+              if (state.status == GetActiveIngredientsStatus.success) {
+                items = state.activeIngredients;
+              }
+
+              return DropdownItem<ActiveIngredient>(
+                radius: 10,
+                color: isDark ? const Color(0xff2C2C2C) : Colors.white,
+                border: isDark ? Colors.grey[700] : Colors.grey[400],
+                isShadow: false,
+                items: items,
+                itemAsString: (ActiveIngredient u) => u.name ?? "",
+                selectedValue: null,
+                hintText: "Select Active Ingredient",
+                onItemSelected: (ActiveIngredient item) {
+                  context
+                      .read<GetMedicinesCubit>()
+                      .getMedicines(parentId: item.id);
+                  Navigator.pop(context);
+                },
+                isLoading: isLoading,
+                isValid: true,
+                validateText: "Required",
               );
-        } else {
-          context.read<GetActiveIngredientsCubit>().getActiveIngredients(
-                search: searchController.text,
-                page: 1,
-              );
-        }
-      },
-      searchController: searchController,
-      onClose: () {
-        searchController.clear();
-        if (_isMedicines) {
-          context.read<GetMedicinesCubit>().getMedicines(isRefresh: true);
-        } else {
-          context
-              .read<GetActiveIngredientsCubit>()
-              .getActiveIngredients(page: 1);
-        }
-      },
+            },
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () {
+                context
+                    .read<GetMedicinesCubit>()
+                    .add(ResetMedicineFiltersEvent());
+                Navigator.pop(context);
+              },
+              child: Text(
+                "Clear Filter",
+                style: TextStyle(
+                    color: Colors.red[400], fontWeight: FontWeight.bold),
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 }
@@ -582,9 +732,49 @@ class _MedicineCard extends StatelessWidget {
         title: Text(medicine.name ?? "",
             style: appStyle(context, 16, isDark ? Colors.white : Colors.black,
                 FontWeight.bold)),
-        subtitle: Text(
-          "${medicine.concentration != null ? '${medicine.concentration} - ' : ''}${medicine.parentId?.name ?? 'No Ingredient'}",
-          style: appStyle(context, 14, Colors.grey, FontWeight.normal),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              "${medicine.concentration != null ? '${medicine.concentration} - ' : ''}${medicine.parentId?.name ?? 'No Ingredient'}",
+              style: appStyle(context, 14, Colors.grey, FontWeight.normal),
+            ),
+            if (medicine.prescribedCount != null &&
+                medicine.prescribedCount! > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: Theme.of(context)
+                            .primaryColor
+                            .withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.monitor_heart_outlined,
+                          size: 14, color: Theme.of(context).primaryColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        "${medicine.prescribedCount} times prescribed",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

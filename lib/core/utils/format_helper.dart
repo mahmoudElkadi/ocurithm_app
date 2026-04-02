@@ -84,12 +84,23 @@ class FormatHelper {
     return '$cleanFirstName $cleanLastName';
   }
 
-  static String? formatPositiveValue(String? value) {
-    final parsed = num.tryParse(value ?? '');
-    if (parsed != null && parsed > 0) {
-      return '+$parsed';
+  static String? formatPositiveValue(dynamic value) {
+    if (value == null) return null;
+    String val = value.toString().trim();
+    if (val.isEmpty || val == '-' || val == 'N/A' || val == 'null') return val;
+
+    // Remove any existing plus sign for parsing
+    String cleanValue = val.startsWith('+') ? val.substring(1) : val;
+    final parsed = num.tryParse(cleanValue);
+
+    if (parsed != null) {
+      final formatted = parsed.toStringAsFixed(2);
+      if (parsed > 0) {
+        return '+$formatted';
+      }
+      return formatted;
     }
-    return value;
+    return val;
   }
 
   static String calculateAge(DateTime? birthDate) {

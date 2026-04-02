@@ -55,6 +55,7 @@ import '../../modules/Examination/data/repos/examination_repo.dart';
 import '../../modules/Examination/data/repos/examination_repo_impl.dart';
 import '../../modules/Examination/presentation/manager/examination_actions_cubit/examination_actions_cubit.dart';
 import '../../modules/Examination/presentation/manager/get_single_examination_cubit/get_single_examination_cubit.dart';
+import '../../modules/Examination/presentation/manager/patient_overview_cubit/patient_overview_cubit.dart';
 import 'package:ocurithm/modules/Examination/presentation/manager/examination_form_cubit/examination_form_cubit.dart';
 import '../../modules/Login/data/repos/login_repo.dart';
 import '../../modules/Login/data/repos/login_repo_impl.dart';
@@ -175,6 +176,8 @@ class ServiceLocator {
     sl.registerFactory(
         () => GetSingleExaminationCubit(sl.call<ExaminationRepo>()));
     sl.registerFactory(() => ExaminationFormCubit());
+    sl.registerFactory(
+        () => PatientOverviewCubit(sl.call<ExaminationRepo>()));
 
     ///Analysis
     sl.registerLazySingleton<AnalysisRepo>(() => AnalysisRepoImpl());

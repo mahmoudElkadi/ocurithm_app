@@ -103,6 +103,18 @@ class _ChartSelectionDialogState extends State<ChartSelectionDialog> {
       }
     }
 
+    // Visual Acuity
+    if (trends.visualAcuity != null) {
+      if (trends.visualAcuity!.ucva != null) {
+        options.add(_ChartOption(
+            key: 'va_ucva', label: 'UCVA', category: 'Visual Acuity'));
+      }
+      if (trends.visualAcuity!.bcva != null) {
+        options.add(_ChartOption(
+            key: 'va_bcva', label: 'BCVA', category: 'Visual Acuity'));
+      }
+    }
+
     return options;
   }
 

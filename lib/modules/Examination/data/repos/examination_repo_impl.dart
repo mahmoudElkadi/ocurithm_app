@@ -6,6 +6,7 @@ import '../../../../../core/Network/shared.dart';
 import '../../../../core/api/api_constants.dart';
 import '../../../Branch/data/model/data.dart';
 import '../../../Patient/data/model/one_exam.dart';
+import '../model/patient_overview_model.dart';
 import '../model/saved_Exam.dart';
 
 class ExaminationRepoImpl implements ExaminationRepo {
@@ -69,6 +70,22 @@ class ExaminationRepoImpl implements ExaminationRepo {
       return result.data!;
     } else {
       throw Exception(result.message ?? "Failed fetch examination");
+    }
+  }
+
+  @override
+  Future<PatientOverviewModel> getPatientOverview(
+      {required String patientId}) async {
+    final result = await _apiHandler.get<PatientOverviewModel>(
+      "${ApiConstants.patients}/$patientId/overview",
+      options: _getOptions(),
+      fromJson: (json) => PatientOverviewModel.fromJson(json),
+    );
+
+    if (result.success && result.data != null) {
+      return result.data!;
+    } else {
+      throw Exception(result.message ?? "Failed to fetch patient overview");
     }
   }
 }

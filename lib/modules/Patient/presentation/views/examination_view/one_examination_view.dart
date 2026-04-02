@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/examination_pdf_service.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_one_examination_cubit/get_one_examination_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/examination_view/one_examination_content.dart';
 
@@ -26,6 +27,16 @@ class _OneExaminationViewState extends State<OneExaminationView> {
             centerTitle: true,
             backgroundColor: Colorz.primaryColor,
             title: const Text("Examination Details"),
+            actions: [
+              if (state.examination != null && !state.isLoading)
+                IconButton(
+                  onPressed: () {
+                    ExaminationPdfService.generateAndPrintOneExamination(
+                        state.examination!);
+                  },
+                  icon: const Icon(Icons.print_outlined, color: Colors.white),
+                ),
+            ],
           ),
           body: state.isLoading || state.examination == null
               ? Center(

@@ -4,7 +4,12 @@ import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import '../../../Doctor/data/model/doctor_model.dart';
 
 class ExaminationModel {
-  ExaminationModel({this.error, this.message, this.examination, this.finalization, this.doctor});
+  ExaminationModel(
+      {this.error,
+      this.message,
+      this.examination,
+      this.finalization,
+      this.doctor});
 
   final String? error;
   final String? message;
@@ -16,8 +21,12 @@ class ExaminationModel {
     return ExaminationModel(
       error: json["error"],
       message: json["message"],
-      examination: json["examination"] == null ? null : Examination.fromJson(json["examination"]),
-      finalization: json["finalization"] == null ? null : Finalization.fromJson(json["finalization"]),
+      examination: json["examination"] == null
+          ? null
+          : Examination.fromJson(json["examination"]),
+      finalization: json["finalization"] == null
+          ? null
+          : Finalization.fromJson(json["finalization"]),
       doctor: json["doctor"] == null ? null : Doctor.fromJson(json["doctor"]),
     );
   }
@@ -56,16 +65,22 @@ class Examination {
 
   factory Examination.fromJson(Map<String, dynamic> json) {
     return Examination(
-      clinic:json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
-      patient: json["patient"] == null ? null : Patient.fromJson(json["patient"]),
-      appointment: json["appointment"] == null ? null : Appointment.fromJson(json["appointment"]),
+      clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
+      patient:
+          json["patient"] == null ? null : Patient.fromJson(json["patient"]),
+      appointment: json["appointment"] == null
+          ? null
+          : Appointment.fromJson(json["appointment"]),
       measurements: json["measurements"] == null
           ? []
-          : List<Measurement>.from(json["measurements"]!.map((x) => Measurement.fromJson(x))),
+          : List<Measurement>.from(
+              json["measurements"]!.map((x) => Measurement.fromJson(x))),
       createdAt: DateTime.tryParse(json["createdAt"] ?? "")?.toLocal(),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? "")?.toLocal(),
-      history: json["history"] == null ? null : History.fromJson(json["history"]),
-      complain: json["complain"] == null ? null : Complain.fromJson(json["complain"]),
+      history:
+          json["history"] == null ? null : History.fromJson(json["history"]),
+      complain:
+          json["complain"] == null ? null : Complain.fromJson(json["complain"]),
       id: json["id"],
     );
   }
@@ -118,7 +133,6 @@ class Appointment {
   }
 
   Map<String, dynamic> toJson() => {
-
         "datetime": datetime?.toIso8601String(),
         "status": status,
         "note": note,
@@ -420,8 +434,6 @@ class Measurement {
       };
 }
 
-
-
 class Finalization {
   Finalization({
     this.examination,
@@ -445,9 +457,16 @@ class Finalization {
     return Finalization(
       examination: json["examination"],
       diagnosis: json["diagnosis"],
-      actions: json["actions"] == null ? [] : List<Action>.from(json["actions"]!.map((x) => Action.fromJson(x))),
-      medicine: json["medicine"] == null ? [] : List<Medicine>.from(json["medicine"]!.map((x) => Medicine.fromJson(x))),
-      createdAt: json["createdAt"] == null ? null : DateTime.tryParse(json["createdAt"] ?? "")?.toLocal(),
+      actions: json["actions"] == null
+          ? []
+          : List<Action>.from(json["actions"]!.map((x) => Action.fromJson(x))),
+      medicine: json["medicine"] == null
+          ? []
+          : List<Medicine>.from(
+              json["medicine"]!.map((x) => Medicine.fromJson(x))),
+      createdAt: json["createdAt"] == null
+          ? null
+          : DateTime.tryParse(json["createdAt"] ?? "")?.toLocal(),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
     );
@@ -487,8 +506,13 @@ class Action {
       action: json["action"],
       eye: json["eye"],
       data: json["data"],
-      metaData: json["metaData"] == null ? [] : List<String>.from(json["metaData"]!.map((x) => x)),
-      medicine: json["medicine"] == null ? [] : List<Medicine>.from(json["medicine"]!.map((x) => Medicine.fromJson(x))),
+      metaData: json["metaData"] == null
+          ? []
+          : List<String>.from(json["metaData"]!.map((x) => x)),
+      medicine: json["medicine"] == null
+          ? []
+          : List<Medicine>.from(
+              json["medicine"]!.map((x) => Medicine.fromJson(x))),
       id: json["_id"],
       actionId: json["id"],
     );
@@ -498,7 +522,7 @@ class Action {
         "action": action,
         "eye": eye,
         "data": data,
-        "medicine": medicine.map((x) => x).toList(),
+        "medicine": medicine.map((x) => x.toJson()).toList(),
         "metaData": metaData.map((x) => x).toList(),
         "_id": id,
         "id": actionId,
@@ -534,7 +558,6 @@ class Medicine {
         "name": name,
         "dosage": dosage,
         "duration": duration,
-        "_id": id,
-        "id": medicineId,
+        "_id": medicineId,
       };
 }

@@ -216,6 +216,26 @@ class AnalysisPdfService {
       }
     }
 
+    // Visual Acuity
+    if (trends.visualAcuity != null) {
+      if (keys.contains('va_ucva') && trends.visualAcuity!.ucva != null) {
+        results.add(_PrintableChartData(
+          title: 'Visual Acuity - UCVA',
+          axis: trends.visualAcuity!.ucva!,
+          defaultMinY: 0,
+          defaultMaxY: 1.2,
+        ));
+      }
+      if (keys.contains('va_bcva') && trends.visualAcuity!.bcva != null) {
+        results.add(_PrintableChartData(
+          title: 'Visual Acuity - BCVA',
+          axis: trends.visualAcuity!.bcva!,
+          defaultMinY: 0,
+          defaultMaxY: 1.2,
+        ));
+      }
+    }
+
     return results;
   }
 
@@ -262,62 +282,70 @@ class AnalysisPdfService {
   static pw.Widget _buildPdfChart(_PrintableChartData chartData,
       EyeSelection eyeSelection, pw.Font font, pw.Font boldFont) {
     // Recreate the data spots like in the UI
-    List<DateTime> allDates = [];
+    Set<DateTime> dateSet = {};
     for (var m in chartData.axis.left) {
-      if (m.date != null) allDates.add(m.date!);
+      if (m.date != null && m.value != null) {
+        dateSet.add(DateTime(m.date!.year, m.date!.month, m.date!.day));
+      }
     }
     for (var m in chartData.axis.right) {
-      if (m.date != null) allDates.add(m.date!);
+      if (m.date != null && m.value != null) {
+        dateSet.add(DateTime(m.date!.year, m.date!.month, m.date!.day));
+      }
     }
 
-    if (allDates.isEmpty) return pw.SizedBox.shrink();
+    if (dateSet.isEmpty) return pw.SizedBox.shrink();
 
-    DateTime minDate = allDates.reduce((a, b) => a.isBefore(b) ? a : b);
-    DateTime maxDate = allDates.reduce((a, b) => a.isAfter(b) ? a : b);
+    List<DateTime> sortedDates = dateSet.toList()..sort();
 
-    if (maxDate.difference(minDate).inDays < 7) {
-      minDate = minDate.subtract(const Duration(days: 3));
-      maxDate = maxDate.add(const Duration(days: 3));
+    if (sortedDates.length > 7) {
+      sortedDates = sortedDates.sublist(sortedDates.length - 7);
     }
 
-    final totalDays = maxDate.difference(minDate).inDays.toDouble();
+    final totalDays = math.max(0.1, sortedDates.length - 1.0);
 
     // Data points for Left Eye
     final leftPoints = chartData.axis.left
         .where((m) => m.date != null && m.value != null)
-        .map((m) => pw.PointChartValue(
-              m.date!.difference(minDate).inDays.toDouble(),
-              m.value!.toDouble(),
-            ))
+        .map((m) {
+           DateTime dateDay = DateTime(m.date!.year, m.date!.month, m.date!.day);
+           int index = sortedDates.indexOf(dateDay);
+           return index != -1 ? pw.PointChartValue(index.toDouble(), m.value!.toDouble()) : null;
+        })
+        .where((p) => p != null)
+        .map((p) => p!)
         .toList()
       ..sort((a, b) => a.x.compareTo(b.x));
 
     // Data points for Right Eye
     final rightPoints = chartData.axis.right
         .where((m) => m.date != null && m.value != null)
-        .map((m) => pw.PointChartValue(
-              m.date!.difference(minDate).inDays.toDouble(),
-              m.value!.toDouble(),
-            ))
+        .map((m) {
+           DateTime dateDay = DateTime(m.date!.year, m.date!.month, m.date!.day);
+           int index = sortedDates.indexOf(dateDay);
+           return index != -1 ? pw.PointChartValue(index.toDouble(), m.value!.toDouble()) : null;
+        })
+        .where((p) => p != null)
+        .map((p) => p!)
         .toList()
       ..sort((a, b) => a.x.compareTo(b.x));
 
     // Calculate Y bounds
-    List<num> allValues = [
-      ...chartData.axis.left.map((m) => m.value ?? 0),
-      ...chartData.axis.right.map((m) => m.value ?? 0),
+    List<double> allY = [
+      ...leftPoints.map((m) => m.y),
+      ...rightPoints.map((m) => m.y),
     ];
 
     double minY = chartData.defaultMinY;
     double maxY = chartData.defaultMaxY;
 
-    if (allValues.isNotEmpty) {
-      double dataMin = allValues.reduce((a, b) => a < b ? a : b).toDouble();
-      double dataMax = allValues.reduce((a, b) => a > b ? a : b).toDouble();
-      double padding = (dataMax - dataMin) * 0.2;
-      if (padding == 0) padding = 1.0;
-      minY = math.min(chartData.defaultMinY, dataMin - padding).floorToDouble();
-      maxY = math.max(chartData.defaultMaxY, dataMax + padding).ceilToDouble();
+    if (allY.isNotEmpty) {
+      double dataMin = allY.reduce(math.min);
+      double dataMax = allY.reduce(math.max);
+      double range = dataMax - dataMin;
+      double padding = range == 0 ? 0.2 : range * 0.2;
+      minY = dataMin - padding;
+      maxY = dataMax + padding;
     }
 
     List<pw.Dataset> datasets = [];
@@ -367,16 +395,20 @@ class AnalysisPdfService {
             child: pw.Chart(
               grid: pw.CartesianGrid(
                 xAxis: pw.FixedAxis(
-                  _generateIntervals(0, totalDays, 5),
+                  _generateIntervals(0, totalDays, sortedDates.length - 1 > 0 ? sortedDates.length - 1 : 1),
                   buildLabel: (value) {
-                    final date = minDate.add(Duration(days: value.toInt()));
-                    return pw.Text(DateFormat('dd/MM').format(date),
-                        style: const pw.TextStyle(fontSize: 8));
+                    int index = value.round();
+                    if (index >= 0 && index < sortedDates.length) {
+                       return pw.Text(DateFormat('dd/MM').format(sortedDates[index]),
+                          style: const pw.TextStyle(fontSize: 8));
+                    }
+                    return pw.SizedBox.shrink();
                   },
                 ),
                 yAxis: pw.FixedAxis(
                   _generateIntervals(minY, maxY, 6),
-                  buildLabel: (value) => pw.Text(value.toStringAsFixed(1),
+                  buildLabel: (value) => pw.Text(
+                      (maxY - minY < 1.0) ? value.toStringAsFixed(2) : value.toStringAsFixed(1),
                       style: const pw.TextStyle(fontSize: 8)),
                 ),
               ),

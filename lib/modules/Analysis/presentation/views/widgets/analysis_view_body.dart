@@ -99,6 +99,31 @@ class _AnalysisViewBodyState extends State<AnalysisViewBody> {
                   ),
                 const SizedBox(height: 16),
 
+                // Section 3: Visual Acuity
+                if (trends.visualAcuity != null)
+                  _buildExpandableSection(
+                    context: context,
+                    sectionKey: 'visual_acuity',
+                    sectionTitle: 'Visual Acuity',
+                    charts: [
+                      if (trends.visualAcuity!.ucva != null)
+                        _buildChartConfigFromAxis(
+                          title: 'UCVA',
+                          axis: trends.visualAcuity!.ucva!,
+                          defaultMinY: 0,
+                          defaultMaxY: 1.2,
+                        ),
+                      if (trends.visualAcuity!.bcva != null)
+                        _buildChartConfigFromAxis(
+                          title: 'BCVA',
+                          axis: trends.visualAcuity!.bcva!,
+                          defaultMinY: 0,
+                          defaultMaxY: 1.2,
+                        ),
+                    ],
+                  ),
+                const SizedBox(height: 16),
+
                 // Section 4: IOP (mmHg)
                 if (trends.iop != null)
                   _buildExpandableSection(
@@ -169,55 +194,51 @@ class _AnalysisViewBodyState extends State<AnalysisViewBody> {
     required double defaultMinY,
     required double defaultMaxY,
   }) {
-    // Collect all dates to find range
-    List<DateTime> allDates = [];
+    // Collect all unique dates
+    Set<DateTime> dateSet = {};
     for (var m in axis.left) {
-      if (m.date != null) allDates.add(m.date!);
+      if (m.date != null && m.value != null) {
+        dateSet.add(DateTime(m.date!.year, m.date!.month, m.date!.day));
+      }
     }
     for (var m in axis.right) {
-      if (m.date != null) allDates.add(m.date!);
+      if (m.date != null && m.value != null) {
+        dateSet.add(DateTime(m.date!.year, m.date!.month, m.date!.day));
+      }
     }
 
-    DateTime minDate = allDates.isEmpty
-        ? DateTime.now().subtract(const Duration(days: 30))
-        : allDates.reduce((a, b) => a.isBefore(b) ? a : b);
-    DateTime maxDate = allDates.isEmpty
-        ? DateTime.now()
-        : allDates.reduce((a, b) => a.isAfter(b) ? a : b);
-
-    // Ensure we have at least some range for the chart to look good
-    if (maxDate.difference(minDate).inDays < 7) {
-      minDate = minDate.subtract(const Duration(days: 3));
-      maxDate = maxDate.add(const Duration(days: 3));
+    List<DateTime> sortedDates = dateSet.toList()..sort();
+    
+    // Limit to 7 dates
+    if (sortedDates.length > 7) {
+      sortedDates = sortedDates.sublist(sortedDates.length - 7);
+    }
+    
+    // Provide a default date if empty
+    if (sortedDates.isEmpty) {
+        sortedDates = [DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)];
     }
 
-    // Convert measurements to spots
-    List<FlSpot> dataLeft = _convertToSpots(axis.left, minDate);
-    List<FlSpot> dataRight = _convertToSpots(axis.right, minDate);
+    // Convert measurements to spots using index in sortedDates
+    List<FlSpot> dataLeft = _convertToSpotsDates(axis.left, sortedDates);
+    List<FlSpot> dataRight = _convertToSpotsDates(axis.right, sortedDates);
 
-    // Dynamic Y bounds based on data
     double minY = defaultMinY;
     double maxY = defaultMaxY;
 
-    List<num> allValues = [];
-    for (var m in axis.left) {
-      if (m.value != null) allValues.add(m.value!);
-    }
-    for (var m in axis.right) {
-      if (m.value != null) allValues.add(m.value!);
-    }
+    List<double> allY = [];
+    allY.addAll(dataLeft.map((e) => e.y));
+    allY.addAll(dataRight.map((e) => e.y));
 
-    if (allValues.isNotEmpty) {
-      double dataMin = allValues.reduce((a, b) => a < b ? a : b).toDouble();
-      double dataMax = allValues.reduce((a, b) => a > b ? a : b).toDouble();
+    if (allY.isNotEmpty) {
+      double dataMin = allY.reduce(math.min);
+      double dataMax = allY.reduce(math.max);
 
-      // Add padding
       double range = dataMax - dataMin;
-      double padding = range * 0.2;
-      if (padding == 0) padding = 1.0;
+      double padding = range == 0 ? 0.2 : range * 0.2;
 
-      minY = math.min(defaultMinY, dataMin - padding);
-      maxY = math.max(defaultMaxY, dataMax + padding);
+      minY = dataMin - padding;
+      maxY = dataMax + padding;
     }
 
     return ChartConfig(
@@ -226,21 +247,21 @@ class _AnalysisViewBodyState extends State<AnalysisViewBody> {
       dataRight: dataRight,
       minY: minY,
       maxY: maxY,
-      minDate: minDate,
-      maxDate: maxDate,
+      xAxisDates: sortedDates,
     );
   }
 
-  List<FlSpot> _convertToSpots(
-      List<model.Left> measurements, DateTime minDate) {
+  List<FlSpot> _convertToSpotsDates(List<model.Left> measurements, List<DateTime> allowedDates) {
     List<FlSpot> spots = [];
     for (var m in measurements) {
       if (m.value != null && m.date != null) {
-        double x = m.date!.difference(minDate).inDays.toDouble();
-        spots.add(FlSpot(x, m.value!.toDouble()));
+        DateTime dateDay = DateTime(m.date!.year, m.date!.month, m.date!.day);
+        int index = allowedDates.indexOf(dateDay);
+        if (index != -1) {
+          spots.add(FlSpot(index.toDouble(), m.value!.toDouble()));
+        }
       }
     }
-    // Sort spots by X to ensure correct line drawing
     spots.sort((a, b) => a.x.compareTo(b.x));
     return spots;
   }
@@ -333,8 +354,7 @@ class ChartConfig {
   final List<FlSpot> dataRight;
   final double minY;
   final double maxY;
-  final DateTime minDate;
-  final DateTime maxDate;
+  final List<DateTime> xAxisDates;
 
   ChartConfig({
     required this.title,
@@ -342,8 +362,7 @@ class ChartConfig {
     required this.dataRight,
     required this.minY,
     required this.maxY,
-    required this.minDate,
-    required this.maxDate,
+    required this.xAxisDates,
   });
 }
 
@@ -398,6 +417,10 @@ class _ChartCardState extends State<ChartCard> {
   // Calculate dynamic Y-axis interval based on range
   double _calculateYInterval() {
     double range = widget.config.maxY - widget.config.minY;
+    if (range <= 0.1) return 0.02;
+    if (range <= 0.5) return 0.1;
+    if (range <= 1.5) return 0.2;
+    if (range <= 3) return 0.5;
     if (range <= 10) return 1;
     if (range <= 20) return 2;
     if (range <= 50) return 5;
@@ -409,12 +432,11 @@ class _ChartCardState extends State<ChartCard> {
   }
 
   String _formatDate(double value) {
-    int daysOffset = value.toInt();
-    // Safety check just in case
-    if (daysOffset < 0) daysOffset = 0;
-
-    DateTime date = widget.config.minDate.add(Duration(days: daysOffset));
-    return DateFormat('dd/MM', 'en').format(date);
+    int index = value.toInt();
+    if (index >= 0 && index < widget.config.xAxisDates.length) {
+      return DateFormat('dd-MM', 'en').format(widget.config.xAxisDates[index]);
+    }
+    return '';
   }
 
   @override
@@ -541,31 +563,22 @@ class _ChartCardState extends State<ChartCard> {
 
   Widget _buildChart(bool isDark) {
     final yInterval = _calculateYInterval();
-    final totalDays = widget.config.maxDate
-        .difference(widget.config.minDate)
-        .inDays
-        .toDouble();
-    // Calculate interval to show roughly 6-7 labels
-    double xInterval = (totalDays / 6).ceilToDouble();
-    if (xInterval < 1) xInterval = 1;
+    final double maxX = math.max(0.1, widget.config.xAxisDates.length - 1.0);
+    double xInterval = 1.0;
 
     return LineChart(
       LineChartData(
         gridData: FlGridData(
           show: true,
-          drawVerticalLine: true,
+          drawVerticalLine: false,
+          drawHorizontalLine: true,
           horizontalInterval: yInterval,
           verticalInterval: xInterval,
           getDrawingHorizontalLine: (value) {
             return FlLine(
               color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
-              strokeWidth: 0.5,
-            );
-          },
-          getDrawingVerticalLine: (value) {
-            return FlLine(
-              color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
-              strokeWidth: 0.5,
+              strokeWidth: 1,
+              dashArray: [5, 5],
             );
           },
         ),
@@ -580,7 +593,7 @@ class _ChartCardState extends State<ChartCard> {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30,
+              reservedSize: 40,
               interval: xInterval,
               getTitlesWidget: (value, meta) {
                 final style = TextStyle(
@@ -589,8 +602,7 @@ class _ChartCardState extends State<ChartCard> {
                   color: isDark ? Colors.white70 : Colors.black87,
                 );
 
-                // Show label only if within range
-                if (value < 0 || value > totalDays) {
+                if (value % 1 != 0 || value < 0 || value >= widget.config.xAxisDates.length) {
                   return const SizedBox.shrink();
                 }
 
@@ -605,15 +617,23 @@ class _ChartCardState extends State<ChartCard> {
             sideTitles: SideTitles(
               showTitles: true,
               interval: yInterval,
-              reservedSize: 40,
+              reservedSize: 46,
               getTitlesWidget: (value, meta) {
                 final style = TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                   color: isDark ? Colors.white70 : Colors.black87,
                 );
+                
+                String text = value.toStringAsFixed(2);
+                if (text.endsWith('.00')) {
+                  text = text.substring(0, text.length - 3);
+                } else if (text.endsWith('0')) {
+                  text = text.substring(0, text.length - 1);
+                }
+                
                 return Text(
-                  value.toInt().toString(),
+                  text,
                   style: style,
                   textAlign: TextAlign.left,
                 );
@@ -629,7 +649,7 @@ class _ChartCardState extends State<ChartCard> {
           ),
         ),
         minX: 0,
-        maxX: totalDays,
+        maxX: maxX,
         minY: widget.config.minY,
         maxY: widget.config.maxY,
         lineTouchData: LineTouchData(
@@ -663,9 +683,12 @@ class _ChartCardState extends State<ChartCard> {
                 }
 
                 String dateStr = _formatDate(flSpot.x);
+                String valueStr = yInterval < 1 
+                    ? flSpot.y.toStringAsFixed(3) 
+                    : flSpot.y.toStringAsFixed(1);
 
                 return LineTooltipItem(
-                  '$eyeLabel ($dateStr)\n${flSpot.y.toStringAsFixed(1)}',
+                  '$eyeLabel ($dateStr)\n$valueStr',
                   TextStyle(
                     color: color,
                     fontWeight: FontWeight.bold,
@@ -760,23 +783,17 @@ class _ChartCardState extends State<ChartCard> {
     Color color,
     String label,
   ) {
-    // Logic to show/hide dots based on density can be improved,
-    // but for now keeping it simple: show all dots.
-    // Ideally if spots.length > 30, maybe set show: false.
-    bool showDots = spots.length < 20;
-
     return LineChartBarData(
       spots: spots,
-      isCurved: true,
+      isCurved: false,
       color: color,
-      barWidth: 2.5,
+      barWidth: 2.0,
       isStrokeCapRound: true,
       dotData: FlDotData(
-        show:
-            showDots, // Hide distinct dots if too many points for cleaner look
+        show: true, 
         getDotPainter: (spot, percent, barData, index) {
           return FlDotCirclePainter(
-            radius: 2.5,
+            radius: 3.5,
             color: color,
             strokeWidth: 0,
             strokeColor: color,
@@ -784,15 +801,7 @@ class _ChartCardState extends State<ChartCard> {
         },
       ),
       belowBarData: BarAreaData(
-        show: true,
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.3),
-            color.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        show: false,
       ),
     );
   }

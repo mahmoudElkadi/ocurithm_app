@@ -59,7 +59,7 @@ class ApiHandler {
     authInterceptor.setDio(_dio);
 
     _dio.interceptors.addAll([
-      // LoggingInterceptor(),
+      LoggingInterceptor(),
       authInterceptor,
       RetryInterceptor(dio: _dio),
     ]);

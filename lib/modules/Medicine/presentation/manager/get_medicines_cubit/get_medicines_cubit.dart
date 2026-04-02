@@ -14,7 +14,8 @@ class GetMedicinesCubit extends Bloc<GetMedicinesEvent, GetMedicinesState> {
     on<FetchMedicinesEvent>(_onFetchMedicines);
     on<SetSearchEvent>(_onSetSearch);
     on<SetPageEvent>(_onSetPage);
-    on<ResetFiltersEvent>(_onResetFilters);
+    on<SetParentIdEvent>(_onSetParentId);
+    on<ResetMedicineFiltersEvent>(_onResetFilters);
   }
 
   static GetMedicinesCubit get(BuildContext context) =>
@@ -33,6 +34,7 @@ class GetMedicinesCubit extends Bloc<GetMedicinesEvent, GetMedicinesState> {
       final result = await medicineRepo.getAllMedicines(
         page: state.page,
         search: state.search,
+        parentId: state.parentId,
       );
 
       List<CommercialName> updatedMedicines;
@@ -82,15 +84,23 @@ class GetMedicinesCubit extends Bloc<GetMedicinesEvent, GetMedicinesState> {
     emit(state.copyWith(page: event.page));
   }
 
+  Future<void> _onSetParentId(
+      SetParentIdEvent event, Emitter<GetMedicinesState> emit) async {
+    emit(state.copyWith(parentId: event.parentId, page: 1, clearParentId: event.parentId == null));
+    add(FetchMedicinesEvent(isRefresh: true));
+  }
+
   Future<void> _onResetFilters(
-      ResetFiltersEvent event, Emitter<GetMedicinesState> emit) async {
-    emit(state.copyWith(page: 1, search: ''));
+      ResetMedicineFiltersEvent event, Emitter<GetMedicinesState> emit) async {
+    emit(state.copyWith(page: 1, search: '', clearParentId: true));
     add(FetchMedicinesEvent(isRefresh: true));
   }
 
   // Helper method to maintain existing UI logic
-  void getMedicines({String? search, bool isRefresh = false, int? page}) {
-    if (isRefresh) {
+  void getMedicines({String? search, bool isRefresh = false, int? page, String? parentId}) {
+    if (parentId != null) {
+      add(SetParentIdEvent(parentId));
+    } else if (isRefresh) {
       add(FetchMedicinesEvent(isRefresh: true));
     } else if (page != null) {
       add(SetPageEvent(page));

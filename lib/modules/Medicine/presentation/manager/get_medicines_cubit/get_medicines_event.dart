@@ -17,4 +17,9 @@ class SetPageEvent extends GetMedicinesEvent {
   SetPageEvent(this.page);
 }
 
-class ResetFiltersEvent extends GetMedicinesEvent {}
+class SetParentIdEvent extends GetMedicinesEvent {
+  final String? parentId;
+  SetParentIdEvent(this.parentId);
+}
+
+class ResetMedicineFiltersEvent extends GetMedicinesEvent {}

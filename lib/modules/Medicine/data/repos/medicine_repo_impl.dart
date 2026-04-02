@@ -53,8 +53,14 @@ class MedicineRepoImpl implements MedicineRepo {
   }
 
   @override
-  Future<MedicinesModel> getAllMedicines({int? page, String? search}) async {
-    Map<String, dynamic> query = {"page": page, 'limit': 25, "search": search};
+  Future<MedicinesModel> getAllMedicines({int? page, String? search, String? parentId}) async {
+    Map<String, dynamic> query = {
+      "page": page,
+      'limit': 25,
+      "search": search,
+      if (parentId != null) "parentId": parentId,
+    };
+
     try {
       final result = await _apiHandler.get<MedicinesModel>(
         ApiConstants.medicines,

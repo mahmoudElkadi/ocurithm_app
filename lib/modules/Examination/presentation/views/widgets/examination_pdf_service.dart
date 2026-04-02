@@ -7,6 +7,7 @@ import 'package:printing/printing.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../manager/examination_form_cubit/examination_form_cubit.dart';
+import '../../../../Patient/data/model/one_exam.dart' as one_exam;
 
 class ExaminationPdfService {
   static final PdfColor primaryBlue = PdfColor.fromHex('#4A98F7');
@@ -41,26 +42,34 @@ class ExaminationPdfService {
         footer: (pw.Context context) => _buildFooter(context, font),
         build: (pw.Context context) {
           return [
-            _buildPatientBanner(appointment, boldFont, font),
+            _buildPatientBanner(
+              name: appointment.patient?.name ?? 'N/A',
+              nationalId: appointment.patient?.nationalId ?? 'N/A',
+              birthDate: appointment.patient?.birthDate,
+              gender: appointment.patient?.gender ?? 'N/A',
+              phone: appointment.patient?.phone ?? 'N/A',
+              boldFont: boldFont,
+              font: font,
+            ),
             pw.SizedBox(height: 15),
             _buildSectionTitle('1. CLINICAL HISTORY & COMPLAINTS', boldFont),
-            _buildHistoryAndComplaints(cubit, boldFont, font),
+            _buildHistoryAndComplaintsFromCubit(cubit, boldFont, font),
             pw.SizedBox(height: 15),
             _buildSectionTitle('2. REFRACTION & VISUAL ACUITY', boldFont),
-            _buildRefractionReflections(cubit, boldFont, font),
+            _buildRefractionReflectionsFromCubit(cubit, boldFont, font),
             pw.SizedBox(height: 15),
             _buildSectionTitle(
                 '3. INTRAOCULAR PRESSURE (IOP) & PUPILS', boldFont),
-            _buildIopAndPupils(cubit, boldFont, font),
+            _buildIopAndPupilsFromCubit(cubit, boldFont, font),
             pw.SizedBox(height: 15),
             _buildSectionTitle('4. EXTERNAL & PHYSICAL EXAMINATION', boldFont),
-            _buildPhysicalExamination(cubit, boldFont, font),
+            _buildPhysicalExaminationFromCubit(cubit, boldFont, font),
             pw.SizedBox(height: 15),
             _buildSectionTitle('5. SEGMENT & FUNDUS EXAMINATION', boldFont),
-            _buildEyeStructureAndFundus(cubit, boldFont, font),
+            _buildEyeStructureAndFundusFromCubit(cubit, boldFont, font),
             pw.SizedBox(height: 15),
             _buildSectionTitle('6. CONFRONTATION FIELDS', boldFont),
-            _buildFieldsSection(cubit, boldFont, font),
+            _buildFieldsSectionFromCubit(cubit, boldFont, font),
           ];
         },
       ),
@@ -69,6 +78,252 @@ class ExaminationPdfService {
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
       name: 'Examination_${appointment.patient?.name ?? 'Report'}.pdf',
+    );
+  }
+
+  static Future<void> generateAndPrintOneExamination(
+      one_exam.ExaminationModel model) async {
+    final pdf = pw.Document();
+
+    final regularFontData =
+        await rootBundle.load("assets/fonts/Cairo-Regular.ttf");
+    final boldFontData = await rootBundle.load("assets/fonts/Cairo-Bold.ttf");
+    final font = pw.Font.ttf(regularFontData);
+    final boldFont = pw.Font.ttf(boldFontData);
+
+    final logoData = await rootBundle.load('assets/icons/logo.png');
+    final logoBytes = logoData.buffer.asUint8List();
+
+    final examination = model.examination;
+    if (examination == null) return;
+
+    // Based on OneExaminationContent, index 0 is Left, index 1 is Right
+    final leftMeasurement = examination.measurements.isNotEmpty
+        ? examination.measurements[0]
+        : one_exam.Measurement();
+    final rightMeasurement = examination.measurements.length > 1
+        ? examination.measurements[1]
+        : one_exam.Measurement();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(30),
+        theme: pw.ThemeData.withFont(base: font, bold: boldFont),
+        header: (pw.Context context) => _buildHeader(logoBytes, boldFont, font),
+        footer: (pw.Context context) => _buildFooter(context, font),
+        build: (pw.Context context) {
+          return [
+            _buildPatientBanner(
+              name: examination.patient?.name ?? 'N/A',
+              nationalId: examination.patient?.nationalId ?? 'N/A',
+              birthDate: examination.patient?.birthDate,
+              gender: examination.patient?.gender ?? 'N/A',
+              phone: examination.patient?.phone ?? 'N/A',
+              boldFont: boldFont,
+              font: font,
+            ),
+            pw.SizedBox(height: 15),
+            _buildSectionTitle('1. CLINICAL HISTORY & COMPLAINTS', boldFont),
+            _buildHistoryAndComplaints(
+              history: {
+                'Family History': examination.history?.familyHistory ?? '',
+                'Present Illness': examination.history?.presentIllness ?? '',
+                'Past History': examination.history?.pastHistory ?? '',
+                'Medication': examination.history?.medicationHistory ?? '',
+              },
+              complaints: {
+                'Complaint 1': examination.complain?.complainOne ?? '',
+                'Complaint 2': examination.complain?.complainTwo ?? '',
+                'Complaint 3': examination.complain?.complainThree ?? '',
+              },
+              boldFont: boldFont,
+              font: font,
+            ),
+            pw.SizedBox(height: 15),
+            _buildSectionTitle('2. REFRACTION & VISUAL ACUITY', boldFont),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Expanded(
+                  child: _buildEyeMeasurementSectionRaw(
+                    title: 'RIGHT EYE (OD)',
+                    oldSph: rightMeasurement.oldSpherical?.toString(),
+                    oldCyl: rightMeasurement.oldCylindrical?.toString(),
+                    oldAxis: rightMeasurement.oldAxis?.toString(),
+                    autoSph: rightMeasurement.autorefSpherical?.toString(),
+                    autoCyl: rightMeasurement.autorefCylindrical?.toString(),
+                    autoAxis: rightMeasurement.autorefAxis?.toString(),
+                    refinedSph:
+                        rightMeasurement.refinedRefractionSpherical?.toString(),
+                    refinedCyl: rightMeasurement
+                        .refinedRefractionCylindrical
+                        ?.toString(),
+                    refinedAxis:
+                        rightMeasurement.refinedRefractionAxis?.toString(),
+                    nearAdd: rightMeasurement.nearVisionAddition?.toString(),
+                    ucva: rightMeasurement.ucva?.toString(),
+                    bcva: rightMeasurement.bcva?.toString(),
+                    boldFont: boldFont,
+                    font: font,
+                  ),
+                ),
+                pw.SizedBox(width: 15),
+                pw.Expanded(
+                  child: _buildEyeMeasurementSectionRaw(
+                    title: 'LEFT EYE (OS)',
+                    oldSph: leftMeasurement.oldSpherical?.toString(),
+                    oldCyl: leftMeasurement.oldCylindrical?.toString(),
+                    oldAxis: leftMeasurement.oldAxis?.toString(),
+                    autoSph: leftMeasurement.autorefSpherical?.toString(),
+                    autoCyl: leftMeasurement.autorefCylindrical?.toString(),
+                    autoAxis: leftMeasurement.autorefAxis?.toString(),
+                    refinedSph:
+                        leftMeasurement.refinedRefractionSpherical?.toString(),
+                    refinedCyl: leftMeasurement.refinedRefractionCylindrical
+                        ?.toString(),
+                    refinedAxis:
+                        leftMeasurement.refinedRefractionAxis?.toString(),
+                    nearAdd: leftMeasurement.nearVisionAddition?.toString(),
+                    ucva: leftMeasurement.ucva?.toString(),
+                    bcva: leftMeasurement.bcva?.toString(),
+                    boldFont: boldFont,
+                    font: font,
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 15),
+            _buildSectionTitle(
+                '3. INTRAOCULAR PRESSURE (IOP) & PUPILS', boldFont),
+            _buildIopAndPupils(
+              rightData: {
+                'IOP (mmHg)': rightMeasurement.iop?.toString() ?? '',
+                'IOP Method': rightMeasurement.meansOfMeasurement ?? '',
+                'Pupil Shape': rightMeasurement.pupilsShape ?? '',
+                'Light Reflex': rightMeasurement.pupilsLightReflexTest ?? '',
+                'Near Reflex': rightMeasurement.pupilsNearReflexTest ?? '',
+                'Swinging Flashlight':
+                    rightMeasurement.pupilsSwingingFlashLightTest ?? '',
+                'Other Pupil Dis.': rightMeasurement.pupilsOtherDisorders ?? '',
+              },
+              leftData: {
+                'IOP (mmHg)': leftMeasurement.iop?.toString() ?? '',
+                'IOP Method': leftMeasurement.meansOfMeasurement ?? '',
+                'Pupil Shape': leftMeasurement.pupilsShape ?? '',
+                'Light Reflex': leftMeasurement.pupilsLightReflexTest ?? '',
+                'Near Reflex': leftMeasurement.pupilsNearReflexTest ?? '',
+                'Swinging Flashlight':
+                    leftMeasurement.pupilsSwingingFlashLightTest ?? '',
+                'Other Pupil Dis.': leftMeasurement.pupilsOtherDisorders ?? '',
+              },
+              boldFont: boldFont,
+              font: font,
+            ),
+            pw.SizedBox(height: 15),
+            _buildSectionTitle('4. EXTERNAL & PHYSICAL EXAMINATION', boldFont),
+            _buildPhysicalExamination(
+              rightData: {
+                'Eyelid Ptosis': rightMeasurement.eyelidPtosis ?? '',
+                'Lagophthalmos': rightMeasurement.eyelidLagophthalmos ?? '',
+                'Lymph Nodes': rightMeasurement.palpableLymphNodes ?? '',
+                'Temporal Artery': rightMeasurement.palpableTemporalArtery ?? '',
+                'Exophthalmometry': rightMeasurement.exophthalmometry ?? '',
+                'External Lids': rightMeasurement.lids ?? '',
+                'Lashes': rightMeasurement.lashes ?? '',
+                'Conjunctiva': rightMeasurement.conjunctiva ?? '',
+                'Sclera': rightMeasurement.sclera ?? '',
+                'Lacrimal': rightMeasurement.lacrimalSystem ?? '',
+              },
+              leftData: {
+                'Eyelid Ptosis': leftMeasurement.eyelidPtosis ?? '',
+                'Lagophthalmos': leftMeasurement.eyelidLagophthalmos ?? '',
+                'Lymph Nodes': leftMeasurement.palpableLymphNodes ?? '',
+                'Temporal Artery': leftMeasurement.palpableTemporalArtery ?? '',
+                'Exophthalmometry': leftMeasurement.exophthalmometry ?? '',
+                'External Lids': leftMeasurement.lids ?? '',
+                'Lashes': leftMeasurement.lashes ?? '',
+                'Conjunctiva': leftMeasurement.conjunctiva ?? '',
+                'Sclera': leftMeasurement.sclera ?? '',
+                'Lacrimal': leftMeasurement.lacrimalSystem ?? '',
+              },
+              boldFont: boldFont,
+              font: font,
+            ),
+            pw.SizedBox(height: 15),
+            _buildSectionTitle('5. SEGMENT & FUNDUS EXAMINATION', boldFont),
+            _buildEyeStructureAndFundus(
+              rightData: {
+                'Cornea': (rightMeasurement.cornea as List?)?.join(', ') ?? '',
+                'Ant. Chamber':
+                    (rightMeasurement.anteriorChamber as List?)?.join(', ') ??
+                        '',
+                'Iris': (rightMeasurement.iris as List?)?.join(', ') ?? '',
+                'Lens': (rightMeasurement.lens as List?)?.join(', ') ?? '',
+                'Ant. Vitreous':
+                    (rightMeasurement.anteriorVitreous as List?)?.join(', ') ??
+                        '',
+                'Fundus Disc':
+                    (rightMeasurement.fundusOpticDisc as List?)?.join(', ') ??
+                        '',
+                'Fundus Macula':
+                    (rightMeasurement.fundusMacula as List?)?.join(', ') ?? '',
+                'Fundus Vessels':
+                    (rightMeasurement.fundusVessels as List?)?.join(', ') ?? '',
+                'Fundus Periphery':
+                    (rightMeasurement.fundusPeriphery as List?)?.join(', ') ??
+                        '',
+              },
+              leftData: {
+                'Cornea': (leftMeasurement.cornea as List?)?.join(', ') ?? '',
+                'Ant. Chamber':
+                    (leftMeasurement.anteriorChamber as List?)?.join(', ') ??
+                        '',
+                'Iris': (leftMeasurement.iris as List?)?.join(', ') ?? '',
+                'Lens': (leftMeasurement.lens as List?)?.join(', ') ?? '',
+                'Ant. Vitreous':
+                    (leftMeasurement.anteriorVitreous as List?)?.join(', ') ??
+                        '',
+                'Fundus Disc':
+                    (leftMeasurement.fundusOpticDisc as List?)?.join(', ') ??
+                        '',
+                'Fundus Macula':
+                    (leftMeasurement.fundusMacula as List?)?.join(', ') ?? '',
+                'Fundus Vessels':
+                    (leftMeasurement.fundusVessels as List?)?.join(', ') ?? '',
+                'Fundus Periphery':
+                    (leftMeasurement.fundusPeriphery as List?)?.join(', ') ??
+                        '',
+              },
+              boldFont: boldFont,
+              font: font,
+            ),
+            pw.SizedBox(height: 15),
+            _buildSectionTitle('6. CONFRONTATION FIELDS', boldFont),
+            _buildFieldsSection(
+              rightCounts: [
+                rightMeasurement.topLeft ?? 0,
+                rightMeasurement.topRight ?? 0,
+                rightMeasurement.bottomLeft ?? 0,
+                rightMeasurement.bottomRight ?? 0,
+              ],
+              leftCounts: [
+                leftMeasurement.topLeft ?? 0,
+                leftMeasurement.topRight ?? 0,
+                leftMeasurement.bottomLeft ?? 0,
+                leftMeasurement.bottomRight ?? 0,
+              ],
+              boldFont: boldFont,
+              font: font,
+            ),
+          ];
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+      name: 'Examination_${examination.patient?.name ?? 'Report'}.pdf',
     );
   }
 
@@ -108,8 +363,15 @@ class ExaminationPdfService {
     );
   }
 
-  static pw.Widget _buildPatientBanner(
-      Appointment appointment, pw.Font boldFont, pw.Font font) {
+  static pw.Widget _buildPatientBanner({
+    required String name,
+    required String nationalId,
+    DateTime? birthDate,
+    required String gender,
+    required String phone,
+    required pw.Font boldFont,
+    required pw.Font font,
+  }) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
@@ -119,25 +381,17 @@ class ExaminationPdfService {
         children: [
           pw.Row(
             children: [
-              _bannerItem('Patient Name', appointment.patient?.name ?? 'N/A', 3,
-                  boldFont, font),
-              _bannerItem('National ID',
-                  appointment.patient?.nationalId ?? 'N/A', 2, boldFont, font),
+              _bannerItem('Patient Name', name, 3, boldFont, font),
+              _bannerItem('National ID', nationalId, 2, boldFont, font),
             ],
           ),
           pw.SizedBox(height: 10),
           pw.Row(
             children: [
-              _bannerItem(
-                  'Age',
-                  '${FormatHelper.calculateAge(appointment.patient?.birthDate)} Years',
-                  1,
-                  boldFont,
-                  font),
-              _bannerItem('Gender', appointment.patient?.gender ?? 'N/A', 1,
-                  boldFont, font),
-              _bannerItem('Phone', appointment.patient?.phone ?? 'N/A', 1,
-                  boldFont, font),
+              _bannerItem('Age',
+                  '${FormatHelper.calculateAge(birthDate)} Years', 1, boldFont, font),
+              _bannerItem('Gender', gender, 1, boldFont, font),
+              _bannerItem('Phone', phone, 1, boldFont, font),
               _bannerItem(
                   'Exam Date',
                   DateFormat('dd/MM/yyyy').format(DateTime.now()),
@@ -184,38 +438,44 @@ class ExaminationPdfService {
     );
   }
 
-  static pw.Widget _buildHistoryAndComplaints(
+  static pw.Widget _buildHistoryAndComplaintsFromCubit(
       ExaminationFormCubit cubit, pw.Font boldFont, pw.Font font) {
+    return _buildHistoryAndComplaints(
+      history: {
+        'Family History': cubit.familyHistoryController.text,
+        'Present Illness': cubit.presentIllnessController.text,
+        'Past History': cubit.pastHistoryController.text,
+        'Medication': cubit.medicationHistoryController.text,
+      },
+      complaints: {
+        'Complaint 1': cubit.oneComplaintController.text,
+        'Complaint 2': cubit.twoComplaintController.text,
+        'Complaint 3': cubit.threeComplaintController.text,
+      },
+      boldFont: boldFont,
+      font: font,
+    );
+  }
+
+  static pw.Widget _buildHistoryAndComplaints({
+    required Map<String, dynamic> history,
+    required Map<String, dynamic> complaints,
+    required pw.Font boldFont,
+    required pw.Font font,
+  }) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Expanded(
-            child: _buildDataTable(
-                'Medical History',
-                {
-                  'Family History': cubit.familyHistoryController.text,
-                  'Present Illness': cubit.presentIllnessController.text,
-                  'Past History': cubit.pastHistoryController.text,
-                  'Medication': cubit.medicationHistoryController.text,
-                },
-                boldFont,
-                font)),
+            child: _buildDataTable('Medical History', history, boldFont, font)),
         pw.SizedBox(width: 15),
         pw.Expanded(
-            child: _buildDataTable(
-                'Chief Complaints',
-                {
-                  'Complaint 1': cubit.oneComplaintController.text,
-                  'Complaint 2': cubit.twoComplaintController.text,
-                  'Complaint 3': cubit.threeComplaintController.text,
-                },
-                boldFont,
-                font)),
+            child: _buildDataTable('Chief Complaints', complaints, boldFont, font)),
       ],
     );
   }
 
-  static pw.Widget _buildRefractionReflections(
+  static pw.Widget _buildRefractionReflectionsFromCubit(
       ExaminationFormCubit cubit, pw.Font boldFont, pw.Font font) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -233,6 +493,54 @@ class ExaminationPdfService {
 
   static pw.Widget _buildEyeMeasurementSection(String title, bool isL,
       ExaminationFormCubit c, pw.Font boldFont, pw.Font font) {
+    return _buildEyeMeasurementSectionRaw(
+      title: title,
+      oldSph: isL
+          ? c.leftOldSpherical?.toString()
+          : c.rightOldSpherical?.toString(),
+      oldCyl: isL
+          ? c.leftOldCylindrical?.toString()
+          : c.rightOldCylindrical?.toString(),
+      oldAxis: isL ? c.leftOldAxis : c.rightOldAxis,
+      autoSph: isL
+          ? c.leftAurorefSpherical?.toString()
+          : c.rightAurorefSpherical?.toString(),
+      autoCyl: isL
+          ? c.leftAurorefCylindrical?.toString()
+          : c.rightAurorefCylindrical?.toString(),
+      autoAxis: isL ? c.leftAurorefAxis : c.rightAurorefAxis,
+      refinedSph:
+          isL ? c.leftRefinedRefractionSpherical : c.rightRefinedRefractionSpherical,
+      refinedCyl:
+          isL ? c.leftRefinedRefractionCylindrical : c.rightRefinedRefractionCylindrical,
+      refinedAxis: isL
+          ? c.leftRefinedRefractionAxis
+          : c.rightRefinedRefractionAxis,
+      nearAdd: isL ? c.leftNearVisionAddition : c.rightNearVisionAddition,
+      ucva: isL ? c.leftUCVA : c.rightUCVA,
+      bcva: isL ? c.leftBCVA : c.rightBCVA,
+      boldFont: boldFont,
+      font: font,
+    );
+  }
+
+  static pw.Widget _buildEyeMeasurementSectionRaw({
+    required String title,
+    String? oldSph,
+    String? oldCyl,
+    String? oldAxis,
+    String? autoSph,
+    String? autoCyl,
+    String? autoAxis,
+    String? refinedSph,
+    String? refinedCyl,
+    String? refinedAxis,
+    String? nearAdd,
+    String? ucva,
+    String? bcva,
+    required pw.Font boldFont,
+    required pw.Font font,
+  }) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -243,13 +551,9 @@ class ExaminationPdfService {
         _buildDataTable(
             'Current Glasses',
             {
-              'Sph': FormatHelper.formatPositiveValue(isL
-                  ? c.leftOldSpherical?.toString()
-                  : c.rightOldSpherical?.toString()),
-              'Cyl': FormatHelper.formatPositiveValue(isL
-                  ? c.leftOldCylindrical?.toString()
-                  : c.rightOldCylindrical?.toString()),
-              'Axis': isL ? c.leftOldAxis : c.rightOldAxis,
+              'Sph': FormatHelper.formatPositiveValue(oldSph),
+              'Cyl': FormatHelper.formatPositiveValue(oldCyl),
+              'Axis': oldAxis,
             },
             boldFont,
             font,
@@ -258,13 +562,9 @@ class ExaminationPdfService {
         _buildDataTable(
             'Autorefraction',
             {
-              'Sph': FormatHelper.formatPositiveValue(isL
-                  ? c.leftAurorefSpherical?.toString()
-                  : c.rightAurorefSpherical?.toString()),
-              'Cyl': FormatHelper.formatPositiveValue(isL
-                  ? c.leftAurorefCylindrical?.toString()
-                  : c.rightAurorefCylindrical?.toString()),
-              'Axis': isL ? c.leftAurorefAxis : c.rightAurorefAxis,
+              'Sph': FormatHelper.formatPositiveValue(autoSph),
+              'Cyl': FormatHelper.formatPositiveValue(autoCyl),
+              'Axis': autoAxis,
             },
             boldFont,
             font,
@@ -273,18 +573,10 @@ class ExaminationPdfService {
         _buildDataTable(
             'Refined Refraction',
             {
-              'Sph': FormatHelper.formatPositiveValue(isL
-                  ? c.leftRefinedRefractionSpherical?.toString()
-                  : c.rightRefinedRefractionSpherical?.toString()),
-              'Cyl': FormatHelper.formatPositiveValue(isL
-                  ? c.leftRefinedRefractionCylindrical?.toString()
-                  : c.rightRefinedRefractionCylindrical?.toString()),
-              'Axis': isL
-                  ? c.leftRefinedRefractionAxis
-                  : c.rightRefinedRefractionAxis,
-              'Near ADD': FormatHelper.formatPositiveValue(isL
-                  ? c.leftNearVisionAddition?.toString()
-                  : c.rightNearVisionAddition?.toString()),
+              'Sph': FormatHelper.formatPositiveValue(refinedSph),
+              'Cyl': FormatHelper.formatPositiveValue(refinedCyl),
+              'Axis': refinedAxis,
+              'Near ADD': FormatHelper.formatPositiveValue(nearAdd),
             },
             boldFont,
             font,
@@ -293,8 +585,8 @@ class ExaminationPdfService {
         _buildDataTable(
             'Visual Acuity',
             {
-              'UCVA': isL ? c.leftUCVA : c.rightUCVA,
-              'BCVA': isL ? c.leftBCVA : c.rightBCVA,
+              'UCVA': ucva,
+              'BCVA': bcva,
             },
             boldFont,
             font,
@@ -303,158 +595,185 @@ class ExaminationPdfService {
     );
   }
 
-  static pw.Widget _buildIopAndPupils(
+  static pw.Widget _buildIopAndPupilsFromCubit(
       ExaminationFormCubit cubit, pw.Font boldFont, pw.Font font) {
+    return _buildIopAndPupils(
+      rightData: {
+        'IOP (mmHg)': cubit.rightIOP,
+        'IOP Method': cubit.rightMeansOfMeasurement,
+        'Pupil Shape': cubit.rightPupilsShape,
+        'Light Reflex': cubit.rightPupilsLightReflexTest,
+        'Near Reflex': cubit.rightPupilsNearReflexTest,
+        'Swinging Flashlight': cubit.rightPupilsSwingingFlashLightTest,
+        'Other Pupil Dis.': cubit.rightPupilsOtherDisorders,
+      },
+      leftData: {
+        'IOP (mmHg)': cubit.leftIOP,
+        'IOP Method': cubit.leftMeansOfMeasurement,
+        'Pupil Shape': cubit.leftPupilsShape,
+        'Light Reflex': cubit.leftPupilsLightReflexTest,
+        'Near Reflex': cubit.leftPupilsNearReflexTest,
+        'Swinging Flashlight': cubit.leftPupilsSwingingFlashLightTest,
+        'Other Pupil Dis.': cubit.leftPupilsOtherDisorders,
+      },
+      boldFont: boldFont,
+      font: font,
+    );
+  }
+
+  static pw.Widget _buildIopAndPupils({
+    required Map<String, dynamic> rightData,
+    required Map<String, dynamic> leftData,
+    required pw.Font boldFont,
+    required pw.Font font,
+  }) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Expanded(
-            child: _buildDataTable(
-                'IOP & Pupils (OD)',
-                {
-                  'IOP (mmHg)': cubit.rightIOP,
-                  'IOP Method': cubit.rightMeansOfMeasurement,
-                  'Pupil Shape': cubit.rightPupilsShape,
-                  'Light Reflex': cubit.rightPupilsLightReflexTest,
-                  'Near Reflex': cubit.rightPupilsNearReflexTest,
-                  'Swinging Flashlight':
-                      cubit.rightPupilsSwingingFlashLightTest,
-                  'Other Pupil Dis.': cubit.rightPupilsOtherDisorders,
-                },
-                boldFont,
-                font)),
+            child: _buildDataTable('IOP & Pupils (OD)', rightData, boldFont, font)),
         pw.SizedBox(width: 15),
         pw.Expanded(
-            child: _buildDataTable(
-                'IOP & Pupils (OS)',
-                {
-                  'IOP (mmHg)': cubit.leftIOP,
-                  'IOP Method': cubit.leftMeansOfMeasurement,
-                  'Pupil Shape': cubit.leftPupilsShape,
-                  'Light Reflex': cubit.leftPupilsLightReflexTest,
-                  'Near Reflex': cubit.leftPupilsNearReflexTest,
-                  'Swinging Flashlight': cubit.leftPupilsSwingingFlashLightTest,
-                  'Other Pupil Dis.': cubit.leftPupilsOtherDisorders,
-                },
-                boldFont,
-                font)),
+            child: _buildDataTable('IOP & Pupils (OS)', leftData, boldFont, font)),
       ],
     );
   }
 
-  static pw.Widget _buildPhysicalExamination(
+  static pw.Widget _buildPhysicalExaminationFromCubit(
       ExaminationFormCubit cubit, pw.Font boldFont, pw.Font font) {
+    return _buildPhysicalExamination(
+      rightData: {
+        'Eyelid Ptosis': cubit.rightEyelidPtosis,
+        'Lagophthalmos': cubit.rightEyelidLagophthalmos,
+        'Lymph Nodes': cubit.rightPalpableLymphNodes,
+        'Temporal Artery': cubit.rightPapableTemporalArtery,
+        'Exophthalmometry': cubit.rightExophthalmometry,
+        'External Lids': cubit.rightLidsController.text,
+        'Lashes': cubit.rightLashesController.text,
+        'Conjunctiva': cubit.rightConjunctivaController.text,
+        'Sclera': cubit.rightScleraController.text,
+        'Lacrimal': cubit.rightLacrimalController.text,
+      },
+      leftData: {
+        'Eyelid Ptosis': cubit.leftEyelidPtosis,
+        'Lagophthalmos': cubit.leftEyelidLagophthalmos,
+        'Lymph Nodes': cubit.leftPalpableLymphNodes,
+        'Temporal Artery': cubit.leftPapableTemporalArtery,
+        'Exophthalmometry': cubit.leftExophthalmometry,
+        'External Lids': cubit.leftLidsController.text,
+        'Lashes': cubit.leftLashesController.text,
+        'Conjunctiva': cubit.leftConjunctivaController.text,
+        'Sclera': cubit.leftScleraController.text,
+        'Lacrimal': cubit.leftLacrimalController.text,
+      },
+      boldFont: boldFont,
+      font: font,
+    );
+  }
+
+  static pw.Widget _buildPhysicalExamination({
+    required Map<String, dynamic> rightData,
+    required Map<String, dynamic> leftData,
+    required pw.Font boldFont,
+    required pw.Font font,
+  }) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Expanded(
-            child: _buildDataTable(
-                'Physical (OD)',
-                {
-                  'Eyelid Ptosis': cubit.rightEyelidPtosis,
-                  'Lagophthalmos': cubit.rightEyelidLagophthalmos,
-                  'Lymph Nodes': cubit.rightPalpableLymphNodes,
-                  'Temporal Artery': cubit.rightPapableTemporalArtery,
-                  'Exophthalmometry': cubit.rightExophthalmometry,
-                  'External Lids': cubit.rightLidsController.text,
-                  'Lashes': cubit.rightLashesController.text,
-                  'Conjunctiva': cubit.rightConjunctivaController.text,
-                  'Sclera': cubit.rightScleraController.text,
-                  'Lacrimal': cubit.rightLacrimalController.text,
-                },
-                boldFont,
-                font)),
+            child: _buildDataTable('Physical (OD)', rightData, boldFont, font)),
         pw.SizedBox(width: 15),
         pw.Expanded(
-            child: _buildDataTable(
-                'Physical (OS)',
-                {
-                  'Eyelid Ptosis': cubit.leftEyelidPtosis,
-                  'Lagophthalmos': cubit.leftEyelidLagophthalmos,
-                  'Lymph Nodes': cubit.leftPalpableLymphNodes,
-                  'Temporal Artery': cubit.leftPapableTemporalArtery,
-                  'Exophthalmometry': cubit.leftExophthalmometry,
-                  'External Lids': cubit.leftLidsController.text,
-                  'Lashes': cubit.leftLashesController.text,
-                  'Conjunctiva': cubit.leftConjunctivaController.text,
-                  'Sclera': cubit.leftScleraController.text,
-                  'Lacrimal': cubit.leftLacrimalController.text,
-                },
-                boldFont,
-                font)),
+            child: _buildDataTable('Physical (OS)', leftData, boldFont, font)),
       ],
     );
   }
 
-  static pw.Widget _buildEyeStructureAndFundus(
+  static pw.Widget _buildEyeStructureAndFundusFromCubit(
       ExaminationFormCubit cubit, pw.Font boldFont, pw.Font font) {
+    return _buildEyeStructureAndFundus(
+      rightData: {
+        'Cornea': cubit.rightCornea.join(', '),
+        'Ant. Chamber': cubit.rightAnteriorChambre.join(', '),
+        'Iris': cubit.rightIris.join(', '),
+        'Lens': cubit.rightLens.join(', '),
+        'Ant. Vitreous': cubit.rightAnteriorVitreous.join(', '),
+        'Fundus Disc': cubit.rightFundusOpticDisc.join(', '),
+        'Fundus Macula': cubit.rightFundusMacula.join(', '),
+        'Fundus Vessels': cubit.rightFundusVessels.join(', '),
+        'Fundus Periphery': cubit.rightFundusPeriphery.join(', '),
+      },
+      leftData: {
+        'Cornea': cubit.leftCornea.join(', '),
+        'Ant. Chamber': cubit.leftAnteriorChambre.join(', '),
+        'Iris': cubit.leftIris.join(', '),
+        'Lens': cubit.leftLens.join(', '),
+        'Ant. Vitreous': cubit.leftAnteriorVitreous.join(', '),
+        'Fundus Disc': cubit.leftFundusOpticDisc.join(', '),
+        'Fundus Macula': cubit.leftFundusMacula.join(', '),
+        'Fundus Vessels': cubit.leftFundusVessels.join(', '),
+        'Fundus Periphery': cubit.leftFundusPeriphery.join(', '),
+      },
+      boldFont: boldFont,
+      font: font,
+    );
+  }
+
+  static pw.Widget _buildEyeStructureAndFundus({
+    required Map<String, dynamic> rightData,
+    required Map<String, dynamic> leftData,
+    required pw.Font boldFont,
+    required pw.Font font,
+  }) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Expanded(
-            child: _buildDataTable(
-                'Segments (OD)',
-                {
-                  'Cornea': cubit.rightCornea.join(', '),
-                  'Ant. Chamber': cubit.rightAnteriorChambre.join(', '),
-                  'Iris': cubit.rightIris.join(', '),
-                  'Lens': cubit.rightLens.join(', '),
-                  'Ant. Vitreous': cubit.rightAnteriorVitreous.join(', '),
-                  'Fundus Disc': cubit.rightFundusOpticDisc.join(', '),
-                  'Fundus Macula': cubit.rightFundusMacula.join(', '),
-                  'Fundus Vessels': cubit.rightFundusVessels.join(', '),
-                  'Fundus Periphery': cubit.rightFundusPeriphery.join(', '),
-                },
-                boldFont,
-                font)),
+            child: _buildDataTable('Segments (OD)', rightData, boldFont, font)),
         pw.SizedBox(width: 15),
         pw.Expanded(
-            child: _buildDataTable(
-                'Segments (OS)',
-                {
-                  'Cornea': cubit.leftCornea.join(', '),
-                  'Ant. Chamber': cubit.leftAnteriorChambre.join(', '),
-                  'Iris': cubit.leftIris.join(', '),
-                  'Lens': cubit.leftLens.join(', '),
-                  'Ant. Vitreous': cubit.leftAnteriorVitreous.join(', '),
-                  'Fundus Disc': cubit.leftFundusOpticDisc.join(', '),
-                  'Fundus Macula': cubit.leftFundusMacula.join(', '),
-                  'Fundus Vessels': cubit.leftFundusVessels.join(', '),
-                  'Fundus Periphery': cubit.leftFundusPeriphery.join(', '),
-                },
-                boldFont,
-                font)),
+            child: _buildDataTable('Segments (OS)', leftData, boldFont, font)),
       ],
     );
   }
 
-  static pw.Widget _buildFieldsSection(
+  static pw.Widget _buildFieldsSectionFromCubit(
       ExaminationFormCubit cubit, pw.Font boldFont, pw.Font font) {
+    return _buildFieldsSection(
+      rightCounts: [
+        cubit.rightTopLeftTapCount,
+        cubit.rightTopRightTapCount,
+        cubit.rightBottomLeftTapCount,
+        cubit.rightBottomRightTapCount
+      ],
+      leftCounts: [
+        cubit.leftTopLeftTapCount,
+        cubit.leftTopRightTapCount,
+        cubit.leftBottomLeftTapCount,
+        cubit.leftBottomRightTapCount
+      ],
+      boldFont: boldFont,
+      font: font,
+    );
+  }
+
+  static pw.Widget _buildFieldsSection({
+    required List<num> rightCounts,
+    required List<num> leftCounts,
+    required pw.Font boldFont,
+    required pw.Font font,
+  }) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
       children: [
-        _buildFieldItem('RIGHT EYE (OD)', cubit, false, boldFont),
-        _buildFieldItem('LEFT EYE (OS)', cubit, true, boldFont),
+        _buildFieldItemDetails('RIGHT EYE (OD)', rightCounts, boldFont),
+        _buildFieldItemDetails('LEFT EYE (OS)', leftCounts, boldFont),
       ],
     );
   }
 
-  static pw.Widget _buildFieldItem(
-      String side, ExaminationFormCubit cubit, bool isL, pw.Font boldFont) {
-    final counts = isL
-        ? [
-            cubit.leftTopLeftTapCount,
-            cubit.leftTopRightTapCount,
-            cubit.leftBottomLeftTapCount,
-            cubit.leftBottomRightTapCount
-          ]
-        : [
-            cubit.rightTopLeftTapCount,
-            cubit.rightTopRightTapCount,
-            cubit.rightBottomLeftTapCount,
-            cubit.rightBottomRightTapCount
-          ];
-
+  static pw.Widget _buildFieldItemDetails(
+      String side, List<num> counts, pw.Font boldFont) {
     PdfColor getColor(num count) {
       if (count == 1) return PdfColors.black;
       if (count == 2) return PdfColors.white;

@@ -4,7 +4,7 @@ import '../model/medicine_model.dart';
 
 abstract class MedicineRepo {
   // Medicine
-  Future<MedicinesModel> getAllMedicines({int? page, String? search});
+  Future<MedicinesModel> getAllMedicines({int? page, String? search, String? parentId});
   Future<CommercialName> createMedicine(
       {required CommercialName commercialName});
   Future<CommercialName> getMedicine({required String id});

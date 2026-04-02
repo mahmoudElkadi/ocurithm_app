@@ -68,22 +68,22 @@ class _LoginFormState extends State<LoginForm> {
             padding: EdgeInsets.symmetric(horizontal: 15.w),
             child: Column(
               children: [
-                // Align(
-                //   alignment: Alignment.centerRight,
-                //   child: TextButton.icon(
-                //     onPressed: () {
-                //       _showIPDialog(context);
-                //     },
-                //     icon: Icon(Icons.settings_ethernet,
-                //         color: Colorz.primaryColor, size: 20),
-                //     label: Text(
-                //       "Change IP: ${ipController.text}",
-                //       style: appStyle(
-                //           context, 14, Colorz.primaryColor, FontWeight.w500),
-                //     ),
-                //   ),
-                // ),
-                // const HeightSpacer(size: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      _showIPDialog(context);
+                    },
+                    icon: Icon(Icons.settings_ethernet,
+                        color: Colorz.primaryColor, size: 20),
+                    label: Text(
+                      "Change IP: ${ipController.text}",
+                      style: appStyle(
+                          context, 14, Colorz.primaryColor, FontWeight.w500),
+                    ),
+                  ),
+                ),
+                const HeightSpacer(size: 10),
                 Container(
                   width: MediaQuery.of(context).size.width,
                   decoration: BoxDecoration(

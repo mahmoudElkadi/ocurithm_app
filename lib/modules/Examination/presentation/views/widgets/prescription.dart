@@ -395,15 +395,8 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
     return {
       'diagnosis':
           unDiagnosedYet ? null : diagnosisController.text.toLowerCase(),
-      'medicine': medicationsList,
-      'actions': prescriptionsList
-          .map((action) => {
-                'action': action.action,
-                'data': action.data,
-                'metaData': action.metaData,
-                'eye': action.eye,
-              })
-          .toList(),
+      'medicine': medicationsList.map((m) => m.toJson()).toList(),
+      'actions': prescriptionsList.map((action) => action.toJson()).toList(),
     };
   }
 

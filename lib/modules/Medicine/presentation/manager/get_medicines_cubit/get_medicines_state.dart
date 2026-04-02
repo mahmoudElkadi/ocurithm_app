@@ -7,6 +7,7 @@ class GetMedicinesState {
   final List<CommercialName> medicines;
   final int page;
   final String search;
+  final String? parentId;
   final String? errorMessage;
   final bool hasMore;
   final int totalPages;
@@ -16,6 +17,7 @@ class GetMedicinesState {
     this.medicines = const [],
     this.page = 1,
     this.search = '',
+    this.parentId,
     this.errorMessage,
     this.hasMore = false,
     this.totalPages = 1,
@@ -26,6 +28,8 @@ class GetMedicinesState {
     List<CommercialName>? medicines,
     int? page,
     String? search,
+    String? parentId,
+    bool clearParentId = false,
     String? errorMessage,
     bool? hasMore,
     int? totalPages,
@@ -35,9 +39,11 @@ class GetMedicinesState {
       medicines: medicines ?? this.medicines,
       page: page ?? this.page,
       search: search ?? this.search,
+      parentId: clearParentId ? null : (parentId ?? this.parentId),
       errorMessage: errorMessage ?? this.errorMessage,
       hasMore: hasMore ?? this.hasMore,
       totalPages: totalPages ?? this.totalPages,
     );
   }
 }
+
