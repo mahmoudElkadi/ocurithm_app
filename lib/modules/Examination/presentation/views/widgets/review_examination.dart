@@ -132,7 +132,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                       'Spherical': FormatHelper.formatPositiveValue(
                           cubit.rightAurorefSpherical),
                       'Cylindrical': FormatHelper.formatPositiveValue(
-                          cubit.rightAurorefSpherical),
+                          cubit.rightAurorefCylindrical),
                       'Axis': cubit.rightAurorefAxis,
                     },
                   ),
@@ -215,6 +215,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                       'Palpable Lymph Nodes': cubit.leftPalpableLymphNodes,
                       'Papable Temporal Artery':
                           cubit.leftPapableTemporalArtery,
+                      'Exophthalmometry': cubit.leftExophthalmometry,
                     },
                     dataRE: {
                       'Eyelid Ptosis': cubit.rightEyelidPtosis,
@@ -222,6 +223,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                       'Palpable Lymph Nodes': cubit.rightPalpableLymphNodes,
                       'Papable Temporal Artery':
                           cubit.rightPapableTemporalArtery,
+                      'Exophthalmometry': cubit.rightExophthalmometry,
                     },
                   ),
                   _buildSynchronizedExaminationSection(

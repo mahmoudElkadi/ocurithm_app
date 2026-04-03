@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Action;
-import 'package:ocurithm/core/utils/format_helper.dart';
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/core/utils/format_helper.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/circle_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription_pdf.dart';
@@ -569,7 +569,6 @@ class OneExaminationContent extends StatelessWidget {
     );
   }
 
-
   Widget _buildExaminationSection(
     BuildContext context, {
     required String title,
@@ -1097,10 +1096,10 @@ class OneExaminationContent extends StatelessWidget {
             sectionIndex: 2,
             dataMapper: (isLeft) => {
               'Spherical': isLeft
-                  ? FormatHelper.formatPositiveValue(examination.examination
-                      ?.measurements[0].refinedRefractionSpherical)
-                  : FormatHelper.formatPositiveValue(examination.examination
-                      ?.measurements[1].refinedRefractionSpherical),
+                  ? FormatHelper.formatPositiveValue(examination
+                      .examination?.measurements[0].refinedRefractionSpherical)
+                  : FormatHelper.formatPositiveValue(examination
+                      .examination?.measurements[1].refinedRefractionSpherical),
               'Cylindrical': isLeft
                   ? FormatHelper.formatPositiveValue(examination.examination
                       ?.measurements[0].refinedRefractionCylindrical)
@@ -1151,8 +1150,8 @@ class OneExaminationContent extends StatelessWidget {
                   ? examination.examination?.measurements[0].meansOfMeasurement
                   : examination.examination?.measurements[1].meansOfMeasurement,
               'Acquire Another IOP Measurement': isLeft
-                  ? examination.examination?.measurements[0]
-                      .acquireAnotherIopMeasurement
+                  ? examination
+                      .examination?.measurements[0].acquireAnotherIopMeasurement
                   : examination.examination?.measurements[1]
                       .acquireAnotherIopMeasurement,
             },
@@ -1175,12 +1174,13 @@ class OneExaminationContent extends StatelessWidget {
                   : examination
                       .examination?.measurements[1].pupilsLightReflexTest,
               'Near Reflex': isLeft
-                  ? examination.examination?.measurements[0].pupilsNearReflexTest
+                  ? examination
+                      .examination?.measurements[0].pupilsNearReflexTest
                   : examination
                       .examination?.measurements[1].pupilsNearReflexTest,
               'Swinging Flashlight': isLeft
-                  ? examination.examination?.measurements[0]
-                      .pupilsSwingingFlashLightTest
+                  ? examination
+                      .examination?.measurements[0].pupilsSwingingFlashLightTest
                   : examination.examination?.measurements[1]
                       .pupilsSwingingFlashLightTest,
               'Other Disorders': isLeft
@@ -1214,6 +1214,9 @@ class OneExaminationContent extends StatelessWidget {
                       .examination?.measurements[0].palpableTemporalArtery
                   : examination
                       .examination?.measurements[1].palpableTemporalArtery,
+              'Exophthalmometry': isLeft
+                  ? examination.examination?.measurements[0].exophthalmometry
+                  : examination.examination?.measurements[1].exophthalmometry,
             },
           ),
           _buildSectionComparison(
@@ -1243,7 +1246,8 @@ class OneExaminationContent extends StatelessWidget {
                       : examination.examination?.measurements[1].lens)
                   .join(', '),
               'Anterior Vitreous': (isLeft
-                      ? examination.examination?.measurements[0].anteriorVitreous
+                      ? examination
+                          .examination?.measurements[0].anteriorVitreous
                       : examination
                           .examination?.measurements[1].anteriorVitreous)
                   .join(', '),
