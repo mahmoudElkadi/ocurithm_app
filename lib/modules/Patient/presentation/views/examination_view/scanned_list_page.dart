@@ -16,6 +16,9 @@ import 'package:ocurithm/modules/Patient/data/model/scan_records_model.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_patient_scans_cubit/get_patient_scans_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/scan_actions_cubit/scan_actions_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/examination_view/scan_details_page.dart';
+import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
+import 'package:ocurithm/core/widgets/fullscreen_image_viewer.dart';
+import 'package:ocurithm/core/widgets/real_dicom_viewer.dart';
 
 class ScannedListPage extends StatefulWidget {
   final String patientId;
@@ -596,6 +599,99 @@ class _ScannedListPageState extends State<ScannedListPage> {
                     ],
                   ),
                 ],
+                if (scan.files.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 70,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: scan.files.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 8),
+                      itemBuilder: (context, fileIndex) {
+                        final file = scan.files[fileIndex];
+                        final isDicom =
+                            file.key?.toLowerCase().endsWith('.dcm') == true ||
+                                file.url?.toLowerCase().endsWith('.dcm') ==
+                                    true;
+                        final allImageUrls = scan.files
+                            .where((f) => f.url != null)
+                            .map((f) => f.url!)
+                            .toList();
+
+                        return GestureDetector(
+                          onTap: () {
+                            if (file.url != null) {
+                              if (isDicom) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RealDicomViewer(
+                                      url: file.url,
+                                      showMetadata: true,
+                                      heroTag:
+                                          file.url ?? "list_${scan.id}_$fileIndex",
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                final initialIdx = allImageUrls.indexOf(file.url!);
+                                Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    opaque: false,
+                                    barrierColor: Colors.transparent,
+                                    pageBuilder: (context, _, __) =>
+                                        FullscreenImageViewer(
+                                      imageUrls: allImageUrls,
+                                      initialIndex: initialIdx != -1 ? initialIdx : 0,
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: Hero(
+                            tag: file.url ?? "list_${scan.id}_$fileIndex",
+                            child: Container(
+                              width: 70,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.grey[800]!
+                                      : Colors.grey[200]!,
+                                ),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: isDicom
+                                  ? DicomImageWidget(
+                                      url: file.url,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context) =>
+                                          _buildErrorPlaceholder(isDark),
+                                    )
+                                  : Image.network(
+                                      file.url ?? "",
+                                      fit: BoxFit.cover,
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return _buildImagePlaceholder(isDark);
+                                      },
+                                      errorBuilder: (context, error,
+                                              stackTrace) =>
+                                          _buildErrorPlaceholder(isDark),
+                                    ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 // View Details Button
                 SizedBox(
@@ -821,6 +917,29 @@ class _ScannedListPageState extends State<ScannedListPage> {
             ),
             child: const Text("Retry"),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder(bool isDark) {
+    return Shimmer.fromColors(
+      baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+      child: Container(color: Colors.grey),
+    );
+  }
+
+  Widget _buildErrorPlaceholder(bool isDark) {
+    return Container(
+      color: isDark ? Colors.grey[900] : Colors.grey[200],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.broken_image_outlined, color: Colors.grey[400]),
+          const SizedBox(height: 4),
+          const Text("DCM/Unknown",
+              style: TextStyle(fontSize: 8, color: Colors.grey)),
         ],
       ),
     );

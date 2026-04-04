@@ -502,106 +502,204 @@ class _AppointmentsSection extends StatelessWidget {
     final statusColor = _getStatusColor(appointment.status);
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
+      margin: EdgeInsets.only(bottom: 15.h),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-            color:
-                Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+        ),
         boxShadow: [
           BoxShadow(
-            color:
-                Theme.of(context).shadowColor.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.06),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Padding(
-        padding: EdgeInsets.all(15.w),
-        child: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(10.w),
+      child: Stack(
+        children: [
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              width: 100.w,
+              height: 100.h,
               decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.calendar_month_rounded,
-                color: statusColor,
-                size: 20.sp,
+                gradient: RadialGradient(
+                  colors: [
+                    statusColor.withValues(alpha: 0.05),
+                    Colors.transparent,
+                  ],
+                  center: Alignment.topRight,
+                  radius: 1,
+                ),
               ),
             ),
-            SizedBox(width: 15.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          appointment.typeName ?? 'General',
-                          style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.color,
+          ),
+          Padding(
+            padding: EdgeInsets.all(18.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10.w),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.calendar_month_rounded,
+                        color: statusColor,
+                        size: 22.sp,
+                      ),
+                    ),
+                    SizedBox(width: 14.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  appointment.typeName ?? 'General Visit',
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.3,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10.w, vertical: 4.h),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  appointment.status?.toUpperCase() ?? 'N/A',
+                                  style: TextStyle(
+                                    fontSize: 10.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: statusColor,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          SizedBox(height: 4.h),
+                          Text(
+                            _formatDate(appointment.date),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey[500],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (appointment.description != null &&
+                    appointment.description!.isNotEmpty) ...[
+                  Padding(
+                    padding: EdgeInsets.only(top: 15.h),
+                    child: Container(
+                      padding: EdgeInsets.all(12.w),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .disabledColor
+                            .withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.05),
                         ),
                       ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 8.w, vertical: 3.h),
-                        decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          appointment.status ?? 'N/A',
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.w600,
-                            color: statusColor,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.notes_rounded,
+                                  size: 14.sp, color: Colorz.primaryColor),
+                              SizedBox(width: 6.w),
+                              Text(
+                                "Clinical Notes",
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colorz.primaryColor,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            appointment.description!,
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.color
+                                  ?.withValues(alpha: 0.8),
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  SizedBox(height: 6.h),
-                  Row(
+                ],
+                Padding(
+                  padding: EdgeInsets.only(top: 15.h),
+                  child: Row(
                     children: [
-                      Icon(Icons.person_outline_rounded,
-                          size: 13.sp, color: Colors.grey),
-                      SizedBox(width: 4.w),
+                      Container(
+                        padding: EdgeInsets.all(4.w),
+                        decoration: BoxDecoration(
+                          color: Colorz.primaryColor.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.person_outline_rounded,
+                            size: 14.sp, color: Colorz.primaryColor),
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Attending Physician: ',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.grey[500],
+                        ),
+                      ),
                       Text(
                         'Dr. ${appointment.doctorName ?? 'N/A'}',
                         style: TextStyle(
-                            fontSize: 12.sp, color: Colors.grey[600]),
-                      ),
-                      SizedBox(width: 12.w),
-                      Icon(Icons.access_time_rounded,
-                          size: 13.sp, color: Colors.grey),
-                      SizedBox(width: 4.w),
-                      Text(
-                        _formatDate(appointment.date),
-                        style: TextStyle(
-                            fontSize: 12.sp, color: Colors.grey[600]),
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

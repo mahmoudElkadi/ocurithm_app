@@ -74,6 +74,7 @@ class PatientAppointment {
   final String? doctorName;
   final String? date;
   final String? branchName;
+  final String? description;
 
   PatientAppointment({
     this.id,
@@ -82,6 +83,7 @@ class PatientAppointment {
     this.doctorName,
     this.date,
     this.branchName,
+    this.description,
   });
 
   factory PatientAppointment.fromJson(Map<String, dynamic> json) {
@@ -92,6 +94,7 @@ class PatientAppointment {
       doctorName: json['doctorName'],
       date: json['date'],
       branchName: json['branchName'],
+      description: json['description'],
     );
   }
 }
