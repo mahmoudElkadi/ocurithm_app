@@ -62,6 +62,17 @@ import '../../modules/Login/data/repos/login_repo_impl.dart';
 import '../../modules/Login/presentation/manger/login_cubit/login_cubit.dart';
 import '../../modules/Storage/data/repos/storage_repo.dart';
 import '../../modules/Storage/presentation/manager/storage_cubit/storage_cubit.dart';
+import '../../modules/Category/data/repos/category_repo.dart';
+import '../../modules/Category/data/repos/category_repo_impl.dart';
+import '../../modules/Category/presentation/manager/get_categories_cubit/get_categories_cubit.dart';
+import '../../modules/Category/presentation/manager/category_actions_cubit/category_actions_cubit.dart';
+import '../../modules/SubCategory/data/repos/sub_category_repo.dart';
+import '../../modules/SubCategory/data/repos/sub_category_repo_impl.dart';
+import '../../modules/SubCategory/presentation/manager/get_sub_categories_cubit/get_sub_categories_cubit.dart';
+import '../../modules/SubCategory/presentation/manager/sub_category_actions_cubit/sub_category_actions_cubit.dart';
+
+
+
 
 import '../../modules/profile/data/repos/profile_repo.dart';
 import '../../modules/profile/data/repos/profile_repo_impl.dart';
@@ -211,5 +222,18 @@ class ServiceLocator {
     ///Appointment
     sl.registerLazySingleton<AppointmentRepo>(() => AppointmentRepoImpl());
     sl.registerFactory(() => AppointmentCubit(sl.call<AppointmentRepo>()));
+
+    ///Categories
+    sl.registerLazySingleton<CategoryRepo>(() => CategoryRepoImpl());
+    sl.registerFactory(() => GetCategoriesCubit(sl.call<CategoryRepo>()));
+    sl.registerFactory(() => CategoryActionsCubit(sl.call<CategoryRepo>()));
+
+    ///SubCategories
+    sl.registerLazySingleton<SubCategoryRepo>(() => SubCategoryRepoImpl());
+    sl.registerFactory(() => GetSubCategoriesCubit(sl.call<SubCategoryRepo>()));
+    sl.registerFactory(() => SubCategoryActionsCubit(sl.call<SubCategoryRepo>()));
   }
 }
+
+
+

@@ -13,7 +13,9 @@ class ClinicsModel {
 
   factory ClinicsModel.fromJson(Map<String, dynamic> json) {
     return ClinicsModel(
-      clinics: json["clinics"] == null ? [] : List<Clinic>.from(json["clinics"]!.map((x) => Clinic.fromJson(x))),
+      clinics: json["clinics"] == null
+          ? []
+          : List<Clinic>.from(json["clinics"]!.map((x) => Clinic.fromJson(x))),
       total: json["total"],
       totalPages: json["totalPages"],
       error: json["error"],
@@ -21,7 +23,7 @@ class ClinicsModel {
   }
 
   Map<String, dynamic> toJson() => {
-        "clinics": clinics.map((x) => x?.toJson()).toList(),
+        "clinics": clinics.map((x) => x.toJson()).toList(),
         "total": total,
         "totalPages": totalPages,
         "error": error,
@@ -47,7 +49,10 @@ class Clinic {
   String? id;
   String? error;
 
-  factory Clinic.fromJson(Map<String, dynamic> json) {
+  static Clinic fromJson(dynamic json) {
+    if (json is String) {
+      return Clinic(id: json);
+    }
     return Clinic(
       name: json["name"],
       description: json["description"],

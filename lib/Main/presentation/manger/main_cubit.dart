@@ -11,6 +11,10 @@ import 'package:ocurithm/modules/Chat/presentation/manager/chat_socket_bloc/chat
 import 'package:ocurithm/modules/Examination%20Type/presentation/views/examination_type_view.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
+import 'package:ocurithm/modules/Category/presentation/views/category_view.dart';
+import 'package:ocurithm/modules/SubCategory/presentation/views/sub_category_view.dart';
+
+
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
@@ -153,7 +157,19 @@ class MainCubit extends Cubit<MainState> {
         const MedicineView(),
         "assets/icons/medicine.svg"
       ],
+      "manageCategories": [
+        "Categories",
+        const CategoryView(),
+        "assets/icons/examination.svg"
+      ],
+      "manageSubCategories": [
+        "Sub-Categories",
+        const SubCategoryView(),
+        "assets/icons/status.svg"
+      ],
     };
+
+
 
     // Define groups structure
     Map<String, List<String>> groupStructure = {
@@ -173,7 +189,12 @@ class MainCubit extends Cubit<MainState> {
         "managePaymentMethods",
         "manageMedicines"
       ],
+      "Product": [
+        "manageCategories",
+        "manageSubCategories"
+      ],
     };
+
 
     drawerItems = [];
     drawerGroups = [];
