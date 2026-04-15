@@ -7,14 +7,13 @@ import 'package:get/get.dart' as getx;
 import 'package:ocurithm/core/utils/network_connection.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/branch_view.dart';
+import 'package:ocurithm/modules/Category/presentation/views/category_view.dart';
 import 'package:ocurithm/modules/Chat/presentation/manager/chat_socket_bloc/chat_socket_bloc.dart';
 import 'package:ocurithm/modules/Examination%20Type/presentation/views/examination_type_view.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
-import 'package:ocurithm/modules/Category/presentation/views/category_view.dart';
+import 'package:ocurithm/modules/Product/presentation/views/product_view.dart';
 import 'package:ocurithm/modules/SubCategory/presentation/views/sub_category_view.dart';
-
-
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
@@ -167,9 +166,12 @@ class MainCubit extends Cubit<MainState> {
         const SubCategoryView(),
         "assets/icons/status.svg"
       ],
+      "manageProducts": [
+        "Products",
+        const ProductView(),
+        "assets/icons/status.svg"
+      ],
     };
-
-
 
     // Define groups structure
     Map<String, List<String>> groupStructure = {
@@ -189,12 +191,8 @@ class MainCubit extends Cubit<MainState> {
         "managePaymentMethods",
         "manageMedicines"
       ],
-      "Product": [
-        "manageCategories",
-        "manageSubCategories"
-      ],
+      "Product": ["manageCategories", "manageSubCategories", "manageProducts"],
     };
-
 
     drawerItems = [];
     drawerGroups = [];

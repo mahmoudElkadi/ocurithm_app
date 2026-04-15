@@ -70,6 +70,10 @@ import '../../modules/SubCategory/data/repos/sub_category_repo.dart';
 import '../../modules/SubCategory/data/repos/sub_category_repo_impl.dart';
 import '../../modules/SubCategory/presentation/manager/get_sub_categories_cubit/get_sub_categories_cubit.dart';
 import '../../modules/SubCategory/presentation/manager/sub_category_actions_cubit/sub_category_actions_cubit.dart';
+import '../../modules/Product/data/repos/product_repo.dart';
+import '../../modules/Product/data/repos/product_repo_impl.dart';
+import '../../modules/Product/presentation/manager/get_products_cubit/get_products_cubit.dart';
+import '../../modules/Product/presentation/manager/product_actions_cubit/product_actions_cubit.dart';
 
 
 
@@ -98,6 +102,8 @@ import '../../modules/Appointment/data/repos/appointment_repo.dart';
 import '../../modules/Appointment/data/repos/appointment_repo_impl.dart';
 import '../../modules/Appointment/presentation/manager/Appointment cubit/appointment_cubit.dart';
 import '../api/api_handler.dart';
+
+import '../../modules/Product/presentation/manager/get_single_product_cubit/get_single_product_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -231,7 +237,14 @@ class ServiceLocator {
     ///SubCategories
     sl.registerLazySingleton<SubCategoryRepo>(() => SubCategoryRepoImpl());
     sl.registerFactory(() => GetSubCategoriesCubit(sl.call<SubCategoryRepo>()));
-    sl.registerFactory(() => SubCategoryActionsCubit(sl.call<SubCategoryRepo>()));
+    sl.registerFactory(
+        () => SubCategoryActionsCubit(sl.call<SubCategoryRepo>()));
+
+    ///Products
+    sl.registerLazySingleton<ProductRepo>(() => ProductRepoImpl());
+    sl.registerFactory(() => GetProductsCubit(sl.call<ProductRepo>()));
+    sl.registerFactory(() => ProductActionsCubit(sl.call<ProductRepo>()));
+    sl.registerFactory(() => GetSingleProductCubit(sl.call<ProductRepo>()));
   }
 }
 

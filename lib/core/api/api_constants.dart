@@ -79,4 +79,5 @@ class ApiConstants {
   static String get categories => "categories";
 
   static String get subCategories => "subCategories";
+  static String get products => "products";
 }
