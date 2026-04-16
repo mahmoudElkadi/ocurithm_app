@@ -159,7 +159,7 @@ class _ProductFormBottomSheetState extends State<ProductFormBottomSheet> {
                     required: true,
                     radius: 30,
                     fillColor: theme.cardColor,
-                    isShadow: true,
+                    isShadow: false,
                     hintText: "Product Name",
                     validator: (v) =>
                         v == null || v.isEmpty ? "Name is required" : null,
@@ -170,7 +170,7 @@ class _ProductFormBottomSheetState extends State<ProductFormBottomSheet> {
                     required: true,
                     radius: 30,
                     fillColor: theme.cardColor,
-                    isShadow: true,
+                    isShadow: false,
                     hintText: "Price",
                     type: TextInputType.number,
                     validator: (v) {
@@ -188,7 +188,7 @@ class _ProductFormBottomSheetState extends State<ProductFormBottomSheet> {
                     required: false,
                     radius: 30,
                     fillColor: theme.cardColor,
-                    isShadow: true,
+                    isShadow: false,
                     hintText: "SKU (Optional)",
                   ),
                   const HeightSpacer(size: 15),
@@ -197,7 +197,7 @@ class _ProductFormBottomSheetState extends State<ProductFormBottomSheet> {
                     required: false,
                     radius: 30,
                     fillColor: theme.cardColor,
-                    isShadow: true,
+                    isShadow: false,
                     hintText: "Description (Optional)",
                     maxLines: 3,
                   ),
@@ -209,7 +209,7 @@ class _ProductFormBottomSheetState extends State<ProductFormBottomSheet> {
                         return DropdownItem(
                           radius: 30,
                           color: theme.cardColor,
-                          isShadow: true,
+                          isShadow: false,
                           items: state.clinics?.clinics ?? [],
                           selectedValue: state.clinics?.clinics
                               .where((c) => c.id == _selectedClinicId)
@@ -229,7 +229,7 @@ class _ProductFormBottomSheetState extends State<ProductFormBottomSheet> {
                       return DropdownItem(
                         radius: 30,
                         color: theme.cardColor,
-                        isShadow: true,
+                        isShadow: false,
                         items: state.subCategories?.subCategories ?? [],
                         selectedValue: state.subCategories?.subCategories
                             .where((sc) => sc.id == _selectedSubCategoryId)
@@ -334,12 +334,14 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(15),
               color: theme.cardColor,
               border: Border.all(color: theme.primaryColor)),
           child: _isUploading
               ? const Center(child: CircularProgressIndicator())
-              : ClipOval(
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
                   child: _imageFile != null
                       ? Image.file(_imageFile!, fit: BoxFit.cover)
                       : widget.initialImageUrl != null

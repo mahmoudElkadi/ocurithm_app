@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hexcolor/hexcolor.dart';
 
 import '../../Main/presentation/views/drawer.dart';
 import '../utils/app_style.dart';
@@ -10,8 +9,16 @@ class CustomScaffold extends StatelessWidget {
   final String title;
   final List<Widget>? actions;
   final bool showTitle;
+  final Widget? leading;
 
-  const CustomScaffold({super.key, required this.body, required this.title, this.actions, this.showTitle = true});
+  const CustomScaffold({
+    super.key,
+    required this.body,
+    required this.title,
+    this.actions,
+    this.showTitle = true,
+    this.leading,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,23 +33,28 @@ class CustomScaffold extends StatelessWidget {
             scrolledUnderElevation: 0,
             title: Text(
               title,
-              style: appStyle(context, 22, showTitle ? Colorz.primaryColor : Colors.transparent, FontWeight.bold),
+              style: appStyle(
+                  context,
+                  22,
+                  showTitle ? Colorz.primaryColor : Colors.transparent,
+                  FontWeight.bold),
             ),
             actions: actions,
             centerTitle: true,
-            leading: Builder(
-              builder: (context) {
-                return IconButton(
-                  icon: Icon(
-                    Icons.menu,
-                    color: Colorz.primaryColor,
-                  ), // Change this to your custom icon
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
+            leading: leading ??
+                Builder(
+                  builder: (context) {
+                    return IconButton(
+                      icon: Icon(
+                        Icons.menu,
+                        color: Colorz.primaryColor,
+                      ), // Change this to your custom icon
+                      onPressed: () {
+                        Scaffold.of(context).openDrawer();
+                      },
+                    );
                   },
-                );
-              },
-            ),
+                ),
           ),
           drawer: CustomDrawer(),
           body: body),

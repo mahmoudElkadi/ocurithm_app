@@ -24,6 +24,8 @@ import '../../../modules/Doctor/presentation/views/Doctor Dashboard/presentation
 import '../../../modules/Login/presentation/view/login_view.dart';
 import '../../../modules/Medicine/presentation/views/medicine_view.dart';
 import '../../../modules/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
+import 'package:ocurithm/modules/PurchaseOrder/presentation/views/purchase_order_view.dart';
+import 'package:ocurithm/modules/Supplier/presentation/views/supplier_view.dart';
 import 'main_state.dart';
 
 class MainCubit extends Cubit<MainState> {
@@ -102,8 +104,10 @@ class MainCubit extends Cubit<MainState> {
   int notificationIndex = -1;
 
   Future<List<DrawerGroup>> getStatusList({context}) async {
-    List capabilities = CacheHelper.getStringList(key: "capabilities");
-    capabilities.add("dashboard");
+    List<String> capabilities = List.from(CacheHelper.getStringList(key: "capabilities"));
+    if (!capabilities.contains("dashboard")) {
+      capabilities.add("dashboard");
+    }
 
     Map<String, List<dynamic>> statusMappings = {
       "dashboard": [
@@ -159,17 +163,27 @@ class MainCubit extends Cubit<MainState> {
       "manageCategories": [
         "Categories",
         const CategoryView(),
-        "assets/icons/examination.svg"
+        "assets/icons/category.svg"
       ],
       "manageSubCategories": [
         "Sub-Categories",
         const SubCategoryView(),
-        "assets/icons/status.svg"
+        "assets/icons/subcategories.svg"
       ],
       "manageProducts": [
         "Products",
         const ProductView(),
-        "assets/icons/status.svg"
+        "assets/icons/products.svg"
+      ],
+      "manageSuppliers": [
+        "Suppliers",
+        const SupplierView(),
+        "assets/icons/suppliers.svg"
+      ],
+      "managePurchaseOrders": [
+        "Purchase Orders",
+        const PurchaseOrderView(),
+        "assets/icons/po.svg"
       ],
     };
 
@@ -191,7 +205,13 @@ class MainCubit extends Cubit<MainState> {
         "managePaymentMethods",
         "manageMedicines"
       ],
-      "Product": ["manageCategories", "manageSubCategories", "manageProducts"],
+      "Product": [
+        "manageCategories",
+        "manageSubCategories",
+        "manageProducts",
+        "manageSuppliers",
+        "managePurchaseOrders"
+      ],
     };
 
     drawerItems = [];
@@ -199,18 +219,20 @@ class MainCubit extends Cubit<MainState> {
     pages = [];
     int pageIndex = 0;
 
-    if (capabilities.isNotEmpty) {
-      int groupIndex = 0;
-      for (var groupEntry in groupStructure.entries) {
-        String groupName = groupEntry.key;
-        List<String> groupCapabilities = groupEntry.value;
-        List<DrawerItem> groupItems = [];
+    int groupIndex = 0;
+    for (var groupEntry in groupStructure.entries) {
+      String groupName = groupEntry.key;
+      List<String> groupCapabilities = groupEntry.value;
+      List<DrawerItem> groupItems = [];
 
-        for (String capability in groupCapabilities) {
-          if ((capabilities.contains(capability) ||
-                  capabilities.contains("manageCapability")) &&
-              statusMappings.containsKey(capability)) {
-            var mappingData = statusMappings[capability]!;
+      for (String capability in groupCapabilities) {
+        bool hasAccess = capabilities.contains(capability) ||
+            capabilities.contains("manageCapability") ||
+            (groupName == "Product" &&
+                capabilities.contains("manageProducts"));
+
+        if (hasAccess && statusMappings.containsKey(capability)) {
+          var mappingData = statusMappings[capability]!;
 
             DrawerItem item = DrawerItem(
               icon: mappingData[2],
@@ -244,32 +266,33 @@ class MainCubit extends Cubit<MainState> {
 
       // Start with all groups collapsed
       _expandedGroupIndex = null;
-    }
 
-    if (drawerItems.isEmpty || pages.isEmpty || capabilities == []) {
-      await logOut();
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Login Failed"),
-            content: const Text(
-                "You don't have permission to access this application"),
-            actions: [
-              TextButton(
-                child: Text(
-                  "OK",
-                  style: appStyle(context, 18, Colors.black, FontWeight.w600),
+    if (drawerItems.isEmpty || pages.isEmpty || capabilities.isEmpty) {
+      if (context != null) {
+        await logOut();
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Login Failed"),
+              content: const Text(
+                  "You don't have permission to access this application"),
+              actions: [
+                TextButton(
+                  child: Text(
+                    "OK",
+                    style: appStyle(context, 18, Colors.black, FontWeight.w600),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Dismiss the dialog
+                  },
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop(); // Dismiss the dialog
-                },
-              ),
-            ],
-          );
-        },
-      );
-      emit(LogOutUserSuccess());
+              ],
+            );
+          },
+        );
+        emit(LogOutUserSuccess());
+      }
     }
 
     emit(DrawerItemsLoaded()); // Emit a new state when drawer items are loaded

@@ -146,7 +146,7 @@ class _SubCategoryFormBottomSheetState
                     required: true,
                     radius: 30,
                     fillColor: theme.cardColor,
-                    isShadow: true,
+                    isShadow: false,
                     hintText: "Sub-Category Name",
                     validator: (v) =>
                         v == null || v.isEmpty ? "Name is required" : null,
@@ -157,7 +157,7 @@ class _SubCategoryFormBottomSheetState
                     required: false,
                     radius: 30,
                     fillColor: theme.cardColor,
-                    isShadow: true,
+                    isShadow: false,
                     hintText: "Description (Optional)",
                   ),
                   const HeightSpacer(size: 15),
@@ -167,7 +167,7 @@ class _SubCategoryFormBottomSheetState
                       builder: (context, state) {
                         return DropdownItem(
                           radius: 30,
-                          isShadow: true,
+                          isShadow: false,
                           color: theme.cardColor,
                           items: state.clinics?.clinics ?? [],
                           selectedValue: state.clinics?.clinics
@@ -199,7 +199,7 @@ class _SubCategoryFormBottomSheetState
 
                       return DropdownItem(
                         radius: 30,
-                        isShadow: true,
+                        isShadow: false,
                         color: theme.cardColor,
                         items: categories,
                         selectedValue: categories
@@ -301,12 +301,14 @@ class _SubCategoryImagePickerState extends State<SubCategoryImagePicker> {
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(15),
               color: theme.cardColor,
               border: Border.all(color: theme.primaryColor)),
           child: _isUploading
               ? const Center(child: CircularProgressIndicator())
-              : ClipOval(
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
                   child: _imageFile != null
                       ? Image.file(_imageFile!, fit: BoxFit.cover)
                       : widget.initialImageUrl != null
