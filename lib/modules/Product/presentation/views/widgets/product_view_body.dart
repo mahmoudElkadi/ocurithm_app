@@ -46,9 +46,22 @@ class _ProductViewBodyState extends State<ProductViewBody> {
                     message: state.successMessage!);
               }
               if (state.product != null) {
-                context
-                    .read<GetProductsCubit>()
-                    .add(UpdateLocalProductEvent(state.product!));
+                final exists = context
+                        .read<GetProductsCubit>()
+                        .state
+                        .products
+                        ?.products
+                        .any((p) => p.id == state.product!.id) ??
+                    false;
+                if (exists) {
+                  context
+                      .read<GetProductsCubit>()
+                      .add(UpdateLocalProductEvent(state.product!));
+                } else {
+                  context
+                      .read<GetProductsCubit>()
+                      .add(AddLocalProductEvent(state.product!));
+                }
               } else if (state.actingId != null) {
                 // If product is null but actingId exists, it's a deletion
                 context

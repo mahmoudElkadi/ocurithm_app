@@ -62,3 +62,8 @@ class DeleteLocalProductEvent extends GetProductsEvent {
   final String productId;
   DeleteLocalProductEvent(this.productId);
 }
+
+class AddLocalProductEvent extends GetProductsEvent {
+  final Product product;
+  AddLocalProductEvent(this.product);
+}

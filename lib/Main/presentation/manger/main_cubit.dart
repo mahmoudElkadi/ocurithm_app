@@ -26,6 +26,7 @@ import '../../../modules/Medicine/presentation/views/medicine_view.dart';
 import '../../../modules/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
 import 'package:ocurithm/modules/PurchaseOrder/presentation/views/purchase_order_view.dart';
 import 'package:ocurithm/modules/Supplier/presentation/views/supplier_view.dart';
+import 'package:ocurithm/modules/Order/presentation/views/order_view.dart';
 import 'main_state.dart';
 
 class MainCubit extends Cubit<MainState> {
@@ -185,6 +186,11 @@ class MainCubit extends Cubit<MainState> {
         const PurchaseOrderView(),
         "assets/icons/po.svg"
       ],
+      "showOrders": [
+        "Orders",
+        const OrderView(),
+        "assets/icons/po.svg"
+      ],
     };
 
     // Define groups structure
@@ -210,7 +216,8 @@ class MainCubit extends Cubit<MainState> {
         "manageSubCategories",
         "manageProducts",
         "manageSuppliers",
-        "managePurchaseOrders"
+        "managePurchaseOrders",
+        "showOrders"
       ],
     };
 

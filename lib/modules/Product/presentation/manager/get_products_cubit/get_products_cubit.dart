@@ -27,6 +27,7 @@ class GetProductsCubit extends Bloc<GetProductsEvent, GetProductsState> {
     on<ResetProductFilters>(_onResetFilters);
     on<UpdateLocalProductEvent>(_onUpdateLocalProduct);
     on<DeleteLocalProductEvent>(_onDeleteLocalProduct);
+    on<AddLocalProductEvent>(_onAddLocalProduct);
 
     _searchSubject
         .debounceTime(const Duration(milliseconds: 700))
@@ -145,6 +146,16 @@ class GetProductsCubit extends Bloc<GetProductsEvent, GetProductsState> {
       final updatedProducts = state.products!.products
           .where((p) => p.id != event.productId)
           .toList();
+      emit(state.copyWith(
+        products: state.products!.copyWith(products: updatedProducts),
+      ));
+    }
+  }
+
+  void _onAddLocalProduct(
+      AddLocalProductEvent event, Emitter<GetProductsState> emit) {
+    if (state.products != null) {
+      final updatedProducts = [event.product, ...?state.products?.products];
       emit(state.copyWith(
         products: state.products!.copyWith(products: updatedProducts),
       ));

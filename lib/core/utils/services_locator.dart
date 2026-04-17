@@ -59,6 +59,10 @@ import '../../modules/Medicine/data/repos/medicine_repo_impl.dart';
 import '../../modules/Medicine/presentation/manager/get_active_ingredients_cubit/get_active_ingredients_cubit.dart';
 import '../../modules/Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
 import '../../modules/Medicine/presentation/manager/medicine_actions_cubit/medicine_actions_cubit.dart';
+import '../../modules/Order/data/repos/order_repo.dart';
+import '../../modules/Order/data/repos/order_repo_impl.dart';
+import '../../modules/Order/presentation/manager/get_orders_cubit/get_orders_bloc.dart';
+import '../../modules/Order/presentation/manager/order_actions_cubit/order_actions_bloc.dart';
 import '../../modules/Patient/data/repos/patient_repo.dart';
 import '../../modules/Patient/data/repos/patient_repo_impl.dart';
 import '../../modules/Patient/presentation/manager/get_one_examination_cubit/get_one_examination_cubit.dart';
@@ -258,5 +262,10 @@ class ServiceLocator {
         () => GetPurchaseOrdersCubit(sl.call<PurchaseOrderRepo>()));
     sl.registerFactory(
         () => PurchaseOrderActionsCubit(sl.call<PurchaseOrderRepo>()));
+
+    ///Orders
+    sl.registerLazySingleton<OrderRepo>(() => OrderRepoImpl());
+    sl.registerFactory(() => GetOrdersBloc(sl.call<OrderRepo>()));
+    sl.registerFactory(() => OrderActionsBloc(sl.call<OrderRepo>()));
   }
 }
