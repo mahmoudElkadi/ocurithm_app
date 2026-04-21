@@ -138,11 +138,40 @@ class ScanPdfService {
                             : "N/A"),
                     _buildInfoRow(ttfBold, "Doctor:",
                         "Dr. ${scan.doctor?.name ?? 'Unknown'}"),
+                    _buildInfoRow(ttfBold, "Target Eye:", scan.eye ?? "N/A"),
                   ],
                 ),
               ),
             ],
           ),
+          if (scan.investigations.isNotEmpty) ...[
+            pw.Divider(height: 30, color: PdfColors.grey100),
+            pw.Text("Requested Investigations",
+                style: pw.TextStyle(
+                    font: ttfBold, fontSize: 16, color: PdfColors.blue700)),
+            pw.SizedBox(height: 10),
+            pw.Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: scan.investigations.map((investigation) {
+                return pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey100,
+                    borderRadius: pw.BorderRadius.circular(5),
+                  ),
+                  child: pw.Text(
+                    investigation.toUpperCase(),
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
           pw.Divider(height: 40, color: PdfColors.grey100),
           // Clinical Notes
           pw.Text("Clinical Notes",

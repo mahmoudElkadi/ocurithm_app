@@ -19,6 +19,8 @@ import 'package:ocurithm/modules/Patient/presentation/views/examination_view/sca
 import 'package:ocurithm/core/widgets/dicom_image_widget.dart';
 import 'package:ocurithm/core/widgets/fullscreen_image_viewer.dart';
 import 'package:ocurithm/core/widgets/real_dicom_viewer.dart';
+import 'package:ocurithm/core/widgets/pdf_view_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ScannedListPage extends StatefulWidget {
   final String patientId;
@@ -529,6 +531,33 @@ class _ScannedListPageState extends State<ScannedListPage> {
                     );
                   },
                 ),
+                if (scan.eye != null) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.remove_red_eye,
+                            size: 14, color: Colors.orange),
+                        const SizedBox(width: 4),
+                        Text(
+                          scan.eye!,
+                          style: const TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(width: 8),
                 Container(
                   padding:
@@ -578,6 +607,34 @@ class _ScannedListPageState extends State<ScannedListPage> {
                       ),
                     ],
                   ),
+                if (scan.investigations.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: scan.investigations.map((investigation) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colorz.primaryColor.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color:
+                                  Colorz.primaryColor.withValues(alpha: 0.1)),
+                        ),
+                        child: Text(
+                          investigation.toUpperCase(),
+                          style: TextStyle(
+                            color: Colorz.primaryColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
                 if (scan.comment != null && scan.comment!.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Row(
@@ -615,8 +672,14 @@ class _ScannedListPageState extends State<ScannedListPage> {
                             file.key?.toLowerCase().endsWith('.dcm') == true ||
                                 file.url?.toLowerCase().endsWith('.dcm') ==
                                     true;
+                        final isPdf =
+                            file.key?.toLowerCase().endsWith('.pdf') == true ||
+                                file.url?.toLowerCase().endsWith('.pdf') ==
+                                    true;
                         final allImageUrls = scan.files
-                            .where((f) => f.url != null)
+                            .where((f) =>
+                                f.url != null &&
+                                !f.key!.toLowerCase().endsWith('.pdf'))
                             .map((f) => f.url!)
                             .toList();
 
@@ -635,8 +698,19 @@ class _ScannedListPageState extends State<ScannedListPage> {
                                     ),
                                   ),
                                 );
+                              } else if (isPdf) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PdfViewPage(
+                                      url: file.url!,
+                                      title: "Scan Document",
+                                    ),
+                                  ),
+                                );
                               } else {
-                                final initialIdx = allImageUrls.indexOf(file.url!);
+                                final initialIdx =
+                                    allImageUrls.indexOf(file.url!);
                                 Navigator.push(
                                   context,
                                   PageRouteBuilder(
@@ -645,7 +719,8 @@ class _ScannedListPageState extends State<ScannedListPage> {
                                     pageBuilder: (context, _, __) =>
                                         FullscreenImageViewer(
                                       imageUrls: allImageUrls,
-                                      initialIndex: initialIdx != -1 ? initialIdx : 0,
+                                      initialIndex:
+                                          initialIdx != -1 ? initialIdx : 0,
                                     ),
                                   ),
                                 );
@@ -672,19 +747,29 @@ class _ScannedListPageState extends State<ScannedListPage> {
                                       errorBuilder: (context) =>
                                           _buildErrorPlaceholder(isDark),
                                     )
-                                  : Image.network(
-                                      file.url ?? "",
-                                      fit: BoxFit.cover,
-                                      loadingBuilder:
-                                          (context, child, loadingProgress) {
-                                        if (loadingProgress == null)
-                                          return child;
-                                        return _buildImagePlaceholder(isDark);
-                                      },
-                                      errorBuilder: (context, error,
-                                              stackTrace) =>
-                                          _buildErrorPlaceholder(isDark),
-                                    ),
+                                  : isPdf
+                                      ? Container(
+                                          color:
+                                              Colors.red.withValues(alpha: 0.1),
+                                          child: const Center(
+                                            child: Icon(Icons.picture_as_pdf,
+                                                color: Colors.red, size: 30),
+                                          ),
+                                        )
+                                      : Image.network(
+                                          file.url ?? "",
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return _buildImagePlaceholder(
+                                                isDark);
+                                          },
+                                          errorBuilder: (context, error,
+                                                  stackTrace) =>
+                                              _buildErrorPlaceholder(isDark),
+                                        ),
                             ),
                           ),
                         );

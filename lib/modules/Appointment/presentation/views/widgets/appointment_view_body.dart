@@ -634,6 +634,29 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
             const SizedBox(height: 8),
             _buildInfoRow("assets/icons/status.svg",
                 "Status: ${appointment.status ?? 'N/A'}", isDark),
+            if (appointment.createdBy != null) ...[
+              const SizedBox(height: 8),
+              _buildInfoRow(
+                  "assets/icons/doctor.svg",
+                  "Created By: ${appointment.createdBy?.name ?? 'Unknown'}",
+                  isDark),
+            ],
+            if (appointment.createdAt != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.history_toggle_off_rounded,
+                      size: 16,
+                      color: isDark ? Colors.white70 : Colors.black54),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Created At: ${FormatHelper.formatDateTime(appointment.createdAt?.toLocal().toString())}",
+                    style: appStyle(context, 16,
+                        isDark ? Colors.white : Colorz.black, FontWeight.w500),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 8),
             Row(
               children: [

@@ -24,6 +24,8 @@ class ScanActionsCubit extends Bloc<ScanActionsEvent, ScanActionsState> {
         comment: event.comment,
         scanDate: event.scanDate,
         files: event.files,
+        eye: event.eye,
+        investigations: event.investigations,
       );
 
       emit(state.copyWith(

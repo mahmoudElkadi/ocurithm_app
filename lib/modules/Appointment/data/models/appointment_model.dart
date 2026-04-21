@@ -51,7 +51,7 @@ class Appointment {
     required this.status,
     required this.note,
     required this.price,
-    required this.createBy,
+    required this.createdBy,
     required this.createdAt,
     required this.updatedAt,
     required this.id,
@@ -69,7 +69,7 @@ class Appointment {
   String? note;
   String? error;
   num? price;
-  dynamic createBy;
+  CreatedBy? createdBy;
   DateTime? createdAt;
   DateTime? updatedAt;
   String? id;
@@ -95,7 +95,11 @@ class Appointment {
         note: json["note"],
         error: json["error"],
         price: json["price"],
-        createBy: json["createBy"],
+        createdBy: json["createdBy"] == null
+            ? null
+            : json["createdBy"] is String
+                ? CreatedBy(name: "", id: json["createdBy"])
+                : CreatedBy.fromJson(json["createdBy"]),
         createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
         updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
         id: json["id"],
@@ -117,7 +121,7 @@ class Appointment {
         "status": status,
         "note": note,
         "price": price,
-        "createBy": createBy,
+        "createdBy": createdBy?.toJson(),
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,
@@ -134,7 +138,7 @@ class Appointment {
     String? status,
     String? note,
     num? price,
-    dynamic createBy,
+    CreatedBy? createdBy,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? id,
@@ -151,13 +155,35 @@ class Appointment {
       status: status ?? this.status,
       note: note ?? this.note,
       price: price ?? this.price,
-      createBy: createBy ?? this.createBy,
+      createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
       error: error ?? this.error,
     );
   }
+}
+
+class CreatedBy {
+  CreatedBy({
+    required this.name,
+    required this.id,
+  });
+
+  String? name;
+  String? id;
+
+  factory CreatedBy.fromJson(Map<String, dynamic> json) {
+    return CreatedBy(
+      name: json["name"],
+      id: json["id"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        "name": name,
+        "id": id,
+      };
 }
 
 class AppointmentClinic {

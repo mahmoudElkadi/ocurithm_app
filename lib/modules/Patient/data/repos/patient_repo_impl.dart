@@ -20,7 +20,8 @@ class PatientRepoImpl implements PatientRepo {
       "phone": patient.phone?.trim(),
       "password": patient.password,
       "branch": patient.branch?.id,
-    if(patient.email !=null&& patient.email!.isNotEmpty) "email": patient.email?.trim(),
+      if (patient.email != null && patient.email!.isNotEmpty)
+        "email": patient.email?.trim(),
       "address": patient.address?.trim(),
       "username": patient.username?.trim(),
       "gender": patient.gender,
@@ -97,12 +98,13 @@ class PatientRepoImpl implements PatientRepo {
       "name": patient.name?.trim(),
       "phone": patient.phone?.trim(),
       "branch": patient.branch?.id,
-      if(patient.email !=null&& patient.email!.isNotEmpty) "email": patient.email?.trim(),
+      if (patient.email != null && patient.email!.isNotEmpty)
+        "email": patient.email?.trim(),
       "address": patient.address?.trim(),
       "username": patient.username?.trim(),
       "gender": patient.gender,
       "nationality": patient.nationality?.trim(),
-      "nationalID": patient.nationalId?.trim().toString(), 
+      "nationalID": patient.nationalId?.trim().toString(),
       "serialNumber": patient.nationalId?.trim().toString(),
       if (patient.birthDate != null)
         "birthDate": patient.birthDate!.toIso8601String(),
@@ -185,12 +187,16 @@ class PatientRepoImpl implements PatientRepo {
     required String comment,
     required String scanDate,
     required List<String> files,
+    String? eye,
+    List<String>? investigations,
   }) async {
     Map<String, dynamic> data = {
       "doctor": doctorId,
       "comment": comment,
       "scanDate": scanDate,
       "files": files,
+      if (eye != null) "eye": eye,
+      if (investigations != null) "details": investigations,
     };
 
     final response = await _apiHandler.post(

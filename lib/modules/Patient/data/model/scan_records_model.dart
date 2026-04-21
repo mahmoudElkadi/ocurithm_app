@@ -32,6 +32,8 @@ class ScanRecord {
   final String? comment;
   final DateTime? scanDate;
   final List<ScanFile> files;
+  final String? eye;
+  final List<String> investigations;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -42,6 +44,8 @@ class ScanRecord {
     this.comment,
     this.scanDate,
     this.files = const [],
+    this.eye,
+    this.investigations = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -62,6 +66,10 @@ class ScanRecord {
           ? []
           : List<ScanFile>.from(
               json["files"]!.map((x) => ScanFile.fromJson(x))),
+      eye: json["eye"],
+      investigations: json["details"] == null
+          ? []
+          : List<String>.from(json["details"].map((x) => x.toString())),
       createdAt: json["createdAt"] != null
           ? DateTime.tryParse(json["createdAt"])?.toLocal()
           : null,

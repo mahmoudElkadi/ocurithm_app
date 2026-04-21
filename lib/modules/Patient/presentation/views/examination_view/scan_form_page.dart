@@ -32,8 +32,39 @@ class _ScanFormPageState extends State<ScanFormPage> {
   final _commentController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   Doctor? _selectedDoctor;
+  String? _selectedEye;
+  final List<String> _eyes = ['OD', 'OS', 'BL'];
   final List<UploadResponse> _uploadedFiles = [];
   bool _isSaving = false;
+
+  // Investigation options
+  final Map<String, bool> _investigationOptions = {
+    'Corneal': false,
+    'Cataract': false,
+    'B-scan ultransonography': false,
+    'Colored fundoscopy': false,
+    'FFA': false,
+    'OCT': false,
+    'OCTA': false,
+    'GCC': false,
+    'RNFL': false,
+    'Visual field': false,
+    'IOP measurement': false,
+  };
+
+  final Map<String, bool> _cornealOptions = {
+    'Topography': false,
+    'Pentacam': false,
+  };
+
+  final Map<String, bool> _biometryTypes = {
+    'Ultrasound': false,
+    'Optical': false,
+  };
+
+  final Map<String, bool> _biometryFeatures = {
+    'Biometry': false,
+  };
 
   void _showProgressDialog(BuildContext context, StorageCubit cubit) {
     showDialog(
@@ -282,6 +313,132 @@ class _ScanFormPageState extends State<ScanFormPage> {
                             );
                           },
                         ),
+                        const SizedBox(height: 20),
+                        DropdownItem<String>(
+                          label: "Eye",
+                          hintText: "Select Eye",
+                          items: _eyes,
+                          isLoading: false,
+                          itemAsString: (eye) => eye,
+                          onItemSelected: (eye) {
+                            setState(() {
+                              _selectedEye = eye;
+                            });
+                          },
+                          selectedValue: _selectedEye,
+                          iconData: Icon(Icons.remove_red_eye_outlined,
+                              color: Colorz.primaryColor),
+                          color: isDark ? Colors.grey[900] : Colors.grey[50],
+                          radius: 12,
+                          border: isDark ? Colors.grey[800] : Colors.grey[200],
+                        ),
+                        const SizedBox(height: 30),
+                        _buildSectionHeader(
+                            context, "Refer to Investigations", Icons.science),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.grey[900] : Colors.grey[50],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: isDark
+                                    ? Colors.grey[800]!
+                                    : Colors.grey[200]!),
+                          ),
+                          child: Column(
+                            children: _investigationOptions.entries.map((entry) {
+                              return Column(
+                                children: [
+                                  _buildCheckbox(
+                                    context,
+                                    title: entry.key,
+                                    value: entry.value,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _investigationOptions[entry.key] =
+                                            value ?? false;
+                                        if (value == false &&
+                                            entry.key == 'Corneal') {
+                                          _cornealOptions['Topography'] = false;
+                                          _cornealOptions['Pentacam'] = false;
+                                        }
+                                        if (value == false &&
+                                            entry.key == 'Cataract') {
+                                          _biometryFeatures['Biometry'] = false;
+                                          _biometryTypes['Ultrasound'] = false;
+                                          _biometryTypes['Optical'] = false;
+                                        }
+                                      });
+                                    },
+                                  ),
+                                  if (entry.key == 'Corneal' && entry.value)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 32),
+                                      child: Column(
+                                        children:
+                                            _cornealOptions.entries.map((option) {
+                                          return _buildCheckbox(
+                                            context,
+                                            title: option.key,
+                                            value: option.value,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _cornealOptions[option.key] =
+                                                    value ?? false;
+                                              });
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  if (entry.key == 'Cataract' && entry.value)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 32),
+                                      child: Column(
+                                        children:
+                                            _biometryFeatures.entries.map((option) {
+                                          return _buildCheckbox(
+                                            context,
+                                            title: option.key,
+                                            value: option.value,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _biometryFeatures[option.key] =
+                                                    value ?? false;
+                                              });
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  if (entry.key == 'Cataract' &&
+                                      entry.value &&
+                                      _biometryFeatures['Biometry']!)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 64),
+                                      child: Column(
+                                        children:
+                                            _biometryTypes.entries.map((option) {
+                                          return _buildCheckbox(
+                                            context,
+                                            title: option.key,
+                                            value: option.value,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _biometryTypes[option.key] =
+                                                    value ?? false;
+                                              });
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
                         const SizedBox(height: 30),
                         _buildSectionHeader(
                             context, "Clinical Notes", Icons.notes),
@@ -377,7 +534,7 @@ class _ScanFormPageState extends State<ScanFormPage> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
-      allowedExtensions: ['dcm', 'jpg', 'jpeg', 'png'],
+      allowedExtensions: ['dcm', 'jpg', 'jpeg', 'png', 'pdf'],
     );
 
     if (result != null && result.paths.isNotEmpty) {
@@ -492,7 +649,7 @@ class _ScanFormPageState extends State<ScanFormPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              "Supports .DCM, .PNG, .JPG",
+              "Supports .DCM, .PNG, .JPG, .PDF",
               style: TextStyle(
                 color: isDark ? Colors.grey[500] : Colors.grey[500],
                 fontSize: 12,
@@ -550,33 +707,40 @@ class _ScanFormPageState extends State<ScanFormPage> {
                               showMetadata: true,
                             ),
                           )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: file.localPath != null
-                                ? Image.file(
-                                    // Use dart:io File
-                                    // We need to import dart:io
-                                    // But since we can't add imports easily with this tool without overwriting top,
-                                    // Let's assume user has it or we add it.
-                                    // Actually, we'll use dynamic or just check path.
-                                    // See instruction: update ScanFormPage to assign localPath.
-                                    // We will use Image.file
-                                    // Wait, we need 'import 'dart:io';' at the top.
-                                    // I will add it in a separate edit or use 'AssetImage' if it was an asset? No, it's a file.
-                                    // I'll stick to Image.file and ensure import is added.
-                                    // Since I can't add import here, I will use a different tool call or assume it exists/add it.
-                                    // Let's just use Image.file.
-                                    // Wait, I can't easily add the import in this block.
-                                    // I will use extended Image widget or similar?
-                                    // No, I'll add the import in a separate chunk.
-                                    File(file.localPath!),
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            const Icon(Icons.broken_image),
-                                  )
-                                : const Icon(Icons.image_not_supported),
-                          ),
+                        : file.key.toLowerCase().endsWith('.pdf')
+                            ? Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.picture_as_pdf,
+                                        color: Colors.red, size: 32),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      "PDF",
+                                      style: TextStyle(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: file.localPath != null
+                                    ? Image.file(
+                                        File(file.localPath!),
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(Icons.broken_image),
+                                      )
+                                    : const Icon(Icons.image_not_supported),
+                              ),
                   ),
                   Positioned(
                     top: 0,
@@ -601,6 +765,31 @@ class _ScanFormPageState extends State<ScanFormPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCheckbox(BuildContext context,
+      {required String title,
+      required bool value,
+      required Function(bool?) onChanged}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return CheckboxListTile(
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 15,
+          color: value
+              ? Colorz.primaryColor
+              : (isDark ? Colors.white : Colors.black87),
+        ),
+      ),
+      value: value,
+      activeColor: Colorz.primaryColor,
+      controlAffinity: ListTileControlAffinity.leading,
+      onChanged: onChanged,
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      visualDensity: VisualDensity.compact,
     );
   }
 
@@ -691,12 +880,34 @@ class _ScanFormPageState extends State<ScanFormPage> {
 
       final files = _uploadedFiles.map((e) => e.key).toList();
 
+      List<String> selectedInvestigations = [];
+      _investigationOptions.forEach((key, value) {
+        if (value) {
+          selectedInvestigations.add(key.toLowerCase());
+          if (key == 'Corneal') {
+            _cornealOptions.forEach((k, v) {
+              if (v) selectedInvestigations.add(k.toLowerCase());
+            });
+          }
+          if (key == 'Cataract') {
+            if (_biometryFeatures['Biometry'] == true) {
+              selectedInvestigations.add('biometry');
+              _biometryTypes.forEach((k, v) {
+                if (v) selectedInvestigations.add(k.toLowerCase());
+              });
+            }
+          }
+        }
+      });
+
       context.read<ScanActionsCubit>().add(CreateScanRecordEvent(
             patientId: widget.patientId,
             doctorId: _selectedDoctor!.id!,
             comment: _commentController.text,
             scanDate: _selectedDate.toIso8601String(),
             files: files,
+            eye: _selectedEye,
+            investigations: selectedInvestigations,
           ));
     }
   }
