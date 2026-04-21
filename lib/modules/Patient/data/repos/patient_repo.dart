@@ -32,6 +32,8 @@ abstract class PatientRepo {
     required String comment,
     required String scanDate,
     required List<String> files,
+    String? eye,
+    List<String>? investigations,
   });
 
   Future<ScanRecordsModel> getPatientScans({

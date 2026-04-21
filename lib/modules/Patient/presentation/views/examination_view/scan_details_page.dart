@@ -14,6 +14,8 @@ import 'package:ocurithm/modules/Patient/presentation/manager/scan_pdf_service.d
 import 'package:ocurithm/core/widgets/fullscreen_image_viewer.dart';
 import 'package:ocurithm/core/widgets/real_dicom_viewer.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:ocurithm/core/widgets/pdf_view_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ScanDetailsPage extends StatelessWidget {
   final String patientId;
@@ -87,6 +89,11 @@ class ScanDetailsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildTopInfoCard(scan, isDark),
+                    if (scan.investigations.isNotEmpty) ...[
+                      _buildSectionTitle(
+                          "Investigations", Icons.science, isDark),
+                      _buildInvestigationsList(scan, isDark),
+                    ],
                     _buildSectionTitle("Notes", Icons.notes, isDark),
                     _buildNotesCard(scan, isDark),
                     _buildSectionTitle("Images (${scan.files.length})",
@@ -258,7 +265,82 @@ class ScanDetailsPage extends StatelessWidget {
               ),
             ],
           ),
+          if (scan.eye != null) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Divider(),
+            ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.remove_red_eye, color: Colors.green),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Target Eye",
+                        style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                      ),
+                      Text(
+                        scan.eye!,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildInvestigationsList(ScanRecord scan, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border:
+            Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+      ),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: scan.investigations.map((investigation) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colorz.primaryColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border:
+                  Border.all(color: Colorz.primaryColor.withValues(alpha: 0.2)),
+            ),
+            child: Text(
+              investigation.toUpperCase(),
+              style: TextStyle(
+                color: Colorz.primaryColor,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -328,8 +410,12 @@ class ScanDetailsPage extends StatelessWidget {
         final isDicom =
             file.key?.toLowerCase().endsWith('.dcm') == true ||
                 file.url?.toLowerCase().endsWith('.dcm') == true;
+        final isPdf =
+            file.key?.toLowerCase().endsWith('.pdf') == true ||
+                file.url?.toLowerCase().endsWith('.pdf') == true;
         final allImageUrls = scan.files
-            .where((f) => f.url != null)
+            .where((f) =>
+                f.url != null && !f.key!.toLowerCase().endsWith('.pdf'))
             .map((f) => f.url!)
             .toList();
         
@@ -345,6 +431,16 @@ class ScanDetailsPage extends StatelessWidget {
                       url: file.url,
                       showMetadata: true,
                       heroTag: file.url ?? "scan_image_$index",
+                    ),
+                  ),
+                );
+              } else if (isPdf) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PdfViewPage(
+                      url: file.url!,
+                      title: "Scan Document",
                     ),
                   ),
                 );
@@ -379,16 +475,25 @@ class ScanDetailsPage extends StatelessWidget {
                           errorBuilder: (context) =>
                               _buildErrorPlaceholder(isDark),
                         )
-                      : Image.network(
-                          file.url ?? "",
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return _buildImagePlaceholder(isDark);
-                          },
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildErrorPlaceholder(isDark),
-                        ),
+                      : isPdf
+                          ? Container(
+                              color: Colors.red.withValues(alpha: 0.1),
+                              child: const Center(
+                                child: Icon(Icons.picture_as_pdf,
+                                    color: Colors.red, size: 48),
+                              ),
+                            )
+                          : Image.network(
+                              file.url ?? "",
+                              fit: BoxFit.cover,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return _buildImagePlaceholder(isDark);
+                              },
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildErrorPlaceholder(isDark),
+                            ),
                 ),
                 Positioned(
                   bottom: 0,
@@ -408,7 +513,11 @@ class ScanDetailsPage extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      isDicom ? "DICOM ${index + 1}" : "Image ${index + 1}",
+                      isDicom
+                          ? "DICOM ${index + 1}"
+                          : isPdf
+                              ? "PDF ${index + 1}"
+                              : "Image ${index + 1}",
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,

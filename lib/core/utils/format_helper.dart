@@ -40,6 +40,19 @@ class FormatHelper {
     }
   }
 
+  static String formatDateTime(String? dateString) {
+    if (dateString == null || dateString == "null") return 'N/A';
+    try {
+      final DateTime date = DateTime.parse(dateString);
+      return DateFormat('dd-MM-yyyy hh:mm a').format(date);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error parsing date: $e');
+      }
+      return 'Invalid Date'; // or return 'N/A' or any other default value
+    }
+  }
+
   static String formatTimes(context, String? dateString) {
     if (dateString == null || dateString == "null") return 'N/A';
 
@@ -58,15 +71,17 @@ class FormatHelper {
     dynamic formattedTotal = number != null
         ? (number % 1 == 0)
             ? NumberFormat('#,##0').format(num.tryParse(number.toString()) ?? 0)
-            : NumberFormat('#,##0.00').format(num.tryParse(number.toString()) ?? 0)
+            : NumberFormat('#,##0.00')
+                .format(num.tryParse(number.toString()) ?? 0)
         : '0';
 
     return formattedTotal;
   }
 
   static String formatAmount(number) {
-    dynamic formattedTotal =
-        number != null ? NumberFormat('#,##0.00').format(num.tryParse(number.toString()) ?? 0) : '0';
+    dynamic formattedTotal = number != null
+        ? NumberFormat('#,##0.00').format(num.tryParse(number.toString()) ?? 0)
+        : '0';
 
     return formattedTotal;
   }
@@ -112,7 +127,8 @@ class FormatHelper {
 
     // Check if birthday hasn't occurred this year yet
     if (currentDate.month < birthDate.month ||
-        (currentDate.month == birthDate.month && currentDate.day < birthDate.day)) {
+        (currentDate.month == birthDate.month &&
+            currentDate.day < birthDate.day)) {
       age--;
     }
 

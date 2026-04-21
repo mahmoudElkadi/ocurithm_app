@@ -9,6 +9,8 @@ class CreateScanRecordEvent extends ScanActionsEvent {
   final String comment;
   final String scanDate;
   final List<String> files;
+  final String? eye;
+  final List<String>? investigations;
 
   CreateScanRecordEvent({
     required this.patientId,
@@ -16,6 +18,8 @@ class CreateScanRecordEvent extends ScanActionsEvent {
     required this.comment,
     required this.scanDate,
     required this.files,
+    this.eye,
+    this.investigations,
   });
 }
 
