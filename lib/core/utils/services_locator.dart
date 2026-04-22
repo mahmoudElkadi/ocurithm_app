@@ -107,6 +107,13 @@ import '../../modules/profile/data/repos/profile_repo.dart';
 import '../../modules/profile/data/repos/profile_repo_impl.dart';
 import '../../modules/profile/presentation/manager/get_profile_cubit/get_profile_cubit.dart';
 import '../../modules/profile/presentation/manager/profile_actions_cubit/profile_actions_cubit.dart';
+import '../../modules/Accounting/data/repos/accounts_repo.dart';
+import '../../modules/Accounting/data/repos/accounts_repo_impl.dart';
+import '../../modules/Accounting/presentation/manager/get_accounts_cubit/get_accounts_cubit.dart';
+import '../../modules/Accounting/presentation/manager/account_actions_cubit/account_actions_cubit.dart';
+import '../../modules/Accounting/presentation/manager/account_details_cubit/account_details_cubit.dart';
+import '../../modules/Accounting/presentation/manager/account_form_cubit/account_form_cubit.dart';
+import '../../modules/Accounting/presentation/manager/get_transactions_cubit/get_transactions_cubit.dart';
 import '../api/api_handler.dart';
 
 final sl = GetIt.instance;
@@ -122,7 +129,7 @@ class ServiceLocator {
 
     ///Clinics
     sl.registerLazySingleton<ClinicRepo>(() => ClinicRepoImpl());
-    sl.registerFactory(() => GetClinicsCubit(sl.call<ClinicRepo>()));
+    sl.registerLazySingleton(() => GetClinicsCubit(sl.call<ClinicRepo>()));
     sl.registerFactory(() => ClinicActionsCubit(sl.call<ClinicRepo>()));
     sl.registerFactory(() => GetSingleClinicCubit(sl.call<ClinicRepo>()));
 
@@ -267,5 +274,13 @@ class ServiceLocator {
     sl.registerLazySingleton<OrderRepo>(() => OrderRepoImpl());
     sl.registerFactory(() => GetOrdersBloc(sl.call<OrderRepo>()));
     sl.registerFactory(() => OrderActionsBloc(sl.call<OrderRepo>()));
+    ///Accounts
+    sl.registerLazySingleton<AccountsRepo>(() => AccountsRepoImpl());
+    sl.registerLazySingleton(() => GetAccountsCubit(sl.call<AccountsRepo>()));
+    sl.registerFactory(() => AccountActionsCubit(sl.call<AccountsRepo>()));
+    sl.registerFactory(() => AccountDetailsCubit(sl.call<AccountsRepo>()));
+    sl.registerFactoryParam<AccountFormCubit, bool, void>(
+        (isSuperAdmin, _) => AccountFormCubit(sl.call<AccountsRepo>(), isSuperAdmin));
+    sl.registerLazySingleton(() => GetTransactionsCubit(sl.call<AccountsRepo>()));
   }
 }

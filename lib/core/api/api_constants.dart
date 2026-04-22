@@ -85,4 +85,7 @@ class ApiConstants {
   static String get poProductLookup => "purchase-orders/product-lookup";
   static String get orders => "orders";
   static String get orderProductLookup => "orders/product-lookup";
+  static String get accounts => "accounts";
+  static String get accountOwnerOptions => "accounts/owner-options";
+  static String get transactions => "transactions";
 }

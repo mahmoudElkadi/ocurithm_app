@@ -14,6 +14,8 @@ import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
 import 'package:ocurithm/modules/Product/presentation/views/product_view.dart';
 import 'package:ocurithm/modules/SubCategory/presentation/views/sub_category_view.dart';
+import 'package:ocurithm/modules/Accounting/presentation/views/accounts_view.dart';
+import 'package:ocurithm/modules/Accounting/presentation/views/transactions/transactions_view.dart';
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
@@ -191,6 +193,16 @@ class MainCubit extends Cubit<MainState> {
         const OrderView(),
         "assets/icons/po.svg"
       ],
+      "showAccounts": [
+        "Accounts",
+        const AccountsView(),
+        "assets/icons/payment.svg"
+      ],
+      "showTransactions": [
+        "Transactions",
+        const TransactionsView(),
+        "assets/icons/po.svg"
+      ],
     };
 
     // Define groups structure
@@ -218,6 +230,10 @@ class MainCubit extends Cubit<MainState> {
         "manageSuppliers",
         "managePurchaseOrders",
         "showOrders"
+      ],
+      "Accounting": [
+        "showAccounts",
+        "showTransactions",
       ],
     };
 

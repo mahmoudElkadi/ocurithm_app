@@ -33,7 +33,7 @@ class AppointmentModel {
   }
 
   Map<String, dynamic> toJson() => {
-        "appointments": appointments.map((x) => x?.toJson()).toList(),
+        "appointments": appointments.map((x) => x.toJson()).toList(),
         "total": total,
         "totalPages": totalPages,
       };
