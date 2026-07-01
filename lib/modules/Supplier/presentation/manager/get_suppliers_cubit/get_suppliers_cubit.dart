@@ -23,6 +23,7 @@ class GetSuppliersCubit extends Bloc<GetSuppliersEvent, GetSuppliersState> {
     on<SetSupplierClinicFilterEvent>(_onSetClinicFilter);
     on<SetSupplierActiveOnlyFilterEvent>(_onSetActiveOnlyFilter);
     on<ResetSupplierFilters>(_onResetFilters);
+    on<AddLocalSupplierEvent>(_onAddLocalSupplier);
     on<UpdateLocalSupplierEvent>(_onUpdateLocalSupplier);
     on<DeleteLocalSupplierEvent>(_onDeleteLocalSupplier);
 
@@ -115,6 +116,17 @@ class GetSuppliersCubit extends Bloc<GetSuppliersEvent, GetSuppliersState> {
       ResetSupplierFilters event, Emitter<GetSuppliersState> emit) {
     emit(const GetSuppliersState());
     add(GetAllSuppliersEvent(page: 1));
+  }
+
+  void _onAddLocalSupplier(
+      AddLocalSupplierEvent event, Emitter<GetSuppliersState> emit) {
+    final currentSuppliers = state.suppliers?.suppliers ?? [];
+    final updatedList = [event.supplier, ...currentSuppliers];
+    final currentTotal = state.suppliers?.total ?? 0;
+    emit(state.copyWith(
+      suppliers: (state.suppliers ?? SupplierModel(suppliers: []))
+          .copyWith(suppliers: updatedList, total: currentTotal + 1),
+    ));
   }
 
   void _onUpdateLocalSupplier(

@@ -5,6 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/modules/Appointment/data/models/appointment_model.dart';
 import 'package:ocurithm/modules/Examination/data/model/saved_Exam.dart'
     hide Appointment;
+import 'package:ocurithm/modules/Examination/data/catalog/history_catalog.dart';
+import 'package:ocurithm/modules/Examination/data/catalog/complain_catalog.dart';
+import 'package:ocurithm/modules/Examination/data/catalog/measurements_constants.dart';
 
 part 'examination_form_state.dart';
 
@@ -31,6 +34,104 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
 
   Appointment? appointmentData;
   Map<String, dynamic> data = {};
+
+  // ── Structured History (config-driven catalog) ──
+  // Ticked category keys and the flat, globally-keyed values map. The 4 free-text
+  // controllers above remain the legacy "Other notes" surface.
+  final List<String> selectedHistoryCategories = [];
+  final Map<String, dynamic> historyValues = {};
+
+  /// Field keys that belong ONLY to [categoryKey] (not shared with any other
+  /// still-selected category). Used to prune orphaned values on uncheck without
+  /// dropping canonical keys (hba1c, bpSystolic, …) that another section still owns.
+  List<String> _exclusiveFieldKeys(String categoryKey) {
+    final category = historyCategories.firstWhere((c) => c.key == categoryKey,
+        orElse: () => const CategoryDef(key: '', label: '', fieldKeys: []));
+    final keptByOthers = <String>{};
+    for (final other in selectedHistoryCategories) {
+      if (other == categoryKey) continue;
+      final c = historyCategories.firstWhere((c) => c.key == other,
+          orElse: () => const CategoryDef(key: '', label: '', fieldKeys: []));
+      keptByOthers.addAll(c.fieldKeys);
+    }
+    return category.fieldKeys.where((k) => !keptByOthers.contains(k)).toList();
+  }
+
+  void toggleHistoryCategory(String categoryKey, bool selected) {
+    if (selected) {
+      if (!selectedHistoryCategories.contains(categoryKey)) {
+        selectedHistoryCategories.add(categoryKey);
+      }
+    } else {
+      // Prune this category's exclusive values before deselecting.
+      for (final key in _exclusiveFieldKeys(categoryKey)) {
+        historyValues.remove(key);
+      }
+      selectedHistoryCategories.remove(categoryKey);
+    }
+    recomputeHistory(historyValues);
+    emit(ExaminationFormUpdated());
+  }
+
+  void setHistoryValue(String key, dynamic value) {
+    if (value == null || (value is String && value.isEmpty) || (value is List && value.isEmpty)) {
+      historyValues.remove(key);
+    } else {
+      historyValues[key] = value;
+    }
+    // Clear-on-hide: any field whose showIf no longer matches is dropped so a
+    // changed answer wipes its dependent sub-fields.
+    for (final def in historyFields.values) {
+      if (def.key == key) continue;
+      if (!isFieldVisible(def, historyValues)) {
+        historyValues.remove(def.key);
+      }
+    }
+    recomputeHistory(historyValues);
+    emit(ExaminationFormUpdated());
+  }
+
+  // ── Structured Complain (config-driven catalog) ──
+  // Ticked option keys and the flat, option-namespaced values map. The 3 legacy
+  // complain controllers remain the "Other complaints" free-text surface.
+  final List<String> selectedComplaints = [];
+  final Map<String, dynamic> complainValues = {};
+
+  void toggleComplaint(String optionKey, bool selected) {
+    if (selected) {
+      if (!selectedComplaints.contains(optionKey)) {
+        selectedComplaints.add(optionKey);
+      }
+    } else {
+      // Complain keys are option-scoped (never shared), so prune this option's
+      // fields unconditionally on uncheck.
+      final option = complainOptionsByKey[optionKey];
+      if (option != null) {
+        for (final key in option.fieldKeys) {
+          complainValues.remove(key);
+        }
+      }
+      selectedComplaints.remove(optionKey);
+    }
+    emit(ExaminationFormUpdated());
+  }
+
+  void setComplainValue(String key, dynamic value) {
+    if (value == null || (value is String && value.isEmpty) || (value is List && value.isEmpty)) {
+      complainValues.remove(key);
+    } else {
+      complainValues[key] = value;
+    }
+    // Clear-on-hide for any field whose showIf no longer matches (complain has
+    // no showIf today, but this keeps the two stages behaving identically).
+    for (final def in complainFields.values) {
+      if (def.key == key) continue;
+      if (!isFieldVisible(def, complainValues)) {
+        complainValues.remove(def.key);
+      }
+    }
+    emit(ExaminationFormUpdated());
+  }
 
   // --- Left Eye Fields ---
   dynamic leftOldSpherical;
@@ -130,6 +231,49 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
   num rightBottomRightTapCount = 0;
   num rightBottomLeftTapCount = 0;
 
+  // ── Measurements V1 additive fields (per eye) ──
+  dynamic leftCupDiscRatio;
+  dynamic rightCupDiscRatio;
+  dynamic leftVitreousHemorrhageGrade;
+  dynamic rightVitreousHemorrhageGrade;
+
+  /// Set an eye's vitreous findings. Clears that eye's VH grade when "Vitreous
+  /// Hemorrhage" is no longer selected. Emits so the conditional VH-grade field
+  /// shows/hides.
+  void setAnteriorVitreous(bool isLeft, List<dynamic> selected) {
+    if (isLeft) {
+      leftAnteriorVitreous = selected;
+    } else {
+      rightAnteriorVitreous = selected;
+    }
+    final hasVH = selected.contains(vitreousHemorrhageOption);
+    if (!hasVH) {
+      if (isLeft) {
+        leftVitreousHemorrhageGrade = null;
+      } else {
+        rightVitreousHemorrhageGrade = null;
+      }
+    }
+    emit(ExaminationFormUpdated());
+  }
+
+  void setVitreousHemorrhageGrade(bool isLeft, dynamic value) {
+    if (isLeft) {
+      leftVitreousHemorrhageGrade = value;
+    } else {
+      rightVitreousHemorrhageGrade = value;
+    }
+    emit(ExaminationFormUpdated());
+  }
+
+  void setCupDiscRatio(bool isLeft, dynamic value) {
+    if (isLeft) {
+      leftCupDiscRatio = value;
+    } else {
+      rightCupDiscRatio = value;
+    }
+  }
+
   String? action;
 
   @override
@@ -188,6 +332,35 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
   }
 
   Map<String, dynamic> examinationData() {
+    // Legacy free-text history (also the "Other notes" surface). Structured
+    // catalog data is additive — sent only when present so a purely free-text
+    // save stays on the backend's legacy path (no catalogVersion stamped).
+    final Map<String, dynamic> examinationHistory = {
+      "familyHistory": familyHistoryController.text,
+      "presentIllness": presentIllnessController.text,
+      "pastHistory": pastHistoryController.text,
+      "medicationHistory": medicationHistoryController.text,
+    };
+    if (selectedHistoryCategories.isNotEmpty || historyValues.isNotEmpty) {
+      recomputeHistory(historyValues);
+      examinationHistory["selectedCategories"] =
+          List<String>.from(selectedHistoryCategories);
+      examinationHistory["values"] = Map<String, dynamic>.from(historyValues);
+    }
+
+    // Legacy free-text complaints + additive structured complain (sent only when
+    // present so a free-text-only save stays on the backend's legacy path).
+    final Map<String, dynamic> examinationComplain = {
+      "complainOne": oneComplaintController.text,
+      "complainTwo": twoComplaintController.text,
+      "complainThree": threeComplaintController.text
+    };
+    if (selectedComplaints.isNotEmpty || complainValues.isNotEmpty) {
+      examinationComplain["selectedComplaints"] =
+          List<String>.from(selectedComplaints);
+      examinationComplain["values"] = Map<String, dynamic>.from(complainValues);
+    }
+
     return {
       "examinationMainData": {
         "clinic": appointmentData?.clinic?.id,
@@ -196,17 +369,8 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         "type": appointmentData?.examinationType?.id,
         "action": action
       },
-      "examinationHistory": {
-        "familyHistory": familyHistoryController.text,
-        "presentIllness": presentIllnessController.text,
-        "pastHistory": pastHistoryController.text,
-        "medicationHistory": medicationHistoryController.text,
-      },
-      "examinationComplain": {
-        "complainOne": oneComplaintController.text,
-        "complainTwo": twoComplaintController.text,
-        "complainThree": threeComplaintController.text
-      },
+      "examinationHistory": examinationHistory,
+      "examinationComplain": examinationComplain,
       "leftEyeMeasurement": {
         "eye": "Left",
         'oldSpherical': leftOldSpherical,
@@ -245,6 +409,8 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         "fundusMacula": leftFundusMacula,
         "fundusVessels": leftFundusVessels,
         "fundusPeriphery": leftFundusPeriphery,
+        "cupDiscRatio": leftCupDiscRatio,
+        "vitreousHemorrhageGrade": leftVitreousHemorrhageGrade,
         "lids": leftLidsController.text,
         "lashes": leftLashesController.text,
         "sclera": leftScleraController.text,
@@ -293,6 +459,8 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         "fundusMacula": rightFundusMacula,
         "fundusVessels": rightFundusVessels,
         "fundusPeriphery": rightFundusPeriphery,
+        "cupDiscRatio": rightCupDiscRatio,
+        "vitreousHemorrhageGrade": rightVitreousHemorrhageGrade,
         "lids": rightLidsController.text,
         "lashes": rightLashesController.text,
         "sclera": rightScleraController.text,
@@ -425,6 +593,11 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
     leftFundusPeriphery = leftMeas.fundusPeriphery;
     rightFundusPeriphery = rightMeas.fundusPeriphery;
 
+    leftCupDiscRatio = leftMeas.cupDiscRatio;
+    rightCupDiscRatio = rightMeas.cupDiscRatio;
+    leftVitreousHemorrhageGrade = leftMeas.vitreousHemorrhageGrade;
+    rightVitreousHemorrhageGrade = rightMeas.vitreousHemorrhageGrade;
+
     leftLidsController.text = leftMeas.lids ?? '';
     rightLidsController.text = rightMeas.lids ?? '';
     leftLashesController.text = leftMeas.lashes ?? '';
@@ -450,12 +623,28 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
       pastHistoryController.text = exam.history?.pastHistory ?? '';
       medicationHistoryController.text = exam.history?.medicationHistory ?? '';
       familyHistoryController.text = exam.history?.familyHistory ?? '';
+
+      // Structured history round-trip (absent on legacy free-text-only docs).
+      selectedHistoryCategories
+        ..clear()
+        ..addAll(exam.history?.selectedCategories ?? const []);
+      historyValues
+        ..clear()
+        ..addAll(exam.history?.values ?? const {});
     }
 
     if (exam.complain != null) {
       oneComplaintController.text = exam.complain?.complainOne ?? '';
       twoComplaintController.text = exam.complain?.complainTwo ?? '';
       threeComplaintController.text = exam.complain?.complainThree ?? '';
+
+      // Structured complain round-trip (absent on legacy free-text-only docs).
+      selectedComplaints
+        ..clear()
+        ..addAll(exam.complain?.selectedComplaints ?? const []);
+      complainValues
+        ..clear()
+        ..addAll(exam.complain?.values ?? const {});
     }
 
     emit(ExaminationFormUpdated());

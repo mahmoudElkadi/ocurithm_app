@@ -12,6 +12,11 @@ class CustomMultiSelectDropdown extends StatefulWidget {
   final double? radius;
   final double? height;
 
+  /// When true, an "Other" free-text box is shown in the overlay so the doctor can
+  /// add a custom value not in [items]. Any already-selected value not in [items]
+  /// (legacy/custom data) is also rendered as a removable row.
+  final bool allowCustomInput;
+
   const CustomMultiSelectDropdown({
     Key? key,
     required this.items,
@@ -21,6 +26,7 @@ class CustomMultiSelectDropdown extends StatefulWidget {
     required this.onChanged,
     this.radius,
     this.height,
+    this.allowCustomInput = false,
   }) : super(key: key);
 
   @override
@@ -32,6 +38,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
   bool isExpanded = false;
   late List<dynamic> localSelectedValues;
   OverlayEntry? _overlayEntry;
+  final TextEditingController _customController = TextEditingController();
 
   @override
   void initState() {
@@ -40,9 +47,43 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
   }
 
   @override
+  void didUpdateWidget(covariant CustomMultiSelectDropdown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reflect external changes (e.g. loading an existing examination) while the
+    // overlay is closed, without clobbering an in-progress selection.
+    if (!isExpanded && widget.selectedValues != oldWidget.selectedValues) {
+      localSelectedValues = List.from(widget.selectedValues);
+    }
+  }
+
+  @override
   void dispose() {
+    _customController.dispose();
     _overlayEntry?.remove();
     super.dispose();
+  }
+
+  /// Catalog options plus any already-selected value not in them, so legacy /
+  /// custom entries render as checked, removable rows.
+  List<String> _combinedOptions() {
+    final out = <String>[for (final e in widget.items) e.toString()];
+    for (final v in localSelectedValues) {
+      final s = v.toString();
+      if (!out.contains(s)) out.add(s);
+    }
+    return out;
+  }
+
+  void _addCustomValue() {
+    final value = _customController.text.trim();
+    if (value.isEmpty) return;
+    if (!localSelectedValues.contains(value)) {
+      localSelectedValues.add(value);
+      widget.onChanged(List.from(localSelectedValues));
+    }
+    _customController.clear();
+    _overlayEntry?.remove();
+    _showOverlay();
   }
 
   void _showOverlay() {
@@ -81,8 +122,45 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                   ),
                   child: SingleChildScrollView(
                     child: Column(
-                      children: widget.items.map((item) {
-                        final itemStr = item.toString();
+                      children: [
+                      if (widget.allowCustomInput)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _customController,
+                                  style: appStyle(
+                                      context,
+                                      12,
+                                      Theme.of(context).textTheme.bodyLarge?.color ??
+                                          Colors.black,
+                                      FontWeight.w400),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    hintText: 'Other (type to add)…',
+                                    hintStyle: appStyle(context, 12,
+                                        Theme.of(context).hintColor, FontWeight.w400),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 8),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  onSubmitted: (_) => _addCustomValue(),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add_circle,
+                                    color: Colors.green),
+                                onPressed: _addCustomValue,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ..._combinedOptions().map((itemStr) {
                         final isSelected = localSelectedValues.contains(itemStr);
                         return InkWell(
                           onTap: () {
@@ -125,7 +203,8 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
+                      ],
                     ),
                   ),
                 ),

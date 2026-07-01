@@ -4,6 +4,13 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pro_image_editor/pro_image_editor.dart';
+import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/modules/Storage/presentation/manager/storage_cubit/storage_cubit.dart';
+import 'package:ocurithm/modules/Patient/presentation/manager/scan_actions_cubit/scan_actions_cubit.dart';
+import 'package:ocurithm/core/utils/colors.dart';
 
 /// A real DICOM viewer that extracts and displays all frames from a DICOM file.
 /// This viewer properly handles both uncompressed and JPEG-compressed encapsulated pixel data.
@@ -20,12 +27,19 @@ class RealDicomViewer extends StatefulWidget {
   /// Optional Hero tag for animations
   final String? heroTag;
 
+  final String? patientId;
+  final String? scanId;
+  final String? fileId;
+
   const RealDicomViewer({
     super.key,
     this.filePath,
     this.url,
     this.showMetadata = false,
     this.heroTag,
+    this.patientId,
+    this.scanId,
+    this.fileId,
   }) : assert(filePath != null || url != null,
   'Either filePath or url must be provided');
 
@@ -567,6 +581,151 @@ class _RealDicomViewerState extends State<RealDicomViewer> {
     }
   }
 
+  void _openEditor() {
+    if (_frames.isEmpty) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ProImageEditor.memory(
+          _frames[_currentFrameIndex],
+          callbacks: ProImageEditorCallbacks(
+            onImageEditingComplete: (Uint8List bytes) async {
+              await _uploadEditedImage(bytes);
+              if (mounted) {
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showProgressDialog(BuildContext context, StorageCubit cubit) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (dialogContext) {
+        return BlocProvider.value(
+          value: cubit,
+          child: PopScope(
+            canPop: false,
+            child: Material(
+              color: Colors.black.withValues(alpha: 0.6),
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 40),
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      )
+                    ],
+                  ),
+                  child: BlocBuilder<StorageCubit, StorageState>(
+                    builder: (context, state) {
+                      final progress = state.progress;
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 100,
+                                height: 100,
+                                child: CircularProgressIndicator(
+                                  value: progress > 0 ? progress : null,
+                                  strokeWidth: 10,
+                                  backgroundColor: Colors.grey[200],
+                                  color: Colorz.primaryColor,
+                                  strokeCap: StrokeCap.round,
+                                ),
+                              ),
+                              Text(
+                                "${(progress * 100).toInt()}%",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colorz.primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          const Text(
+                            "Uploading Edited Image",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _uploadEditedImage(Uint8List bytes) async {
+    try {
+      final tempDir = Directory.systemTemp;
+      final tempFile = File(
+          '${tempDir.path}/edited_dicom_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(bytes);
+
+      if (!mounted) return;
+      final storageCubit = sl<StorageCubit>();
+      _showProgressDialog(context, storageCubit);
+
+      final uploads = await storageCubit.uploadMultipleFiles(
+        filePaths: [tempFile.path],
+        category: 'patient-scan',
+      );
+
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // Close dialog
+        if (uploads.isNotEmpty) {
+          setState(() {
+            _frames[_currentFrameIndex] = bytes;
+          });
+
+          if (widget.patientId != null && widget.scanId != null && widget.fileId != null) {
+            try {
+              context.read<ScanActionsCubit>().add(EditScanFileEvent(
+                patientId: widget.patientId!,
+                scanId: widget.scanId!,
+                fileId: widget.fileId!,
+                newKey: uploads.first.key,
+              ));
+            } catch (e) {
+              // Ignore if ScanActionsCubit is not available in context
+            }
+          }
+
+          SnackbarService.showSuccess(context,
+              message: "Image uploaded successfully");
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // Close dialog
+        SnackbarService.showError(context, message: "Failed to upload image");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -629,6 +788,12 @@ class _RealDicomViewerState extends State<RealDicomViewer> {
             ),
             onPressed: _toggleMetadata,
             tooltip: 'Toggle metadata',
+          ),
+        if (!_isLoading && _frames.isNotEmpty)
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.white),
+            onPressed: _openEditor,
+            tooltip: 'Edit Image',
           ),
         IconButton(
           icon: const Icon(Icons.refresh, color: Colors.white),

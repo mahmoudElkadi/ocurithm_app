@@ -8,6 +8,8 @@ import '../../../../../core/utils/format_helper.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
 import '../../manager/examination_form_cubit/examination_form_cubit.dart';
 import '../../../../Patient/data/model/one_exam.dart' as one_exam;
+import '../../../data/catalog/history_catalog.dart';
+import '../../../data/catalog/complain_catalog.dart';
 
 class ExaminationPdfService {
   static final PdfColor primaryBlue = PdfColor.fromHex('#4A98F7');
@@ -126,17 +128,25 @@ class ExaminationPdfService {
             pw.SizedBox(height: 15),
             _buildSectionTitle('1. CLINICAL HISTORY & COMPLAINTS', boldFont),
             _buildHistoryAndComplaints(
-              history: {
-                'Family History': examination.history?.familyHistory ?? '',
-                'Present Illness': examination.history?.presentIllness ?? '',
-                'Past History': examination.history?.pastHistory ?? '',
-                'Medication': examination.history?.medicationHistory ?? '',
-              },
-              complaints: {
-                'Complaint 1': examination.complain?.complainOne ?? '',
-                'Complaint 2': examination.complain?.complainTwo ?? '',
-                'Complaint 3': examination.complain?.complainThree ?? '',
-              },
+              history: _mergeStructuredHistory(
+                examination.history?.selectedCategories ?? const [],
+                examination.history?.values ?? const {},
+                {
+                  'Family History': examination.history?.familyHistory ?? '',
+                  'Present Illness': examination.history?.presentIllness ?? '',
+                  'Past History': examination.history?.pastHistory ?? '',
+                  'Medication': examination.history?.medicationHistory ?? '',
+                },
+              ),
+              complaints: _mergeStructuredComplain(
+                examination.complain?.selectedComplaints ?? const [],
+                examination.complain?.values ?? const {},
+                {
+                  'Complaint 1': examination.complain?.complainOne ?? '',
+                  'Complaint 2': examination.complain?.complainTwo ?? '',
+                  'Complaint 3': examination.complain?.complainThree ?? '',
+                },
+              ),
               boldFont: boldFont,
               font: font,
             ),
@@ -263,9 +273,15 @@ class ExaminationPdfService {
                 'Ant. Vitreous':
                     (rightMeasurement.anteriorVitreous as List?)?.join(', ') ??
                         '',
+                if ((rightMeasurement.vitreousHemorrhageGrade ?? '')
+                    .toString()
+                    .isNotEmpty)
+                  'VH Grade': rightMeasurement.vitreousHemorrhageGrade!,
                 'Fundus Disc':
                     (rightMeasurement.fundusOpticDisc as List?)?.join(', ') ??
                         '',
+                if ((rightMeasurement.cupDiscRatio ?? '').toString().isNotEmpty)
+                  'Cup Disc Ratio': rightMeasurement.cupDiscRatio.toString(),
                 'Fundus Macula':
                     (rightMeasurement.fundusMacula as List?)?.join(', ') ?? '',
                 'Fundus Vessels':
@@ -284,9 +300,15 @@ class ExaminationPdfService {
                 'Ant. Vitreous':
                     (leftMeasurement.anteriorVitreous as List?)?.join(', ') ??
                         '',
+                if ((leftMeasurement.vitreousHemorrhageGrade ?? '')
+                    .toString()
+                    .isNotEmpty)
+                  'VH Grade': leftMeasurement.vitreousHemorrhageGrade!,
                 'Fundus Disc':
                     (leftMeasurement.fundusOpticDisc as List?)?.join(', ') ??
                         '',
+                if ((leftMeasurement.cupDiscRatio ?? '').toString().isNotEmpty)
+                  'Cup Disc Ratio': leftMeasurement.cupDiscRatio.toString(),
                 'Fundus Macula':
                     (leftMeasurement.fundusMacula as List?)?.join(', ') ?? '',
                 'Fundus Vessels':
@@ -441,20 +463,67 @@ class ExaminationPdfService {
   static pw.Widget _buildHistoryAndComplaintsFromCubit(
       ExaminationFormCubit cubit, pw.Font boldFont, pw.Font font) {
     return _buildHistoryAndComplaints(
-      history: {
-        'Family History': cubit.familyHistoryController.text,
-        'Present Illness': cubit.presentIllnessController.text,
-        'Past History': cubit.pastHistoryController.text,
-        'Medication': cubit.medicationHistoryController.text,
-      },
-      complaints: {
-        'Complaint 1': cubit.oneComplaintController.text,
-        'Complaint 2': cubit.twoComplaintController.text,
-        'Complaint 3': cubit.threeComplaintController.text,
-      },
+      history: _mergeStructuredHistory(
+        cubit.selectedHistoryCategories,
+        cubit.historyValues,
+        {
+          'Family History': cubit.familyHistoryController.text,
+          'Present Illness': cubit.presentIllnessController.text,
+          'Past History': cubit.pastHistoryController.text,
+          'Medication': cubit.medicationHistoryController.text,
+        },
+      ),
+      complaints: _mergeStructuredComplain(
+        cubit.selectedComplaints,
+        cubit.complainValues,
+        {
+          'Complaint 1': cubit.oneComplaintController.text,
+          'Complaint 2': cubit.twoComplaintController.text,
+          'Complaint 3': cubit.threeComplaintController.text,
+        },
+      ),
       boldFont: boldFont,
       font: font,
     );
+  }
+
+  /// Merge structured checklist entries (visible, non-empty per selected
+  /// category) ahead of the legacy free-text history map for the PDF.
+  static Map<String, dynamic> _mergeStructuredHistory(
+    List<String> selectedCategories,
+    Map<String, dynamic> values,
+    Map<String, dynamic> legacy,
+  ) {
+    final out = <String, dynamic>{};
+    for (final catKey in selectedCategories) {
+      for (final e in visibleHistoryEntries(catKey, values)) {
+        out['${historyCategoryLabel(catKey)} — ${e.key}'] = e.value;
+      }
+    }
+    out.addAll(legacy);
+    return out;
+  }
+
+  /// Merge structured complaint entries (visible fields per selected option;
+  /// zero-field options show as "Present") ahead of the legacy free-text map.
+  static Map<String, dynamic> _mergeStructuredComplain(
+    List<String> selectedComplaints,
+    Map<String, dynamic> values,
+    Map<String, dynamic> legacy,
+  ) {
+    final out = <String, dynamic>{};
+    for (final optKey in selectedComplaints) {
+      final entries = visibleComplainEntries(optKey, values);
+      if (entries.isEmpty) {
+        out[complainOptionLabel(optKey)] = 'Present';
+      } else {
+        for (final e in entries) {
+          out['${complainOptionLabel(optKey)} — ${e.key}'] = e.value;
+        }
+      }
+    }
+    out.addAll(legacy);
+    return out;
   }
 
   static pw.Widget _buildHistoryAndComplaints({
@@ -698,7 +767,11 @@ class ExaminationPdfService {
         'Iris': cubit.rightIris.join(', '),
         'Lens': cubit.rightLens.join(', '),
         'Ant. Vitreous': cubit.rightAnteriorVitreous.join(', '),
+        if ((cubit.rightVitreousHemorrhageGrade ?? '').toString().isNotEmpty)
+          'VH Grade': cubit.rightVitreousHemorrhageGrade.toString(),
         'Fundus Disc': cubit.rightFundusOpticDisc.join(', '),
+        if ((cubit.rightCupDiscRatio ?? '').toString().isNotEmpty)
+          'Cup Disc Ratio': cubit.rightCupDiscRatio.toString(),
         'Fundus Macula': cubit.rightFundusMacula.join(', '),
         'Fundus Vessels': cubit.rightFundusVessels.join(', '),
         'Fundus Periphery': cubit.rightFundusPeriphery.join(', '),
@@ -709,7 +782,11 @@ class ExaminationPdfService {
         'Iris': cubit.leftIris.join(', '),
         'Lens': cubit.leftLens.join(', '),
         'Ant. Vitreous': cubit.leftAnteriorVitreous.join(', '),
+        if ((cubit.leftVitreousHemorrhageGrade ?? '').toString().isNotEmpty)
+          'VH Grade': cubit.leftVitreousHemorrhageGrade.toString(),
         'Fundus Disc': cubit.leftFundusOpticDisc.join(', '),
+        if ((cubit.leftCupDiscRatio ?? '').toString().isNotEmpty)
+          'Cup Disc Ratio': cubit.leftCupDiscRatio.toString(),
         'Fundus Macula': cubit.leftFundusMacula.join(', '),
         'Fundus Vessels': cubit.leftFundusVessels.join(', '),
         'Fundus Periphery': cubit.leftFundusPeriphery.join(', '),

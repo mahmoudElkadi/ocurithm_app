@@ -6,16 +6,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' as getx;
 import 'package:ocurithm/core/utils/network_connection.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/modules/Accounting/presentation/views/accounts_view.dart';
+import 'package:ocurithm/modules/Accounting/presentation/views/transactions/transactions_view.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/branch_view.dart';
 import 'package:ocurithm/modules/Category/presentation/views/category_view.dart';
 import 'package:ocurithm/modules/Chat/presentation/manager/chat_socket_bloc/chat_socket_bloc.dart';
 import 'package:ocurithm/modules/Examination%20Type/presentation/views/examination_type_view.dart';
+import 'package:ocurithm/modules/Order/presentation/views/order_view.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
 import 'package:ocurithm/modules/Product/presentation/views/product_view.dart';
+import 'package:ocurithm/modules/PurchaseOrder/presentation/views/purchase_order_view.dart';
 import 'package:ocurithm/modules/SubCategory/presentation/views/sub_category_view.dart';
-import 'package:ocurithm/modules/Accounting/presentation/views/accounts_view.dart';
-import 'package:ocurithm/modules/Accounting/presentation/views/transactions/transactions_view.dart';
+import 'package:ocurithm/modules/Supplier/presentation/views/supplier_view.dart';
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
@@ -26,9 +29,6 @@ import '../../../modules/Doctor/presentation/views/Doctor Dashboard/presentation
 import '../../../modules/Login/presentation/view/login_view.dart';
 import '../../../modules/Medicine/presentation/views/medicine_view.dart';
 import '../../../modules/Receptionist/presentation/views/Reception Dashboard/presentation/views/receptionist_view.dart';
-import 'package:ocurithm/modules/PurchaseOrder/presentation/views/purchase_order_view.dart';
-import 'package:ocurithm/modules/Supplier/presentation/views/supplier_view.dart';
-import 'package:ocurithm/modules/Order/presentation/views/order_view.dart';
 import 'main_state.dart';
 
 class MainCubit extends Cubit<MainState> {
@@ -107,7 +107,8 @@ class MainCubit extends Cubit<MainState> {
   int notificationIndex = -1;
 
   Future<List<DrawerGroup>> getStatusList({context}) async {
-    List<String> capabilities = List.from(CacheHelper.getStringList(key: "capabilities"));
+    List<String> capabilities =
+        List.from(CacheHelper.getStringList(key: "capabilities"));
     if (!capabilities.contains("dashboard")) {
       capabilities.add("dashboard");
     }
@@ -173,7 +174,7 @@ class MainCubit extends Cubit<MainState> {
         const SubCategoryView(),
         "assets/icons/subcategories.svg"
       ],
-      "manageProducts": [
+      "showProducts": [
         "Products",
         const ProductView(),
         "assets/icons/products.svg"
@@ -188,11 +189,7 @@ class MainCubit extends Cubit<MainState> {
         const PurchaseOrderView(),
         "assets/icons/po.svg"
       ],
-      "showOrders": [
-        "Orders",
-        const OrderView(),
-        "assets/icons/po.svg"
-      ],
+      "showOrders": ["Orders", const OrderView(), "assets/icons/po.svg"],
       "showAccounts": [
         "Accounts",
         const AccountsView(),
@@ -251,44 +248,43 @@ class MainCubit extends Cubit<MainState> {
       for (String capability in groupCapabilities) {
         bool hasAccess = capabilities.contains(capability) ||
             capabilities.contains("manageCapability") ||
-            (groupName == "Product" &&
-                capabilities.contains("manageProducts"));
+            (groupName == "Product" && capabilities.contains("manageProducts"));
 
         if (hasAccess && statusMappings.containsKey(capability)) {
           var mappingData = statusMappings[capability]!;
 
-            DrawerItem item = DrawerItem(
-              icon: mappingData[2],
-              title: mappingData[0],
-              index: pageIndex,
-              capability: capability,
-            );
+          DrawerItem item = DrawerItem(
+            icon: mappingData[2],
+            title: mappingData[0],
+            index: pageIndex,
+            capability: capability,
+          );
 
-            groupItems.add(item);
-            drawerItems.add(item);
-            pages.add(mappingData[1]);
-            pageIndex++;
-          }
-        }
-
-        if (groupItems.isNotEmpty) {
-          drawerGroups.add(DrawerGroup(
-            title: groupName == "dashboard" ? null : groupName,
-            items: groupItems,
-            groupIndex: groupIndex,
-            isCollapsible:
-                groupName != "dashboard", // Dashboard is not collapsible
-          ));
-          groupIndex++;
+          groupItems.add(item);
+          drawerItems.add(item);
+          pages.add(mappingData[1]);
+          pageIndex++;
         }
       }
 
-      if (pages.isNotEmpty && currentView == null) {
-        currentView = pages[selectedIndex];
+      if (groupItems.isNotEmpty) {
+        drawerGroups.add(DrawerGroup(
+          title: groupName == "dashboard" ? null : groupName,
+          items: groupItems,
+          groupIndex: groupIndex,
+          isCollapsible:
+              groupName != "dashboard", // Dashboard is not collapsible
+        ));
+        groupIndex++;
       }
+    }
 
-      // Start with all groups collapsed
-      _expandedGroupIndex = null;
+    if (pages.isNotEmpty && currentView == null) {
+      currentView = pages[selectedIndex];
+    }
+
+    // Start with all groups collapsed
+    _expandedGroupIndex = null;
 
     if (drawerItems.isEmpty || pages.isEmpty || capabilities.isEmpty) {
       if (context != null) {

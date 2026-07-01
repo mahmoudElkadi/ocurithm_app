@@ -32,7 +32,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.ocurithm.ocurithmapp"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "29.0.14033849"
 
     compileOptions {

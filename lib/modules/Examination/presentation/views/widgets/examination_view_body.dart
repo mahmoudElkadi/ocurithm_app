@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ocurithm/core/utils/colors.dart';
@@ -9,6 +10,9 @@ import 'package:ocurithm/modules/Examination/presentation/manager/examination_ac
 import 'package:ocurithm/modules/Examination/presentation/manager/examination_form_cubit/examination_form_cubit.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/circle_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/header_view.dart';
+import 'package:ocurithm/modules/Examination/data/catalog/measurements_constants.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/complain/complain_checklist.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/history/history_checklist.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/navigation_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/patient_bottom_sheet.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription.dart';
@@ -125,9 +129,9 @@ class MultiStepFormView extends StatelessWidget {
   Widget _buildStepContent(int step) {
     switch (step) {
       case 0:
-        return const _StepTwoContent();
+        return const ComplainChecklist();
       case 1:
-        return const _HistoryDetails();
+        return const HistoryChecklist();
       case 2:
         return const StepThreeContent();
       case 3:
@@ -295,436 +299,6 @@ class MultiStepFormView extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _HistoryDetails extends StatelessWidget {
-  const _HistoryDetails();
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<ExaminationFormCubit>();
-
-    return BlocBuilder<ExaminationFormCubit, ExaminationFormState>(
-      builder: (context, state) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
-              .copyWith(bottom: 0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, // Added this
-              children: [
-                Text(
-                  'Present Illness',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).textTheme.bodyLarge?.color ??
-                        Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(context).dividerColor,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context)
-                            .shadowColor
-                            .withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextFormField(
-                    controller: cubit.presentIllnessController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Type patient history here...',
-                      hintStyle: TextStyle(
-                        color: Theme.of(context).hintColor,
-                        fontSize: 15,
-                      ),
-                      contentPadding: const EdgeInsets.all(20),
-                      border: InputBorder.none,
-                      filled: true,
-                      fillColor: Colors.transparent,
-                    ),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Past History',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).textTheme.bodyLarge?.color ??
-                        Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(context).dividerColor,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context)
-                            .shadowColor
-                            .withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextFormField(
-                    controller: cubit.pastHistoryController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Type patient history here...',
-                      hintStyle: TextStyle(
-                        color: Theme.of(context).hintColor,
-                        fontSize: 15,
-                      ),
-                      contentPadding: const EdgeInsets.all(20),
-                      border: InputBorder.none,
-                      filled: true,
-                      fillColor: Colors.transparent,
-                    ),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Medication History',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).textTheme.bodyLarge?.color ??
-                        Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(context).dividerColor,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context)
-                            .shadowColor
-                            .withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextFormField(
-                    controller: cubit.medicationHistoryController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Type patient history here...',
-                      hintStyle: TextStyle(
-                        color: Theme.of(context).hintColor,
-                        fontSize: 15,
-                      ),
-                      contentPadding: const EdgeInsets.all(20),
-                      border: InputBorder.none,
-                      filled: true,
-                      fillColor: Colors.transparent,
-                    ),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Family History',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).textTheme.bodyLarge?.color ??
-                        Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(context).dividerColor,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context)
-                            .shadowColor
-                            .withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextFormField(
-                    controller: cubit.familyHistoryController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Type patient history here...',
-                      hintStyle: TextStyle(
-                        color: Theme.of(context).hintColor,
-                        fontSize: 15,
-                      ),
-                      contentPadding: const EdgeInsets.all(20),
-                      border: InputBorder.none,
-                      filled: true,
-                      fillColor: Colors.transparent,
-                    ),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-                StepNavigation(
-                  onPrevious: () => cubit.currentStep > 0
-                      ? cubit.previousStep()
-                      : Navigator.pop(context),
-                  onNext: () => cubit.nextStep(),
-                  isLastStep: cubit.currentStep == cubit.totalSteps - 1,
-                  canGoBack: true,
-                  canContinue: cubit.currentStep < cubit.totalSteps - 1,
-                  onSave: () async {
-                    cubit.action = "save";
-                    context
-                        .read<ExaminationActionsCubit>()
-                        .createExamination(data: cubit.examinationData());
-                  },
-                  onConfirm: () async {
-                    if (cubit.appointmentData != null) {
-                      cubit.action = "create";
-                      context
-                          .read<ExaminationActionsCubit>()
-                          .createExamination(data: cubit.examinationData());
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _StepTwoContent extends StatelessWidget {
-  const _StepTwoContent();
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<ExaminationFormCubit>();
-
-    return BlocBuilder<ExaminationFormCubit, ExaminationFormState>(
-      builder: (context, state) => Padding(
-        padding: const EdgeInsets.all(16).copyWith(bottom: 0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                ' Complaint One',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).textTheme.bodyLarge?.color ??
-                      Colors.grey[800],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Theme.of(context).shadowColor.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: TextFormField(
-                  maxLines: 4,
-                  controller: cubit.oneComplaintController,
-                  decoration: InputDecoration(
-                    hintText: 'Describe the one complaint...',
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).hintColor,
-                      fontSize: 15,
-                    ),
-                    contentPadding: const EdgeInsets.all(20),
-                    border: InputBorder.none,
-                    filled: true,
-                    fillColor: Colors.transparent,
-                  ),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                ' Complaint Two',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).textTheme.bodyLarge?.color ??
-                      Colors.grey[800],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Theme.of(context).shadowColor.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: TextFormField(
-                  maxLines: 4,
-                  controller: cubit.twoComplaintController,
-                  decoration: InputDecoration(
-                    hintText: 'Describe the one complaint...',
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).hintColor,
-                      fontSize: 15,
-                    ),
-                    contentPadding: const EdgeInsets.all(20),
-                    border: InputBorder.none,
-                    filled: true,
-                    fillColor: Colors.transparent,
-                  ),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                ' Complaint Three',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).textTheme.bodyLarge?.color ??
-                      Colors.grey[800],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Theme.of(context).shadowColor.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: TextFormField(
-                  maxLines: 4,
-                  controller: cubit.threeComplaintController,
-                  decoration: InputDecoration(
-                    hintText: 'Describe the one complaint...',
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).hintColor,
-                      fontSize: 15,
-                    ),
-                    contentPadding: const EdgeInsets.all(20),
-                    border: InputBorder.none,
-                    filled: true,
-                    fillColor: Colors.transparent,
-                  ),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              StepNavigation(
-                onPrevious: () => cubit.currentStep > 0
-                    ? cubit.previousStep()
-                    : Navigator.pop(context),
-                onNext: () => cubit.nextStep(),
-                isLastStep: cubit.currentStep == cubit.totalSteps - 1,
-                canGoBack: true,
-                canContinue: cubit.currentStep < cubit.totalSteps - 1,
-                onSave: () async {
-                  if (cubit.appointmentData != null) {
-                    cubit.action = "save";
-                    context
-                        .read<ExaminationActionsCubit>()
-                        .createExamination(data: cubit.examinationData());
-                  }
-                },
-                onConfirm: () async {
-                  if (cubit.appointmentData != null) {
-                    cubit.action = "create";
-
-                    context
-                        .read<ExaminationActionsCubit>()
-                        .createExamination(data: cubit.examinationData());
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -2098,9 +1672,10 @@ class RightAdditionalExaminationContent extends StatelessWidget {
                       FontWeight.bold)),
               const SizedBox(height: 8),
               CustomMultiSelectDropdown(
-                items: cubit.data['Cornea'] ?? [],
-                textRow: "Cornea :",
-                hintText: "Cornea :",
+                items: corneaV1,
+                textRow: "Corneal Findings :",
+                hintText: "Corneal Findings :",
+                allowCustomInput: true,
                 selectedValues: cubit.rightCornea,
                 onChanged: (selected) {
                   cubit.rightCornea = selected;
@@ -2108,9 +1683,10 @@ class RightAdditionalExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['AnteriorChambre'] ?? [],
-                textRow: "Anterior Chambre :",
-                hintText: "Anterior...",
+                items: anteriorChamberV1,
+                textRow: "Anterior Chamber :",
+                hintText: "Anterior Chamber :",
+                allowCustomInput: true,
                 selectedValues: cubit.rightAnteriorChambre,
                 onChanged: (selected) {
                   cubit.rightAnteriorChambre = selected;
@@ -2118,8 +1694,10 @@ class RightAdditionalExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['Iris'] ?? [],
-                textRow: "Iris :",
+                items: irisV1,
+                textRow: "Iris Findings :",
+                hintText: "Iris Findings :",
+                allowCustomInput: true,
                 selectedValues: cubit.rightIris,
                 onChanged: (selected) {
                   cubit.rightIris = selected;
@@ -2127,8 +1705,10 @@ class RightAdditionalExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['Lens'] ?? [],
-                textRow: "Lens :",
+                items: lensV1,
+                textRow: "Lens Status :",
+                hintText: "Lens Status :",
+                allowCustomInput: true,
                 selectedValues: cubit.rightLens,
                 onChanged: (selected) {
                   cubit.rightLens = selected;
@@ -2136,14 +1716,27 @@ class RightAdditionalExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['AnteriorVitreous'] ?? [],
-                textRow: "Anterior Vitreous :",
-                hintText: "Anterior...",
+                items: anteriorVitreousV1,
+                textRow: "Vitreous Status :",
+                hintText: "Vitreous Status :",
+                allowCustomInput: true,
                 selectedValues: cubit.rightAnteriorVitreous,
                 onChanged: (selected) {
-                  cubit.rightAnteriorVitreous = selected;
+                  cubit.setAnteriorVitreous(false, selected);
                 },
               ),
+              if (cubit.rightAnteriorVitreous.contains(vitreousHemorrhageOption)) ...[
+                const SizedBox(height: 15),
+                CustomColumnDropdown(
+                  items: vhGradeOptions,
+                  textRow: "VH Grade :",
+                  hintText: "-",
+                  selectedValue: cubit.rightVitreousHemorrhageGrade,
+                  onChanged: (selected) {
+                    cubit.setVitreousHemorrhageGrade(false, selected);
+                  },
+                ),
+              ],
             ],
           ),
         ),
@@ -2178,9 +1771,10 @@ class LeftAdditionalExaminationContent extends StatelessWidget {
                       FontWeight.bold)),
               const SizedBox(height: 8),
               CustomMultiSelectDropdown(
-                items: cubit.data['Cornea'] ?? [],
-                textRow: "Cornea :",
-                hintText: "Cornea :",
+                items: corneaV1,
+                textRow: "Corneal Findings :",
+                hintText: "Corneal Findings :",
+                allowCustomInput: true,
                 selectedValues: cubit.leftCornea,
                 onChanged: (selected) {
                   cubit.leftCornea = selected;
@@ -2188,9 +1782,10 @@ class LeftAdditionalExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['AnteriorChambre'] ?? [],
-                textRow: "Anterior Chambre :",
-                hintText: "Anterior...",
+                items: anteriorChamberV1,
+                textRow: "Anterior Chamber :",
+                hintText: "Anterior Chamber :",
+                allowCustomInput: true,
                 selectedValues: cubit.leftAnteriorChambre,
                 onChanged: (selected) {
                   cubit.leftAnteriorChambre = selected;
@@ -2198,8 +1793,10 @@ class LeftAdditionalExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['Iris'] ?? [],
-                textRow: "Iris :",
+                items: irisV1,
+                textRow: "Iris Findings :",
+                hintText: "Iris Findings :",
+                allowCustomInput: true,
                 selectedValues: cubit.leftIris,
                 onChanged: (selected) {
                   cubit.leftIris = selected;
@@ -2207,8 +1804,10 @@ class LeftAdditionalExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['Lens'] ?? [],
-                textRow: "Lens :",
+                items: lensV1,
+                textRow: "Lens Status :",
+                hintText: "Lens Status :",
+                allowCustomInput: true,
                 selectedValues: cubit.leftLens,
                 onChanged: (selected) {
                   cubit.leftLens = selected;
@@ -2216,14 +1815,27 @@ class LeftAdditionalExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['AnteriorVitreous'] ?? [],
-                textRow: "Anterior Vitreous :",
-                hintText: "Anterior...",
+                items: anteriorVitreousV1,
+                textRow: "Vitreous Status :",
+                hintText: "Vitreous Status :",
+                allowCustomInput: true,
                 selectedValues: cubit.leftAnteriorVitreous,
                 onChanged: (selected) {
-                  cubit.leftAnteriorVitreous = selected;
+                  cubit.setAnteriorVitreous(true, selected);
                 },
               ),
+              if (cubit.leftAnteriorVitreous.contains(vitreousHemorrhageOption)) ...[
+                const SizedBox(height: 15),
+                CustomColumnDropdown(
+                  items: vhGradeOptions,
+                  textRow: "VH Grade :",
+                  hintText: "-",
+                  selectedValue: cubit.leftVitreousHemorrhageGrade,
+                  onChanged: (selected) {
+                    cubit.setVitreousHemorrhageGrade(true, selected);
+                  },
+                ),
+              ],
             ],
           ),
         ),
@@ -2260,9 +1872,10 @@ class FundusExaminationContent extends StatelessWidget {
                       FontWeight.bold)),
               const SizedBox(height: 8),
               CustomMultiSelectDropdown(
-                items: cubit.data['FundusOpticDisc'] ?? [],
-                textRow: "Optic Disc :",
-                hintText: "Optic Disc :",
+                items: fundusOpticDiscV1,
+                textRow: "Disc Appearance :",
+                hintText: "Disc Appearance :",
+                allowCustomInput: true,
                 selectedValues: isLeftEye
                     ? cubit.leftFundusOpticDisc
                     : cubit.rightFundusOpticDisc,
@@ -2275,10 +1888,57 @@ class FundusExaminationContent extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 15),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Cup Disc Ratio :",
+                    style: appStyle(
+                        context,
+                        14,
+                        Theme.of(context).textTheme.bodyLarge?.color ??
+                            Colors.black,
+                        FontWeight.w500),
+                  ),
+                  const HeightSpacer(size: 2),
+                  TextFormField(
+                    initialValue: (isLeftEye
+                            ? cubit.leftCupDiscRatio
+                            : cubit.rightCupDiscRatio)
+                        ?.toString(),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                    ],
+                    decoration: InputDecoration(
+                      hintText: "0.0 - 1.0",
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      filled: true,
+                      fillColor: Theme.of(context).cardColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide:
+                            BorderSide(color: Theme.of(context).dividerColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide:
+                            BorderSide(color: Theme.of(context).dividerColor),
+                      ),
+                    ),
+                    onChanged: (v) => cubit.setCupDiscRatio(isLeftEye, v.trim()),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['FundusMacula'] ?? [],
-                textRow: "Macula :",
-                hintText: "Macula :",
+                items: fundusMaculaV1,
+                textRow: "Macular Findings :",
+                hintText: "Macular Findings :",
+                allowCustomInput: true,
                 selectedValues: isLeftEye
                     ? cubit.leftFundusMacula
                     : cubit.rightFundusMacula,
@@ -2308,9 +1968,10 @@ class FundusExaminationContent extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               CustomMultiSelectDropdown(
-                items: cubit.data['FundusPeriphery'] ?? [],
-                textRow: "Fundus Periphery :",
-                hintText: "Fundus Periphery :",
+                items: fundusPeripheryV1,
+                textRow: "Retina :",
+                hintText: "Retina :",
+                allowCustomInput: true,
                 selectedValues: isLeftEye
                     ? cubit.leftFundusPeriphery
                     : cubit.rightFundusPeriphery,

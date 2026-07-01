@@ -5,6 +5,8 @@ import 'package:ocurithm/core/widgets/height_spacer.dart';
 import '../../../../../core/utils/colors.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../Appointment/data/models/appointment_model.dart';
+import '../../../data/catalog/history_catalog.dart';
+import '../../../data/catalog/complain_catalog.dart';
 import '../../manager/examination_actions_cubit/examination_actions_cubit.dart';
 import '../../manager/examination_form_cubit/examination_form_cubit.dart';
 import 'circle_view.dart';
@@ -230,36 +232,47 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                     title: 'Eye Structure',
                     sectionIndex: 7,
                     dataLE: {
-                      'Cornea': cubit.leftCornea.join(', '),
-                      'Anterior Chambre': cubit.leftAnteriorChambre.join(', '),
-                      'Iris': cubit.leftIris.join(', '),
-                      'Lens': cubit.leftLens.join(', '),
-                      'Anterior Vitreous':
-                          cubit.leftAnteriorVitreous.join(', '),
+                      'Corneal Findings': cubit.leftCornea.join(', '),
+                      'Anterior Chamber': cubit.leftAnteriorChambre.join(', '),
+                      'Iris Findings': cubit.leftIris.join(', '),
+                      'Lens Status': cubit.leftLens.join(', '),
+                      'Vitreous Status': cubit.leftAnteriorVitreous.join(', '),
+                      if ((cubit.leftVitreousHemorrhageGrade ?? '')
+                          .toString()
+                          .isNotEmpty)
+                        'VH Grade': cubit.leftVitreousHemorrhageGrade.toString(),
                     },
                     dataRE: {
-                      'Cornea': cubit.rightCornea.join(', '),
-                      'Anterior Chambre': cubit.rightAnteriorChambre.join(', '),
-                      'Iris': cubit.rightIris.join(', '),
-                      'Lens': cubit.rightLens.join(', '),
-                      'Anterior Vitreous':
-                          cubit.rightAnteriorVitreous.join(', '),
+                      'Corneal Findings': cubit.rightCornea.join(', '),
+                      'Anterior Chamber': cubit.rightAnteriorChambre.join(', '),
+                      'Iris Findings': cubit.rightIris.join(', '),
+                      'Lens Status': cubit.rightLens.join(', '),
+                      'Vitreous Status': cubit.rightAnteriorVitreous.join(', '),
+                      if ((cubit.rightVitreousHemorrhageGrade ?? '')
+                          .toString()
+                          .isNotEmpty)
+                        'VH Grade':
+                            cubit.rightVitreousHemorrhageGrade.toString(),
                     },
                   ),
                   _buildSynchronizedExaminationSection(
                     title: 'Fundus Examination',
                     sectionIndex: 8,
                     dataLE: {
-                      'Optic Disc': cubit.leftFundusOpticDisc.join(', '),
-                      'Macula': cubit.leftFundusMacula.join(', '),
+                      'Disc Appearance': cubit.leftFundusOpticDisc.join(', '),
+                      if ((cubit.leftCupDiscRatio ?? '').toString().isNotEmpty)
+                        'Cup Disc Ratio': cubit.leftCupDiscRatio.toString(),
+                      'Macular Findings': cubit.leftFundusMacula.join(', '),
                       'Vessels': cubit.leftFundusVessels.join(', '),
-                      'Periphery': cubit.leftFundusPeriphery.join(', '),
+                      'Retina': cubit.leftFundusPeriphery.join(', '),
                     },
                     dataRE: {
-                      'Optic Disc': cubit.rightFundusOpticDisc.join(', '),
-                      'Macula': cubit.rightFundusMacula.join(', '),
+                      'Disc Appearance': cubit.rightFundusOpticDisc.join(', '),
+                      if ((cubit.rightCupDiscRatio ?? '').toString().isNotEmpty)
+                        'Cup Disc Ratio': cubit.rightCupDiscRatio.toString(),
+                      'Macular Findings': cubit.rightFundusMacula.join(', '),
                       'Vessels': cubit.rightFundusVessels.join(', '),
-                      'Periphery': cubit.rightFundusPeriphery.join(', '),
+                      'Retina': cubit.rightFundusPeriphery.join(', '),
                     },
                   ),
                   _buildSynchronizedExaminationSection(
@@ -657,20 +670,39 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
       builder: (context, state) {
         final cubit = context.read<ExaminationFormCubit>();
 
-        // Create complaints data map
-        final complaintsData = {
+        // Structured complaint entries first (visible fields per selected option;
+        // zero-field options show as "Present"), then legacy free-text complaints.
+        final complaintsData = <String, String>{};
+        for (final optKey in cubit.selectedComplaints) {
+          final entries = visibleComplainEntries(optKey, cubit.complainValues);
+          if (entries.isEmpty) {
+            complaintsData[complainOptionLabel(optKey)] = 'Present';
+          } else {
+            for (final e in entries) {
+              complaintsData['${complainOptionLabel(optKey)} — ${e.key}'] = e.value;
+            }
+          }
+        }
+        complaintsData.addAll({
           'Complain One': cubit.oneComplaintController.text,
           'Complain Two': cubit.twoComplaintController.text,
           'Complain Three': cubit.threeComplaintController.text,
-        };
+        });
 
-        // Create history data map
-        final historyData = {
+        // Structured checklist entries first (visible, non-empty fields per
+        // selected category), then the legacy free-text notes.
+        final historyData = <String, String>{};
+        for (final catKey in cubit.selectedHistoryCategories) {
+          for (final e in visibleHistoryEntries(catKey, cubit.historyValues)) {
+            historyData['${historyCategoryLabel(catKey)} — ${e.key}'] = e.value;
+          }
+        }
+        historyData.addAll({
           'Family History': cubit.familyHistoryController.text,
           'Present Illness': cubit.presentIllnessController.text,
           'Past History': cubit.pastHistoryController.text,
           'Medication History': cubit.medicationHistoryController.text,
-        };
+        });
 
         return Column(
           children: [

@@ -35,6 +35,11 @@ class SetSupplierActiveOnlyFilterEvent extends GetSuppliersEvent {
 
 class ResetSupplierFilters extends GetSuppliersEvent {}
 
+class AddLocalSupplierEvent extends GetSuppliersEvent {
+  final Supplier supplier;
+  AddLocalSupplierEvent(this.supplier);
+}
+
 class UpdateLocalSupplierEvent extends GetSuppliersEvent {
   final Supplier supplier;
   UpdateLocalSupplierEvent(this.supplier);

@@ -4,6 +4,8 @@ import 'package:ocurithm/core/utils/format_helper.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/circle_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription_pdf.dart';
+import 'package:ocurithm/modules/Examination/data/catalog/history_catalog.dart';
+import 'package:ocurithm/modules/Examination/data/catalog/complain_catalog.dart';
 import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
 
 class OneExaminationContent extends StatelessWidget {
@@ -896,8 +898,18 @@ class OneExaminationContent extends StatelessWidget {
       BuildContext context, ExaminationModel examinationModel) {
     final examination = examinationModel.examination;
 
-    // Create history data map and filter out empty/null values
-    final historyData = Map<String, String>.fromEntries({
+    // Structured checklist entries (visible, non-empty fields per selected
+    // category) followed by the legacy free-text notes.
+    final historyData = <String, String>{};
+    final history = examination?.history;
+    if (history != null) {
+      for (final catKey in history.selectedCategories) {
+        for (final e in visibleHistoryEntries(catKey, history.values)) {
+          historyData['${historyCategoryLabel(catKey)} — ${e.key}'] = e.value;
+        }
+      }
+    }
+    historyData.addAll(Map<String, String>.fromEntries({
       'Family History': examination?.history?.familyHistory,
       'Present Illness': examination?.history?.presentIllness,
       'Past History': examination?.history?.pastHistory,
@@ -905,17 +917,32 @@ class OneExaminationContent extends StatelessWidget {
     }
         .entries
         .where((entry) => entry.value != null && entry.value!.isNotEmpty)
-        .map((entry) => MapEntry(entry.key, entry.value!)));
+        .map((entry) => MapEntry(entry.key, entry.value!))));
 
-    // Create complaints data map and filter out empty/null values
-    final complaintsData = Map<String, String>.fromEntries({
+    // Structured complaint entries (visible fields per selected option; zero-field
+    // options show as "Present") followed by legacy free-text complaints.
+    final complaintsData = <String, String>{};
+    final complain = examination?.complain;
+    if (complain != null) {
+      for (final optKey in complain.selectedComplaints) {
+        final entries = visibleComplainEntries(optKey, complain.values);
+        if (entries.isEmpty) {
+          complaintsData[complainOptionLabel(optKey)] = 'Present';
+        } else {
+          for (final e in entries) {
+            complaintsData['${complainOptionLabel(optKey)} — ${e.key}'] = e.value;
+          }
+        }
+      }
+    }
+    complaintsData.addAll(Map<String, String>.fromEntries({
       'Complain One': examination?.complain?.complainOne,
       'Complain Two': examination?.complain?.complainTwo,
       'Complain Three': examination?.complain?.complainThree,
     }
         .entries
         .where((entry) => entry.value != null && entry.value!.isNotEmpty)
-        .map((entry) => MapEntry(entry.key, entry.value!)));
+        .map((entry) => MapEntry(entry.key, entry.value!))));
 
     return Column(
       children: [
@@ -1228,29 +1255,42 @@ class OneExaminationContent extends StatelessWidget {
             theme: theme,
             sectionIndex: 7,
             dataMapper: (isLeft) => {
-              'Cornea': (isLeft
+              'Corneal Findings': (isLeft
                       ? examination.examination?.measurements[0].cornea
                       : examination.examination?.measurements[1].cornea)
                   .join(', '),
-              'Anterior Chambre': (isLeft
+              'Anterior Chamber': (isLeft
                       ? examination.examination?.measurements[0].anteriorChamber
                       : examination
                           .examination?.measurements[1].anteriorChamber)
                   .join(', '),
-              'Iris': (isLeft
+              'Iris Findings': (isLeft
                       ? examination.examination?.measurements[0].iris
                       : examination.examination?.measurements[1].iris)
                   .join(', '),
-              'Lens': (isLeft
+              'Lens Status': (isLeft
                       ? examination.examination?.measurements[0].lens
                       : examination.examination?.measurements[1].lens)
                   .join(', '),
-              'Anterior Vitreous': (isLeft
+              'Vitreous Status': (isLeft
                       ? examination
                           .examination?.measurements[0].anteriorVitreous
                       : examination
                           .examination?.measurements[1].anteriorVitreous)
                   .join(', '),
+              if (((isLeft
+                          ? examination
+                              .examination?.measurements[0].vitreousHemorrhageGrade
+                          : examination.examination?.measurements[1]
+                              .vitreousHemorrhageGrade) ??
+                      '')
+                  .toString()
+                  .isNotEmpty)
+                'VH Grade': (isLeft
+                    ? examination
+                        .examination?.measurements[0].vitreousHemorrhageGrade
+                    : examination
+                        .examination?.measurements[1].vitreousHemorrhageGrade)!,
             },
           ),
           _buildSectionComparison(
@@ -1262,12 +1302,23 @@ class OneExaminationContent extends StatelessWidget {
             theme: theme,
             sectionIndex: 8,
             dataMapper: (isLeft) => {
-              'Optic Disc': (isLeft
+              'Disc Appearance': (isLeft
                       ? examination.examination?.measurements[0].fundusOpticDisc
                       : examination
                           .examination?.measurements[1].fundusOpticDisc)
                   .join(', '),
-              'Macula': (isLeft
+              if (((isLeft
+                          ? examination.examination?.measurements[0].cupDiscRatio
+                          : examination
+                              .examination?.measurements[1].cupDiscRatio) ??
+                      '')
+                  .toString()
+                  .isNotEmpty)
+                'Cup Disc Ratio': (isLeft
+                        ? examination.examination?.measurements[0].cupDiscRatio
+                        : examination.examination?.measurements[1].cupDiscRatio)
+                    .toString(),
+              'Macular Findings': (isLeft
                       ? examination.examination?.measurements[0].fundusMacula
                       : examination.examination?.measurements[1].fundusMacula)
                   .join(', '),
@@ -1275,7 +1326,7 @@ class OneExaminationContent extends StatelessWidget {
                       ? examination.examination?.measurements[0].fundusVessels
                       : examination.examination?.measurements[1].fundusVessels)
                   .join(', '),
-              'Periphery': (isLeft
+              'Retina': (isLeft
                       ? examination.examination?.measurements[0].fundusPeriphery
                       : examination
                           .examination?.measurements[1].fundusPeriphery)

@@ -11,6 +11,8 @@ class ScanActionsCubit extends Bloc<ScanActionsEvent, ScanActionsState> {
   ScanActionsCubit(this.patientRepo) : super(const ScanActionsState()) {
     on<CreateScanRecordEvent>(_onCreateScanRecord);
     on<DeleteScanEvent>(_onDeleteScan);
+    on<EditScanFileEvent>(_onEditScanFile);
+    on<RestoreScanFileEvent>(_onRestoreScanFile);
   }
 
   Future<void> _onCreateScanRecord(
@@ -60,6 +62,67 @@ class ScanActionsCubit extends Bloc<ScanActionsEvent, ScanActionsState> {
       emit(state.copyWith(
         state: ScanActionsStatus.success,
         successMessage: 'Scan record deleted successfully',
+      ));
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
+        emit(state.copyWith(
+          state: ScanActionsStatus.noConnection,
+          errorMessage: e.toString(),
+        ));
+        return;
+      }
+      emit(state.copyWith(
+        state: ScanActionsStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onEditScanFile(
+      EditScanFileEvent event, Emitter<ScanActionsState> emit) async {
+    try {
+      emit(state.copyWith(state: ScanActionsStatus.loading));
+
+      await patientRepo.editScanFile(
+        patientId: event.patientId,
+        scanId: event.scanId,
+        fileId: event.fileId,
+        newKey: event.newKey,
+      );
+
+      emit(state.copyWith(
+        state: ScanActionsStatus.success,
+        successMessage: 'File updated successfully',
+      ));
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
+        emit(state.copyWith(
+          state: ScanActionsStatus.noConnection,
+          errorMessage: e.toString(),
+        ));
+        return;
+      }
+      emit(state.copyWith(
+        state: ScanActionsStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onRestoreScanFile(
+      RestoreScanFileEvent event, Emitter<ScanActionsState> emit) async {
+    try {
+      emit(state.copyWith(state: ScanActionsStatus.loading));
+
+      await patientRepo.restoreScanFile(
+        patientId: event.patientId,
+        scanId: event.scanId,
+        fileId: event.fileId,
+      );
+
+      emit(state.copyWith(
+        state: ScanActionsStatus.success,
+        successMessage: 'File restored successfully',
       ));
     } catch (e) {
       if (e.toString().toLowerCase().contains('no internet connection')) {

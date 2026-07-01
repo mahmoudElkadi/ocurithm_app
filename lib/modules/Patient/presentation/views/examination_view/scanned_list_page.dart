@@ -72,7 +72,7 @@ class _ScannedListPageState extends State<ScannedListPage> {
         body: BlocListener<ScanActionsCubit, ScanActionsState>(
           listener: (context, state) {
             if (state.state == ScanActionsStatus.loading) {
-              customLoading(context, "Deleting Scan...");
+              customLoading(context, "Processing...");
             } else if (state.state == ScanActionsStatus.success) {
               Navigator.of(context, rootNavigator: true).pop();
               context.read<GetPatientScansCubit>().add(
@@ -690,11 +690,16 @@ class _ScannedListPageState extends State<ScannedListPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => RealDicomViewer(
-                                      url: file.url,
-                                      showMetadata: true,
-                                      heroTag:
-                                          file.url ?? "list_${scan.id}_$fileIndex",
+                                    builder: (builderContext) => BlocProvider.value(
+                                      value: context.read<ScanActionsCubit>(),
+                                      child: RealDicomViewer(
+                                        url: file.url,
+                                        showMetadata: true,
+                                        heroTag: file.url ?? "list_${scan.id}_$fileIndex",
+                                        patientId: widget.patientId,
+                                        scanId: scan.id,
+                                        fileId: file.id,
+                                      ),
                                     ),
                                   ),
                                 );
@@ -716,11 +721,19 @@ class _ScannedListPageState extends State<ScannedListPage> {
                                   PageRouteBuilder(
                                     opaque: false,
                                     barrierColor: Colors.transparent,
-                                    pageBuilder: (context, _, __) =>
-                                        FullscreenImageViewer(
-                                      imageUrls: allImageUrls,
-                                      initialIndex:
-                                          initialIdx != -1 ? initialIdx : 0,
+                                    pageBuilder: (builderContext, _, __) => BlocProvider.value(
+                                      value: context.read<ScanActionsCubit>(),
+                                      child: FullscreenImageViewer(
+                                        imageUrls: allImageUrls,
+                                        initialIndex:
+                                            initialIdx != -1 ? initialIdx : 0,
+                                        patientId: widget.patientId,
+                                        scanId: scan.id,
+                                        fileIds: scan.files
+                                            .where((f) => f.url != null && !f.key!.toLowerCase().endsWith('.pdf'))
+                                            .map((f) => f.id!)
+                                            .toList(),
+                                      ),
                                     ),
                                   ),
                                 );

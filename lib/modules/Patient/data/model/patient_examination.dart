@@ -117,6 +117,9 @@ class Complain {
     required this.complainOne,
     required this.complainTwo,
     required this.complainThree,
+    this.selectedComplaints = const [],
+    this.values = const {},
+    this.catalogVersion,
     required this.createdAt,
     required this.updatedAt,
     required this.id,
@@ -126,6 +129,9 @@ class Complain {
   final String? complainOne;
   final String? complainTwo;
   final String? complainThree;
+  final List<String> selectedComplaints;
+  final Map<String, dynamic> values;
+  final num? catalogVersion;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? id;
@@ -136,6 +142,13 @@ class Complain {
       complainOne: json["complainOne"],
       complainTwo: json["complainTwo"],
       complainThree: json["complainThree"],
+      selectedComplaints: json["selectedComplaints"] == null
+          ? []
+          : List<String>.from(json["selectedComplaints"]!.map((x) => x)),
+      values: json["values"] == null
+          ? {}
+          : Map<String, dynamic>.from(json["values"]),
+      catalogVersion: json["catalogVersion"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
@@ -147,6 +160,9 @@ class Complain {
         "complainOne": complainOne,
         "complainTwo": complainTwo,
         "complainThree": complainThree,
+        "selectedComplaints": selectedComplaints,
+        "values": values,
+        "catalogVersion": catalogVersion,
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,
@@ -160,6 +176,9 @@ class History {
     required this.pastHistory,
     required this.medicationHistory,
     required this.familyHistory,
+    this.selectedCategories = const [],
+    this.values = const {},
+    this.catalogVersion,
     required this.createdAt,
     required this.updatedAt,
     required this.id,
@@ -170,6 +189,9 @@ class History {
   final String? pastHistory;
   final String? medicationHistory;
   final String? familyHistory;
+  final List<String> selectedCategories;
+  final Map<String, dynamic> values;
+  final num? catalogVersion;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? id;
@@ -181,6 +203,13 @@ class History {
       pastHistory: json["pastHistory"],
       medicationHistory: json["medicationHistory"],
       familyHistory: json["familyHistory"],
+      selectedCategories: json["selectedCategories"] == null
+          ? []
+          : List<String>.from(json["selectedCategories"]!.map((x) => x)),
+      values: json["values"] == null
+          ? {}
+          : Map<String, dynamic>.from(json["values"]),
+      catalogVersion: json["catalogVersion"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
@@ -193,6 +222,9 @@ class History {
         "pastHistory": pastHistory,
         "medicationHistory": medicationHistory,
         "familyHistory": familyHistory,
+        "selectedCategories": selectedCategories,
+        "values": values,
+        "catalogVersion": catalogVersion,
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,
@@ -237,6 +269,8 @@ class Measurement {
     required this.fundusMacula,
     required this.fundusVessels,
     required this.fundusPeriphery,
+    this.cupDiscRatio,
+    this.vitreousHemorrhageGrade,
     required this.lids,
     required this.lashes,
     required this.sclera,
@@ -287,6 +321,8 @@ class Measurement {
   final List<String> fundusMacula;
   final List<String> fundusVessels;
   final List<String> fundusPeriphery;
+  final num? cupDiscRatio;
+  final String? vitreousHemorrhageGrade;
   final String? lids;
   final String? lashes;
   final String? sclera;
@@ -339,6 +375,8 @@ class Measurement {
       fundusMacula: json["fundusMacula"] == null ? [] : List<String>.from(json["fundusMacula"]!.map((x) => x)),
       fundusVessels: json["fundusVessels"] == null ? [] : List<String>.from(json["fundusVessels"]!.map((x) => x)),
       fundusPeriphery: json["fundusPeriphery"] == null ? [] : List<String>.from(json["fundusPeriphery"]!.map((x) => x)),
+      cupDiscRatio: json["cupDiscRatio"],
+      vitreousHemorrhageGrade: json["vitreousHemorrhageGrade"],
       lids: json["lids"],
       lashes: json["lashes"],
       sclera: json["sclera"],
@@ -391,6 +429,8 @@ class Measurement {
         "fundusMacula": fundusMacula.map((x) => x).toList(),
         "fundusVessels": fundusVessels.map((x) => x).toList(),
         "fundusPeriphery": fundusPeriphery.map((x) => x).toList(),
+        "cupDiscRatio": cupDiscRatio,
+        "vitreousHemorrhageGrade": vitreousHemorrhageGrade,
         "lids": lids,
         "lashes": lashes,
         "sclera": sclera,

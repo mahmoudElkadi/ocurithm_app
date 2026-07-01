@@ -87,6 +87,7 @@ dependencies:
 
   flutter_localizations:
     sdk: flutter
+  pro_image_editor: ^12.0.0
 
 dev_dependencies:
   flutter_test:

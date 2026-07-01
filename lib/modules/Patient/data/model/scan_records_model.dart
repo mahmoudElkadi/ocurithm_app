@@ -111,15 +111,28 @@ class ScanDoctor {
 }
 
 class ScanFile {
+  final String? id;
+  final String? originalKey;
+  final String? resolvedKey;
   final String? key;
   final String? url;
   final DateTime? expiresAt;
 
-  ScanFile({this.key, this.url, this.expiresAt});
+  ScanFile({
+    this.id,
+    this.originalKey,
+    this.resolvedKey,
+    this.key,
+    this.url,
+    this.expiresAt,
+  });
 
   factory ScanFile.fromJson(Map<String, dynamic> json) {
     return ScanFile(
-      key: json["key"],
+      id: json["id"],
+      originalKey: json["originalKey"],
+      resolvedKey: json["resolvedKey"],
+      key: json["key"] ?? json["resolvedKey"] ?? json["originalKey"],
       url: json["url"],
       expiresAt: json["expiresAt"] != null
           ? DateTime.tryParse(json["expiresAt"])?.toLocal()

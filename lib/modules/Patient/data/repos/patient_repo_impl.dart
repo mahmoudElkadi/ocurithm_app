@@ -271,6 +271,44 @@ class PatientRepoImpl implements PatientRepo {
   }
 
   @override
+  Future<ScanRecord> editScanFile({
+    required String patientId,
+    required String scanId,
+    required String fileId,
+    required String newKey,
+  }) async {
+    final response = await _apiHandler.patch<ScanRecord>(
+      "${ApiConstants.patients}/$patientId/scans/$scanId/files/$fileId",
+      data: {"newKey": newKey},
+      fromJson: (json) => ScanRecord.fromJson(json),
+    );
+
+    if (response.success && response.data != null) {
+      return response.data!;
+    } else {
+      throw Exception(response.message ?? "Failed to edit scan file");
+    }
+  }
+
+  @override
+  Future<ScanRecord> restoreScanFile({
+    required String patientId,
+    required String scanId,
+    required String fileId,
+  }) async {
+    final response = await _apiHandler.post<ScanRecord>(
+      "${ApiConstants.patients}/$patientId/scans/$scanId/files/$fileId/restore",
+      fromJson: (json) => ScanRecord.fromJson(json),
+    );
+
+    if (response.success && response.data != null) {
+      return response.data!;
+    } else {
+      throw Exception(response.message ?? "Failed to restore scan file");
+    }
+  }
+
+  @override
   Future<bool> checkDuplicateName({required String name}) async {
     final response = await _apiHandler.get<Map<String, dynamic>>(
       ApiConstants.checkDuplicatePatientName,

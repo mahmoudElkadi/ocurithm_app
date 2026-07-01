@@ -129,7 +129,7 @@ class ServiceLocator {
 
     ///Clinics
     sl.registerLazySingleton<ClinicRepo>(() => ClinicRepoImpl());
-    sl.registerLazySingleton(() => GetClinicsCubit(sl.call<ClinicRepo>()));
+    sl.registerFactory(() => GetClinicsCubit(sl.call<ClinicRepo>()));
     sl.registerFactory(() => ClinicActionsCubit(sl.call<ClinicRepo>()));
     sl.registerFactory(() => GetSingleClinicCubit(sl.call<ClinicRepo>()));
 
@@ -276,11 +276,11 @@ class ServiceLocator {
     sl.registerFactory(() => OrderActionsBloc(sl.call<OrderRepo>()));
     ///Accounts
     sl.registerLazySingleton<AccountsRepo>(() => AccountsRepoImpl());
-    sl.registerLazySingleton(() => GetAccountsCubit(sl.call<AccountsRepo>()));
+    sl.registerFactory(() => GetAccountsCubit(sl.call<AccountsRepo>()));
     sl.registerFactory(() => AccountActionsCubit(sl.call<AccountsRepo>()));
     sl.registerFactory(() => AccountDetailsCubit(sl.call<AccountsRepo>()));
     sl.registerFactoryParam<AccountFormCubit, bool, void>(
         (isSuperAdmin, _) => AccountFormCubit(sl.call<AccountsRepo>(), isSuperAdmin));
-    sl.registerLazySingleton(() => GetTransactionsCubit(sl.call<AccountsRepo>()));
+    sl.registerFactory(() => GetTransactionsCubit(sl.call<AccountsRepo>()));
   }
 }

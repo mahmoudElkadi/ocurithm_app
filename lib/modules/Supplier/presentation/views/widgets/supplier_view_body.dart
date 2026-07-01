@@ -44,16 +44,21 @@ class _SupplierViewBodyState extends State<SupplierViewBody> {
                 SnackbarService.showSuccess(context,
                     message: state.successMessage!);
               }
-              if (state.supplier != null) {
+              if (state.supplier != null && state.actingId != null) {
+                // Update: actingId is set
                 context
                     .read<GetSuppliersCubit>()
                     .add(UpdateLocalSupplierEvent(state.supplier!));
+              } else if (state.supplier != null) {
+                // Create: supplier returned but no actingId
+                context
+                    .read<GetSuppliersCubit>()
+                    .add(AddLocalSupplierEvent(state.supplier!));
               } else if (state.actingId != null) {
+                // Delete: only actingId is set
                 context
                     .read<GetSuppliersCubit>()
                     .add(DeleteLocalSupplierEvent(state.actingId!));
-              } else {
-                context.read<GetSuppliersCubit>().add(GetAllSuppliersEvent());
               }
             } else if (state.isError) {
               SnackbarService.showError(context,

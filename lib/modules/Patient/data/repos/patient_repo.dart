@@ -55,5 +55,18 @@ abstract class PatientRepo {
     required String scanId,
   });
 
+  Future<ScanRecord> editScanFile({
+    required String patientId,
+    required String scanId,
+    required String fileId,
+    required String newKey,
+  });
+
+  Future<ScanRecord> restoreScanFile({
+    required String patientId,
+    required String scanId,
+    required String fileId,
+  });
+
   Future<bool> checkDuplicateName({required String name});
 }
