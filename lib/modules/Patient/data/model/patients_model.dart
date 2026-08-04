@@ -117,3 +117,26 @@ class Patient {
         "id": id,
       };
 }
+
+/// Response from `POST /patients/:id/transfer`.
+class TransferPatientResult {
+  TransferPatientResult({
+    required this.targetId,
+    required this.deleted,
+    required this.moved,
+  });
+
+  final String targetId;
+  final bool deleted;
+  final Map<String, int> moved;
+
+  factory TransferPatientResult.fromJson(Map<String, dynamic> json) {
+    return TransferPatientResult(
+      targetId: json["targetId"] ?? "",
+      deleted: json["deleted"] ?? false,
+      moved: json["moved"] == null
+          ? {}
+          : Map<String, int>.from(json["moved"]),
+    );
+  }
+}

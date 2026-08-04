@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/DropdownPackage.dart';
@@ -91,7 +92,8 @@ class _AccountFormBottomSheetState extends State<AccountFormBottomSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final capabilities = CacheHelper.getStringList(key: "capabilities");
-    final bool isSuperAdmin = capabilities.contains("manageCapability");
+    final bool isSuperAdmin =
+        capabilities.contains(CapabilityKeys.manageCapability);
 
     return MultiBlocProvider(
       providers: [

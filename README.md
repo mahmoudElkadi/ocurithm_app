@@ -1,6 +1,15 @@
 # ocurithm
 
-A new Flutter project.
+Flutter mobile client for the Ocurithm ophthalmology clinic management platform.
+
+## Documentation
+
+| File | What it is |
+|---|---|
+| [`documentation/01-web-parity-implementation-plan.md`](./documentation/01-web-parity-implementation-plan.md) | **Active work plan** — the staged effort to bring this app to parity with the web platform. Start here. Contains the task ledger, per-task verification steps, and the decisions already made. |
+
+The parity audit this plan derives from lives in the backend/web repo at
+`ocurithm/documentation/07-web-mobile-parity-audit.md`.
 
 ## Getting Started
 

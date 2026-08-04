@@ -8,6 +8,7 @@ import '../../../../core/utils/colors.dart';
 import '../../../../core/utils/services_locator.dart';
 import '../../../../core/widgets/no_internet.dart';
 import '../manager/dashboard_cubit.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -70,7 +71,7 @@ class _DashboardViewState extends State<DashboardView> {
           return CustomScaffold(
             title: "Dashboard",
             actions: [
-              if (CacheHelper.getStringList(key: "capabilities").contains("manageCapability"))
+              if (CacheHelper.getStringList(key: "capabilities").contains(CapabilityKeys.manageCapability))
                 IconButton(
                   onPressed: () {
                     _selectDateRange(context);

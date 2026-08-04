@@ -17,6 +17,7 @@ import '../../../data/model/medicine_model.dart';
 import '../../manager/get_active_ingredients_cubit/get_active_ingredients_cubit.dart';
 import '../../manager/get_medicines_cubit/get_medicines_cubit.dart';
 import '../../manager/medicine_actions_cubit/medicine_actions_cubit.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 enum MedicineFormType { medicine, activeIngredient }
 
@@ -129,7 +130,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
   }
 
   bool get _hasManageCapability =>
-      CapabilityServices.hasCapability("manageCapability");
+      CapabilityServices.hasCapability(CapabilityKeys.manageCapability);
 
   bool _isFormValid() {
     if (_visibleType == MedicineFormType.medicine) {
@@ -520,7 +521,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
         }
 
         bool needsClinic = CacheHelper.getStringList(key: "capabilities")
-            .contains("manageCapability");
+            .contains(CapabilityKeys.manageCapability);
         if (!widget.isEdit && needsClinic && _selectedClinic == null) {
           Navigator.pop(context);
           setState(() {
@@ -567,7 +568,7 @@ class _MedicineBottomSheetState extends State<MedicineBottomSheet> {
         }
       } else {
         bool needsClinic = CacheHelper.getStringList(key: "capabilities")
-            .contains("manageCapability");
+            .contains(CapabilityKeys.manageCapability);
 
         if (!widget.isEdit && needsClinic && _selectedClinic == null) {
           Navigator.pop(context);

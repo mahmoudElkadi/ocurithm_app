@@ -14,6 +14,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../data/model/payment_method_model.dart';
 import '../../manager/get_single_payment_method_cubit/get_single_payment_method_cubit.dart';
 import '../../manager/payment_method_actions_cubit/payment_method_actions_cubit.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 /// Enum to define the mode of the payment method form dialog
 enum PaymentMethodFormMode { add, edit, view }
@@ -63,7 +64,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
 
     // Set clinic if user doesn't have manageCapability
     if (!CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability")) {
+        .contains(CapabilityKeys.manageCapability)) {
       selectedClinic = CacheHelper.getUser("user")?.clinic;
     }
 
@@ -326,11 +327,11 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
                 // Only show clinic dropdown in add mode
                 if (widget.mode == PaymentMethodFormMode.add &&
                     CacheHelper.getStringList(key: "capabilities")
-                        .contains("manageCapability"))
+                        .contains(CapabilityKeys.manageCapability))
                   _buildClinicDropdown(isLoading),
                 if (widget.mode == PaymentMethodFormMode.add &&
                     CacheHelper.getStringList(key: "capabilities")
-                        .contains("manageCapability"))
+                        .contains(CapabilityKeys.manageCapability))
                   const SizedBox(height: 16),
                 _buildTitleField(isLoading),
                 const SizedBox(height: 16),
@@ -350,10 +351,10 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
       child: Column(
         children: [
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
+              .contains(CapabilityKeys.manageCapability))
             _buildClinicDropdown(false),
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
+              .contains(CapabilityKeys.manageCapability))
             const SizedBox(height: 16),
           _buildTitleField(false),
           const SizedBox(height: 16),
@@ -372,7 +373,7 @@ class _PaymentMethodFormDialogState extends State<PaymentMethodFormDialog> {
 
     // Check if user has permission to manage capabilities
     final hasmanageCapability = CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability");
+        .contains(CapabilityKeys.manageCapability);
 
     // If user has permission, use BlocBuilder to get clinics from cubit
     if (hasmanageCapability) {
@@ -499,7 +500,7 @@ void showPaymentMethodFormDialog(
 }) {
   // Check if user has permission to manage capabilities (needs clinic selection)
   final needsClinicCubit = CacheHelper.getStringList(key: "capabilities")
-      .contains("manageCapability");
+      .contains(CapabilityKeys.manageCapability);
 
   showDialog(
     context: context,

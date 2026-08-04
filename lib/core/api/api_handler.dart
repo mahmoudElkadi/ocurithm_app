@@ -198,15 +198,18 @@ class ApiHandler {
     // Navigate to login screen using GetX
     try {
       log('User session expired. Please login again.');
-      await _clearAuthData();
+      await clearAuthData();
       Get.offAll(() => const LoginView());
     } catch (e) {
       log('Error during logout navigation: $e');
     }
   }
 
-  // Clear all authentication data
-  Future<void> _clearAuthData() async {
+  // Clear all authentication data. Public so an explicit user-triggered
+  // logout (MainCubit.logOut) clears the same complete set of keys as this
+  // auto-logout-on-expired-session path — the two used to drift, leaving
+  // accessToken/refreshToken/id/domain/notifications behind on manual logout.
+  Future<void> clearAuthData() async {
     await CacheHelper.removeData(key: 'user');
     await CacheHelper.removeData(key: 'notifications');
     await CacheHelper.removeData(key: 'token');
@@ -220,6 +223,19 @@ class ApiHandler {
   // Update base URL dynamically
   void updateBaseUrl(String newBaseUrl) {
     _dio.options.baseUrl = newBaseUrl;
+  }
+
+  /// Re-reads [ApiConstants.baseUrl] onto the live Dio instance.
+  ///
+  /// This singleton captures the base URL once, at construction. Without this,
+  /// changing the dev override only affected login (which builds an absolute
+  /// URL) while every other repo kept hitting the previous host until restart.
+  void syncBaseUrl() {
+    final resolved = ApiConstants.baseUrl;
+    if (_dio.options.baseUrl != resolved) {
+      log('Base URL changed: ${_dio.options.baseUrl} -> $resolved');
+      _dio.options.baseUrl = resolved;
+    }
   }
 
   // Update headers dynamically

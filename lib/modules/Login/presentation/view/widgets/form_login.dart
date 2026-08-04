@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,6 +9,8 @@ import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/generated/l10n.dart';
 
 import '../../../../../Main/presentation/views/main_view.dart';
+import '../../../../../core/api/api_constants.dart';
+import '../../../../../core/api/api_handler.dart';
 import '../../../../../core/Network/shared.dart';
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/colors.dart';
@@ -27,21 +30,21 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
-  TextEditingController ipController = TextEditingController();
+  TextEditingController serverController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    ipController.text =
-        CacheHelper.getData(key: 'ip_address') ?? '192.168.1.24';
+    serverController.text =
+        ApiConstants.devBaseUrlOverride ?? ApiConstants.baseUrl;
   }
 
   @override
   void dispose() {
     email.dispose();
     password.dispose();
-    ipController.dispose();
+    serverController.dispose();
     super.dispose();
   }
 
@@ -68,22 +71,32 @@ class _LoginFormState extends State<LoginForm> {
             padding: EdgeInsets.symmetric(horizontal: 15.w),
             child: Column(
               children: [
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () {
-                      _showIPDialog(context);
-                    },
-                    icon: Icon(Icons.settings_ethernet,
-                        color: Colorz.primaryColor, size: 20),
-                    label: Text(
-                      "Change IP: ${ipController.text}",
-                      style: appStyle(
-                          context, 14, Colorz.primaryColor, FontWeight.w500),
+                // Dev affordance only — clinic staff must never see or reach a
+                // server switch, and a release build ignores the stored
+                // override anyway (ApiConstants.devBaseUrlOverride).
+                if (!kReleaseMode) ...[
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        _showServerDialog(context);
+                      },
+                      icon: Icon(Icons.settings_ethernet,
+                          color: Colorz.primaryColor, size: 20),
+                      // Flexible because a staging URL is far longer than the
+                      // IP this button used to show.
+                      label: Flexible(
+                        child: Text(
+                          "Server: ${serverController.text}",
+                          overflow: TextOverflow.ellipsis,
+                          style: appStyle(context, 14, Colorz.primaryColor,
+                              FontWeight.w500),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const HeightSpacer(size: 10),
+                  const HeightSpacer(size: 10),
+                ],
                 Container(
                   width: MediaQuery.of(context).size.width,
                   decoration: BoxDecoration(
@@ -165,8 +178,6 @@ class _LoginFormState extends State<LoginForm> {
                 MyElevatedButton(
                     onPressed: () {
                       if (formKey.currentState!.validate()) {
-                        CacheHelper.saveString(
-                            key: 'ip_address', value: ipController.text);
                         context.read<LoginCubit>().add(LoginUserEvent(
                               username: email.text,
                               password: password.text,
@@ -221,7 +232,9 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
-  void _showIPDialog(BuildContext context) {
+  /// Dev-only backend switcher. Stores a full base URL so a developer can point
+  /// at a LAN backend or a staging host, not just an IP on port 3000.
+  void _showServerDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -239,20 +252,26 @@ class _LoginFormState extends State<LoginForm> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "Change Server IP",
+                  "Change Server",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colorz.primaryColor,
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  "Debug builds only. Accepts an IP, host:port or a full URL.",
+                  textAlign: TextAlign.center,
+                  style: appStyle(context, 12, Colors.grey, FontWeight.w400),
+                ),
                 const SizedBox(height: 20),
                 TextField2(
-                  controller: ipController,
+                  controller: serverController,
                   radius: 15,
                   type: TextInputType.url,
                   borderColor: Colorz.primaryColor,
-                  hintText: "Enter IP Address",
+                  hintText: "192.168.1.24  or  https://staging.host",
                   required: true,
                 ),
                 const SizedBox(height: 20),
@@ -264,14 +283,36 @@ class _LoginFormState extends State<LoginForm> {
                       child: const Text("Cancel",
                           style: TextStyle(color: Colors.grey)),
                     ),
+                    TextButton(
+                      onPressed: () async {
+                        await CacheHelper.removeData(
+                            key: ApiConstants.devBaseUrlKey);
+                        ApiHandler().syncBaseUrl();
+                        if (!context.mounted) return;
+                        setState(() {
+                          serverController.text = ApiConstants.baseUrl;
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Text("Reset",
+                          style: TextStyle(color: Colorz.primaryColor)),
+                    ),
                     ElevatedButton(
-                      onPressed: () {
-                        if (ipController.text.isNotEmpty) {
-                          CacheHelper.saveString(
-                              key: 'ip_address', value: ipController.text);
-                          setState(() {});
-                          Navigator.pop(context);
-                        }
+                      onPressed: () async {
+                        if (serverController.text.trim().isEmpty) return;
+                        final resolved = ApiConstants.normalizeBaseUrl(
+                            serverController.text);
+                        await CacheHelper.saveString(
+                            key: ApiConstants.devBaseUrlKey, value: resolved);
+                        // The Dio singleton captured its base URL at
+                        // construction; without this the change would not take
+                        // effect until the app restarted.
+                        ApiHandler().syncBaseUrl();
+                        if (!context.mounted) return;
+                        setState(() {
+                          serverController.text = resolved;
+                        });
+                        Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colorz.primaryColor,

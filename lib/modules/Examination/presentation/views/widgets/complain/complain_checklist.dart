@@ -44,12 +44,13 @@ class ComplainChecklist extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const OtherComplaintsSection(),
                 for (final group in complainGroups)
                   _GroupSection(
                     key: ValueKey('grp_${group.key}'),
                     group: group,
                   ),
+                // Web (cc5bc25) moved this below the catalog groups.
+                const OtherComplaintsSection(),
                 const SizedBox(height: 8),
                 StepNavigation(
                   onPrevious: () => cubit.currentStep > 0

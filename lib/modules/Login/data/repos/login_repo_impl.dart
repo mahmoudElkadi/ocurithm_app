@@ -30,6 +30,20 @@ class LoginRepoImpl extends LoginRepo {
   }
 
   @override
+  Future<void> logout({required String refreshToken}) async {
+    await ApiHandler().post(
+      ApiConstants.logout,
+      data: {"refreshToken": refreshToken},
+    );
+    // Best-effort: the caller clears local state regardless of the result.
+  }
+
+  @override
+  Future<void> logoutAll() async {
+    await ApiHandler().post(ApiConstants.logoutAll);
+  }
+
+  @override
   Future<LoginModel> getMe() async {
     final result = await ApiHandler().get<LoginModel>(
       ApiConstants.me,

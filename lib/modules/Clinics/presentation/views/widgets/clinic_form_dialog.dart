@@ -39,6 +39,7 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _commissionController = TextEditingController();
 
   bool _isReadOnly = false;
 
@@ -72,6 +73,7 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _commissionController.dispose();
     super.dispose();
   }
 
@@ -93,10 +95,15 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
 
     // Check internet connection
 
-    // Create clinic model
+    // Create clinic model. Empty commission text means "not set" — omitted
+    // as null rather than wiping a value the user never touched, since this
+    // field round-trips through the controller like name/description already do.
+    final commissionText = _commissionController.text.trim();
     final clinic = Clinic(
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
+      defaultDoctorCommissionPercentage:
+          commissionText.isEmpty ? null : num.tryParse(commissionText),
     );
 
     // Dispatch appropriate event based on mode
@@ -195,6 +202,10 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
               if (state.isSuccess && state.clinic != null) {
                 _nameController.text = state.clinic?.name ?? '';
                 _descriptionController.text = state.clinic?.description ?? '';
+                _commissionController.text = state
+                        .clinic?.defaultDoctorCommissionPercentage
+                        ?.toString() ??
+                    '';
               }
 
               if (state.isError) {
@@ -305,6 +316,8 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
                 _buildNameField(isLoading),
                 const SizedBox(height: 16),
                 _buildDescriptionField(isLoading),
+                const SizedBox(height: 16),
+                _buildCommissionField(isLoading),
                 const SizedBox(height: 24),
                 if (!_isReadOnly) _buildSubmitButton(),
               ],
@@ -322,6 +335,8 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
           _buildNameField(false),
           const SizedBox(height: 16),
           _buildDescriptionField(false),
+          const SizedBox(height: 16),
+          _buildCommissionField(false),
           const SizedBox(height: 24),
           _buildSubmitButton(),
         ],
@@ -384,6 +399,43 @@ class _ClinicFormDialogState extends State<ClinicFormDialog> {
         if (value == null || value.trim().isEmpty) {
           return 'Please enter a description';
         }
+        return null;
+      },
+    );
+  }
+
+  /// Clinic-wide fallback for the doctor appointment commission split — the
+  /// last level after doctor and branch overrides. Matches web's ClinicForm:
+  /// a plain 0-100 number field, empty meaning "not set" (there is no
+  /// resolved-value lookup on web either, just this placeholder hint).
+  Widget _buildCommissionField(bool isLoading) {
+    if (isLoading) {
+      return _buildShimmerField();
+    }
+
+    return TextFormField(
+      controller: _commissionController,
+      cursorColor: Theme.of(context).textTheme.bodyLarge?.color,
+      readOnly: _isReadOnly,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        hintText: 'Clinic-wide default for appointment commission',
+        labelText: 'Default Doctor Commission (%)',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        prefixIcon: Icon(Icons.percent,
+            color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) return null;
+        final parsed = num.tryParse(value.trim());
+        if (parsed == null) return 'Enter a valid number';
+        if (parsed < 0 || parsed > 100) return 'Must be between 0 and 100';
         return null;
       },
     );

@@ -15,6 +15,7 @@ class PatientActionsCubit
     on<AddPatientEvent>(_onAddPatient);
     on<UpdatePatientEvent>(_onUpdatePatient);
     on<DeletePatientEvent>(_onDeletePatient);
+    on<TransferPatientEvent>(_onTransferPatient);
     on<ResetPatientActionsEvent>(_onResetPatientActions);
     on<CheckDuplicateNameEvent>(_onCheckDuplicateName);
   }
@@ -154,6 +155,46 @@ class PatientActionsCubit
       emit(state.copyWith(
         state: PatientActionsStatus.error,
         actionType: PatientActionType.delete,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  // Transfer Patient
+  Future<void> _onTransferPatient(
+      TransferPatientEvent event, Emitter<PatientActionsState> emit) async {
+    try {
+      emit(state.copyWith(
+        state: PatientActionsStatus.loading,
+        actionType: PatientActionType.transfer,
+      ));
+
+      final result = await patientRepo.transferPatient(
+        sourceId: event.sourceId,
+        targetId: event.targetId,
+        deleteSource: event.deleteSource,
+      );
+
+      emit(state.copyWith(
+        state: PatientActionsStatus.success,
+        actionType: PatientActionType.transfer,
+        successMessage: result.deleted
+            ? 'Records transferred and the current patient was deleted.'
+            : 'Records transferred to the selected patient.',
+        transferResult: result,
+      ));
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('no internet connection')) {
+        emit(state.copyWith(
+          state: PatientActionsStatus.noConnection,
+          actionType: PatientActionType.transfer,
+          errorMessage: e.toString(),
+        ));
+        return;
+      }
+      emit(state.copyWith(
+        state: PatientActionsStatus.error,
+        actionType: PatientActionType.transfer,
         errorMessage: e.toString(),
       ));
     }

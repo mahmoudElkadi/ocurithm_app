@@ -1,6 +1,7 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/manage_capabilities.dart';
@@ -55,7 +56,7 @@ class AccountsView extends StatelessWidget {
                   title: "Accounts",
                   actions: [
                     manageCapability(
-                      capability: "manageAccounts",
+                      capability: CapabilityKeys.manageAccounts,
                       child: IconButton(
                         onPressed: () {
                           showModalBottomSheet(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ocurithm/core/widgets/filter_icon_button.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/search_fileld.dart';
 
@@ -89,23 +90,18 @@ class _CategoryViewBodyState extends State<CategoryViewBody> {
           ),
         ),
         Padding(
-          padding: EdgeInsets.only(right: 15),
-          child: InkWell(
-            onTap: () {
-              showFilterBottomSheet(context);
+          padding: const EdgeInsets.only(right: 15),
+          child: BlocBuilder<GetCategoriesCubit, GetCategoriesState>(
+            buildWhen: (previous, current) =>
+                previous.clinicFilter != current.clinicFilter,
+            builder: (context, state) {
+              return FilterIconButton(
+                activeCount: state.clinicFilter != null ? 1 : 0,
+                onTap: () {
+                  showFilterBottomSheet(context);
+                },
+              );
             },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              ),
-              child: Icon(
-                Icons.tune,
-                color: Theme.of(context).primaryColor,
-                size: 24,
-              ),
-            ),
           ),
         )
       ],

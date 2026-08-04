@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
+import '../../../../Main/presentation/manger/main_cubit.dart';
 import '../../../../core/utils/app_style.dart';
 import '../../../../core/utils/colors.dart';
 import '../../../../core/utils/services_locator.dart';
@@ -638,6 +639,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
     final formKey = GlobalKey<FormState>();
 
     final cubit = context.read<ProfileActionsCubit>();
+    final mainCubit = context.read<MainCubit>();
     Get.bottomSheet(
       BlocProvider.value(
         value: cubit,
@@ -646,6 +648,20 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
             if (state.isSuccess &&
                 state.actionType == ProfileActionType.changePassword) {
               Navigator.pop(context);
+              // Matches web (ProfilePage.tsx): a password change invalidates
+              // every session, including this one, so force a fresh login.
+              // Get.snackbar (not SnackbarService) because it floats on GetX's
+              // own overlay and survives the Get.offAll navigation below —
+              // a ScaffoldMessenger-based snackbar would die with this screen.
+              Get.snackbar(
+                "Password changed",
+                "Please log in again for security.",
+                colorText: Colors.white,
+                backgroundColor: Colorz.primaryColor,
+                snackPosition: SnackPosition.BOTTOM,
+                duration: const Duration(seconds: 4),
+              );
+              mainCubit.logOut(everywhere: true);
             }
           },
           child: Container(

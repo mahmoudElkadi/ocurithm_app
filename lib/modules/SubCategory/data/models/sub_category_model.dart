@@ -39,6 +39,7 @@ class SubCategory {
     this.name,
     this.description,
     this.image,
+    this.imageKey,
     this.clinic,
     this.category,
     this.isActive,
@@ -49,7 +50,16 @@ class SubCategory {
 
   final String? name;
   final String? description;
+  /// Resolved, directly-viewable image URL (the backend's storage service
+  /// signs this on every read) — display only, never send this back.
   final String? image;
+  /// The backend's own storage key for this image (reuses `category-image/…`
+  /// — sub-categories are validated against `FileCategory.CATEGORY_IMAGE`,
+  /// same as Category). This is what must be resubmitted on update if the
+  /// image is unchanged — the backend validates the `image` field against its
+  /// own key prefix and rejects anything else, including a resolved URL,
+  /// with a 400.
+  final String? imageKey;
   final Clinic? clinic;
   final Category? category;
   final bool? isActive;
@@ -64,10 +74,22 @@ class SubCategory {
     if (json is String) {
       return SubCategory(id: json);
     }
+    final rawImage = json["image"];
+    String? imageUrl;
+    String? imageKey;
+    if (rawImage is String) {
+      // Defensive: not the documented shape, but avoids a crash if ever seen.
+      imageUrl = rawImage;
+      imageKey = rawImage;
+    } else if (rawImage is Map) {
+      imageUrl = rawImage["url"] as String?;
+      imageKey = rawImage["key"] as String?;
+    }
     return SubCategory(
       name: json["name"],
       description: json["description"],
-      image: json["image"],
+      image: imageUrl,
+      imageKey: imageKey,
       clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       category: json["category"] == null ? null : Category.fromJson(json["category"]),
       isActive: json["isActive"],
@@ -80,7 +102,7 @@ class SubCategory {
   Map<String, dynamic> toJson() => {
         "name": name,
         "description": description,
-        "image": image,
+        "image": imageKey,
         "clinic": clinic?.toJson(),
         "category": category?.toJson(),
         "isActive": isActive,

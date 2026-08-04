@@ -1083,6 +1083,9 @@ class OneExaminationContent extends StatelessWidget {
               'Axis': isLeft
                   ? examination.examination?.measurements[0].oldAxis
                   : examination.examination?.measurements[1].oldAxis,
+              'VA': isLeft
+                  ? examination.examination?.measurements[0].oldGlassesVa
+                  : examination.examination?.measurements[1].oldGlassesVa,
             },
           ),
           _buildSectionComparison(

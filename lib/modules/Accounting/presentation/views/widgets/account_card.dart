@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../data/models/account_model.dart';
@@ -174,7 +176,9 @@ class AccountCard extends StatelessWidget {
                     const Spacer(),
                     _buildStatusChip(context, account?.isActive ?? false),
                     const SizedBox(width: 8),
-                    _buildActionsMenu(context),
+                    if (CapabilityServices.hasCapability(
+                        CapabilityKeys.manageAccounts))
+                      _buildActionsMenu(context),
                   ],
                 ),
               ],

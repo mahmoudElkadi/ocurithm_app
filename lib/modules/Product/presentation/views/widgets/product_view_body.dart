@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ocurithm/core/widgets/filter_icon_button.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/search_fileld.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
@@ -106,22 +107,24 @@ class _ProductViewBodyState extends State<ProductViewBody> {
         ),
         Padding(
           padding: const EdgeInsets.only(right: 15),
-          child: InkWell(
-            onTap: () {
-              showFilterBottomSheet(context);
+          child: BlocBuilder<GetProductsCubit, GetProductsState>(
+            buildWhen: (previous, current) =>
+                previous.clinicFilter != current.clinicFilter ||
+                previous.subCategoryFilter != current.subCategoryFilter ||
+                previous.activeOnly != current.activeOnly,
+            builder: (context, state) {
+              final activeCount = [
+                state.clinicFilter,
+                state.subCategoryFilter,
+                state.activeOnly,
+              ].where((v) => v != null).length;
+              return FilterIconButton(
+                activeCount: activeCount,
+                onTap: () {
+                  showFilterBottomSheet(context);
+                },
+              );
             },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              ),
-              child: Icon(
-                Icons.tune,
-                color: Theme.of(context).primaryColor,
-                size: 24,
-              ),
-            ),
           ),
         )
       ],

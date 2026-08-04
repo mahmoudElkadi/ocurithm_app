@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/modules/Product/data/models/product_model.dart';
@@ -63,10 +65,13 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                           ),
                   ),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () => _showEditBottomSheet(context, product),
-                    ),
+                    if (CapabilityServices.hasCapability(
+                        CapabilityKeys.manageProducts))
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () =>
+                            _showEditBottomSheet(context, product),
+                      ),
                   ],
                 ),
                 SliverToBoxAdapter(

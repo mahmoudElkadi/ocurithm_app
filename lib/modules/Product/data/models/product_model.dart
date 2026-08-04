@@ -53,6 +53,7 @@ class Product {
     this.name,
     this.description,
     this.image,
+    this.imageKey,
     this.sku,
     this.price,
     this.stock,
@@ -66,7 +67,14 @@ class Product {
 
   final String? name;
   final String? description;
+  /// Resolved, directly-viewable image URL (the backend's storage service
+  /// signs this on every read) — display only, never send this back.
   final String? image;
+  /// The backend's own storage key for this image (e.g. `product-image/…`).
+  /// This is what must be resubmitted on update if the image is unchanged —
+  /// the backend validates the `image` field against its own key prefix and
+  /// rejects anything else, including a resolved URL, with a 400.
+  final String? imageKey;
   final String? sku;
   final num? price;
   final num? stock;
@@ -84,10 +92,22 @@ class Product {
     if (json is String) {
       return Product(id: json);
     }
+    final rawImage = json["image"];
+    String? imageUrl;
+    String? imageKey;
+    if (rawImage is String) {
+      // Defensive: not the documented shape, but avoids a crash if ever seen.
+      imageUrl = rawImage;
+      imageKey = rawImage;
+    } else if (rawImage is Map) {
+      imageUrl = rawImage["url"] as String?;
+      imageKey = rawImage["key"] as String?;
+    }
     return Product(
       name: json["name"],
       description: json["description"],
-      image: json["image"],
+      image: imageUrl,
+      imageKey: imageKey,
       sku: json["sku"],
       price: json["price"],
       stock: json["stock"],
@@ -105,7 +125,7 @@ class Product {
   Map<String, dynamic> toJson() => {
         "name": name,
         "description": description,
-        "image": image,
+        "image": imageKey,
         "sku": sku,
         "price": price,
         "stock": stock,
@@ -121,6 +141,7 @@ class Product {
     String? name,
     String? description,
     String? image,
+    String? imageKey,
     String? sku,
     num? price,
     num? stock,
@@ -135,6 +156,7 @@ class Product {
       name: name ?? this.name,
       description: description ?? this.description,
       image: image ?? this.image,
+      imageKey: imageKey ?? this.imageKey,
       sku: sku ?? this.sku,
       price: price ?? this.price,
       stock: stock ?? this.stock,

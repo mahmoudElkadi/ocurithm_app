@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:shimmer/shimmer.dart';
@@ -29,7 +31,12 @@ class SupplierCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       child: GestureDetector(
-        onTap: isLoading || supplier == null
+        // Web (SuppliersPage.tsx) shows no edit affordance at all for a
+        // showProducts-only viewer — there is no read-only detail view here,
+        // so tapping must be a no-op rather than opening the edit form.
+        onTap: isLoading ||
+                supplier == null ||
+                !CapabilityServices.hasCapability(CapabilityKeys.manageProducts)
             ? null
             : () {
                 showModalBottomSheet(
@@ -74,8 +81,7 @@ class SupplierCard extends StatelessWidget {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white),
+                        shape: BoxShape.circle, color: Colors.white),
                   ),
                 )
               else
@@ -129,7 +135,9 @@ class SupplierCard extends StatelessWidget {
                     else
                       Row(
                         children: [
-                          Icon(Icons.phone, size: 14, color: theme.textTheme.bodySmall?.color),
+                          Icon(Icons.phone,
+                              size: 14,
+                              color: theme.textTheme.bodySmall?.color),
                           const WidthSpacer(size: 5),
                           Text(
                             supplier?.phoneNumber ?? "No Phone",
@@ -143,25 +151,28 @@ class SupplierCard extends StatelessWidget {
               if (!isLoading) ...[
                 _buildStatusBadge(context, supplier?.isActive ?? true),
                 const WidthSpacer(size: 10),
-                BlocBuilder<SupplierActionsCubit, SupplierActionsState>(
-                  builder: (context, state) {
-                    if (state.isLoading && state.actingId == supplier?.id) {
-                      return const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
+                if (CapabilityServices.hasCapability(
+                    CapabilityKeys.manageProducts))
+                  BlocBuilder<SupplierActionsCubit, SupplierActionsState>(
+                    builder: (context, state) {
+                      if (state.isLoading && state.actingId == supplier?.id) {
+                        return const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      }
+                      return IconButton(
+                        icon:
+                            const Icon(Icons.delete_outline, color: Colors.red),
+                        onPressed: () => _showDeleteConfirmation(context),
+                        visualDensity: VisualDensity.compact,
                       );
-                    }
-                    return IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      onPressed: () => _showDeleteConfirmation(context),
-                      visualDensity: VisualDensity.compact,
-                    );
-                  },
-                ),
+                    },
+                  ),
               ],
             ],
           ),

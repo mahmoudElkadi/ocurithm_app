@@ -52,7 +52,8 @@ class Doctor {
       this.error,
       this.password,
       this.capability,
-      this.isConsultant});
+      this.isConsultant,
+      this.appointmentCommissionPercentage});
 
   String? name;
   String? image;
@@ -68,6 +69,10 @@ class Doctor {
   DateTime? createdAt;
   DateTime? updatedAt;
   bool? isConsultant;
+
+  /// Per-doctor override for the appointment commission split. Null means
+  /// "not set" — falls through to the branch, then clinic, default.
+  num? appointmentCommissionPercentage;
 
   String? id;
   String? error;
@@ -95,6 +100,8 @@ class Doctor {
       id: json["id"],
       error: json["error"],
       isConsultant: json["isConsultant"],
+      appointmentCommissionPercentage:
+          json["appointmentCommissionPercentage"],
     );
   }
 

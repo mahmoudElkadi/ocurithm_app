@@ -7,8 +7,10 @@ import 'package:get/get.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:month_picker_dialog/month_picker_dialog.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/utils/format_helper.dart';
+import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/calendar_slider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -20,7 +22,9 @@ import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/manage_capabilities.dart';
 import '../../../../../core/widgets/search_and_filter.dart';
 import '../../../../Examination/presentation/views/examination_view.dart';
+import '../../../data/models/appointment_lifecycle_status.dart';
 import '../../../data/models/appointment_model.dart';
+import '../../../data/repos/appointment_repo.dart';
 import '../../manager/Appointment cubit/appointment_cubit.dart';
 import 'delay_appointment.dart';
 import 'filter_appointment.dart';
@@ -200,10 +204,45 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
   int? expandedIndex;
   bool isExpanded = false;
 
+  // Freshly-fetched replacements for whatever is currently expanded — the
+  // list this widget renders may have been fetched a while ago, so the detail
+  // view re-fetches by id rather than only ever showing that stale snapshot.
+  final Map<String, Appointment> _freshAppointments = {};
+  String? _fetchingId;
+
   void toggleExpansion() {
     setState(() {
       isExpanded = !isExpanded;
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant ExpandableTimeSlots oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The cubit re-fetches the whole list after any action (proceed/cancel/
+    // reorder/etc.); drop the cache so re-expanding fetches current data
+    // instead of showing whatever was fresh before that action.
+    if (oldWidget.appointments != widget.appointments) {
+      _freshAppointments.clear();
+    }
+  }
+
+  Future<void> _fetchFreshAppointment(String id) async {
+    if (_fetchingId == id || _freshAppointments.containsKey(id)) return;
+    _fetchingId = id;
+    try {
+      final fresh =
+          await sl<AppointmentRepo>().getAppointmentById(id: id);
+      if (!mounted) return;
+      setState(() {
+        _freshAppointments[id] = fresh;
+      });
+    } catch (_) {
+      // Falls back to the list-sourced object; not worth surfacing an error
+      // for a background freshness fetch the user didn't explicitly trigger.
+    } finally {
+      _fetchingId = null;
+    }
   }
 
   List<Color> getThemeColors(String theme, bool isDark) {
@@ -407,12 +446,21 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
     while (i < appointments.length) {
       if (indexMatch(i, expandedIndex) || indexMatch(i + 1, expandedIndex)) {
         int currentExpIndex = expandedIndex!;
+        final listAppointment = appointments[currentExpIndex];
+        // Fetch this one fresh rather than only ever showing whatever was in
+        // the list when it was last loaded — cheap fire-and-forget, this
+        // widget rebuilds via setState once the fresh copy lands.
+        if (listAppointment.id != null) {
+          _fetchFreshAppointment(listAppointment.id!);
+        }
+        final displayedAppointment =
+            _freshAppointments[listAppointment.id] ?? listAppointment;
         slots.add(
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             margin: const EdgeInsets.symmetric(vertical: 4),
             child: _buildExpandedItem(
-                currentExpIndex, appointments[currentExpIndex], cubit),
+                currentExpIndex, displayedAppointment, cubit),
           ),
         );
 
@@ -632,8 +680,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
             //   ),
             // ),
             const SizedBox(height: 8),
-            _buildInfoRow("assets/icons/status.svg",
-                "Status: ${appointment.status ?? 'N/A'}", isDark),
+            _buildStatusBadge(appointment.status),
             if (appointment.createdBy != null) ...[
               const SizedBox(height: 8),
               _buildInfoRow(
@@ -708,10 +755,44 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
     );
   }
 
+  /// Colored status badge covering all ten backend lifecycle values, matching
+  /// web's AppointmentStatus.tsx (mobile previously showed this as plain
+  /// "Status: X" text with no visual distinction and no unknown-value guard).
+  Widget _buildStatusBadge(String? rawStatus) {
+    final status = AppointmentLifecycleStatus.fromString(rawStatus);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: status.color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: status.color.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(status.icon, size: 14, color: status.color),
+            const SizedBox(width: 6),
+            Text(
+              status == AppointmentLifecycleStatus.unknown
+                  ? (rawStatus ?? 'N/A')
+                  : status.label,
+              style: appStyle(context, 13, status.color, FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildActionButtons(Appointment appointment, AppointmentCubit cubit) {
     if (appointment.status == 'Examining' || appointment.status == 'Saved') {
+      // 'wait' is only a legal transition from Examining (mirrors web's
+      // canWait), even though this whole block also renders for Saved.
+      final canWait = appointment.status == 'Examining';
       return manageCapability(
-        capability: "editAppointmentsDoctor",
+        capability: CapabilityKeys.editAppointmentsDoctor,
         child: Row(
           spacing: 10,
           children: [
@@ -723,7 +804,8 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                       borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () async {
-                  if (CapabilityServices.hasCapability("manageExaminations")) {
+                  if (CapabilityServices.hasCapability(
+                      CapabilityKeys.manageExaminations)) {
                     bool? isChanged = await Get.to(
                       () => MultiStepFormPage(
                         appointment: appointment,
@@ -755,7 +837,7 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
-                    onPressed: isThisAppointmentLoading
+                    onPressed: (isThisAppointmentLoading || !canWait)
                         ? null
                         : () {
                             _showActionDialog(
@@ -781,13 +863,21 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
       );
     }
 
+    // Mirrors AppointmentCard.tsx's can* booleans, so an illegal transition
+    // (e.g. tapping Cancel on an already-Completed appointment) is disabled
+    // client-side rather than surfacing the backend's 400 error.
+    final lifecycleStatus =
+        AppointmentLifecycleStatus.fromString(appointment.status);
+
     return manageCapability(
-      capability: "editAppointmentsReceptionist",
+      capability: CapabilityKeys.editAppointmentsReceptionist,
       child: BlocBuilder<AppointmentCubit, AppointmentState>(
         builder: (context, state) {
           final isThisAppointmentLoading =
               state.updatingAppointmentId == appointment.id.toString();
 
+          final isArriveLoading =
+              isThisAppointmentLoading && state.updatingAction == 'arrive';
           final isProceedLoading =
               isThisAppointmentLoading && state.updatingAction == 'proceed';
           final isLateLoading =
@@ -798,13 +888,22 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              _buildActionButton(Icons.how_to_reg, Colors.blue, () {
+                _showActionDialog(
+                    context, cubit, appointment, 'arrive', 'Check In');
+              },
+                  isFirst: true,
+                  isLoading: isArriveLoading,
+                  isDisabled:
+                      isThisAppointmentLoading || !lifecycleStatus.canArrive),
+              const WidthSpacer(size: 1),
               _buildActionButton(Icons.done, Colors.green, () {
                 _showActionDialog(
                     context, cubit, appointment, 'proceed', 'Proceed');
               },
-                  isFirst: true,
                   isLoading: isProceedLoading,
-                  isDisabled: isThisAppointmentLoading),
+                  isDisabled:
+                      isThisAppointmentLoading || !lifecycleStatus.canProceed),
               const WidthSpacer(size: 1),
               _buildActionButtonSvg(
                   "assets/icons/sand_watch.svg", Colorz.secondaryColor, () {
@@ -826,14 +925,17 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                   },
                   onCancel: () {},
                 );
-              }, isDisabled: isThisAppointmentLoading),
+              },
+                  isDisabled:
+                      isThisAppointmentLoading || !lifecycleStatus.canDelay),
               const WidthSpacer(size: 1),
               _buildActionButtonSvg(
                   "assets/icons/circle_half.svg", Colors.yellow.shade800, () {
                 _showActionDialog(context, cubit, appointment, 'late', 'Late');
               },
                   isLoading: isLateLoading,
-                  isDisabled: isThisAppointmentLoading),
+                  isDisabled:
+                      isThisAppointmentLoading || !lifecycleStatus.canLate),
               const WidthSpacer(size: 1),
               _buildActionButton(Icons.close, Colors.red, () {
                 _showActionDialog(
@@ -841,7 +943,8 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
               },
                   isLast: true,
                   isLoading: isCancelLoading,
-                  isDisabled: isThisAppointmentLoading),
+                  isDisabled:
+                      isThisAppointmentLoading || !lifecycleStatus.canCancel),
             ],
           );
         },
@@ -913,6 +1016,10 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
     Color color;
 
     switch (action) {
+      case 'arrive':
+        icon = Icons.how_to_reg;
+        color = Colors.blue;
+        break;
       case 'proceed':
         icon = Icons.check_circle_outline;
         color = Colors.green;
@@ -956,67 +1063,119 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // Matches web's computeQueueMeta: a small per-doctor queue position badge
+    // plus a highlight border (green = that doctor's examining patient,
+    // amber = their next). Computed from the full loaded list (not just this
+    // time-slot section) so position numbers stay correct across sections.
+    final fullList =
+        context.read<AppointmentCubit>().state.appointments?.appointments ?? [];
+    final queueMeta = computeAppointmentQueueMeta(fullList)[appointment.id];
+
     return GestureDetector(
       onTap: () {
         setState(() {
           expandedIndex = index;
         });
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        decoration: BoxDecoration(
-          color: isDark ? theme.cardColor : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colorz.grey200.withValues(alpha: 0.7),
-              spreadRadius: 2,
-              blurRadius: 5,
-            )
-          ],
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                FormatHelper.formatTimes(
-                    context, appointment.datetime.toString()),
-                style: appStyle(context, 18, Colorz.redColor, FontWeight.w500),
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    "Dr. ${appointment.doctor?.name ?? 'Unknown'}",
-                    style: appStyle(context, 16,
-                        isDark ? Colors.white : Colorz.black, FontWeight.w600),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark ? theme.cardColor : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: queueMeta != null &&
+                      (queueMeta.isExamining || queueMeta.isNext)
+                  ? Border.all(
+                      color:
+                          queueMeta.isExamining ? Colors.green : Colors.amber,
+                      width: 2,
+                    )
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : Colorz.grey200.withValues(alpha: 0.7),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                )
+              ],
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    FormatHelper.formatTimes(
+                        context, appointment.datetime.toString()),
+                    style:
+                        appStyle(context, 18, Colorz.redColor, FontWeight.w500),
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    appointment.patient?.name ?? 'No Patient',
-                    style: appStyle(
-                        context,
-                        14,
-                        isDark ? Colors.white70 : Colors.black87,
-                        FontWeight.w500),
-                    overflow: TextOverflow.ellipsis,
+                  const SizedBox(height: 4),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        "Dr. ${appointment.doctor?.name ?? 'Unknown'}",
+                        style: appStyle(
+                            context,
+                            16,
+                            isDark ? Colors.white : Colorz.black,
+                            FontWeight.w600),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 2),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        appointment.patient?.name ?? 'No Patient',
+                        style: appStyle(
+                            context,
+                            14,
+                            isDark ? Colors.white70 : Colors.black87,
+                            FontWeight.w500),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          // Queue position badge, matching web's absolute-positioned span.
+          if (queueMeta != null)
+            Positioned(
+              top: -8,
+              left: -8,
+              child: Container(
+                width: 22,
+                height: 22,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.scaffoldBackgroundColor,
+                  border: Border.all(color: theme.dividerColor),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black26, blurRadius: 2)
+                  ],
+                ),
+                child: Text(
+                  '${queueMeta.position}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colorz.black,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

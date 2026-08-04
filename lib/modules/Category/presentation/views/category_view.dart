@@ -5,6 +5,8 @@ import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Category/presentation/views/widgets/category_form_bottom_sheet.dart';
 
+import '../../../../core/utils/capability_keys.dart';
+import '../../../../core/widgets/manage_capabilities.dart';
 import '../../../../core/utils/services_locator.dart';
 import '../manager/category_actions_cubit/category_actions_cubit.dart';
 import '../manager/get_categories_cubit/get_categories_cubit.dart';
@@ -27,24 +29,27 @@ class CategoryView extends StatelessWidget {
           return CustomScaffold(
             title: "Categories",
             actions: [
-              IconButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => MultiBlocProvider(
-                      providers: [
-                        BlocProvider.value(
-                            value: context.read<CategoryActionsCubit>()),
-                        BlocProvider.value(
-                            value: context.read<GetCategoriesCubit>()),
-                      ],
-                      child: CategoryFormBottomSheet(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.add_circle, size: 28),
+              manageCapability(
+                capability: CapabilityKeys.manageCategories,
+                child: IconButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => MultiBlocProvider(
+                        providers: [
+                          BlocProvider.value(
+                              value: context.read<CategoryActionsCubit>()),
+                          BlocProvider.value(
+                              value: context.read<GetCategoriesCubit>()),
+                        ],
+                        child: CategoryFormBottomSheet(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_circle, size: 28),
+                ),
               ),
             ],
             body: state.noConnection

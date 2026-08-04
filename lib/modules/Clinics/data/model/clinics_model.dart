@@ -35,6 +35,7 @@ class Clinic {
     this.name,
     this.description,
     this.isActive,
+    this.defaultDoctorCommissionPercentage,
     this.createdAt,
     this.updatedAt,
     this.id,
@@ -44,6 +45,10 @@ class Clinic {
   String? name;
   String? description;
   bool? isActive;
+
+  /// Clinic-wide fallback for the doctor appointment commission split — the
+  /// final level after doctor and branch overrides. Null means "not set".
+  num? defaultDoctorCommissionPercentage;
   DateTime? createdAt;
   DateTime? updatedAt;
   String? id;
@@ -57,6 +62,8 @@ class Clinic {
       name: json["name"],
       description: json["description"],
       isActive: json["isActive"],
+      defaultDoctorCommissionPercentage:
+          json["defaultDoctorCommissionPercentage"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
@@ -67,6 +74,8 @@ class Clinic {
   Map<String, dynamic> toJson() => {
         "name": name,
         "description": description,
+        "defaultDoctorCommissionPercentage":
+            defaultDoctorCommissionPercentage,
         "id": id,
         "error": error,
       };

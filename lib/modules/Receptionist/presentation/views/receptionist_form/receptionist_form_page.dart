@@ -11,6 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:ocurithm/Services/whatsapp_confirmation.dart';
 import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/capabilities_section.dart';
@@ -152,7 +154,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
 
     // Set clinic if user doesn't have manageCapability
     if (!CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability")) {
+        .contains(CapabilityKeys.manageCapability)) {
       selectedClinic = CacheHelper.getUser("user")?.clinic;
       _selectedClinicId = selectedClinic?.id;
 
@@ -214,7 +216,10 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
           elevation: 0,
           actions: [
             // Edit button in view mode
-            if (widget.mode != ReceptionistFormMode.add)
+            if (widget.mode != ReceptionistFormMode.add &&
+                (!_isReadOnlyState ||
+                    CapabilityServices.hasCapability(
+                        CapabilityKeys.manageReceptionists)))
               IconButton(
                 onPressed: () {
                   setState(() {
@@ -399,7 +404,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
 
           // Clinic Dropdown Shimmer (if user has permission)
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
+              .contains(CapabilityKeys.manageCapability))
             _buildShimmer(
               Container(
                 width: double.infinity,
@@ -413,7 +418,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
               isDark,
             ),
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
+              .contains(CapabilityKeys.manageCapability))
             const HeightSpacer(size: 20),
 
           // Branch Dropdown Shimmer
@@ -553,7 +558,7 @@ class _ReceptionistFormViewState extends State<ReceptionistFormView> {
 
             // Clinic Dropdown (if user has permission and in add mode)
             if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageCapability") &&
+                    .contains(CapabilityKeys.manageCapability) &&
                 _isAddMode)
               _buildClinicDropdown(context, theme, isDark),
 

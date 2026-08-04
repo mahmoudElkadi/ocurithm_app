@@ -57,7 +57,7 @@ class CategoryRepoImpl implements CategoryRepo {
           "name": name,
           "clinic": clinic,
           if (description != null) "description": description,
-          // if (image != null) "image": image,
+          if (image != null) "image": image,
           if (isActive != null) "isActive": isActive,
         },
       );

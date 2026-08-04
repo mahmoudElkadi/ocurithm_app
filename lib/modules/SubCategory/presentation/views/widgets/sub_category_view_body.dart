@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/filter_icon_button.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/search_fileld.dart';
 import 'package:ocurithm/modules/SubCategory/presentation/manager/get_sub_categories_cubit/get_sub_categories_cubit.dart';
@@ -83,30 +84,30 @@ class _SubCategoryViewBodyState extends State<SubCategoryViewBody> {
         ),
         Padding(
           padding: const EdgeInsets.only(right: 15),
-          child: InkWell(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => BlocProvider.value(
-                  value: context.read<GetSubCategoriesCubit>(),
-                  child: const SubCategoryFilterBottomSheet(),
-                ),
+          child: BlocBuilder<GetSubCategoriesCubit, GetSubCategoriesState>(
+            buildWhen: (previous, current) =>
+                previous.clinicFilter != current.clinicFilter ||
+                previous.categoryFilter != current.categoryFilter,
+            builder: (context, state) {
+              final activeCount = [
+                state.clinicFilter,
+                state.categoryFilter,
+              ].where((v) => v != null).length;
+              return FilterIconButton(
+                activeCount: activeCount,
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<GetSubCategoriesCubit>(),
+                      child: const SubCategoryFilterBottomSheet(),
+                    ),
+                  );
+                },
               );
             },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              ),
-              child: Icon(
-                Icons.tune,
-                color: Theme.of(context).primaryColor,
-                size: 24,
-              ),
-            ),
           ),
         )
       ],

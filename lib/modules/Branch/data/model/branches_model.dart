@@ -40,6 +40,7 @@ class Branch {
     this.openTime,
     this.closeTime,
     this.workDays,
+    this.defaultDoctorCommissionPercentage,
     this.createdAt,
     this.updatedAt,
     this.id,
@@ -54,6 +55,11 @@ class Branch {
   String? openTime;
   String? closeTime;
   List<String>? workDays;
+
+  /// Branch-level fallback for the doctor appointment commission split. Used
+  /// when a doctor has no own override; falls through to the clinic default
+  /// when null.
+  num? defaultDoctorCommissionPercentage;
   DateTime? createdAt;
   DateTime? updatedAt;
   String? id;
@@ -69,6 +75,8 @@ class Branch {
       openTime: json["openTime"],
       closeTime: json["closeTime"],
       workDays: json["workDays"] == null ? [] : List<String>.from(json["workDays"]!.map((x) => x)),
+      defaultDoctorCommissionPercentage:
+          json["defaultDoctorCommissionPercentage"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
       id: json["id"],
@@ -85,5 +93,7 @@ class Branch {
         "openTime": openTime,
         "closeTime": closeTime,
         "workDays": workDays?.map((x) => x).toList(),
+        "defaultDoctorCommissionPercentage":
+            defaultDoctorCommissionPercentage,
       };
 }

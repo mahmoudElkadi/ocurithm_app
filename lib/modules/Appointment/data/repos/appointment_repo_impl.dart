@@ -94,6 +94,21 @@ class AppointmentRepoImpl implements AppointmentRepo {
   }
 
   @override
+  Future<Appointment> getAppointmentById({required String id}) async {
+    final response = await _apiHandler.get<Appointment>(
+      "${ApiConstants.appointments}/$id",
+      cancelKey: 'getAppointmentById',
+      fromJson: (json) => Appointment.fromJson(json),
+    );
+
+    if (response.success && response.data != null) {
+      return response.data!;
+    } else {
+      throw Exception(response.message ?? 'Failed to fetch appointment');
+    }
+  }
+
+  @override
   Future<Appointment> editAppointment({
     required String id,
     required String action,
@@ -118,6 +133,28 @@ class AppointmentRepoImpl implements AppointmentRepo {
         return response.data!;
       } else {
         throw Exception(response.message ?? 'Failed to edit appointment');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Appointment>> reorderAppointments(
+      {required List<String> orderedIds}) async {
+    try {
+      final response = await _apiHandler.patch<List<Appointment>>(
+        "${ApiConstants.appointments}/reorder",
+        data: {"orderedIds": orderedIds},
+        cancelKey: 'reorderAppointments',
+        fromJson: (json) =>
+            (json as List).map((x) => Appointment.fromJson(x)).toList(),
+      );
+
+      if (response.success && response.data != null) {
+        return response.data!;
+      } else {
+        throw Exception(response.message ?? 'Failed to reorder appointments');
       }
     } catch (e) {
       rethrow;

@@ -202,10 +202,10 @@ class _DelayAppointmentState extends State<DelayAppointment> {
     return BlocListener<AppointmentCubit, AppointmentState>(
       bloc: widget.cubit,
       listener: (context, state) {
-        if (state.status == AppointmentStatus.editSuccess) {
+        if (state.status == AppointmentUiState.editSuccess) {
           Navigator.pop(context); // Pop the loading dialog
           Navigator.pop(context, true); // Pop the delay appointment screen
-        } else if (state.status == AppointmentStatus.editError) {
+        } else if (state.status == AppointmentUiState.editError) {
           Navigator.pop(context); // Pop the loading dialog
           SnackbarService.showError(context, message: state.errorMessage ?? 'An error occurred');
         }

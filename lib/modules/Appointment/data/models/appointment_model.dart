@@ -55,6 +55,7 @@ class Appointment {
     required this.createdAt,
     required this.updatedAt,
     required this.id,
+    this.sequence,
     this.error,
   });
 
@@ -73,6 +74,10 @@ class Appointment {
   DateTime? createdAt;
   DateTime? updatedAt;
   String? id;
+
+  /// Per-doctor, per-day queue position — null on legacy rows the backfill
+  /// script hasn't reached, or when the server hasn't assigned one yet.
+  num? sequence;
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
     try {
@@ -103,6 +108,7 @@ class Appointment {
         createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
         updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
         id: json["id"],
+        sequence: json["sequence"],
       );
     } catch (e) {
       log(e.toString());
@@ -125,6 +131,7 @@ class Appointment {
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "id": id,
+        "sequence": sequence,
       };
 
   Appointment copyWith({
@@ -142,6 +149,7 @@ class Appointment {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? id,
+    num? sequence,
     String? error,
   }) {
     return Appointment(
@@ -159,6 +167,7 @@ class Appointment {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       id: id ?? this.id,
+      sequence: sequence ?? this.sequence,
       error: error ?? this.error,
     );
   }

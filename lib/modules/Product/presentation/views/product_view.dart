@@ -1,6 +1,7 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
@@ -30,7 +31,7 @@ class ProductView extends StatelessWidget {
             title: "Products",
             actions: [
               manageCapability(
-                capability: "manageProducts",
+                capability: CapabilityKeys.manageProducts,
                 child: IconButton(
                   onPressed: () {
                     showModalBottomSheet(

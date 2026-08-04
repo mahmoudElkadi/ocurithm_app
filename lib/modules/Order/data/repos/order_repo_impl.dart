@@ -67,6 +67,7 @@ class OrderRepoImpl implements OrderRepo {
   @override
   Future<Order> createOrder({
     required List<Map<String, dynamic>> items,
+    required String paymentMethod,
     String? clinic,
     String? branch,
     String? doctor,
@@ -76,6 +77,7 @@ class OrderRepoImpl implements OrderRepo {
         ApiConstants.orders,
         data: {
           "items": items,
+          "paymentMethod": paymentMethod,
           if (clinic != null) "clinic": clinic,
           if (branch != null) "branch": branch,
           if (doctor != null) "doctor": doctor,
@@ -96,6 +98,7 @@ class OrderRepoImpl implements OrderRepo {
   Future<Order> updateOrder(
     String id, {
     required List<Map<String, dynamic>> items,
+    required String paymentMethod,
     String? branch,
     String? doctor,
     String? clinic,
@@ -105,6 +108,7 @@ class OrderRepoImpl implements OrderRepo {
         "${ApiConstants.orders}/$id",
         data: {
           "items": items,
+          "paymentMethod": paymentMethod,
           if (branch != null) "branch": branch,
           if (doctor != null) "doctor": doctor,
           if (clinic != null) "clinic": clinic,

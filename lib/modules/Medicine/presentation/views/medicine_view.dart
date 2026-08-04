@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ocurithm/core/widgets/filter_icon_button.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/core/widgets/search_fileld.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
@@ -269,10 +270,16 @@ class _MedicineViewBodyState extends State<_MedicineViewBody> {
           ),
         ),
         if (_isMedicines)
-          IconButton(
-            icon: const Icon(Icons.tune),
-            onPressed: () {
-              _showActiveIngredientFilter(context);
+          BlocBuilder<GetMedicinesCubit, GetMedicinesState>(
+            buildWhen: (previous, current) =>
+                previous.parentId != current.parentId,
+            builder: (context, state) {
+              return FilterIconButton(
+                activeCount: state.parentId != null ? 1 : 0,
+                onTap: () {
+                  _showActiveIngredientFilter(context);
+                },
+              );
             },
           ),
         const SizedBox(width: 16),

@@ -22,6 +22,15 @@ abstract class PatientRepo {
 
   Future<DataModel> deletePatient({required String id});
 
+  /// Moves every clinical record (appointments, examinations, billings,
+  /// surgeries, scans, leads) from [sourceId] into [targetId]. Irreversible.
+  /// When [deleteSource] is true the source patient is soft-deleted afterwards.
+  Future<TransferPatientResult> transferPatient({
+    required String sourceId,
+    required String targetId,
+    required bool deleteSource,
+  });
+
   Future<BranchesModel> getAllBranches();
   Future<Examinations> getPatientExaminations({required String id});
   Future<ExaminationModel> getOneExamination({required String id});

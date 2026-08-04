@@ -1,6 +1,9 @@
 part of 'appointment_cubit.dart';
 
-enum AppointmentStatus {
+/// UI loading state for this cubit — unrelated to the appointment's own
+/// lifecycle status (Scheduled/Arrived/... — see AppointmentLifecycleStatus).
+/// Previously named AppointmentStatus, which collided with that concept.
+enum AppointmentUiState {
   initial,
   loading,
   success,
@@ -13,19 +16,19 @@ enum AppointmentStatus {
   loadingDoctors
 }
 
-extension AppointmentStatusX on AppointmentState {
-  bool get isInitial => status == AppointmentStatus.initial;
-  bool get isLoading => status == AppointmentStatus.loading;
-  bool get isSuccess => status == AppointmentStatus.success;
-  bool get isError => status == AppointmentStatus.error;
-  bool get noConnection => status == AppointmentStatus.noConnection;
-  bool get isEditLoading => status == AppointmentStatus.editLoading;
-  bool get isEditSuccess => status == AppointmentStatus.editSuccess;
+extension AppointmentUiStateX on AppointmentState {
+  bool get isInitial => status == AppointmentUiState.initial;
+  bool get isLoading => status == AppointmentUiState.loading;
+  bool get isSuccess => status == AppointmentUiState.success;
+  bool get isError => status == AppointmentUiState.error;
+  bool get noConnection => status == AppointmentUiState.noConnection;
+  bool get isEditLoading => status == AppointmentUiState.editLoading;
+  bool get isEditSuccess => status == AppointmentUiState.editSuccess;
 }
 
 @immutable
 class AppointmentState {
-  final AppointmentStatus status;
+  final AppointmentUiState status;
   final String? errorMessage;
   final DateTime selectedDate;
   final branch.Branch? selectedBranch;
@@ -39,7 +42,7 @@ class AppointmentState {
   final String? updatingAction;
 
   AppointmentState({
-    this.status = AppointmentStatus.initial,
+    this.status = AppointmentUiState.initial,
     this.errorMessage,
     DateTime? selectedDate,
     this.selectedBranch,
@@ -54,7 +57,7 @@ class AppointmentState {
   }) : selectedDate = selectedDate ?? DateTime.now();
 
   AppointmentState copyWith({
-    AppointmentStatus? status,
+    AppointmentUiState? status,
     String? errorMessage,
     DateTime? selectedDate,
     Object? selectedBranch = _sentinel,

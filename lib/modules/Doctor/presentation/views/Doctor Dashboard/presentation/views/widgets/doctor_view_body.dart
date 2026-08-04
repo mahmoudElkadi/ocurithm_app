@@ -14,6 +14,7 @@ import '../../../../../../../../../modules/Branch/presentation/manager/get_branc
 import '../../../../../manager/get_doctors_cubit/get_doctors_cubit.dart'
     as doctor_cubit;
 import 'doctor_card.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 class DoctorViewBody extends StatefulWidget {
   const DoctorViewBody({super.key});
@@ -140,7 +141,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     final selectedClinicId = widget.getDoctorsCubit.state.clinicFilter;
 
     if (CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability")) {
+        .contains(CapabilityKeys.manageCapability)) {
       _clinicsCubit.add(GetAllClinicsEvent());
 
       // If a clinic was already selected, load its branches

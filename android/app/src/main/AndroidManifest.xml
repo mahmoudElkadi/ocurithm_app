@@ -14,11 +14,21 @@
 
 
 
+    <!--
+        usesCleartextTraffic was previously written after the closing '>' of
+        the <application> tag, so aapt parsed it as text content and dropped
+        it. With targetSdk >= 28 cleartext defaults to denied, which meant
+        plain-HTTP requests were blocked outright - and this app only ever
+        dialled http://. Kept enabled here because the owner's sign-off build
+        is a release APK pointed at a local http:// backend (D8); production
+        release builds resolve to https://ocurithm.com/api/ regardless, since
+        they carry no API_BASE_URL define and ignore the stored dev override.
+    -->
     <application
         android:label="ocurithm"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
-        android:usesCleartextTraffic="true"
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

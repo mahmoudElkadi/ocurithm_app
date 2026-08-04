@@ -71,5 +71,18 @@ class ExaminationActionsCubit extends Cubit<ExaminationActionsState> {
           status: ExaminationActionsStatus.error, error: e.toString()));
     }
   }
-// Add Update/Delete logic if repo supports it
+
+  Future<void> deleteExamination(String id) async {
+    emit(state.copyWith(status: ExaminationActionsStatus.loading));
+    try {
+      await examinationRepo.deleteExamination(id);
+      emit(state.copyWith(
+        status: ExaminationActionsStatus.success,
+        message: "Examination deleted successfully",
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+          status: ExaminationActionsStatus.error, error: e.toString()));
+    }
+  }
 }

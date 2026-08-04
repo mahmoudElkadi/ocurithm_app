@@ -1,20 +1,16 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/DropdownPackage.dart';
+import 'package:ocurithm/core/widgets/backend_image_picker.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/text_field.dart';
 import 'package:ocurithm/modules/Category/data/models/category_model.dart';
 import 'package:ocurithm/modules/Category/presentation/manager/category_actions_cubit/category_actions_cubit.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 class CategoryFormBottomSheet extends StatefulWidget {
   final Category? category; // If null, it's "Add" mode
@@ -30,7 +26,10 @@ class _CategoryFormBottomSheetState extends State<CategoryFormBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
-  String? _imageUrl;
+  /// Storage key to resubmit — starts as the existing image's key so an
+  /// unrelated field edit doesn't drop the image; replaced with the new
+  /// upload's key when the user picks a different image.
+  String? _imageKey;
   String? _selectedClinicId;
   bool _isActive = true;
 
@@ -42,13 +41,13 @@ class _CategoryFormBottomSheetState extends State<CategoryFormBottomSheet> {
     _nameController = TextEditingController(text: widget.category?.name);
     _descriptionController =
         TextEditingController(text: widget.category?.description);
-    _imageUrl = widget.category?.image;
+    _imageKey = widget.category?.imageKey;
     _isActive = widget.category?.isActive ?? true;
     _selectedClinicId = widget.category?.clinicId;
 
     // Set default clinic if not admin
     if (!CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability")) {
+        .contains(CapabilityKeys.manageCapability)) {
       _selectedClinicId = CacheHelper.getUser("user")?.clinic?.id;
     }
   }
@@ -75,7 +74,7 @@ class _CategoryFormBottomSheetState extends State<CategoryFormBottomSheet> {
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         clinicId: _selectedClinicId,
-        image: _imageUrl,
+        image: _imageKey,
         isActive: _isActive,
       ));
     } else {
@@ -83,7 +82,7 @@ class _CategoryFormBottomSheetState extends State<CategoryFormBottomSheet> {
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         clinicId: _selectedClinicId!,
-        image: _imageUrl,
+        image: _imageKey,
         isActive: _isActive,
       ));
     }
@@ -124,10 +123,12 @@ class _CategoryFormBottomSheetState extends State<CategoryFormBottomSheet> {
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const HeightSpacer(size: 20),
-                  ProfileImagePicker(
-                    initialImageUrl: _imageUrl,
-                    onDelete: () => setState(() => _imageUrl = null),
-                    onImageUploaded: (url) => setState(() => _imageUrl = url),
+                  BackendImagePicker(
+                    initialImageUrl: widget.category?.image,
+                    fileCategory: 'category-image',
+                    placeholderIcon: Icons.category,
+                    onDelete: () => setState(() => _imageKey = null),
+                    onImageUploaded: (key) => setState(() => _imageKey = key),
                   ),
                   const HeightSpacer(size: 20),
                   TextField2(
@@ -151,7 +152,7 @@ class _CategoryFormBottomSheetState extends State<CategoryFormBottomSheet> {
                   ),
                   const HeightSpacer(size: 15),
                   if (CacheHelper.getStringList(key: "capabilities")
-                      .contains("manageCapability"))
+                      .contains(CapabilityKeys.manageCapability))
                     BlocBuilder<GetClinicsCubit, GetClinicsState>(
                       builder: (context, state) {
                         return DropdownItem(
@@ -202,152 +203,3 @@ class _CategoryFormBottomSheetState extends State<CategoryFormBottomSheet> {
   }
 }
 
-// Reuse logic from Receptionist
-class ProfileImagePicker extends StatefulWidget {
-  final String? initialImageUrl;
-  final VoidCallback onDelete;
-  final Function(String) onImageUploaded;
-
-  const ProfileImagePicker({
-    super.key,
-    this.initialImageUrl,
-    required this.onDelete,
-    required this.onImageUploaded,
-  });
-
-  @override
-  State<ProfileImagePicker> createState() => _ProfileImagePickerState();
-}
-
-class _ProfileImagePickerState extends State<ProfileImagePicker> {
-  File? _imageFile;
-  bool _isUploading = false;
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImage(ImageSource source) async {
-    final XFile? picked = await _picker.pickImage(
-        source: source, maxWidth: 800, maxHeight: 800, imageQuality: 85);
-    if (picked != null) {
-      setState(() => _imageFile = File(picked.path));
-      await _uploadToCloudinary();
-    }
-  }
-
-  Future<void> _uploadToCloudinary() async {
-    if (_imageFile == null) return;
-    setState(() => _isUploading = true);
-    try {
-      final url = await CloudinaryService.uploadImage(_imageFile!);
-      if (url != null) {
-        widget.onImageUploaded(url);
-      } else {
-        SnackbarService.showError(context, message: "Upload failed");
-      }
-    } catch (e) {
-      SnackbarService.showError(context, message: "Error: $e");
-    } finally {
-      setState(() => _isUploading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Stack(
-      children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(15),
-              color: theme.cardColor,
-              border: Border.all(color: theme.primaryColor)),
-          child: _isUploading
-              ? const Center(child: CircularProgressIndicator())
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: _imageFile != null
-                      ? Image.file(_imageFile!, fit: BoxFit.cover)
-                      : widget.initialImageUrl != null
-                          ? Image.network(widget.initialImageUrl!,
-                              fit: BoxFit.cover)
-                          : const Icon(Icons.category,
-                              size: 50, color: Colors.grey),
-                ),
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: GestureDetector(
-            onTap: () => _showSourceActionSheet(),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                  color: theme.primaryColor, shape: BoxShape.circle),
-              child:
-                  const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showSourceActionSheet() {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.camera);
-              },
-              child: const Text("Camera")),
-          CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
-              },
-              child: const Text("Gallery")),
-          CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                widget.onDelete();
-                setState(() => _imageFile = null);
-              },
-              child: const Text("Delete", style: TextStyle(color: Colors.red))),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel")),
-      ),
-    );
-  }
-}
-
-class CloudinaryService {
-  static const String cloudName = 'dxsrhu3ku';
-  static const String uploadPreset = 'ocurithm';
-  static const String _baseUrl = 'https://api.cloudinary.com/v1_1/$cloudName';
-
-  static Future<String?> uploadImage(File imageFile) async {
-    try {
-      final url = Uri.parse('$_baseUrl/image/upload');
-      final request = http.MultipartRequest('POST', url);
-      request.fields['upload_preset'] = uploadPreset;
-      request.fields['folder'] = 'public';
-      final bytes = await imageFile.readAsBytes();
-      request.files.add(http.MultipartFile.fromBytes('file', bytes,
-          filename: imageFile.path.split('/').last));
-      final response = await http.Response.fromStream(await request.send());
-      if (response.statusCode == 200) {
-        return json.decode(response.body)['secure_url'];
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
-}

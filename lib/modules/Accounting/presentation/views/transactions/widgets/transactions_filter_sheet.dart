@@ -53,8 +53,10 @@ class _TransactionsFilterSheetState extends State<TransactionsFilterSheet> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: (isStart ? _startDate : _endDate) ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      // Constrain each picker against the other so an invalid range (end
+      // before start) can never be selected in the first place.
+      firstDate: isStart ? DateTime(2000) : (_startDate ?? DateTime(2000)),
+      lastDate: isStart ? (_endDate ?? DateTime(2101)) : DateTime(2101),
     );
     if (picked != null) {
       setState(() {

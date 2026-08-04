@@ -17,7 +17,7 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
   final _searchSubject = BehaviorSubject<String>();
   DateTime? selectedTime;
 
-  bool get connection => state.status != AppointmentStatus.noConnection;
+  bool get connection => state.status != AppointmentUiState.noConnection;
   DoctorModel? get doctors => state.doctors;
   branch.BranchesModel? get branches => state.branches;
   model.AppointmentModel? get appointments => state.appointments;
@@ -55,20 +55,20 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
 
   Future<void> _onGetDoctors(
       GetDoctorsEvent event, Emitter<AppointmentState> emit) async {
-    emit(state.copyWith(status: AppointmentStatus.loadingDoctors));
+    emit(state.copyWith(status: AppointmentUiState.loadingDoctors));
     try {
       final doctors = await appointmentRepo.getAllDoctors(
         branch: event.branch,
         isActive: event.isActive,
       );
       emit(state.copyWith(
-        status: AppointmentStatus.success,
+        status: AppointmentUiState.success,
         doctors: doctors,
       ));
     } catch (e) {
       log(e.toString());
       emit(state.copyWith(
-        status: AppointmentStatus.error,
+        status: AppointmentUiState.error,
         errorMessage: e.toString(),
       ));
     }
@@ -76,17 +76,17 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
 
   Future<void> _onGetBranches(
       GetBranchesEvent event, Emitter<AppointmentState> emit) async {
-    emit(state.copyWith(status: AppointmentStatus.loadingBranches));
+    emit(state.copyWith(status: AppointmentUiState.loadingBranches));
     try {
       final branches = await appointmentRepo.getAllBranches();
       emit(state.copyWith(
-        status: AppointmentStatus.success,
+        status: AppointmentUiState.success,
         branches: branches,
       ));
     } catch (e) {
       log(e.toString());
       emit(state.copyWith(
-        status: AppointmentStatus.error,
+        status: AppointmentUiState.error,
         errorMessage: e.toString(),
       ));
     }
@@ -94,7 +94,7 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
 
   Future<void> _onGetAppointments(
       GetAppointmentsEvent event, Emitter<AppointmentState> emit) async {
-    emit(state.copyWith(status: AppointmentStatus.loading));
+    emit(state.copyWith(status: AppointmentUiState.loading));
     try {
       final appointments = await appointmentRepo.getAllAppointment(
         date: event.date ?? state.selectedDate,
@@ -107,7 +107,7 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
           appointments.appointments);
 
       emit(state.copyWith(
-        status: AppointmentStatus.success,
+        status: AppointmentUiState.success,
         appointments: appointments,
         groupedAppointments: grouped,
       ));
@@ -115,12 +115,12 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
       log(e.toString());
       if (e.toString().toLowerCase().contains('no internet')) {
         emit(state.copyWith(
-          status: AppointmentStatus.noConnection,
+          status: AppointmentUiState.noConnection,
           errorMessage: e.toString(),
         ));
       } else {
         emit(state.copyWith(
-          status: AppointmentStatus.error,
+          status: AppointmentUiState.error,
           errorMessage: e.toString(),
         ));
       }
@@ -130,7 +130,7 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
   Future<void> _onEditAppointment(
       EditAppointmentEvent event, Emitter<AppointmentState> emit) async {
     emit(state.copyWith(
-      status: AppointmentStatus.editLoading,
+      status: AppointmentUiState.editLoading,
       updatingAppointmentId: event.id,
       updatingAction: event.action,
     ));
@@ -167,7 +167,7 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
             AppointmentHelper.groupAppointmentsByTimeSlot(updatedList);
 
         emit(state.copyWith(
-          status: AppointmentStatus.editSuccess,
+          status: AppointmentUiState.editSuccess,
           appointments: newAppointments,
           groupedAppointments: grouped,
           updatingAppointmentId: null,
@@ -175,7 +175,7 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
         ));
       } else {
         emit(state.copyWith(
-          status: AppointmentStatus.editSuccess,
+          status: AppointmentUiState.editSuccess,
           updatingAppointmentId: null,
           updatingAction: null,
         ));
@@ -187,7 +187,7 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
         message: e.toString(),
       );
       emit(state.copyWith(
-        status: AppointmentStatus.editError,
+        status: AppointmentUiState.editError,
         errorMessage: e.toString(),
         updatingAppointmentId: null,
         updatingAction: null,

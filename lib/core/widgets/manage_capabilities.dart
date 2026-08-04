@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../Network/shared.dart';
+import '../utils/capability_keys.dart';
 
 class manageCapability extends StatelessWidget {
   const manageCapability({super.key, required this.capability, required this.child});
@@ -11,7 +12,7 @@ class manageCapability extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   if(CacheHelper.getStringList(key: "capabilities").contains(capability) || CacheHelper.getStringList(key: "capabilities").contains("manageCapability") ){
+   if(CacheHelper.getStringList(key: "capabilities").contains(capability) || CacheHelper.getStringList(key: "capabilities").contains(CapabilityKeys.manageCapability) ){
      return child;
    }else{
      return const SizedBox.shrink();

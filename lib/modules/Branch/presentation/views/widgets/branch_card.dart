@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ocurithm/core/Network/shared.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/confirmation_popuo.dart';
 import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
@@ -51,9 +52,14 @@ class _BranchCardState extends State<BranchCard> {
         if (!widget.isLoading && widget.branch?.id != null) {
           final clinicsState = context.read<GetBranchesCubit>().state;
 
+          // A showBranches-only user (view, not manage) must land in a
+          // read-only dialog, not the edit form — this previously opened
+          // in edit mode unconditionally.
+          final canManage = CapabilityServices.hasCapability(
+              CapabilityKeys.manageBranches);
           showBranchFormDialog(
             context,
-            mode: BranchFormMode.edit,
+            mode: canManage ? BranchFormMode.edit : BranchFormMode.view,
             actionsCubit: actionsCubit,
             branchId: widget.branch!.id,
             clinics: null, // Can pass clinics if needed
@@ -202,8 +208,8 @@ class _BranchCardState extends State<BranchCard> {
                   ],
                 ),
               ),
-              if (CacheHelper.getStringList(key: "capabilities")
-                  .contains("manageBranches"))
+              if (CapabilityServices.hasCapability(
+                  CapabilityKeys.manageBranches))
                 IconButton(
                   onPressed: () async {
                     showConfirmationDialog(

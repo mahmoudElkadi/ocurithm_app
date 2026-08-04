@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:ocurithm/core/utils/auth_service.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/constant.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
@@ -27,6 +28,7 @@ import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_patient_examinations_cubit/get_patient_examinations_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/get_single_patient_cubit/get_single_patient_cubit.dart';
 import 'package:ocurithm/modules/Patient/presentation/manager/patient_actions_cubit/patient_actions_cubit.dart';
+import 'package:ocurithm/modules/Patient/presentation/views/widgets/transfer_patient_bottom_sheet.dart';
 import 'package:password_generator/password_generator.dart';
 
 import '../../../../../core/widgets/no_internet.dart';
@@ -336,7 +338,7 @@ class _PatientFormViewState extends State<PatientFormView> {
           actions: [
             if (widget.mode != PatientFormMode.add)
               manageCapability(
-                capability: 'managePatients',
+                capability: CapabilityKeys.managePatients,
                 child: IconButton(
                   onPressed: () {
                     setState(() {
@@ -356,6 +358,16 @@ class _PatientFormViewState extends State<PatientFormView> {
                       AnalysisView(patientId: widget.patientId.toString()));
                 },
                 icon: const Icon(Icons.analytics_outlined),
+              ),
+            // Matches web's canTransferPatient gate (manageCapability ||
+            // managePatients) — CapabilityServices already ORs manageCapability.
+            if (widget.mode != PatientFormMode.add && widget.patientId != null)
+              manageCapability(
+                capability: CapabilityKeys.managePatients,
+                child: IconButton(
+                  onPressed: () => _handleTransfer(context),
+                  icon: const Icon(Icons.swap_horiz),
+                ),
               ),
           ],
         ),
@@ -1001,9 +1013,17 @@ class _PatientFormViewState extends State<PatientFormView> {
           border: Border.all(color: theme.primaryColor.withValues(alpha: 0.3)),
         ),
         child: InkWell(
-            onTap: () {
+            onTap: () async {
               if (exam.id != null) {
-                Get.to(() => OneExaminationView(id: exam.id!));
+                final deleted = await Get.to<bool>(
+                    () => OneExaminationView(id: exam.id!));
+                if (deleted == true &&
+                    mounted &&
+                    widget.patientId != null) {
+                  context
+                      .read<GetPatientExaminationsCubit>()
+                      .getExaminations(widget.patientId!);
+                }
               }
             },
             child: Padding(
@@ -1407,6 +1427,20 @@ class _PatientFormViewState extends State<PatientFormView> {
           .read<PatientActionsCubit>()
           .add(UpdatePatientEvent(widget.patientId!, patient));
     }
+  }
+
+  Future<void> _handleTransfer(BuildContext context) async {
+    if (widget.patientId == null) return;
+    final result = await TransferPatientBottomSheet.show(
+      context,
+      sourceId: widget.patientId!,
+      sourceName: _loadedPatient?.name,
+    );
+    if (result == null || !mounted) return;
+    // The source patient may no longer exist — replace rather than push, so
+    // "back" never lands on a deleted record.
+    Get.off(() => PatientFormPage(
+        mode: PatientFormMode.view, patientId: result.targetId));
   }
 
   Widget _buildMainContent(BuildContext context, ThemeData theme, bool isDark) {

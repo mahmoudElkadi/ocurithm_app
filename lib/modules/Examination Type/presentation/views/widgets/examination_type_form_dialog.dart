@@ -14,6 +14,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../data/model/examination_type_model.dart';
 import '../../manager/examination_type_actions_cubit/examination_type_actions_cubit.dart';
 import '../../manager/get_single_examination_type_cubit/get_single_examination_type_cubit.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 /// Enum to define the mode of the examination type form dialog
 enum ExaminationTypeFormMode { add, edit, view }
@@ -64,7 +65,7 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
 
     // Set clinic if user doesn't have manageCapability
     if (!CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability")) {
+        .contains(CapabilityKeys.manageCapability)) {
       selectedClinic = CacheHelper.getUser("user")?.clinic;
     }
 
@@ -318,11 +319,11 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
                 // Only show clinic dropdown in add mode
                 if (widget.mode == ExaminationTypeFormMode.add &&
                     CacheHelper.getStringList(key: "capabilities")
-                        .contains("manageCapability"))
+                        .contains(CapabilityKeys.manageCapability))
                   _buildClinicDropdown(isLoading),
                 if (widget.mode == ExaminationTypeFormMode.add &&
                     CacheHelper.getStringList(key: "capabilities")
-                        .contains("manageCapability"))
+                        .contains(CapabilityKeys.manageCapability))
                   const SizedBox(height: 16),
                 _buildNameField(isLoading),
                 const SizedBox(height: 16),
@@ -344,10 +345,10 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
       child: Column(
         children: [
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
+              .contains(CapabilityKeys.manageCapability))
             _buildClinicDropdown(false),
           if (CacheHelper.getStringList(key: "capabilities")
-              .contains("manageCapability"))
+              .contains(CapabilityKeys.manageCapability))
             const SizedBox(height: 16),
           _buildNameField(false),
           const SizedBox(height: 16),
@@ -368,7 +369,7 @@ class _ExaminationTypeFormDialogState extends State<ExaminationTypeFormDialog> {
 
     // Check if user has permission to manage capabilities
     final hasmanageCapability = CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability");
+        .contains(CapabilityKeys.manageCapability);
 
     // If user has permission, use BlocBuilder to get clinics from cubit
     if (hasmanageCapability) {
@@ -549,7 +550,7 @@ void showExaminationTypeFormDialog(
 
   // Check if user has permission to manage capabilities (needs clinic selection)
   final needsClinicCubit = CacheHelper.getStringList(key: "capabilities")
-      .contains("manageCapability");
+      .contains(CapabilityKeys.manageCapability);
 
   showDialog(
     context: context,

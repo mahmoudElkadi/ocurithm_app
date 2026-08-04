@@ -1,9 +1,12 @@
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
+import 'package:ocurithm/core/widgets/filter_icon_button.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/core/widgets/search_fileld.dart';
 import 'package:ocurithm/modules/Accounting/presentation/manager/account_actions_cubit/account_actions_cubit.dart';
@@ -69,19 +72,22 @@ class _TransactionsViewState extends State<TransactionsView> {
             child: CustomScaffold(
               title: "Transactions History",
               actions: [
-                IconButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<AccountActionsCubit>(),
-                        child: const TransactionFormBottomSheet(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.add_circle, size: 28),
+                manageCapability(
+                  capability: CapabilityKeys.manageTransactions,
+                  child: IconButton(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<AccountActionsCubit>(),
+                          child: const TransactionFormBottomSheet(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.add_circle, size: 28),
+                  ),
                 ),
               ],
               body: Column(
@@ -144,30 +150,38 @@ class _TransactionsViewState extends State<TransactionsView> {
         ),
         Padding(
           padding: const EdgeInsets.only(right: 15),
-          child: InkWell(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => BlocProvider.value(
-                  value: context.read<GetTransactionsCubit>(),
-                  child: const TransactionsFilterSheet(),
-                ),
+          child: BlocBuilder<GetTransactionsCubit, GetTransactionsState>(
+            buildWhen: (previous, current) =>
+                previous.clinic != current.clinic ||
+                previous.accountId != current.accountId ||
+                previous.fromAccount != current.fromAccount ||
+                previous.toAccount != current.toAccount ||
+                previous.source != current.source ||
+                previous.startDate != current.startDate,
+            builder: (context, state) {
+              final activeCount = [
+                state.clinic,
+                state.accountId,
+                state.fromAccount,
+                state.toAccount,
+                state.source,
+                state.startDate,
+              ].where((v) => v != null).length;
+              return FilterIconButton(
+                activeCount: activeCount,
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<GetTransactionsCubit>(),
+                      child: const TransactionsFilterSheet(),
+                    ),
+                  );
+                },
               );
             },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              ),
-              child: Icon(
-                Icons.tune,
-                color: Theme.of(context).primaryColor,
-                size: 24,
-              ),
-            ),
           ),
         )
       ],

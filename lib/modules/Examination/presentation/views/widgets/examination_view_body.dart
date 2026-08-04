@@ -823,6 +823,17 @@ class RightOldGlasses extends StatelessWidget {
                   cubit.updateRightEyeField('oldAxis', selected);
                 },
               ),
+              const SizedBox(height: 8),
+              // Same option list as UCVA/BCVA (web: SelectField
+              // options={MEASUREMENT_ENUMS.ucva}).
+              ArrowTextField(
+                items: cubit.data['UCVA'] ?? [],
+                textRow: "VA :",
+                selectedValue: cubit.rightOldGlassesVa,
+                onChanged: (selected) {
+                  cubit.updateRightEyeField('oldGlassesVa', selected);
+                },
+              ),
               // Add other Autoref fields...
             ],
           ),
@@ -881,6 +892,17 @@ class LeftOldGlasses extends StatelessWidget {
                 selectedValue: cubit.leftOldAxis,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField('oldAxis', selected);
+                },
+              ),
+              const SizedBox(height: 8),
+              // Same option list as UCVA/BCVA (web: SelectField
+              // options={MEASUREMENT_ENUMS.ucva}).
+              ArrowTextField(
+                items: cubit.data['UCVA'] ?? [],
+                textRow: "VA :",
+                selectedValue: cubit.leftOldGlassesVa,
+                onChanged: (selected) {
+                  cubit.updateLeftEyeField('oldGlassesVa', selected);
                 },
               ),
               // Add other Autoref fields...

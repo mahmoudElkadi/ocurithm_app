@@ -4,8 +4,10 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' as getx;
+import 'package:ocurithm/core/api/api_handler.dart';
 import 'package:ocurithm/core/utils/network_connection.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/modules/Login/data/repos/login_repo.dart';
 import 'package:ocurithm/modules/Accounting/presentation/views/accounts_view.dart';
 import 'package:ocurithm/modules/Accounting/presentation/views/transactions/transactions_view.dart';
 import 'package:ocurithm/modules/Branch/presentation/views/branch_view.dart';
@@ -22,6 +24,7 @@ import 'package:ocurithm/modules/Supplier/presentation/views/supplier_view.dart'
 
 import '../../../core/Network/shared.dart';
 import '../../../core/utils/app_style.dart';
+import '../../../core/utils/capability_keys.dart';
 import '../../../modules/Appointment/presentation/views/appointment_view.dart';
 import '../../../modules/Clinics/presentation/views/clinic_view.dart';
 import '../../../modules/Dashboard/presentation/views/dashboard_view.dart';
@@ -113,126 +116,147 @@ class MainCubit extends Cubit<MainState> {
       capabilities.add("dashboard");
     }
 
-    Map<String, List<dynamic>> statusMappings = {
+    // Mirrors the web sidebar in apps/web/src/app/admin/layout.tsx. An empty
+    // `anyOf` means the entry is ungated there, so it is ungated here too.
+    //
+    // Previously this was two parallel maps keyed by capability, which is what
+    // let the keys drift apart: `manageProducts` was listed as a group member
+    // but the view was registered under `showProducts`, so Products could never
+    // resolve and the screen was unreachable dead code.
+    const Map<String, List<_DrawerEntry>> groupStructure = {
       "dashboard": [
-        "Dashboard",
-        const DashboardView(),
-        "assets/icons/dashboard.svg"
+        _DrawerEntry(
+          title: "Dashboard",
+          page: DashboardView(),
+          icon: "assets/icons/dashboard.svg",
+        ),
       ],
-      "showPatients": [
-        "Patients",
-        const AdminPatientView(),
-        "assets/icons/patient.svg"
+      "Patient Management": [
+        _DrawerEntry(
+          title: "Patients",
+          page: AdminPatientView(),
+          icon: "assets/icons/patient.svg",
+          anyOf: [CapabilityKeys.showPatients],
+        ),
+        _DrawerEntry(
+          title: "Appointments",
+          page: AppointmentView(),
+          icon: "assets/icons/appointment.svg",
+          anyOf: [CapabilityKeys.showAppointments],
+        ),
       ],
-      "showAppointments": [
-        "Appointments",
-        const AppointmentView(),
-        "assets/icons/appointment.svg"
+      "Management": [
+        _DrawerEntry(
+          title: "Clinics",
+          page: ClinicView(),
+          icon: "assets/icons/clinic.svg",
+          anyOf: [CapabilityKeys.manageClinics],
+        ),
+        _DrawerEntry(
+          title: "Branches",
+          page: AdminBranchView(),
+          icon: "assets/icons/branch.svg",
+          anyOf: [CapabilityKeys.showBranches],
+        ),
+        _DrawerEntry(
+          title: "Doctors",
+          page: AdminDoctorView(),
+          icon: "assets/icons/doctor.svg",
+          anyOf: [CapabilityKeys.showDoctors],
+        ),
+        // Was `manageReciptionists` — a typo the backend never issues.
+        _DrawerEntry(
+          title: "Receptionists",
+          page: ReceptionistView(),
+          icon: "assets/icons/receptionist.svg",
+          anyOf: [CapabilityKeys.manageReceptionists],
+        ),
       ],
-      "manageClinics": [
-        "Clinics",
-        const ClinicView(),
-        "assets/icons/clinic.svg"
+      "Configuration": [
+        _DrawerEntry(
+          title: "Examination Types",
+          page: ExaminationTypeView(),
+          icon: "assets/icons/exam_type.svg",
+          anyOf: [CapabilityKeys.manageExaminationTypes],
+        ),
+        _DrawerEntry(
+          title: "Payment Methods",
+          page: PaymentMethodView(),
+          icon: "assets/icons/payment.svg",
+          anyOf: [CapabilityKeys.managePaymentMethods],
+        ),
+        _DrawerEntry(
+          title: "Medicines",
+          page: MedicineView(),
+          icon: "assets/icons/medicine.svg",
+          anyOf: [CapabilityKeys.manageMedicines],
+        ),
       ],
-      "showBranches": [
-        "Branches",
-        const AdminBranchView(),
-        "assets/icons/branch.svg"
+      "Product": [
+        _DrawerEntry(
+          title: "Categories",
+          page: CategoryView(),
+          icon: "assets/icons/category.svg",
+          anyOf: [CapabilityKeys.manageCategories],
+        ),
+        // Was `manageSubCategories`; the backend calls it `showSubcategories`.
+        _DrawerEntry(
+          title: "Sub-Categories",
+          page: SubCategoryView(),
+          icon: "assets/icons/subcategories.svg",
+          anyOf: [CapabilityKeys.showSubcategories],
+        ),
+        // Either capability reveals it: the two maps disagreed about which one
+        // gated this screen, and a user who can manage products must be able to
+        // reach them.
+        _DrawerEntry(
+          title: "Products",
+          page: ProductView(),
+          icon: "assets/icons/products.svg",
+          anyOf: [CapabilityKeys.showProducts, CapabilityKeys.manageProducts],
+        ),
+        // Ungated, matching web — the backend has no supplier or
+        // purchase-order capability, so the old `manageSuppliers` /
+        // `managePurchaseOrders` strings could never match.
+        _DrawerEntry(
+          title: "Suppliers",
+          page: SupplierView(),
+          icon: "assets/icons/suppliers.svg",
+        ),
+        _DrawerEntry(
+          title: "Purchase Orders",
+          page: PurchaseOrderView(),
+          icon: "assets/icons/po.svg",
+        ),
+        _DrawerEntry(
+          title: "Orders",
+          page: OrderView(),
+          icon: "assets/icons/po.svg",
+          anyOf: [CapabilityKeys.showOrders],
+        ),
       ],
-      "showDoctors": [
-        "Doctors",
-        const AdminDoctorView(),
-        "assets/icons/doctor.svg"
-      ],
-      "manageReciptionists": [
-        "Receptionists",
-        const ReceptionistView(),
-        "assets/icons/receptionist.svg"
-      ],
-      "manageExaminationTypes": [
-        "Examination Types",
-        const ExaminationTypeView(),
-        "assets/icons/exam_type.svg"
-      ],
-      "managePaymentMethods": [
-        "Payment Methods",
-        const PaymentMethodView(),
-        "assets/icons/payment.svg"
-      ],
-      "manageMedicines": [
-        "Medicines",
-        const MedicineView(),
-        "assets/icons/medicine.svg"
-      ],
-      "manageCategories": [
-        "Categories",
-        const CategoryView(),
-        "assets/icons/category.svg"
-      ],
-      "manageSubCategories": [
-        "Sub-Categories",
-        const SubCategoryView(),
-        "assets/icons/subcategories.svg"
-      ],
-      "showProducts": [
-        "Products",
-        const ProductView(),
-        "assets/icons/products.svg"
-      ],
-      "manageSuppliers": [
-        "Suppliers",
-        const SupplierView(),
-        "assets/icons/suppliers.svg"
-      ],
-      "managePurchaseOrders": [
-        "Purchase Orders",
-        const PurchaseOrderView(),
-        "assets/icons/po.svg"
-      ],
-      "showOrders": ["Orders", const OrderView(), "assets/icons/po.svg"],
-      "showAccounts": [
-        "Accounts",
-        const AccountsView(),
-        "assets/icons/payment.svg"
-      ],
-      "showTransactions": [
-        "Transactions",
-        const TransactionsView(),
-        "assets/icons/po.svg"
+      "Accounting": [
+        _DrawerEntry(
+          title: "Accounts",
+          page: AccountsView(),
+          icon: "assets/icons/payment.svg",
+          anyOf: [CapabilityKeys.showAccounts],
+        ),
+        _DrawerEntry(
+          title: "Transactions",
+          page: TransactionsView(),
+          icon: "assets/icons/po.svg",
+          anyOf: [CapabilityKeys.showTransactions],
+        ),
       ],
     };
 
-    // Define groups structure
-    Map<String, List<String>> groupStructure = {
-      "dashboard": ["dashboard"],
-      "Patient Management": [
-        "showPatients",
-        "showAppointments",
-      ],
-      "Management": [
-        "manageClinics",
-        "showBranches",
-        "showDoctors",
-        "manageReciptionists"
-      ],
-      "Configuration": [
-        "manageExaminationTypes",
-        "managePaymentMethods",
-        "manageMedicines"
-      ],
-      "Product": [
-        "manageCategories",
-        "manageSubCategories",
-        "manageProducts",
-        "manageSuppliers",
-        "managePurchaseOrders",
-        "showOrders"
-      ],
-      "Accounting": [
-        "showAccounts",
-        "showTransactions",
-      ],
-    };
+    // Turns the next drawer typo into a loud debug failure instead of a
+    // silently missing menu entry.
+    CapabilityKeys.debugAssertKnown(
+      groupStructure.values.expand((e) => e).expand((e) => e.anyOf),
+      context: 'the navigation drawer',
+    );
 
     drawerItems = [];
     drawerGroups = [];
@@ -242,27 +266,24 @@ class MainCubit extends Cubit<MainState> {
     int groupIndex = 0;
     for (var groupEntry in groupStructure.entries) {
       String groupName = groupEntry.key;
-      List<String> groupCapabilities = groupEntry.value;
       List<DrawerItem> groupItems = [];
 
-      for (String capability in groupCapabilities) {
-        bool hasAccess = capabilities.contains(capability) ||
-            capabilities.contains("manageCapability") ||
-            (groupName == "Product" && capabilities.contains("manageProducts"));
+      for (final entry in groupEntry.value) {
+        final bool hasAccess = entry.anyOf.isEmpty ||
+            entry.anyOf.any(capabilities.contains) ||
+            capabilities.contains(CapabilityKeys.manageCapability);
 
-        if (hasAccess && statusMappings.containsKey(capability)) {
-          var mappingData = statusMappings[capability]!;
-
+        if (hasAccess) {
           DrawerItem item = DrawerItem(
-            icon: mappingData[2],
-            title: mappingData[0],
+            icon: entry.icon,
+            title: entry.title,
             index: pageIndex,
-            capability: capability,
+            capability: entry.anyOf.isEmpty ? '' : entry.anyOf.first,
           );
 
           groupItems.add(item);
           drawerItems.add(item);
-          pages.add(mappingData[1]);
+          pages.add(entry.page);
           pageIndex++;
         }
       }
@@ -326,8 +347,26 @@ class MainCubit extends Cubit<MainState> {
     }
   }
 
-  Future<void> logOut() async {
+  /// [everywhere] invalidates every refresh token the user holds, not just
+  /// this device's — used after a password change, matching web's
+  /// ProfilePage (it calls `/auth/logout-all` once the new password is set).
+  Future<void> logOut({bool everywhere = false}) async {
     emit(LogOutUserLoading());
+
+    // Best-effort: a failed server call must never trap the user in a
+    // logged-in shell, so local state is still cleared below regardless.
+    // The refresh token has to be read before clearAuthData() removes it.
+    try {
+      final refreshToken = CacheHelper.getData(key: 'refreshToken');
+      final loginRepo = sl<LoginRepo>();
+      if (everywhere || refreshToken is! String || refreshToken.isEmpty) {
+        await loginRepo.logoutAll();
+      } else {
+        await loginRepo.logout(refreshToken: refreshToken);
+      }
+    } catch (e) {
+      log('Error calling server-side logout: $e');
+    }
 
     // Disconnect chat socket
     try {
@@ -337,11 +376,27 @@ class MainCubit extends Cubit<MainState> {
     }
 
     getx.Get.offAll(() => const LoginView());
-    await CacheHelper.removeData(key: "token");
-    await CacheHelper.removeData(key: "capabilities");
-    await CacheHelper.removeData(key: "user");
+    await ApiHandler().clearAuthData();
     emit(LogOutUserSuccess());
   }
+}
+
+/// One navigation destination, with the capabilities that reveal it.
+class _DrawerEntry {
+  final String title;
+  final Widget page;
+  final String icon;
+
+  /// Holding any one of these grants access. Empty means ungated — the same
+  /// entries the web sidebar leaves without a `requiredCapability`.
+  final List<String> anyOf;
+
+  const _DrawerEntry({
+    required this.title,
+    required this.page,
+    required this.icon,
+    this.anyOf = const [],
+  });
 }
 
 class DrawerItem {

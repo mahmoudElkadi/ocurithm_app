@@ -137,6 +137,7 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
   dynamic leftOldSpherical;
   dynamic leftOldCylindrical;
   dynamic leftOldAxis;
+  dynamic leftOldGlassesVa;
   dynamic leftAurorefSpherical;
   dynamic leftAurorefCylindrical;
   dynamic leftAurorefAxis;
@@ -186,6 +187,7 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
   dynamic rightOldSpherical;
   dynamic rightOldCylindrical;
   dynamic rightOldAxis;
+  dynamic rightOldGlassesVa;
   dynamic rightAurorefSpherical;
   dynamic rightAurorefCylindrical;
   dynamic rightAurorefAxis;
@@ -376,6 +378,7 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         'oldSpherical': leftOldSpherical,
         'oldCylindrical': leftOldCylindrical,
         'oldAxis': leftOldAxis,
+        'oldGlassesVa': leftOldGlassesVa,
         "autorefSpherical": leftAurorefSpherical,
         "autorefCylindrical": leftAurorefCylindrical,
         "autorefAxis": leftAurorefAxis,
@@ -426,6 +429,7 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         'oldSpherical': rightOldSpherical,
         'oldCylindrical': rightOldCylindrical,
         'oldAxis': rightOldAxis,
+        'oldGlassesVa': rightOldGlassesVa,
         "autorefSpherical": rightAurorefSpherical,
         "autorefCylindrical": rightAurorefCylindrical,
         "autorefAxis": rightAurorefAxis,
@@ -498,10 +502,12 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
     leftOldSpherical = leftMeas.oldSpherical;
     leftOldCylindrical = leftMeas.oldCylindrical;
     leftOldAxis = leftMeas.oldAxis;
+    leftOldGlassesVa = leftMeas.oldGlassesVa;
 
     rightOldSpherical = rightMeas.oldSpherical;
     rightOldCylindrical = rightMeas.oldCylindrical;
     rightOldAxis = rightMeas.oldAxis;
+    rightOldGlassesVa = rightMeas.oldGlassesVa;
 
     leftAurorefSpherical = leftMeas.autorefSpherical;
     leftAurorefCylindrical = leftMeas.autorefCylindrical;
@@ -661,6 +667,9 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
       case 'oldAxis':
         leftOldAxis = value;
         break;
+      case 'oldGlassesVa':
+        leftOldGlassesVa = value;
+        break;
       case 'aurorefSpherical':
         leftAurorefSpherical = value;
         break;
@@ -768,6 +777,9 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         break;
       case 'oldAxis':
         rightOldAxis = value;
+        break;
+      case 'oldGlassesVa':
+        rightOldGlassesVa = value;
         break;
       case 'aurorefSpherical':
         rightAurorefSpherical = value;

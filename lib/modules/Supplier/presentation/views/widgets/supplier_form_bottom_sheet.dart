@@ -9,6 +9,7 @@ import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/
 
 import '../../../data/models/supplier_model.dart';
 import '../../manager/supplier_actions_cubit/supplier_actions_cubit.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 class SupplierFormBottomSheet extends StatefulWidget {
   final Supplier? supplier;
@@ -43,7 +44,7 @@ class _SupplierFormBottomSheetState extends State<SupplierFormBottomSheet> {
 
     if (!_isEditMode &&
         !CacheHelper.getStringList(key: "capabilities")
-            .contains("manageCapability")) {
+            .contains(CapabilityKeys.manageCapability)) {
       _selectedClinicId = CacheHelper.getUser("user")?.clinic?.id;
     }
   }
@@ -145,7 +146,7 @@ class _SupplierFormBottomSheetState extends State<SupplierFormBottomSheet> {
                 const HeightSpacer(size: 15),
                 if (!_isEditMode &&
                     CacheHelper.getStringList(key: "capabilities")
-                        .contains("manageCapability"))
+                        .contains(CapabilityKeys.manageCapability))
                   BlocProvider(
                     create: (context) => sl<GetClinicsCubit>()
                       ..add(GetAllClinicsEvent(noPagination: true)),

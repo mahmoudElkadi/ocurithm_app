@@ -119,7 +119,7 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                         widget.cubit.add(SelectDoctorEvent(item));
                       }
                     },
-                    isLoading: state.status == AppointmentStatus.loadingDoctors,
+                    isLoading: state.status == AppointmentUiState.loadingDoctors,
                   ),
                 ),
               ),
@@ -145,7 +145,7 @@ class _filterAppointmentDataState extends State<filterAppointmentData> {
                         widget.cubit.add(SelectBranchEvent(item));
                       }
                     },
-                    isLoading: state.status == AppointmentStatus.loadingBranches,
+                    isLoading: state.status == AppointmentUiState.loadingBranches,
                   ),
                 ),
               ),

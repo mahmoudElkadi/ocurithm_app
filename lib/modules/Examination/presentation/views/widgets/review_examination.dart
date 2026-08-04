@@ -111,6 +111,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                       'Cylindrical': FormatHelper.formatPositiveValue(
                           cubit.leftOldCylindrical),
                       'Axis': cubit.leftOldAxis,
+                      'VA': cubit.leftOldGlassesVa,
                     },
                     dataRE: {
                       'Spherical': FormatHelper.formatPositiveValue(
@@ -118,6 +119,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                       'Cylindrical': FormatHelper.formatPositiveValue(
                           cubit.rightOldCylindrical),
                       'Axis': cubit.rightOldAxis,
+                      'VA': cubit.rightOldGlassesVa,
                     },
                   ),
                   _buildSynchronizedExaminationSection(

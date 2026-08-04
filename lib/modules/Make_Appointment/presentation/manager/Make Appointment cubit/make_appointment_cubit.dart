@@ -14,6 +14,7 @@ import '../../../../Examination Type/data/model/examination_type_model.dart';
 import '../../../../Patient/data/model/patients_model.dart';
 import '../../../../Payment Methods/data/model/payment_method_model.dart';
 import '../../../data/repos/make_appointment_repo.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 part 'make_appointment_event.dart';
 part 'make_appointment_state.dart';
@@ -89,7 +90,7 @@ class MakeAppointmentCubit
   Future<void> _onInitialData(
       InitialDataEvent event, Emitter<MakeAppointmentState> emit) async {
     if (!CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability")) {
+        .contains(CapabilityKeys.manageCapability)) {
       final user = CacheHelper.getUser("user");
       emit(state.copyWith(selectedClinic: user?.clinic));
     }

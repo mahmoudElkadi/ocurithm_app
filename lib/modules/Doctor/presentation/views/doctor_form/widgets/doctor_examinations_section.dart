@@ -335,9 +335,15 @@ class _ExaminationCard extends StatelessWidget {
         border: Border.all(color: theme.primaryColor.withValues(alpha: 0.3)),
       ),
       child: InkWell(
-        onTap: () {
+        onTap: () async {
           if (exam.id != null) {
-            Get.to(() => OneExaminationView(id: exam.id!));
+            final deleted =
+                await Get.to<bool>(() => OneExaminationView(id: exam.id!));
+            if (deleted == true && context.mounted) {
+              context
+                  .read<doc_bloc.GetDoctorExaminationsBloc>()
+                  .add(doc_bloc.FetchExaminationsEvent(refresh: true));
+            }
           }
         },
         child: Padding(

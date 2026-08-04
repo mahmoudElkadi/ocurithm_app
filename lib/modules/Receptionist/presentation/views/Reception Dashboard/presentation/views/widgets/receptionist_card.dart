@@ -10,7 +10,8 @@ import 'package:ocurithm/core/widgets/custom_freeze_loading.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/pagination.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
-import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/modules/Receptionist/data/models/receptionists_model.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/manager/get_receptionists_cubit/get_receptionists_cubit.dart';
 import 'package:ocurithm/modules/Receptionist/presentation/manager/receptionist_actions_cubit/receptionist_actions_cubit.dart';
@@ -210,8 +211,8 @@ class _ReceptionistCardState extends State<ReceptionistCard> {
               ),
 
               // Delete Button
-              if (CacheHelper.getStringList(key: "capabilities")
-                  .contains("manageReciptionists"))
+              if (CapabilityServices.hasCapability(
+                  CapabilityKeys.manageReceptionists))
                 BlocListener<ReceptionistActionsCubit,
                     ReceptionistActionsState>(
                   listener: (context, state) {

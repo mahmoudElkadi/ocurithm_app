@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:shimmer/shimmer.dart';
@@ -138,7 +140,8 @@ class PurchaseOrderCard extends StatelessWidget {
                           const HeightSpacer(size: 2),
                           Text(
                             purchaseOrder?.createdAt != null
-                                ? DateFormat('MMM dd, yyyy').format(purchaseOrder!.createdAt!)
+                                ? DateFormat('MMM dd, yyyy')
+                                    .format(purchaseOrder!.createdAt!)
                                 : "",
                             style: theme.textTheme.bodySmall,
                           ),
@@ -152,7 +155,8 @@ class PurchaseOrderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.blue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -167,22 +171,27 @@ class PurchaseOrderCard extends StatelessWidget {
                       ),
                     ),
                     const HeightSpacer(size: 5),
-                    BlocBuilder<PurchaseOrderActionsCubit, PurchaseOrderActionsState>(
-                      builder: (context, state) {
-                        if (state.isLoading && state.actingId == purchaseOrder?.id) {
-                          return const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                    if (CapabilityServices.hasCapability(
+                        CapabilityKeys.manageProducts))
+                      BlocBuilder<PurchaseOrderActionsCubit,
+                          PurchaseOrderActionsState>(
+                        builder: (context, state) {
+                          if (state.isLoading &&
+                              state.actingId == purchaseOrder?.id) {
+                            return const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            );
+                          }
+                          return IconButton(
+                            icon: const Icon(Icons.delete_outline,
+                                color: Colors.red),
+                            onPressed: () => _showDeleteConfirmation(context),
+                            visualDensity: VisualDensity.compact,
                           );
-                        }
-                        return IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red),
-                          onPressed: () => _showDeleteConfirmation(context),
-                          visualDensity: VisualDensity.compact,
-                        );
-                      },
-                    ),
+                        },
+                      ),
                   ],
                 ),
             ],
@@ -197,7 +206,8 @@ class PurchaseOrderCard extends StatelessWidget {
       context: context,
       builder: (_) => CupertinoAlertDialog(
         title: const Text("Delete Purchase Order"),
-        content: const Text("Are you sure you want to delete this PO? This will reverse stock and delete inventory units."),
+        content: const Text(
+            "Are you sure you want to delete this PO? This will reverse stock and delete inventory units."),
         actions: [
           CupertinoDialogAction(
             child: const Text("Cancel"),

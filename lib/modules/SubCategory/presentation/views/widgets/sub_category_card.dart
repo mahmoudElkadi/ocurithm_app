@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:shimmer/shimmer.dart';
@@ -144,8 +146,11 @@ class SubCategoryCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Action Section
-                    if (!isLoading)
+                    // Action Section — web gates this on manageCategories
+                    // (SubCategoriesPage.tsx), not a dedicated capability.
+                    if (!isLoading &&
+                        CapabilityServices.hasCapability(
+                            CapabilityKeys.manageCategories))
                       _buildActionMenu(context, theme, isDark),
                   ],
                 ),

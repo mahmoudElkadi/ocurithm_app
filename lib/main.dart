@@ -7,6 +7,7 @@ import 'package:ocurithm/generated/l10n.dart';
 
 import 'Main/presentation/manger/main_cubit.dart';
 import 'core/Network/shared.dart';
+import 'core/api/api_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/theme/theme_state.dart';
@@ -19,6 +20,8 @@ import 'modules/Chat/presentation/widgets/floating_chat_wrapper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await CacheHelper.init();
+  // Must run before anything reads ApiConstants.baseUrl.
+  await ApiConstants.migrateLegacyDevOverride();
   ServiceLocator().init();
   runApp(const MyApp());
 }

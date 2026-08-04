@@ -254,6 +254,7 @@ class Measurement {
     required this.oldAxis,
     required this.oldCylindrical,
     required this.oldSpherical,
+    required this.oldGlassesVa,
     required this.palpableLymphNodes,
     required this.palpableTemporalArtery,
     required this.pupilsLightReflexTest,
@@ -310,6 +311,7 @@ class Measurement {
   final String? oldAxis;
   final String? oldCylindrical;
   final String? oldSpherical;
+  final String? oldGlassesVa;
   final String? palpableLymphNodes;
   final String? palpableTemporalArtery;
   final String? pupilsLightReflexTest;
@@ -367,6 +369,7 @@ class Measurement {
       oldAxis: json["oldAxis"],
       oldCylindrical: json["oldCylindrical"],
       oldSpherical: json["oldSpherical"],
+      oldGlassesVa: json["oldGlassesVa"],
       palpableLymphNodes: json["palpableLymphNodes"],
       palpableTemporalArtery: json["palpableTemporalArtery"],
       pupilsLightReflexTest: json["pupilsLightReflexTest"],

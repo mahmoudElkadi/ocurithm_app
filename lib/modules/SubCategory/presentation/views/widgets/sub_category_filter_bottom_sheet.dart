@@ -7,6 +7,7 @@ import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/modules/Category/presentation/manager/get_categories_cubit/get_categories_cubit.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import 'package:ocurithm/modules/SubCategory/presentation/manager/get_sub_categories_cubit/get_sub_categories_cubit.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 class SubCategoryFilterBottomSheet extends StatefulWidget {
   const SubCategoryFilterBottomSheet({super.key});
@@ -71,7 +72,7 @@ class _SubCategoryFilterBottomSheetState
             ),
             const HeightSpacer(size: 20),
             if (CacheHelper.getStringList(key: "capabilities")
-                .contains("manageCapability"))
+                .contains(CapabilityKeys.manageCapability))
               BlocBuilder<GetClinicsCubit, GetClinicsState>(
                 builder: (context, state) {
                   return Column(

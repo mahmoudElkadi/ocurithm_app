@@ -26,6 +26,9 @@ class DoctorRepoImpl implements DoctorRepo {
         if (doctor.image != null && doctor.image!.isNotEmpty)
           "image": doctor.image,
         if (doctor.isConsultant != null) "isConsultant": doctor.isConsultant,
+        if (doctor.appointmentCommissionPercentage != null)
+          "appointmentCommissionPercentage":
+              doctor.appointmentCommissionPercentage,
       };
 
       final response = await _apiHandler.post<Doctor>(
@@ -120,6 +123,9 @@ class DoctorRepoImpl implements DoctorRepo {
         if (doctor.image != null && doctor.image!.isNotEmpty)
           "image": doctor.image,
         if (doctor.isConsultant != null) "isConsultant": doctor.isConsultant,
+        if (doctor.appointmentCommissionPercentage != null)
+          "appointmentCommissionPercentage":
+              doctor.appointmentCommissionPercentage,
       };
 
       final response = await _apiHandler.put<Doctor>(

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/Network/shared.dart';
+import '../../../../core/utils/capability_keys.dart';
 import '../../../../core/utils/capability_services.dart';
 import '../../../../core/utils/services_locator.dart';
 import '../manager/chat_socket_bloc/chat_socket_bloc.dart';
@@ -53,7 +54,7 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper>
       if (!mounted) return;
 
       final token = CacheHelper.getData(key: 'token');
-      final hasChatCapability = CapabilityServices.hasCapability("chat");
+      final hasChatCapability = CapabilityServices.hasCapability(CapabilityKeys.chat);
 
       if (token != null && hasChatCapability) {
         // Ensure socket is connected if we should have chat
@@ -196,7 +197,7 @@ class _FloatingChatWrapperState extends State<FloatingChatWrapper>
                     currentRoute == '/';
 
                 final bool hasChatCapability =
-                    CapabilityServices.hasCapability("chat");
+                    CapabilityServices.hasCapability(CapabilityKeys.chat);
 
                 if (token == null || isAuthScreen || !hasChatCapability) {
                   return const SizedBox.shrink();

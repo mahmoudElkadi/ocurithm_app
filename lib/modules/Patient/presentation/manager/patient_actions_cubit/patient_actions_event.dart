@@ -22,6 +22,18 @@ class DeletePatientEvent extends PatientActionsEvent {
   DeletePatientEvent(this.patientId);
 }
 
+class TransferPatientEvent extends PatientActionsEvent {
+  final String sourceId;
+  final String targetId;
+  final bool deleteSource;
+
+  TransferPatientEvent({
+    required this.sourceId,
+    required this.targetId,
+    required this.deleteSource,
+  });
+}
+
 class ResetPatientActionsEvent extends PatientActionsEvent {}
 
 class CheckDuplicateNameEvent extends PatientActionsEvent {

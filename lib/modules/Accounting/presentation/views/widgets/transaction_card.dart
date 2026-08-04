@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ocurithm/core/utils/app_style.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import '../../../data/models/transaction_model.dart';
@@ -106,39 +108,43 @@ class TransactionCard extends StatelessWidget {
                         FontWeight.w800
                       ),
                     ),
-                    const WidthSpacer(size: 8),
-                    PopupMenuButton<String>(
-                      onSelected: (value) {
-                        if (value == 'edit') {
-                          _handleEdit(context);
-                        } else if (value == 'delete') {
-                          _showDeleteConfirmation(context, context.read<AccountActionsCubit>());
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit, size: 20, color: Colors.blue),
-                              SizedBox(width: 8),
-                              Text('Update'),
-                            ],
+                    if (CapabilityServices.hasCapability(
+                            CapabilityKeys.manageTransactions) &&
+                        (transaction.source ?? "manual") == "manual") ...[
+                      const WidthSpacer(size: 8),
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            _handleEdit(context);
+                          } else if (value == 'delete') {
+                            _showDeleteConfirmation(context, context.read<AccountActionsCubit>());
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, size: 20, color: Colors.blue),
+                                SizedBox(width: 8),
+                                Text('Update'),
+                              ],
+                            ),
                           ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete, size: 20, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('Delete'),
-                            ],
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, size: 20, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Delete'),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                      child: Icon(Icons.more_vert, color: Colors.grey.shade400, size: 22),
-                    ),
+                        ],
+                        child: Icon(Icons.more_vert, color: Colors.grey.shade400, size: 22),
+                      ),
+                    ],
                   ],
                 ),
                 const HeightSpacer(size: 4),

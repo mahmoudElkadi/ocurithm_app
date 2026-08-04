@@ -138,6 +138,28 @@ class PatientRepoImpl implements PatientRepo {
   }
 
   @override
+  Future<TransferPatientResult> transferPatient({
+    required String sourceId,
+    required String targetId,
+    required bool deleteSource,
+  }) async {
+    final response = await _apiHandler.post<TransferPatientResult>(
+      "${ApiConstants.patients}/$sourceId/transfer",
+      data: {
+        "targetId": targetId,
+        "deleteSource": deleteSource,
+      },
+      fromJson: (json) => TransferPatientResult.fromJson(json),
+    );
+
+    if (response.success && response.data != null) {
+      return response.data!;
+    } else {
+      throw Exception(response.message ?? "Failed to transfer patient");
+    }
+  }
+
+  @override
   Future<BranchesModel> getAllBranches() async {
     final response = await _apiHandler.get<BranchesModel>(
       ApiConstants.branches,

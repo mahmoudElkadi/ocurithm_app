@@ -24,6 +24,7 @@ class OrderActionsBloc extends Bloc<OrderActionsEvent, OrderActionsState> {
 
       final order = await _orderRepo.createOrder(
         items: event.items,
+        paymentMethod: event.paymentMethod,
         branch: event.branch,
         doctor: event.doctor,
         clinic: event.clinic,
@@ -50,6 +51,7 @@ class OrderActionsBloc extends Bloc<OrderActionsEvent, OrderActionsState> {
       final order = await _orderRepo.updateOrder(
         event.id,
         items: event.items,
+        paymentMethod: event.paymentMethod,
         branch: event.branch,
         doctor: event.doctor,
         clinic: event.clinic,

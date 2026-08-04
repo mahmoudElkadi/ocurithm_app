@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/core/widgets/no_internet.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import '../manager/get_sub_categories_cubit/get_sub_categories_cubit.dart';
 import '../manager/sub_category_actions_cubit/sub_category_actions_cubit.dart';
 import './widgets/sub_category_view_body.dart';
@@ -23,22 +25,27 @@ class SubCategoryView extends StatelessWidget {
           return CustomScaffold(
             title: "Sub-Categories",
             actions: [
-              IconButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => MultiBlocProvider(
-                      providers: [
-                        BlocProvider.value(value: context.read<SubCategoryActionsCubit>()),
-                        BlocProvider.value(value: context.read<GetSubCategoriesCubit>()),
-                      ],
-                      child: const SubCategoryFormBottomSheet(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.add_circle, size: 28),
+              // Web gates Subcategories' mutations on manageCategories, not a
+              // dedicated capability (SubCategoriesPage.tsx).
+              manageCapability(
+                capability: CapabilityKeys.manageCategories,
+                child: IconButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => MultiBlocProvider(
+                        providers: [
+                          BlocProvider.value(value: context.read<SubCategoryActionsCubit>()),
+                          BlocProvider.value(value: context.read<GetSubCategoriesCubit>()),
+                        ],
+                        child: const SubCategoryFormBottomSheet(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_circle, size: 28),
+                ),
               ),
             ],
             body: state.noConnection

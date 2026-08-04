@@ -13,6 +13,7 @@ class AddBranchModel {
     this.closeTime,
     this.clinic,
     this.workDays,
+    this.defaultDoctorCommissionPercentage,
     this.error,
   });
 
@@ -27,6 +28,10 @@ class AddBranchModel {
   String? openTime;
   String? closeTime;
   List? workDays;
+
+  /// Branch-level fallback for the doctor appointment commission split.
+  /// Null means "not set" — falls through to the clinic default.
+  num? defaultDoctorCommissionPercentage;
   String? error;
 
   factory AddBranchModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +46,8 @@ class AddBranchModel {
       openTime: json["openTime"],
       closeTime: json["closeTime"],
       workDays: json["workDays"] == null ? [] : List<dynamic>.from(json["workDays"]!.map((x) => x)),
+      defaultDoctorCommissionPercentage:
+          json["defaultDoctorCommissionPercentage"],
       error: json["error"],
       clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
     );
@@ -55,6 +62,8 @@ class AddBranchModel {
         "closeTime": closeTime,
         "clinic": clinic?.id,
         "workDays": workDays?.map((x) => x).toList(),
+        "defaultDoctorCommissionPercentage":
+            defaultDoctorCommissionPercentage,
       };
 }
 

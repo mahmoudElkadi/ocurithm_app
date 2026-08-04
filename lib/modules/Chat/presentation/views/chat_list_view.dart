@@ -179,6 +179,7 @@ class _ChatListContentState extends State<_ChatListContent>
                 child: TextField(
                   controller: _searchController,
                   onChanged: (value) {
+                    setState(() {});
                     if (_tabController.index == 0) {
                       context
                           .read<ChatThreadsBloc>()
@@ -189,10 +190,29 @@ class _ChatListContentState extends State<_ChatListContent>
                           .add(SearchChatUsersEvent(value));
                     }
                   },
-                  decoration: const InputDecoration(
-                    icon: Icon(Icons.search, size: 20, color: Colors.grey),
+                  decoration: InputDecoration(
+                    icon: const Icon(Icons.search, size: 20, color: Colors.grey),
                     hintText: 'Search...',
                     border: InputBorder.none,
+                    suffixIcon: _searchController.text.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.close,
+                                size: 18, color: Colors.grey),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {});
+                              if (_tabController.index == 0) {
+                                context
+                                    .read<ChatThreadsBloc>()
+                                    .add(SearchThreadsEvent(''));
+                              } else if (_tabController.index == 1) {
+                                context
+                                    .read<GetChatUsersBloc>()
+                                    .add(SearchChatUsersEvent(''));
+                              }
+                            },
+                          ),
                   ),
                 ),
               ),

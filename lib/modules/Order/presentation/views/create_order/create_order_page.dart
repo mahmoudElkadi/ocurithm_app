@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
@@ -22,6 +23,10 @@ import 'package:ocurithm/modules/Order/data/repos/order_repo.dart';
 import 'package:ocurithm/modules/Order/presentation/manager/order_actions_cubit/order_actions_bloc.dart';
 import 'package:ocurithm/modules/Product/data/models/product_model.dart';
 
+import '../../../../Payment Methods/data/model/payment_method_model.dart';
+import '../../../../Payment Methods/presentation/manager/get_payment_methods_cubit/get_payment_methods_cubit.dart'
+    as payment_method_cubit;
+
 class CreateOrderPage extends StatefulWidget {
   final Order? orderToEdit;
 
@@ -35,6 +40,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   String? _selectedClinicId;
   String? _selectedBranchId;
   String? _selectedDoctorId;
+  String? _selectedPaymentMethodId;
   final List<CreateOrderItemUI> _items = [];
   bool _isSubmitting = false;
 
@@ -47,6 +53,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       _selectedClinicId = widget.orderToEdit!.clinic?.id;
       _selectedBranchId = widget.orderToEdit!.branch?.id;
       _selectedDoctorId = widget.orderToEdit!.doctor?.id;
+      _selectedPaymentMethodId = widget.orderToEdit!.paymentMethod?.id;
       for (var item in widget.orderToEdit!.items) {
         _items.add(CreateOrderItemUI(
           product: Product(
@@ -62,7 +69,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       _items.add(CreateOrderItemUI());
 
       // Handle scope initialization
-      if (user != null && !user.capabilities.contains("manageCapability")) {
+      if (user != null && !user.capabilities.contains(CapabilityKeys.manageCapability)) {
         _selectedClinicId = user.clinic?.id;
       }
     }
@@ -93,6 +100,19 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           }
           return cubit;
         }),
+        BlocProvider(create: (context) {
+          final cubit = sl<payment_method_cubit.GetPaymentMethodsCubit>();
+          // SetClinicFilterEvent triggers the fetch itself; without a clinic
+          // scope we still need an explicit load.
+          if (_selectedClinicId != null) {
+            cubit.add(payment_method_cubit
+                .SetClinicFilterEvent(_selectedClinicId));
+          } else {
+            cubit.add(const payment_method_cubit.GetAllPaymentMethodsEvent(
+                noPagination: true));
+          }
+          return cubit;
+        }),
       ],
       child: BlocListener<OrderActionsBloc, OrderActionsState>(
         listener: (context, state) {
@@ -116,13 +136,15 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               child: Column(
                 children: [
                   if (user != null &&
-                      user.capabilities.contains("manageCapability")) ...[
+                      user.capabilities.contains(CapabilityKeys.manageCapability)) ...[
                     _buildClinicSelector(context),
                     const HeightSpacer(size: 15),
                   ],
                   _buildBranchSelector(context, user),
                   const HeightSpacer(size: 15),
                   _buildDoctorSelector(context, user),
+                  const HeightSpacer(size: 15),
+                  _buildPaymentMethodSelector(context),
                   const HeightSpacer(size: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -178,6 +200,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               _selectedClinicId = item.id;
               _selectedBranchId = null; // Reset branch
               _selectedDoctorId = null; // Reset doctor
+              // The API rejects a payment method belonging to another clinic,
+              // so the previous pick cannot survive a clinic change.
+              _selectedPaymentMethodId = null;
             });
             context
                 .read<branch_cubit.GetBranchesCubit>()
@@ -185,6 +210,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
             context
                 .read<doctor_cubit.GetDoctorsCubit>()
                 .add(doctor_cubit.SetClinicFilterEvent(item.id));
+            context
+                .read<payment_method_cubit.GetPaymentMethodsCubit>()
+                .add(payment_method_cubit.SetClinicFilterEvent(item.id));
           },
           selectedValue: state.clinics?.clinics
               .where((c) => c.id == _selectedClinicId)
@@ -253,6 +281,30 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               ?.name,
           isLoading: state.state == doctor_cubit.GetDoctorsStatus.loading,
           readOnly: _selectedBranchId == null,
+        );
+      },
+    );
+  }
+
+  /// Required by the API on create and update — the order write also drives
+  /// the transaction that credits this payment method's account.
+  Widget _buildPaymentMethodSelector(BuildContext context) {
+    return BlocBuilder<payment_method_cubit.GetPaymentMethodsCubit,
+        payment_method_cubit.GetPaymentMethodsState>(
+      builder: (context, state) {
+        final methods = state.paymentMethods?.paymentMethods ?? [];
+        return DropdownItem<PaymentMethod>(
+          items: methods,
+          hintText: "Select Payment Method",
+          itemAsString: (item) => item.title ?? "N/A",
+          onItemSelected: (item) =>
+              setState(() => _selectedPaymentMethodId = item.id),
+          selectedValue: methods
+              .where((p) => p.id == _selectedPaymentMethodId)
+              .firstOrNull
+              ?.title,
+          isLoading:
+              state.state == payment_method_cubit.GetPaymentMethodsStatus.loading,
         );
       },
     );
@@ -395,6 +447,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       SnackbarService.showError(context, message: "Please select a doctor");
       return;
     }
+    // Blocked client-side so the user never sees the raw 400 the API returns
+    // when paymentMethod is missing.
+    if (_selectedPaymentMethodId == null) {
+      SnackbarService.showError(context,
+          message: "Please select a payment method");
+      return;
+    }
     if (_items.isEmpty) {
       SnackbarService.showError(context,
           message: "Please add at least one item");
@@ -425,6 +484,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       context.read<OrderActionsBloc>().add(UpdateOrderEvent(
             id: widget.orderToEdit!.id!,
             items: itemsList,
+            paymentMethod: _selectedPaymentMethodId!,
             branch: _selectedBranchId,
             doctor: _selectedDoctorId,
             clinic: _selectedClinicId,
@@ -432,6 +492,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     } else {
       context.read<OrderActionsBloc>().add(CreateOrderEvent(
             items: itemsList,
+            paymentMethod: _selectedPaymentMethodId!,
             branch: _selectedBranchId,
             doctor: _selectedDoctorId,
             clinic: _selectedClinicId,

@@ -1,6 +1,7 @@
 import 'package:ocurithm/modules/Branch/data/model/branches_model.dart';
 import 'package:ocurithm/modules/Clinics/data/model/clinics_model.dart';
 import 'package:ocurithm/modules/Doctor/data/model/doctor_model.dart';
+import '../../../Payment Methods/data/model/payment_method_model.dart';
 
 enum OrderStatus { completed, cancelled }
 
@@ -42,6 +43,7 @@ class Order {
   final Clinic? clinic;
   final Branch? branch;
   final Doctor? doctor;
+  final PaymentMethod? paymentMethod;
   final List<OrderItem> items;
   final num? totalPrice;
   final OrderStatus? status;
@@ -54,6 +56,7 @@ class Order {
     this.clinic,
     this.branch,
     this.doctor,
+    this.paymentMethod,
     required this.items,
     this.totalPrice,
     this.status,
@@ -68,12 +71,22 @@ class Order {
       return null;
     }
 
+    // The API returns paymentMethod either populated or as a bare id string,
+    // depending on the endpoint — web handles both, so mobile must too.
+    PaymentMethod? parsePaymentMethod(dynamic value) {
+      if (value == null) return null;
+      if (value is String) return PaymentMethod(id: value);
+      if (value is Map<String, dynamic>) return PaymentMethod.fromJson(value);
+      return null;
+    }
+
     return Order(
       id: json["id"],
       orderNumber: json["orderNumber"],
       clinic: json["clinic"] == null ? null : Clinic.fromJson(json["clinic"]),
       branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
       doctor: json["doctor"] == null ? null : Doctor.fromJson(json["doctor"]),
+      paymentMethod: parsePaymentMethod(json["paymentMethod"]),
       items: json["items"] == null
           ? []
           : List<OrderItem>.from(
@@ -91,6 +104,7 @@ class Order {
         "clinic": clinic?.id,
         "branch": branch?.id,
         "doctor": doctor?.id,
+        "paymentMethod": paymentMethod?.id,
         "items": items.map((x) => x.toJson()).toList(),
         "totalPrice": totalPrice,
         "status": status?.name,

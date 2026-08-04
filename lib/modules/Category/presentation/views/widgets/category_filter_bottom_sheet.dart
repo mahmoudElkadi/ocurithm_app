@@ -7,6 +7,7 @@ import 'package:ocurithm/core/widgets/DropdownPackage.dart';
 import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/modules/Clinics/presentation/manager/get_clinics_cubit/get_clinics_cubit.dart';
 import '../../manager/get_categories_cubit/get_categories_cubit.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 
 class CategoryFilterBottomSheet extends StatefulWidget {
   final GetCategoriesCubit getCategoriesCubit;
@@ -39,7 +40,7 @@ class _CategoryFilterBottomSheetState extends State<CategoryFilterBottomSheet> {
   }
 
   Future<void> _loadClinics() async {
-    if (CacheHelper.getStringList(key: "capabilities").contains("manageCapability")) {
+    if (CacheHelper.getStringList(key: "capabilities").contains(CapabilityKeys.manageCapability)) {
       _clinicsCubit.add(GetAllClinicsEvent(noPagination: true));
     }
   }

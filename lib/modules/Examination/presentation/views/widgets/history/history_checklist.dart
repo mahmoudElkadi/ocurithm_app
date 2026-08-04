@@ -45,12 +45,13 @@ class HistoryChecklist extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const OtherNotesSection(),
                 for (final category in historyCategories)
                   CategoryCard(
                     key: ValueKey('cat_${category.key}'),
                     category: category,
                   ),
+                // Web (cc5bc25) moved this below the catalog groups.
+                const OtherNotesSection(),
                 StepNavigation(
                   onPrevious: () => cubit.currentStep > 0
                       ? cubit.previousStep()

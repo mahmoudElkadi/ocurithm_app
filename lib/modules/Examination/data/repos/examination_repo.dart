@@ -10,6 +10,9 @@ abstract class ExaminationRepo {
   Future<DataModel> makeFinalization(
       {required String id, required Map<String, dynamic> data});
 
+  /// Soft-deletes an examination. Gated server-side on `deleteExaminations`.
+  Future<void> deleteExamination(String id);
+
   Future<SavedExaminationModel> getOneExamination(
       {required String appointmentId});
 

@@ -161,6 +161,7 @@ class ExaminationPdfService {
                     oldSph: rightMeasurement.oldSpherical?.toString(),
                     oldCyl: rightMeasurement.oldCylindrical?.toString(),
                     oldAxis: rightMeasurement.oldAxis?.toString(),
+                    oldGlassesVa: rightMeasurement.oldGlassesVa?.toString(),
                     autoSph: rightMeasurement.autorefSpherical?.toString(),
                     autoCyl: rightMeasurement.autorefCylindrical?.toString(),
                     autoAxis: rightMeasurement.autorefAxis?.toString(),
@@ -185,6 +186,7 @@ class ExaminationPdfService {
                     oldSph: leftMeasurement.oldSpherical?.toString(),
                     oldCyl: leftMeasurement.oldCylindrical?.toString(),
                     oldAxis: leftMeasurement.oldAxis?.toString(),
+                    oldGlassesVa: leftMeasurement.oldGlassesVa?.toString(),
                     autoSph: leftMeasurement.autorefSpherical?.toString(),
                     autoCyl: leftMeasurement.autorefCylindrical?.toString(),
                     autoAxis: leftMeasurement.autorefAxis?.toString(),
@@ -571,6 +573,7 @@ class ExaminationPdfService {
           ? c.leftOldCylindrical?.toString()
           : c.rightOldCylindrical?.toString(),
       oldAxis: isL ? c.leftOldAxis : c.rightOldAxis,
+      oldGlassesVa: isL ? c.leftOldGlassesVa : c.rightOldGlassesVa,
       autoSph: isL
           ? c.leftAurorefSpherical?.toString()
           : c.rightAurorefSpherical?.toString(),
@@ -598,6 +601,7 @@ class ExaminationPdfService {
     String? oldSph,
     String? oldCyl,
     String? oldAxis,
+    String? oldGlassesVa,
     String? autoSph,
     String? autoCyl,
     String? autoAxis,
@@ -623,6 +627,7 @@ class ExaminationPdfService {
               'Sph': FormatHelper.formatPositiveValue(oldSph),
               'Cyl': FormatHelper.formatPositiveValue(oldCyl),
               'Axis': oldAxis,
+              'VA': oldGlassesVa,
             },
             boldFont,
             font,

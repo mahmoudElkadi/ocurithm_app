@@ -2,7 +2,7 @@ part of 'patient_actions_cubit.dart';
 
 enum PatientActionsStatus { initial, loading, success, error, noConnection }
 
-enum PatientActionType { add, update, delete, none }
+enum PatientActionType { add, update, delete, transfer, none }
 
 extension PatientActionsStatusX on PatientActionsState {
   bool get isInitial => state == PatientActionsStatus.initial;
@@ -20,6 +20,9 @@ extension PatientActionsStatusX on PatientActionsState {
   bool get isDeleteSuccess =>
       state == PatientActionsStatus.success &&
       actionType == PatientActionType.delete;
+  bool get isTransferSuccess =>
+      state == PatientActionsStatus.success &&
+      actionType == PatientActionType.transfer;
 
   bool get isAddError =>
       state == PatientActionsStatus.error &&
@@ -30,6 +33,9 @@ extension PatientActionsStatusX on PatientActionsState {
   bool get isDeleteError =>
       state == PatientActionsStatus.error &&
       actionType == PatientActionType.delete;
+  bool get isTransferError =>
+      state == PatientActionsStatus.error &&
+      actionType == PatientActionType.transfer;
 }
 
 @immutable
@@ -41,6 +47,7 @@ class PatientActionsState {
   final Patient? patient;
   final bool? isNameDuplicate;
   final bool isCheckingDuplicateName;
+  final TransferPatientResult? transferResult;
 
   const PatientActionsState({
     this.state = PatientActionsStatus.initial,
@@ -50,6 +57,7 @@ class PatientActionsState {
     this.patient,
     this.isNameDuplicate,
     this.isCheckingDuplicateName = false,
+    this.transferResult,
   });
 
   PatientActionsState copyWith({
@@ -60,6 +68,7 @@ class PatientActionsState {
     Patient? patient,
     bool? isNameDuplicate,
     bool? isCheckingDuplicateName,
+    TransferPatientResult? transferResult,
   }) {
     return PatientActionsState(
       state: state ?? this.state,
@@ -69,6 +78,7 @@ class PatientActionsState {
       patient: patient ?? this.patient,
       isNameDuplicate: isNameDuplicate ?? this.isNameDuplicate,
       isCheckingDuplicateName: isCheckingDuplicateName ?? this.isCheckingDuplicateName,
+      transferResult: transferResult ?? this.transferResult,
     );
   }
 }

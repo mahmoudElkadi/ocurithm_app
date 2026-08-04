@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ocurithm/core/utils/auth_service.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/manage_capabilities.dart';
@@ -35,7 +36,7 @@ class AdminBranchView extends StatelessWidget {
           title: "Branches",
           actions: [
             manageCapability(
-              capability: 'manageBranches',
+              capability: CapabilityKeys.manageBranches,
               child: IconButton(
                 onPressed: () {
                   final actionsCubit = context.read<BranchActionsCubit>();

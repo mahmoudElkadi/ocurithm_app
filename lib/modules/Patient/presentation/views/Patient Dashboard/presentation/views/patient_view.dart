@@ -8,9 +8,10 @@ import 'package:get/get.dart';
 import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/widgets/patient_view_body.dart';
 
+import '../../../../../../../../core/utils/capability_keys.dart';
+import '../../../../../../../../core/utils/capability_services.dart';
 import '../../../../../../../../core/utils/colors.dart';
 import '../../../../../../../../core/widgets/no_internet.dart';
-import '../../../../../../../core/Network/shared.dart';
 import '../../../../../../../core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import '../../../../manager/get_patients_cubit/get_patients_cubit.dart';
@@ -74,8 +75,8 @@ class AdminPatientView extends StatelessWidget {
             builder: (context, state) => CustomScaffold(
               title: "Patients",
               actions: [
-                if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("managePatients"))
+                if (CapabilityServices.hasCapability(
+                    CapabilityKeys.managePatients))
                   IconButton(
                     onPressed: () async {
                       final result = await Get.to(() =>

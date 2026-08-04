@@ -316,6 +316,7 @@ class Measurement {
     this.oldSpherical,
     this.oldCylindrical,
     this.oldAxis,
+    this.oldGlassesVa,
   });
 
   final String? eye;
@@ -323,6 +324,7 @@ class Measurement {
   final dynamic oldSpherical;
   final dynamic oldCylindrical;
   final dynamic oldAxis;
+  final dynamic oldGlassesVa;
   final dynamic autorefSpherical;
   final dynamic autorefCylindrical;
   final dynamic autorefAxis;
@@ -376,6 +378,7 @@ class Measurement {
       oldSpherical: json["oldSpherical"],
       oldCylindrical: json["oldCylindrical"],
       oldAxis: json["oldAxis"],
+      oldGlassesVa: json["oldGlassesVa"],
       autorefSpherical: json["autorefSpherical"],
       autorefCylindrical: json["autorefCylindrical"],
       nearVisionAddition: json["nearVisionAddition"],

@@ -16,7 +16,8 @@ import '../../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../../core/widgets/pagination.dart';
 import '../../../../../../../../../core/utils/snackbar_service.dart';
 
-import '../../../../../../../../core/Network/shared.dart';
+import '../../../../../../../../core/utils/capability_keys.dart';
+import '../../../../../../../../core/utils/capability_services.dart';
 import '../../../../../../data/model/patients_model.dart';
 import '../../../../../manager/get_patients_cubit/get_patients_cubit.dart';
 import '../../../../../manager/patient_actions_cubit/patient_actions_cubit.dart';
@@ -188,8 +189,8 @@ class PatientCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (CacheHelper.getStringList(key: "capabilities")
-                      .contains("managePatients") &&
+              if (CapabilityServices.hasCapability(
+                      CapabilityKeys.managePatients) &&
                   !isLoading)
                 Row(
                   children: [

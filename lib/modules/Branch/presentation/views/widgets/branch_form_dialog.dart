@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/core/Network/shared.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
@@ -56,6 +57,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _commissionController = TextEditingController();
 
   List selectedDays = [];
   String openingTime = "08:00";
@@ -79,7 +81,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
 
     // Set clinic if user doesn't have manageCapability
     if (!CacheHelper.getStringList(key: "capabilities")
-        .contains("manageCapability")) {
+        .contains(CapabilityKeys.manageCapability)) {
       selectedClinic = CacheHelper.getUser("user")?.clinic;
     }
 
@@ -103,6 +105,7 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
     _nameController.dispose();
     _addressController.dispose();
     _phoneController.dispose();
+    _commissionController.dispose();
     super.dispose();
   }
 
@@ -133,7 +136,10 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
             ? "Adding Branch..."
             : "Updating Branch...");
 
-    // Create branch model
+    // Create branch model. Empty commission text means "not set" — it
+    // round-trips through the controller like the other fields here, so
+    // leaving it untouched resubmits the value that was loaded.
+    final commissionText = _commissionController.text.trim();
     final branchModel = AddBranchModel(
       code: _codeController.text.trim(),
       name: _nameController.text.trim(),
@@ -143,6 +149,8 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
       closeTime: closingTime,
       clinic: selectedClinic,
       phone: _phoneController.text.trim(),
+      defaultDoctorCommissionPercentage:
+          commissionText.isEmpty ? null : num.tryParse(commissionText),
     );
 
     // Dispatch appropriate event based on mode
@@ -249,6 +257,10 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
                 _nameController.text = state.branch?.name ?? '';
                 _addressController.text = state.branch?.address ?? '';
                 _phoneController.text = state.branch?.phone ?? '';
+                _commissionController.text = state
+                        .branch?.defaultDoctorCommissionPercentage
+                        ?.toString() ??
+                    '';
                 selectedDays = state.branch?.workDays ?? [];
                 openingTime = state.branch?.openTime ?? "08:00";
                 closingTime = state.branch?.closeTime ?? "18:00";
@@ -332,8 +344,13 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
         ),
         Row(
           children: [
-            // Show edit button only in view mode
-            if (widget.mode == BranchFormMode.view && _isReadOnly)
+            // Show edit button only in view mode, and only to someone who
+            // can actually manage branches — otherwise a showBranches-only
+            // viewer could tap into edit mode from here.
+            if (widget.mode == BranchFormMode.view &&
+                _isReadOnly &&
+                CapabilityServices.hasCapability(
+                    CapabilityKeys.manageBranches))
               IconButton(
                 onPressed: _toggleEditMode,
                 icon: const Icon(Icons.edit),
@@ -362,10 +379,10 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
             child: Column(
               children: [
                 if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageCapability"))
+                    .contains(CapabilityKeys.manageCapability))
                   _buildClinicDropdown(isLoading),
                 if (CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageCapability"))
+                    .contains(CapabilityKeys.manageCapability))
                   const SizedBox(height: 16),
                 _buildCodeField(isLoading),
                 const SizedBox(height: 16),
@@ -374,6 +391,8 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
                 _buildAddressField(isLoading),
                 const SizedBox(height: 16),
                 _buildPhoneField(isLoading),
+                const SizedBox(height: 16),
+                _buildCommissionField(isLoading),
                 const SizedBox(height: 16),
                 _buildWorkDaysSelector(isLoading),
                 const SizedBox(height: 16),
@@ -408,6 +427,8 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
           _buildAddressField(false),
           const SizedBox(height: 16),
           _buildPhoneField(false),
+          const SizedBox(height: 16),
+          _buildCommissionField(false),
           const SizedBox(height: 16),
           _buildWorkDaysSelector(false),
           const SizedBox(height: 16),
@@ -624,6 +645,43 @@ class _BranchFormDialogState extends State<BranchFormDialog> {
     );
   }
 
+  /// Branch-level fallback for the doctor appointment commission split — used
+  /// when a doctor has no own override, before falling through to the
+  /// clinic default. Matches web's BranchForm: plain 0-100 number field,
+  /// empty meaning "not set".
+  Widget _buildCommissionField(bool isLoading) {
+    if (isLoading) {
+      return _buildShimmerField();
+    }
+
+    return TextFormField(
+      controller: _commissionController,
+      cursorColor: Theme.of(context).textTheme.bodyLarge?.color,
+      readOnly: _isReadOnly,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        labelText: 'Default Doctor Commission (%)',
+        hintText: 'Defaults to clinic',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        prefixIcon: Icon(Icons.percent,
+            color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) return null;
+        final parsed = num.tryParse(value.trim());
+        if (parsed == null) return 'Enter a valid number';
+        if (parsed < 0 || parsed > 100) return 'Must be between 0 and 100';
+        return null;
+      },
+    );
+  }
+
   Widget _buildWorkDaysSelector(bool isLoading) {
     if (isLoading) {
       return _buildShimmerField();
@@ -692,7 +750,7 @@ void showBranchFormDialog(
 }) {
   // Check if user has permission to manage capabilities (needs clinic selection)
   final needsClinicCubit = CacheHelper.getStringList(key: "capabilities")
-      .contains("manageCapability");
+      .contains(CapabilityKeys.manageCapability);
 
   log('needsClinicCubit $needsClinicCubit');
 

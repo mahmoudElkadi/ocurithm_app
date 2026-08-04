@@ -1,8 +1,9 @@
 import '../Network/shared.dart';
+import 'capability_keys.dart';
 
 class CapabilityServices {
   static bool hasCapability(String capability){
-    if(CacheHelper.getStringList(key: "capabilities").contains(capability)||CacheHelper.getStringList(key: "capabilities").contains("manageCapability")){
+    if(CacheHelper.getStringList(key: "capabilities").contains(capability)||CacheHelper.getStringList(key: "capabilities").contains(CapabilityKeys.manageCapability)){
       return true;
     }else{
       return false;

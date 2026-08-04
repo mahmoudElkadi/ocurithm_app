@@ -15,7 +15,8 @@ import '../../../../../../../../../core/widgets/height_spacer.dart';
 import '../../../../../../../../../core/widgets/pagination.dart';
 import '../../../../../../../../../core/utils/snackbar_service.dart';
 import '../../../../../../../../../core/widgets/width_spacer.dart';
-import '../../../../../../../../core/Network/shared.dart';
+import '../../../../../../../../core/utils/capability_keys.dart';
+import '../../../../../../../../core/utils/capability_services.dart';
 import '../../../../../../../../core/widgets/custom_freeze_loading.dart';
 import '../../../../../../data/model/doctor_model.dart';
 import '../../../../../manager/get_doctors_cubit/get_doctors_cubit.dart';
@@ -236,8 +237,8 @@ class _DoctorCardState extends State<DoctorCard> {
                   ],
                 ),
               ),
-              if (CacheHelper.getStringList(key: "capabilities")
-                  .contains("manageDoctors"))
+              if (CapabilityServices.hasCapability(
+                  CapabilityKeys.manageDoctors))
                 widget.isLoading
                     ? _buildShimmer(
                         Container(

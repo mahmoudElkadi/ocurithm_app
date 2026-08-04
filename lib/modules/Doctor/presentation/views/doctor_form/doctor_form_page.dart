@@ -20,6 +20,7 @@ import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/capabilities_section.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/widgets/manage_capabilities.dart';
 import 'package:ocurithm/core/widgets/text_field.dart';
 import 'package:ocurithm/generated/l10n.dart';
@@ -127,6 +128,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
   late TextEditingController _phoneController;
   late TextEditingController _passwordController;
   late TextEditingController _qualificationsController;
+  late TextEditingController _commissionController;
 
   // Form state
   String? _imageUrl;
@@ -161,6 +163,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     _phoneController = TextEditingController();
     _passwordController = TextEditingController();
     _qualificationsController = TextEditingController();
+    _commissionController = TextEditingController();
 
     // Load data for edit/view modes
     if (widget.mode != DoctorFormMode.add) {
@@ -186,6 +189,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
     _phoneController.dispose();
     _passwordController.dispose();
     _qualificationsController.dispose();
+    _commissionController.dispose();
     super.dispose();
   }
 
@@ -220,7 +224,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             // Edit button in view mode
             if (widget.mode != DoctorFormMode.add)
               manageCapability(
-                capability: 'manageDoctors',
+                capability: CapabilityKeys.manageDoctors,
                 child: IconButton(
                   onPressed: () {
                     setState(() {
@@ -239,7 +243,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             // Add Branch button
             if (widget.mode != DoctorFormMode.add &&
                 CacheHelper.getStringList(key: "capabilities")
-                    .contains("manageDoctors") &&
+                    .contains(CapabilityKeys.manageDoctors) &&
                 _loadedDoctor != null)
               IconButton(
                 onPressed: () {
@@ -642,6 +646,10 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             _buildQualificationsField(theme),
             const HeightSpacer(size: 20),
 
+            // Appointment Commission (%)
+            _buildCommissionField(theme),
+            const HeightSpacer(size: 20),
+
             // Is Consultant Checkbox
             _buildIsConsultantCheckbox(theme, isDark),
             const HeightSpacer(size: 20),
@@ -844,6 +852,64 @@ class _DoctorFormViewState extends State<DoctorFormView> {
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Qualifications are required';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Per-doctor override for the appointment commission split — the first
+  /// level of the cascade, before branch then clinic. Matches web's
+  /// DoctorForm: plain 0-100 number field, empty meaning "not set".
+  Widget _buildCommissionField(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Appointment Commission (%)",
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const HeightSpacer(size: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextFormField(
+            controller: _commissionController,
+            readOnly: _isReadOnly,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              hintText: 'Defaults to branch / clinic',
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color:
+                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: theme.primaryColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: theme.primaryColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: theme.primaryColor, width: 2),
+              ),
+              contentPadding: const EdgeInsets.all(16),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) return null;
+              final parsed = num.tryParse(value.trim());
+              if (parsed == null) return 'Enter a valid number';
+              if (parsed < 0 || parsed > 100) {
+                return 'Must be between 0 and 100';
               }
               return null;
             },
@@ -1185,6 +1251,12 @@ class _DoctorFormViewState extends State<DoctorFormView> {
           : null,
       capability: _selectedCapabilities.map((c) => c.id).toList(),
       isConsultant: _isConsultant,
+      // Empty means "not set" — omitted by the repo (matches the pattern
+      // already used for qualifications/image/isConsultant here), so leaving
+      // this untouched never wipes an existing override.
+      appointmentCommissionPercentage: _commissionController.text.trim().isEmpty
+          ? null
+          : num.tryParse(_commissionController.text.trim()),
     );
 
     // Dispatch appropriate event
@@ -1206,6 +1278,8 @@ class _DoctorFormViewState extends State<DoctorFormView> {
       _nameController.text = doctor.name ?? '';
       _phoneController.text = doctor.phone ?? '';
       _qualificationsController.text = doctor.qualifications ?? '';
+      _commissionController.text =
+          doctor.appointmentCommissionPercentage?.toString() ?? '';
       _birthDate = doctor.birthDate;
       _imageUrl = doctor.image;
 
@@ -1428,7 +1502,7 @@ class _DoctorFormViewState extends State<DoctorFormView> {
                           // Edit/Delete Menu
                           if (widget.mode != DoctorFormMode.add &&
                               CacheHelper.getStringList(key: "capabilities")
-                                  .contains("manageDoctors"))
+                                  .contains(CapabilityKeys.manageDoctors))
                             PopupMenuButton<String>(
                               icon: Icon(
                                 Icons.more_vert,

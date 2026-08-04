@@ -15,8 +15,12 @@ abstract class OrderRepo {
 
   Future<Order> getOrderById(String id);
 
+  /// [paymentMethod] is required by the API on both create and update —
+  /// orders.service.ts throws `Payment method must be provided` without it, and
+  /// it is what the automatic account transaction is credited against.
   Future<Order> createOrder({
     required List<Map<String, dynamic>> items,
+    required String paymentMethod,
     String? clinic,
     String? branch,
     String? doctor,
@@ -25,6 +29,7 @@ abstract class OrderRepo {
   Future<Order> updateOrder(
     String id, {
     required List<Map<String, dynamic>> items,
+    required String paymentMethod,
     String? branch,
     String? doctor,
     String? clinic,

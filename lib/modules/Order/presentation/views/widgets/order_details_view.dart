@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:ocurithm/core/utils/capability_keys.dart';
+import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/modules/Order/data/models/order_model.dart';
 import 'package:ocurithm/modules/Order/presentation/manager/order_actions_cubit/order_actions_bloc.dart';
@@ -118,6 +120,8 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
           _buildInfoRow("Status", order.status?.name.toUpperCase() ?? ""),
           _buildInfoRow("Doctor", order.doctor?.name ?? "Unknown"),
           _buildInfoRow("Branch", order.branch?.name ?? "Unknown"),
+          _buildInfoRow(
+              "Payment Method", order.paymentMethod?.title ?? "Unknown"),
           _buildInfoRow("Date",
               DateFormat('MMM dd, yyyy HH:mm').format(order.createdAt!)),
           _buildInfoRow(
@@ -185,6 +189,15 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
   }
 
   Widget _buildActions(BuildContext context, Order order) {
+    final canEdit = CapabilityServices.hasCapability(CapabilityKeys.editOrders) ||
+        CapabilityServices.hasCapability(CapabilityKeys.addOrders);
+    final canCancel =
+        CapabilityServices.hasCapability(CapabilityKeys.cancelOrders);
+
+    if (!canEdit && !canCancel) {
+      return const SizedBox.shrink();
+    }
+
     return BlocProvider.value(
       value: sl<OrderActionsBloc>(),
       child: BlocConsumer<OrderActionsBloc, OrderActionsState>(
@@ -196,51 +209,53 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
         builder: (context, state) {
           return Column(
             children: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CreateOrderPage(orderToEdit: order),
-                      ),
-                    );
-                    if (result == true) {
-                      Navigator.pop(context, true);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)),
+              if (canEdit)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CreateOrderPage(orderToEdit: order),
+                        ),
+                      );
+                      if (result == true) {
+                        Navigator.pop(context, true);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)),
+                    ),
+                    child: const Text("Edit Order",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                  child: const Text("Edit Order",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
-              ),
-              const HeightSpacer(size: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: state.status == OrderActionsStatus.loading
-                      ? null
-                      : () => _confirmCancel(context, order),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)),
+              if (canEdit && canCancel) const HeightSpacer(size: 10),
+              if (canCancel)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: state.status == OrderActionsStatus.loading
+                        ? null
+                        : () => _confirmCancel(context, order),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)),
+                    ),
+                    child: state.status == OrderActionsStatus.loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("Cancel Order",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                  child: state.status == OrderActionsStatus.loading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("Cancel Order",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
-              ),
             ],
           );
         },

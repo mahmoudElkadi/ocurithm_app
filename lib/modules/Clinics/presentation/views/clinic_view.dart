@@ -8,6 +8,8 @@ import 'package:ocurithm/core/widgets/scaffold_style.dart';
 import 'package:ocurithm/modules/Clinics/presentation/views/widgets/clinic_form_dialog.dart';
 import 'package:ocurithm/modules/Clinics/presentation/views/widgets/clinic_view_body.dart';
 
+import '../../../../core/utils/capability_keys.dart';
+import '../../../../core/widgets/manage_capabilities.dart';
 import '../../../../core/utils/snackbar_service.dart';
 import '../../../../core/utils/services_locator.dart';
 import '../manager/clinic_actions_cubit/clinic_actions_cubit.dart';
@@ -58,21 +60,24 @@ class ClinicView extends StatelessWidget {
           builder: (context, state) => CustomScaffold(
               title: "Clinics",
               actions: [
-                IconButton(
-                  onPressed: () {
-                    context
-                        .read<ClinicActionsCubit>()
-                        .add(ResetClinicActionsEvent());
-                    // Show add clinic dialog
-                    showClinicFormDialog(
-                      context,
-                      mode: ClinicFormMode.add,
-                      actionsCubit: context.read<ClinicActionsCubit>(),
-                    );
-                  },
-                  icon: SvgPicture.asset(
-                    "assets/icons/add_branch.svg",
-                    color: Theme.of(context).primaryColor,
+                manageCapability(
+                  capability: CapabilityKeys.manageClinics,
+                  child: IconButton(
+                    onPressed: () {
+                      context
+                          .read<ClinicActionsCubit>()
+                          .add(ResetClinicActionsEvent());
+                      // Show add clinic dialog
+                      showClinicFormDialog(
+                        context,
+                        mode: ClinicFormMode.add,
+                        actionsCubit: context.read<ClinicActionsCubit>(),
+                      );
+                    },
+                    icon: SvgPicture.asset(
+                      "assets/icons/add_branch.svg",
+                      color: Theme.of(context).primaryColor,
+                    ),
                   ),
                 ),
               ],

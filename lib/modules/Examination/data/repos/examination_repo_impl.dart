@@ -57,6 +57,17 @@ class ExaminationRepoImpl implements ExaminationRepo {
   }
 
   @override
+  Future<void> deleteExamination(String id) async {
+    final response = await _apiHandler.delete(
+      "${ApiConstants.examination}/$id",
+      options: _getOptions(),
+    );
+    if (!response.success) {
+      throw Exception(response.message ?? 'Failed to delete examination');
+    }
+  }
+
+  @override
   Future<SavedExaminationModel> getOneExamination(
       {required String appointmentId}) async {
     final result = await _apiHandler.get<SavedExaminationModel>(
