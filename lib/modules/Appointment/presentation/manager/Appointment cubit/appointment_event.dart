@@ -18,11 +18,16 @@ class GetAppointmentsEvent extends AppointmentEvent {
   final String? doctor;
   final String? search;
 
+  /// Background poll: fetch without showing the loading shimmer, and leave the
+  /// current list in place if the request fails.
+  final bool silent;
+
   GetAppointmentsEvent({
     this.date,
     this.branch,
     this.doctor,
     this.search,
+    this.silent = false,
   });
 }
 

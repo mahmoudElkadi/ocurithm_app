@@ -127,20 +127,27 @@ class MultiStepFormView extends StatelessWidget {
   }
 
   Widget _buildStepContent(int step) {
+    final Widget content;
     switch (step) {
       case 0:
-        return const ComplainChecklist();
+        content = const ComplainChecklist();
+        break;
       case 1:
-        return const HistoryChecklist();
+        content = const HistoryChecklist();
+        break;
       case 2:
-        return const StepThreeContent();
+        content = const StepThreeContent();
+        break;
       case 3:
-        return ExaminationReviewScreen(
-          appointment: appointment,
-        );
+        content = ExaminationReviewScreen(appointment: appointment);
+        break;
       default:
-        return const SizedBox.shrink();
+        content = const SizedBox.shrink();
     }
+
+    // Keying on the step forces a fresh scrollable on every transition, so the next
+    // step always starts at the top instead of inheriting the previous scroll offset.
+    return KeyedSubtree(key: ValueKey<int>(step), child: content);
   }
 
   void _showFinalizationDialog(
@@ -460,26 +467,14 @@ class EyeExaminationView extends StatelessWidget {
               ),
             ),
             const HeightSpacer(size: 8),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(
-                "Refined Refraction",
-                style: appStyle(
-                    context,
-                    18,
-                    Theme.of(context).textTheme.bodyLarge?.color ??
-                        Colors.black,
-                    FontWeight.bold),
-              ),
-              TextButton(
-                  onPressed: () {
-                    cubit.mergeRefinedWithAuto();
-                  },
-                  child: Text(
-                    "Merge",
-                    style: appStyle(
-                        context, 18, Colorz.primaryColor, FontWeight.bold),
-                  )),
-            ]),
+            Text(
+              "Refined Refraction",
+              style: appStyle(
+                  context,
+                  18,
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  FontWeight.bold),
+            ),
             const HeightSpacer(size: 4),
             const IntrinsicHeight(
               child: Row(
@@ -1302,6 +1297,46 @@ class LeftPupilsContent extends StatelessWidget {
   }
 }
 
+/// Eye title with its own Merge action. Web has one Merge per eye card; keeping the
+/// single both-eyes button here meant a doctor could not merge one side alone.
+class _MergeHeader extends StatelessWidget {
+  const _MergeHeader({required this.title, required this.onMerge});
+
+  final String title;
+  final VoidCallback onMerge;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Text(
+            title,
+            style: appStyle(
+                context,
+                16,
+                Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                FontWeight.bold),
+          ),
+        ),
+        TextButton(
+          onPressed: onMerge,
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            minimumSize: const Size(0, 32),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            "Merge",
+            style: appStyle(context, 14, Colorz.primaryColor, FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class RightRefinedRefractionContent extends StatelessWidget {
   const RightRefinedRefractionContent({super.key});
 
@@ -1319,13 +1354,10 @@ class RightRefinedRefractionContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Right eye",
-                  style: appStyle(
-                      context,
-                      16,
-                      Theme.of(context).textTheme.bodyLarge?.color ??
-                          Colors.black,
-                      FontWeight.bold)),
+              _MergeHeader(
+                title: "Right eye",
+                onMerge: () => cubit.mergeRefinedWithAuto(isLeftEye: false),
+              ),
               const SizedBox(height: 8),
               ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],
@@ -1389,13 +1421,10 @@ class LeftRefinedRefractionContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text("Left eye",
-                  style: appStyle(
-                      context,
-                      16,
-                      Theme.of(context).textTheme.bodyLarge?.color ??
-                          Colors.black,
-                      FontWeight.bold)),
+              _MergeHeader(
+                title: "Left eye",
+                onMerge: () => cubit.mergeRefinedWithAuto(isLeftEye: true),
+              ),
               const SizedBox(height: 8),
               ArrowTextField(
                 items: cubit.data['AurorefSpherical'] ?? [],

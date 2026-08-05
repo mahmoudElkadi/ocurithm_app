@@ -8,6 +8,7 @@ import 'package:ocurithm/modules/Analysis/presentation/views/widgets/analysis_vi
 
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../Patient/data/model/one_exam.dart';
+import '../../../data/catalog/printable_measurement_fields.dart';
 
 Future<void> generateAndPrintPrescription(
     {required ExaminationModel examination,
@@ -17,7 +18,14 @@ Future<void> generateAndPrintPrescription(
     bool showPrescriptionTable = false,
     analysis_model.AnalysisModel? analysis,
     Set<String>? selectedChartKeys,
+    Set<String>? selectedExaminationFieldIds,
     analysis_view.EyeSelection? eyeSelection}) async {
+  // Readings the doctor picked to print alongside the prescription, with their
+  // labels. Anything with no reading is dropped rather than printed as a dash.
+  final selectedExaminationValues = resolvePrintableFields(
+    selectedExaminationFieldIds ?? const <String>{},
+    examination.examination?.measurements ?? const [],
+  );
   final pdf = pw.Document();
   final regularFont = await rootBundle.load("assets/fonts/Cairo-Regular.ttf");
   final bold = await rootBundle.load("assets/fonts/Cairo-Bold.ttf");
@@ -580,6 +588,12 @@ Future<void> generateAndPrintPrescription(
                 ],
               ),
             ),
+          if (selectedExaminationValues.isNotEmpty)
+            _buildExaminationValuesSection(
+              values: selectedExaminationValues,
+              font: font,
+              boldFont: boldFont,
+            ),
         ];
       },
     ),
@@ -597,6 +611,83 @@ Future<void> generateAndPrintPrescription(
   // Print the document
   await Printing.layoutPdf(
     onLayout: (PdfPageFormat format) async => pdf.save(),
+  );
+}
+
+/// Selected examination readings, grouped by eye and measurement group so the
+/// printout reads the way the examination form does.
+pw.Widget _buildExaminationValuesSection({
+  required List<ResolvedPrintableField> values,
+  required pw.Font font,
+  required pw.Font boldFont,
+}) {
+  final groupHeadings = <String>[];
+  final grouped = <String, List<ResolvedPrintableField>>{};
+
+  for (final value in values) {
+    final heading = '${value.eye} Eye - ${value.group}';
+    if (!grouped.containsKey(heading)) {
+      grouped[heading] = [];
+      groupHeadings.add(heading);
+    }
+    grouped[heading]!.add(value);
+  }
+
+  return pw.Container(
+    margin: const pw.EdgeInsets.only(top: 15),
+    padding: const pw.EdgeInsets.all(15),
+    width: double.infinity,
+    decoration: pw.BoxDecoration(
+      borderRadius: pw.BorderRadius.circular(10),
+      border: pw.Border.all(color: PdfColors.grey300),
+    ),
+    child: pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          'Examination Values:',
+          style: pw.TextStyle(
+            font: boldFont,
+            fontSize: 16,
+            color: PdfColors.blue900,
+          ),
+        ),
+        pw.SizedBox(height: 8),
+        for (final heading in groupHeadings) ...[
+          pw.SizedBox(height: 6),
+          pw.Text(
+            heading,
+            style: pw.TextStyle(
+              font: boldFont,
+              fontSize: 12,
+              color: PdfColors.blue900,
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          for (final field in grouped[heading]!)
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 3),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    field.label,
+                    style: pw.TextStyle(
+                      font: font,
+                      fontSize: 12,
+                      color: PdfColors.grey700,
+                    ),
+                  ),
+                  pw.Text(
+                    field.value,
+                    style: pw.TextStyle(font: boldFont, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ],
+    ),
   );
 }
 

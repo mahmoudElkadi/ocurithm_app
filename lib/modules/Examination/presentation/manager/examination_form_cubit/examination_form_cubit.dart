@@ -918,14 +918,40 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
     emit(ExaminationFormUpdated());
   }
 
-  void mergeRefinedWithAuto() {
-    leftRefinedRefractionSpherical = leftAurorefSpherical;
-    leftRefinedRefractionCylindrical = leftAurorefCylindrical;
-    leftRefinedRefractionAxis = leftAurorefAxis;
+  /// A measurement is only worth merging when it actually holds a reading —
+  /// copying an unset autorefraction over a refined value the doctor already
+  /// entered is what made Merge look like it had done nothing.
+  static bool _hasReading(dynamic value) {
+    if (value == null) return false;
+    final text = value.toString().trim();
+    return text.isNotEmpty && text != '-';
+  }
 
-    rightRefinedRefractionSpherical = rightAurorefSpherical;
-    rightRefinedRefractionCylindrical = rightAurorefCylindrical;
-    rightRefinedRefractionAxis = rightAurorefAxis;
+  /// Copy autorefraction into refined refraction for one eye. Per-eye rather than
+  /// both at once, matching the web form, so each side can be merged on its own.
+  void mergeRefinedWithAuto({required bool isLeftEye}) {
+    if (isLeftEye) {
+      if (_hasReading(leftAurorefSpherical)) {
+        leftRefinedRefractionSpherical = leftAurorefSpherical;
+      }
+      if (_hasReading(leftAurorefCylindrical)) {
+        leftRefinedRefractionCylindrical = leftAurorefCylindrical;
+      }
+      if (_hasReading(leftAurorefAxis)) {
+        leftRefinedRefractionAxis = leftAurorefAxis;
+      }
+    } else {
+      if (_hasReading(rightAurorefSpherical)) {
+        rightRefinedRefractionSpherical = rightAurorefSpherical;
+      }
+      if (_hasReading(rightAurorefCylindrical)) {
+        rightRefinedRefractionCylindrical = rightAurorefCylindrical;
+      }
+      if (_hasReading(rightAurorefAxis)) {
+        rightRefinedRefractionAxis = rightAurorefAxis;
+      }
+    }
+
     emit(ExaminationFormUpdated());
   }
 }

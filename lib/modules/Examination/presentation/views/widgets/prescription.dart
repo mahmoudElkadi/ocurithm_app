@@ -30,6 +30,8 @@ import '../../../../Doctor/data/model/doctor_model.dart';
 import '../../../../Medicine/data/model/medicine_model.dart' as medicineModel
     show CommercialName; // Aliased to avoid conflict
 import '../../../../Medicine/presentation/manager/get_medicines_cubit/get_medicines_cubit.dart';
+import 'add_medicine_sheet.dart';
+import 'examination_values_picker.dart';
 
 class MedicalTreeForm extends StatelessWidget {
   const MedicalTreeForm(
@@ -164,9 +166,14 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
       diagnosis: unDiagnosedYet ? null : diagnosisController.text,
       analysis: analysis,
       selectedChartKeys: selectedChartKeys,
+      selectedExaminationFieldIds: selectedExaminationFieldIds,
       eyeSelection: eyeSelection,
     );
   }
+
+  /// Examination readings chosen for print. A printing choice rather than part of
+  /// the clinical record, so it lives for this session only and is not persisted.
+  final Set<String> selectedExaminationFieldIds = <String>{};
 
   // Add these to your state class
   final List<String> selectedMainOptions = [];
@@ -391,13 +398,37 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
   ];
   String? selectedGlassesValue;
 
-  Map<String, dynamic> getFinalizationData() {
+  /// [action] is `'save'` for a draft the doctor will come back to, or `'create'`
+  /// to finalize the visit. The backend keeps the appointment in `Saved` for a
+  /// draft and only counts the prescription on `'create'`.
+  Map<String, dynamic> getFinalizationData({String action = 'create'}) {
     return {
       'diagnosis':
           unDiagnosedYet ? null : diagnosisController.text.toLowerCase(),
       'medicine': medicationsList.map((m) => m.toJson()).toList(),
       'actions': prescriptionsList.map((action) => action.toJson()).toList(),
+      'action': action,
     };
+  }
+
+  /// Whether the submit currently in flight is a draft save; drives whether the
+  /// success handler closes the visit or leaves the doctor on the step.
+  bool _isDraftSave = false;
+
+  /// Fold the currently selected options into `prescriptionsList` so both Save and
+  /// Finalize send what is on screen.
+  void _syncSelectedPrescriptions() {
+    for (final option in selectedMainOptions) {
+      final currentPrescription = generatePrescriptionObject(option);
+      final existingIndex =
+          prescriptionsList.indexWhere((p) => p.action == option.toLowerCase());
+
+      if (existingIndex != -1) {
+        prescriptionsList[existingIndex] = currentPrescription;
+      } else {
+        prescriptionsList.add(currentPrescription);
+      }
+    }
   }
 
   Action? getActionByOption(String option) {
@@ -554,7 +585,8 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
             }
 
             if (state.status == ExaminationActionsStatus.success) {
-              // Mark appointment as Completed LOCALLY
+              // Mirror the status the backend just set, so the queue does not show a
+              // half-finished visit as done.
               final appointmentId =
                   widget.examination?.appointment?.id ?? widget.appointment?.id;
               if (appointmentId != null) {
@@ -562,29 +594,37 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                     .read<AppointmentCubit>()
                     .add(LocalUpdateAppointmentStatusEvent(
                       id: appointmentId.toString(),
-                      status: 'Completed',
+                      status: _isDraftSave ? 'Saved' : 'Completed',
                     ));
               }
 
-              // Return to Appointment page
-              // We use the regular navigator to pop the page.
-              if (mounted) {
+              // A draft keeps the doctor on the step to carry on working; only
+              // finalizing returns to the appointment list.
+              if (!_isDraftSave && mounted) {
                 Navigator.of(context).pop(true);
                 Navigator.of(context).pop(true);
               }
 
               SnackbarService.showSuccess(
                 context,
-                message: state.message ?? "Finalized Successfully",
+                message: state.message ??
+                    (_isDraftSave
+                        ? "Progress saved"
+                        : "Finalized Successfully"),
               );
+              _isDraftSave = false;
             } else if (state.status == ExaminationActionsStatus.error ||
                 state.status == ExaminationActionsStatus.noConnection) {
               SnackbarService.showError(
                 context,
                 message: state.error ??
-                    "Failed to finalize visit. Please try again.",
+                    (_isDraftSave
+                        ? "Failed to save progress. Please try again."
+                        : "Failed to finalize visit. Please try again."),
               );
-              Navigator.of(context).pop(true);
+              // Stay on the step. Popping here used to throw the doctor out of the
+              // screen on a failed submit, losing everything they had entered.
+              _isDraftSave = false;
             }
           }
         },
@@ -647,6 +687,18 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                     Column(
                       children: [
                         SizedBox(height: 20.h),
+                        ExaminationValuesPicker(
+                          measurements:
+                              widget.examination?.measurements ?? const [],
+                          selectedIds: selectedExaminationFieldIds,
+                          onChanged: (next) => setState(() {
+                            selectedExaminationFieldIds
+                              ..clear()
+                              ..addAll(next);
+                          }),
+                        ),
+                        _buildSaveProgressButton(context),
+                        SizedBox(height: 12.h),
                         _buildSaveButton(context),
                       ],
                     ),
@@ -1212,12 +1264,16 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
     medicationDosageController.clear();
     medicationDurationController.clear();
     selectedMedicineId = null;
+    // Whatever the doctor last typed into the search box. Kept so a name that is
+    // not in the catalog can be offered to the "Add" flow rather than discarded.
+    String typedMedicineName = '';
 
     showDialog(
       context: context,
       builder: (dialogContext) => BlocProvider.value(
         value: context.read<GetMedicinesCubit>(),
-        child: AlertDialog(
+        child: StatefulBuilder(
+          builder: (dialogContext, setDialogState) => AlertDialog(
           backgroundColor: Theme.of(context).cardColor,
           title: Text(
             'Add Medication',
@@ -1238,15 +1294,42 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                     border: Theme.of(context).dividerColor,
                     itemAsString: (item) => item.name ?? '',
                     onChanged: (value) {
+                      setDialogState(() {
+                        typedMedicineName = value;
+                        // Typing again invalidates any earlier pick: the row must
+                        // never carry a name without the catalog id that goes with
+                        // it, or the server has no commercial name to prescribe.
+                        medicationNameController.clear();
+                        selectedMedicineId = null;
+                      });
                       context
                           .read<GetMedicinesCubit>()
                           .getMedicines(search: value);
                     },
                     onItemSelected: (selectedItem) {
-                      medicationNameController.text = selectedItem.name ?? '';
-                      selectedMedicineId = selectedItem.id;
+                      setDialogState(() {
+                        medicationNameController.text = selectedItem.name ?? '';
+                        selectedMedicineId = selectedItem.id;
+                        typedMedicineName = selectedItem.name ?? '';
+                      });
                     },
                   );
+                },
+              ),
+              _buildUnresolvedMedicineNotice(
+                dialogContext,
+                typedName: typedMedicineName,
+                isResolved: selectedMedicineId != null,
+                onResolved: (created) {
+                  setDialogState(() {
+                    medicationNameController.text = created.name ?? '';
+                    selectedMedicineId = created.id;
+                    typedMedicineName = created.name ?? '';
+                  });
+                  // Refresh the catalog so the new entry shows up in the search.
+                  context
+                      .read<GetMedicinesCubit>()
+                      .getMedicines(search: created.name);
                 },
               ),
               const SizedBox(height: 16),
@@ -1271,24 +1354,95 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                if (medicationNameController.text.isNotEmpty) {
-                  setState(() {
-                    medicationsList.add(Medicine(
-                        name: medicationNameController.text,
-                        dosage: medicationDosageController.text,
-                        duration: medicationDurationController.text,
-                        medicineId: selectedMedicineId // Pass the ID
-                        ));
-                    updatePrescription();
-                  });
-                  Navigator.pop(dialogContext);
-                }
-              },
+              // A medicine is only prescribable once it resolves to a catalog
+              // entry. Without the id the server has no commercial name to
+              // record, which is what used to file the free text as an
+              // active ingredient instead.
+              onPressed: selectedMedicineId == null
+                  ? null
+                  : () {
+                      setState(() {
+                        medicationsList.add(Medicine(
+                            name: medicationNameController.text,
+                            dosage: medicationDosageController.text,
+                            duration: medicationDurationController.text,
+                            medicineId: selectedMedicineId // Pass the ID
+                            ));
+                        updatePrescription();
+                      });
+                      Navigator.pop(dialogContext);
+                    },
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colorz.primaryColor),
               child:
                   const Text('Confirm', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Shown when the doctor has typed a name that has not resolved to a catalog
+  /// entry, offering the Add flow instead of silently letting it through.
+  Widget _buildUnresolvedMedicineNotice(
+    BuildContext dialogContext, {
+    required String typedName,
+    required bool isResolved,
+    required void Function(medicineModel.CommercialName) onResolved,
+  }) {
+    if (isResolved || typedName.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(dialogContext);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+              color: theme.colorScheme.error.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded,
+                size: 18, color: theme.colorScheme.error),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Not in the catalog yet.',
+                style:
+                    TextStyle(fontSize: 12, color: theme.colorScheme.error),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                final created = await showAddMedicineSheet(
+                  dialogContext,
+                  initialName: typedName.trim(),
+                );
+                if (created != null) {
+                  onResolved(created);
+                }
+              },
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: const Size(0, 28),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'Add',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colorz.primaryColor,
+                ),
+              ),
             ),
           ],
         ),
@@ -1743,6 +1897,37 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
     );
   }
 
+  /// Saves the finalization as a draft without closing the visit, so a doctor can
+  /// add, remove or amend actions across several passes before finalizing.
+  Widget _buildSaveProgressButton(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () {
+          _syncSelectedPrescriptions();
+          _isDraftSave = true;
+          context.read<ExaminationActionsCubit>().makeFinalization(
+                id: widget.examination?.id ?? '',
+                data: getFinalizationData(action: 'save'),
+              );
+        },
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colorz.primaryColor,
+          side: BorderSide(color: Colorz.primaryColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        icon: const Icon(Icons.save_outlined, size: 20),
+        label: const Text(
+          'Save Progress',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSaveButton(BuildContext context) {
     return BlocBuilder<ExaminationActionsCubit, ExaminationActionsState>(
       builder: (context, state) => Container(
@@ -1769,18 +1954,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              // Generate prescription for current selection if not already in list
-              for (var option in selectedMainOptions) {
-                final currentPrescription = generatePrescriptionObject(option);
-                final existingIndex = prescriptionsList
-                    .indexWhere((p) => p.action == option.toLowerCase());
-
-                if (existingIndex != -1) {
-                  prescriptionsList[existingIndex] = currentPrescription;
-                } else {
-                  prescriptionsList.add(currentPrescription);
-                }
-              }
+              _syncSelectedPrescriptions();
 
               final finalizationData = getFinalizationData();
               final diagnosis = diagnosisController.text.isNotEmpty
@@ -1832,6 +2006,7 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                   ],
                 ),
                 onConfirm: () async {
+                  _isDraftSave = false;
                   customLoading(context, "");
                   // bool value = await InternetConnection().hasInternetAccess;
                   // if (!value) {

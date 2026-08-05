@@ -94,7 +94,12 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
 
   Future<void> _onGetAppointments(
       GetAppointmentsEvent event, Emitter<AppointmentState> emit) async {
-    emit(state.copyWith(status: AppointmentUiState.loading));
+    // A silent fetch is the 5-second poll: it must not flash the shimmer, and a
+    // transient network blip must not replace a good list with an error screen.
+    if (!event.silent) {
+      emit(state.copyWith(status: AppointmentUiState.loading));
+    }
+
     try {
       final appointments = await appointmentRepo.getAllAppointment(
         date: event.date ?? state.selectedDate,
@@ -113,6 +118,12 @@ class AppointmentCubit extends Bloc<AppointmentEvent, AppointmentState> {
       ));
     } catch (e) {
       log(e.toString());
+
+      if (event.silent) {
+        // Keep whatever is on screen and wait for the next tick.
+        return;
+      }
+
       if (e.toString().toLowerCase().contains('no internet')) {
         emit(state.copyWith(
           status: AppointmentUiState.noConnection,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -36,9 +37,14 @@ class AppointmentViewBody extends StatefulWidget {
   State<AppointmentViewBody> createState() => _AppointmentViewBodyState();
 }
 
+/// The queue is shared between reception and the doctors, so the list has to reflect
+/// check-ins and status changes made elsewhere without anyone pulling to refresh.
+const Duration _appointmentsPollInterval = Duration(seconds: 5);
+
 class _AppointmentViewBodyState extends State<AppointmentViewBody> {
   DateTime? selectedMonth;
   final TextEditingController _searchController = TextEditingController();
+  Timer? _pollTimer;
 
   @override
   void initState() {
@@ -49,10 +55,26 @@ class _AppointmentViewBodyState extends State<AppointmentViewBody> {
       final cubit = context.read<AppointmentCubit>();
       cubit.add(SelectDateEvent(DateTime.now()));
     });
+    _pollTimer = Timer.periodic(_appointmentsPollInterval, (_) => _pollTick());
+  }
+
+  /// Poll only while this screen is actually in front of the user: `isCurrent` is
+  /// false once the examination flow (or any other screen) is pushed on top, which
+  /// is where an open exam session would otherwise cost a request every 5 seconds.
+  void _pollTick() {
+    if (!mounted) return;
+
+    final isForeground =
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    final isVisible = ModalRoute.of(context)?.isCurrent ?? false;
+    if (!isForeground || !isVisible) return;
+
+    context.read<AppointmentCubit>().add(GetAppointmentsEvent(silent: true));
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
