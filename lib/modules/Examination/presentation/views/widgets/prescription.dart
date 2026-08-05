@@ -598,9 +598,9 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                     ));
               }
 
-              // A draft keeps the doctor on the step to carry on working; only
-              // finalizing returns to the appointment list.
-              if (!_isDraftSave && mounted) {
+              // Both paths return to the appointment list — a draft leaves the
+              // visit in Saved so it can be reopened and carried on later.
+              if (mounted) {
                 Navigator.of(context).pop(true);
                 Navigator.of(context).pop(true);
               }
@@ -1897,8 +1897,9 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
     );
   }
 
-  /// Saves the finalization as a draft without closing the visit, so a doctor can
-  /// add, remove or amend actions across several passes before finalizing.
+  /// Saves the finalization as a draft and returns to the appointment list. The
+  /// visit stays in Saved, so a doctor can reopen it to add, remove or amend
+  /// actions across several passes before finalizing.
   Widget _buildSaveProgressButton(BuildContext context) {
     return SizedBox(
       height: 48,
