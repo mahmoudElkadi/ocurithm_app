@@ -4,6 +4,7 @@ import 'package:ocurithm/modules/Receptionist/data/models/add_reception_model.da
 import 'package:ocurithm/modules/Receptionist/data/repos/receptionist_repo.dart';
 
 import '../../../data/models/receptionists_model.dart';
+import 'package:ocurithm/core/utils/error_message.dart';
 
 part 'receptionist_actions_state.dart';
 part 'receptionist_actions_event.dart';
@@ -58,7 +59,7 @@ class ReceptionistActionsCubit
       emit(state.copyWith(
         state: ReceptionistActionsStatus.error,
         actionType: ReceptionistActionType.add,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }
@@ -114,7 +115,7 @@ class ReceptionistActionsCubit
       emit(state.copyWith(
         state: ReceptionistActionsStatus.error,
         actionType: ReceptionistActionType.update,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }
@@ -151,7 +152,7 @@ class ReceptionistActionsCubit
       emit(state.copyWith(
         state: ReceptionistActionsStatus.error,
         actionType: ReceptionistActionType.delete,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }
