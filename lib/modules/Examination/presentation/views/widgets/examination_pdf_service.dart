@@ -173,6 +173,11 @@ class ExaminationPdfService {
                     refinedAxis:
                         rightMeasurement.refinedRefractionAxis?.toString(),
                     nearAdd: rightMeasurement.nearVisionAddition?.toString(),
+                    cycloSph:
+                        rightMeasurement.cycloplegicSpherical?.toString(),
+                    cycloCyl:
+                        rightMeasurement.cycloplegicCylindrical?.toString(),
+                    cycloAxis: rightMeasurement.cycloplegicAxis?.toString(),
                     ucva: rightMeasurement.ucva?.toString(),
                     bcva: rightMeasurement.bcva?.toString(),
                     boldFont: boldFont,
@@ -197,6 +202,11 @@ class ExaminationPdfService {
                     refinedAxis:
                         leftMeasurement.refinedRefractionAxis?.toString(),
                     nearAdd: leftMeasurement.nearVisionAddition?.toString(),
+                    cycloSph:
+                        leftMeasurement.cycloplegicSpherical?.toString(),
+                    cycloCyl:
+                        leftMeasurement.cycloplegicCylindrical?.toString(),
+                    cycloAxis: leftMeasurement.cycloplegicAxis?.toString(),
                     ucva: leftMeasurement.ucva?.toString(),
                     bcva: leftMeasurement.bcva?.toString(),
                     boldFont: boldFont,
@@ -588,6 +598,15 @@ class ExaminationPdfService {
       refinedAxis: isL
           ? c.leftRefinedRefractionAxis
           : c.rightRefinedRefractionAxis,
+      cycloSph: isL
+          ? c.leftCycloplegicSpherical?.toString()
+          : c.rightCycloplegicSpherical?.toString(),
+      cycloCyl: isL
+          ? c.leftCycloplegicCylindrical?.toString()
+          : c.rightCycloplegicCylindrical?.toString(),
+      cycloAxis: isL
+          ? c.leftCycloplegicAxis?.toString()
+          : c.rightCycloplegicAxis?.toString(),
       nearAdd: isL ? c.leftNearVisionAddition : c.rightNearVisionAddition,
       ucva: isL ? c.leftUCVA : c.rightUCVA,
       bcva: isL ? c.leftBCVA : c.rightBCVA,
@@ -595,6 +614,12 @@ class ExaminationPdfService {
       font: font,
     );
   }
+
+  static bool _hasAnyReading(List<String?> values) => values.any((value) {
+        if (value == null) return false;
+        final text = value.trim();
+        return text.isNotEmpty && text != '-' && text != 'N/A';
+      });
 
   static pw.Widget _buildEyeMeasurementSectionRaw({
     required String title,
@@ -609,6 +634,9 @@ class ExaminationPdfService {
     String? refinedCyl,
     String? refinedAxis,
     String? nearAdd,
+    String? cycloSph,
+    String? cycloCyl,
+    String? cycloAxis,
     String? ucva,
     String? bcva,
     required pw.Font boldFont,
@@ -644,6 +672,21 @@ class ExaminationPdfService {
             font,
             compact: true),
         pw.SizedBox(height: 5),
+        // Absent from almost every visit, so the table is skipped rather than
+        // printed as a row of dashes.
+        if (_hasAnyReading([cycloSph, cycloCyl, cycloAxis])) ...[
+          _buildDataTable(
+              'Cycloplegic Refraction',
+              {
+                'Sph': FormatHelper.formatPositiveValue(cycloSph),
+                'Cyl': FormatHelper.formatPositiveValue(cycloCyl),
+                'Axis': cycloAxis,
+              },
+              boldFont,
+              font,
+              compact: true),
+          pw.SizedBox(height: 5),
+        ],
         _buildDataTable(
             'Refined Refraction',
             {

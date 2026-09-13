@@ -85,6 +85,49 @@ class ExaminationRepoImpl implements ExaminationRepo {
   }
 
   @override
+  Future<ExaminationSessionResult> startExaminationSession(
+      {required String appointmentId}) async {
+    final result = await _apiHandler.post<Map<String, dynamic>>(
+      ApiConstants.examinationSessionStart,
+      data: {"appointment": appointmentId},
+      options: _getOptions(),
+      fromJson: (json) => json,
+    );
+
+    if (result.success && result.data != null) {
+      final session = result.data!["session"];
+      return ExaminationSessionResult(
+        sessionId: session is Map ? session["id"]?.toString() : null,
+      );
+    }
+
+    // 409 is the expected "someone else is examining this patient" answer; its
+    // message names them, so it is surfaced rather than swallowed.
+    return ExaminationSessionResult(
+      conflictMessage:
+          result.message ?? "This appointment is currently being examined.",
+    );
+  }
+
+  @override
+  Future<void> heartbeatExaminationSession({required String sessionId}) async {
+    await _apiHandler.post(
+      ApiConstants.examinationSessionHeartbeat(sessionId),
+      data: const {},
+      options: _getOptions(),
+    );
+  }
+
+  @override
+  Future<void> closeExaminationSession({required String sessionId}) async {
+    await _apiHandler.post(
+      ApiConstants.examinationSessionClose(sessionId),
+      data: const {},
+      options: _getOptions(),
+    );
+  }
+
+  @override
   Future<PatientOverviewModel> getPatientOverview(
       {required String patientId}) async {
     final result = await _apiHandler.get<PatientOverviewModel>(

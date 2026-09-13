@@ -5,9 +5,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
 import 'package:ocurithm/core/utils/colors.dart';
+import 'package:ocurithm/core/utils/format_helper.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
 import 'package:ocurithm/modules/Examination/data/model/patient_overview_model.dart';
 import 'package:ocurithm/modules/Examination/presentation/manager/patient_overview_cubit/patient_overview_cubit.dart';
+import 'package:ocurithm/modules/Examination/presentation/views/widgets/examination_details_bottom_sheet.dart';
 import 'package:shimmer/shimmer.dart';
 
 class PatientDetailsBottomSheet extends StatelessWidget {
@@ -500,14 +502,29 @@ class _AppointmentsSection extends StatelessWidget {
   Widget _buildAppointmentItem(
       BuildContext context, PatientAppointment appointment) {
     final statusColor = _getStatusColor(appointment.status);
+    // Only a visit that produced an examination has details to open.
+    final canOpen = appointment.examinationId != null;
 
-    return Container(
+    return GestureDetector(
+      onTap: canOpen
+          ? () => showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (_) => ExaminationDetailsBottomSheet(
+                  examinationId: appointment.examinationId!,
+                ),
+              )
+          : null,
+      child: Container(
       margin: EdgeInsets.only(bottom: 15.h),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+          color: canOpen
+              ? Colorz.primaryColor.withValues(alpha: 0.35)
+              : Theme.of(context).dividerColor.withValues(alpha: 0.1),
         ),
         boxShadow: [
           BoxShadow(
@@ -664,6 +681,17 @@ class _AppointmentsSection extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (appointment.actions.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(top: 15.h),
+                    child: Wrap(
+                      spacing: 6.w,
+                      runSpacing: 6.h,
+                      children: appointment.actions
+                          .map((action) => _buildActionChip(context, action))
+                          .toList(),
+                    ),
+                  ),
                 Padding(
                   padding: EdgeInsets.only(top: 15.h),
                   child: Row(
@@ -700,6 +728,36 @@ class _AppointmentsSection extends StatelessWidget {
             ),
           ),
         ],
+      ),
+      ),
+    );
+  }
+
+  /// One decision taken on that visit, e.g. "Prescribe glasses - Right".
+  Widget _buildActionChip(BuildContext context, PatientAppointmentAction action) {
+    final label = FormatHelper.capitalizeFirstLetter(action.action ?? '');
+    if (label.isEmpty) return const SizedBox.shrink();
+
+    final eye = action.eye?.trim();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: Colorz.primaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colorz.primaryColor.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Text(
+        eye == null || eye.isEmpty
+            ? label
+            : '$label · ${FormatHelper.capitalizeFirstLetter(eye)}',
+        style: TextStyle(
+          fontSize: 11.sp,
+          fontWeight: FontWeight.w600,
+          color: Colorz.primaryColor,
+        ),
       ),
     );
   }

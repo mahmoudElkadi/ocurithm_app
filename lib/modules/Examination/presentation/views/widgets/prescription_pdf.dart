@@ -7,6 +7,7 @@ import 'package:ocurithm/modules/Analysis/data/models/analysis_model.dart' as an
 import 'package:ocurithm/modules/Analysis/presentation/views/widgets/analysis_view_body.dart' as analysis_view;
 
 import '../../../../../core/utils/format_helper.dart';
+import '../../../../../core/utils/glasses_prescription.dart';
 import '../../../../Patient/data/model/one_exam.dart';
 import '../../../data/catalog/printable_measurement_fields.dart';
 
@@ -26,6 +27,38 @@ Future<void> generateAndPrintPrescription(
     selectedExaminationFieldIds ?? const <String>{},
     examination.examination?.measurements ?? const [],
   );
+  final isGlassesPrescription =
+      action.action?.toLowerCase() == 'prescribe glasses';
+  // Older records hold "IPD: 63" in `data`, typed by hand back when the printout
+  // carried no label; strip it so the label is not doubled up.
+  final actionDataValue = isGlassesPrescription
+      ? GlassesPrescription.normalizeIpd(action.data)
+      : (action.data ?? '');
+
+  // measurements[1] is the right eye and measurements[0] the left, matching how the
+  // rest of this document indexes them.
+  final rightMeasurement = (examination.examination?.measurements.length ?? 0) > 1
+      ? examination.examination?.measurements[1]
+      : null;
+  final leftMeasurement = (examination.examination?.measurements.isNotEmpty ?? false)
+      ? examination.examination?.measurements[0]
+      : null;
+
+  final rightNearVisionRow = GlassesPrescription.buildNearVisionRow(
+    nStyle: action.nStyle,
+    spherical: rightMeasurement?.refinedRefractionSpherical,
+    cylindrical: rightMeasurement?.refinedRefractionCylindrical,
+    axis: rightMeasurement?.refinedRefractionAxis,
+    nearVisionAddition: rightMeasurement?.nearVisionAddition,
+  );
+  final leftNearVisionRow = GlassesPrescription.buildNearVisionRow(
+    nStyle: action.nStyle,
+    spherical: leftMeasurement?.refinedRefractionSpherical,
+    cylindrical: leftMeasurement?.refinedRefractionCylindrical,
+    axis: leftMeasurement?.refinedRefractionAxis,
+    nearVisionAddition: leftMeasurement?.nearVisionAddition,
+  );
+
   final pdf = pw.Document();
   final regularFont = await rootBundle.load("assets/fonts/Cairo-Regular.ttf");
   final bold = await rootBundle.load("assets/fonts/Cairo-Bold.ttf");
@@ -217,12 +250,13 @@ Future<void> generateAndPrintPrescription(
                   textDirection:
                       isPredominantlyArabic(action.action ?? "N/A") ? pw.TextDirection.rtl : pw.TextDirection.ltr,
                 ),
-                if (action.data != null &&
-                    action.data!.isNotEmpty &&
+                if (actionDataValue.isNotEmpty &&
                     action.action?.toLowerCase() != 'prescribe medications')
                   pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                     pw.Text(
-                      'Information:',
+                      // On a glasses prescription `data` is the IPD, so it is
+                      // labelled as such instead of as generic information.
+                      isGlassesPrescription ? 'IPD:' : 'Information:',
                       style: pw.TextStyle(
                         font: boldFont,
                         fontSize: 16,
@@ -232,9 +266,9 @@ Future<void> generateAndPrintPrescription(
                     pw.Padding(
                       padding: const pw.EdgeInsets.only(left: 10),
                       child: pw.Text(
-                        action.data ?? '',
+                        actionDataValue,
                         style: pw.TextStyle(font: font, fontSize: 14),
-                        textDirection: isPredominantlyArabic("examination.finalization?.data" ?? "N/A")
+                        textDirection: isPredominantlyArabic(actionDataValue)
                             ? pw.TextDirection.rtl
                             : pw.TextDirection.ltr,
                       ),
@@ -351,6 +385,8 @@ Future<void> generateAndPrintPrescription(
                                   ),
                                 ],
                               ),
+                              // Four cells to match the header; the two right-hand
+                              // ones stay blank in manual mode.
                               pw.TableRow(
                                 children: [
                                   pw.Padding(
@@ -360,9 +396,19 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(FormatHelper.formatPositiveValue(
-                                              examination.examination?.measurements[1].nearVisionAddition) ??
-                                          '-'),
+                                      child: pw.Text(rightNearVisionRow.spherical),
+                                    ),
+                                  ),
+                                  pw.Container(
+                                    height: 20,
+                                    child: pw.Center(
+                                      child: pw.Text(rightNearVisionRow.cylindrical),
+                                    ),
+                                  ),
+                                  pw.Container(
+                                    height: 20,
+                                    child: pw.Center(
+                                      child: pw.Text(rightNearVisionRow.axis),
                                     ),
                                   ),
                                 ],
@@ -459,9 +505,19 @@ Future<void> generateAndPrintPrescription(
                                   pw.Container(
                                     height: 20,
                                     child: pw.Center(
-                                      child: pw.Text(FormatHelper.formatPositiveValue(
-                                              examination.examination?.measurements[0].nearVisionAddition) ??
-                                          '-'),
+                                      child: pw.Text(leftNearVisionRow.spherical),
+                                    ),
+                                  ),
+                                  pw.Container(
+                                    height: 20,
+                                    child: pw.Center(
+                                      child: pw.Text(leftNearVisionRow.cylindrical),
+                                    ),
+                                  ),
+                                  pw.Container(
+                                    height: 20,
+                                    child: pw.Center(
+                                      child: pw.Text(leftNearVisionRow.axis),
                                     ),
                                   ),
                                 ],

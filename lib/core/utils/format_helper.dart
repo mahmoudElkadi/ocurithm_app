@@ -118,6 +118,25 @@ class FormatHelper {
     return val;
   }
 
+  /// Which way a refraction reading points, for the +/- badge shown next to
+  /// Spherical, Cylindrical and Near Vision Addition.
+  ///
+  /// Returns 1 for positive, -1 for negative and 0 for "do not mark": a plain 0.00
+  /// is not positive, and an empty field must stay unmarked.
+  static int measurementSign(dynamic value) {
+    if (value == null) return 0;
+    final text = value.toString().trim();
+    if (text.isEmpty || text == '-' || text == 'N/A' || text == 'null') {
+      return 0;
+    }
+
+    final parsed =
+        num.tryParse(text.startsWith('+') ? text.substring(1) : text);
+    if (parsed == null || parsed == 0) return 0;
+
+    return parsed > 0 ? 1 : -1;
+  }
+
   static String calculateAge(DateTime? birthDate) {
     if (birthDate == null) {
       return 'N/A';

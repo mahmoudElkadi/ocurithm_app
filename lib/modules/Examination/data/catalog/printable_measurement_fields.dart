@@ -48,6 +48,18 @@ const List<PrintableMeasurementGroup> printableMeasurementGroups = [
     PrintableMeasurementField(
         key: 'autorefAxis', label: 'Axis', read: _autorefAxis),
   ]),
+  PrintableMeasurementGroup(title: 'Cycloplegic Refraction', fields: [
+    PrintableMeasurementField(
+        key: 'cycloplegicSpherical',
+        label: 'Spherical',
+        read: _cycloplegicSpherical),
+    PrintableMeasurementField(
+        key: 'cycloplegicCylindrical',
+        label: 'Cylindrical',
+        read: _cycloplegicCylindrical),
+    PrintableMeasurementField(
+        key: 'cycloplegicAxis', label: 'Axis', read: _cycloplegicAxis),
+  ]),
   PrintableMeasurementGroup(title: 'Refined Refraction', fields: [
     PrintableMeasurementField(
         key: 'refinedRefractionSpherical',
@@ -235,6 +247,9 @@ dynamic _oldCylindrical(Measurement m) => m.oldCylindrical;
 dynamic _oldAxis(Measurement m) => m.oldAxis;
 dynamic _oldGlassesVa(Measurement m) => m.oldGlassesVa;
 dynamic _autorefSpherical(Measurement m) => m.autorefSpherical;
+dynamic _cycloplegicSpherical(Measurement m) => m.cycloplegicSpherical;
+dynamic _cycloplegicCylindrical(Measurement m) => m.cycloplegicCylindrical;
+dynamic _cycloplegicAxis(Measurement m) => m.cycloplegicAxis;
 dynamic _autorefCylindrical(Measurement m) => m.autorefCylindrical;
 dynamic _autorefAxis(Measurement m) => m.autorefAxis;
 dynamic _refinedSpherical(Measurement m) => m.refinedRefractionSpherical;

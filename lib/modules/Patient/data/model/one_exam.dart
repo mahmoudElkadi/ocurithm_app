@@ -274,6 +274,9 @@ class Measurement {
     this.ucva,
     this.bcva,
     this.refinedRefractionSpherical,
+    this.cycloplegicSpherical,
+    this.cycloplegicCylindrical,
+    this.cycloplegicAxis,
     this.refinedRefractionCylindrical,
     this.refinedRefractionAxis,
     this.iop,
@@ -331,6 +334,12 @@ class Measurement {
   final dynamic ucva;
   final dynamic bcva;
   final dynamic refinedRefractionSpherical;
+
+  // Cycloplegic refraction — present only on visits resumed under a save reason
+  // that allowed it.
+  final dynamic cycloplegicSpherical;
+  final dynamic cycloplegicCylindrical;
+  final dynamic cycloplegicAxis;
   final dynamic refinedRefractionCylindrical;
   final dynamic refinedRefractionAxis;
   final dynamic iop;
@@ -386,6 +395,9 @@ class Measurement {
       ucva: json["ucva"],
       bcva: json["bcva"],
       refinedRefractionSpherical: json["refinedRefractionSpherical"],
+      cycloplegicSpherical: json["cycloplegicSpherical"],
+      cycloplegicCylindrical: json["cycloplegicCylindrical"],
+      cycloplegicAxis: json["cycloplegicAxis"],
       refinedRefractionCylindrical: json["refinedRefractionCylindrical"],
       refinedRefractionAxis: json["refinedRefractionAxis"],
       iop: json["iop"],
@@ -436,6 +448,9 @@ class Measurement {
         "ucva": ucva,
         "bcva": bcva,
         "refinedRefractionSpherical": refinedRefractionSpherical,
+        "cycloplegicSpherical": cycloplegicSpherical,
+        "cycloplegicCylindrical": cycloplegicCylindrical,
+        "cycloplegicAxis": cycloplegicAxis,
         "refinedRefractionCylindrical": refinedRefractionCylindrical,
         "refinedRefractionAxis": refinedRefractionAxis,
         "iop": iop,
@@ -534,6 +549,7 @@ class Action {
     this.id,
     this.actionId,
     this.medicine = const [],
+    this.nStyle,
   });
 
   String? action;
@@ -543,6 +559,12 @@ class Action {
   List<Medicine> medicine;
   String? id;
   String? actionId;
+
+  /// Glasses prescriptions only. 'auto' folds the near-vision addition into the
+  /// printed N-row spherical value; 'manual' prints "add <value>" instead.
+  /// Unset reads as 'manual', which is how the printout behaved before the setting
+  /// existed.
+  String? nStyle;
 
   factory Action.fromJson(Map<String, dynamic> json) {
     return Action(
@@ -558,6 +580,7 @@ class Action {
               json["medicine"]!.map((x) => Medicine.fromJson(x))),
       id: json["_id"],
       actionId: json["id"],
+      nStyle: json["nStyle"],
     );
   }
 
@@ -569,6 +592,7 @@ class Action {
         "metaData": metaData.map((x) => x).toList(),
         "_id": id,
         "id": actionId,
+        if (nStyle != null) "nStyle": nStyle,
       };
 }
 

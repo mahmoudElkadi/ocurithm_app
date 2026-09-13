@@ -12,6 +12,7 @@ import 'package:ocurithm/core/utils/capability_keys.dart';
 import 'package:ocurithm/core/utils/capability_services.dart';
 import 'package:ocurithm/core/utils/format_helper.dart';
 import 'package:ocurithm/core/utils/services_locator.dart';
+import 'package:ocurithm/core/utils/snackbar_service.dart';
 import 'package:ocurithm/core/widgets/width_spacer.dart';
 import 'package:ocurithm/modules/Appointment/presentation/views/widgets/calendar_slider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -22,6 +23,7 @@ import '../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../core/widgets/height_spacer.dart';
 import '../../../../../core/widgets/manage_capabilities.dart';
 import '../../../../../core/widgets/search_and_filter.dart';
+import '../../../../Examination/data/repos/examination_repo.dart';
 import '../../../../Examination/presentation/views/examination_view.dart';
 import '../../../data/models/appointment_lifecycle_status.dart';
 import '../../../data/models/appointment_model.dart';
@@ -826,19 +828,39 @@ class _ExpandableTimeSlotsState extends State<ExpandableTimeSlots> {
                       borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () async {
-                  if (CapabilityServices.hasCapability(
+                  if (!CapabilityServices.hasCapability(
                       CapabilityKeys.manageExaminations)) {
-                    bool? isChanged = await Get.to(
-                      () => MultiStepFormPage(
-                        appointment: appointment,
-                        isSaved: appointment.status == 'Saved',
-                      ),
-                      transition: Transition.rightToLeft,
-                      duration: const Duration(milliseconds: 500),
+                    return;
+                  }
+
+                  // Claim the lock before opening the form, so a second user is
+                  // turned away here rather than mid-examination.
+                  final session = await sl<ExaminationRepo>()
+                      .startExaminationSession(
+                          appointmentId: appointment.id.toString());
+
+                  if (!context.mounted) return;
+
+                  if (!session.isGranted) {
+                    SnackbarService.showError(
+                      context,
+                      message: session.conflictMessage ??
+                          "This appointment is currently being examined.",
                     );
-                    if (isChanged == true) {
-                      cubit.add(GetAppointmentsEvent());
-                    }
+                    return;
+                  }
+
+                  bool? isChanged = await Get.to(
+                    () => MultiStepFormPage(
+                      appointment: appointment,
+                      isSaved: appointment.status == 'Saved',
+                      sessionId: session.sessionId,
+                    ),
+                    transition: Transition.rightToLeft,
+                    duration: const Duration(milliseconds: 500),
+                  );
+                  if (isChanged == true) {
+                    cubit.add(GetAppointmentsEvent());
                   }
                 },
                 child: const Text("Examine",

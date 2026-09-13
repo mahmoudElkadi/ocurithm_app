@@ -20,6 +20,9 @@ class CapabilityKeys {
   // Payment Methods
   static const String managePaymentMethods = 'managePaymentMethods';
 
+  // Save Reasons
+  static const String manageSaveReasons = 'manageSaveReasons';
+
   // Medicines
   static const String manageMedicines = 'manageMedicines';
 
@@ -130,6 +133,7 @@ class CapabilityKeys {
   static const Set<String> all = {
     manageExaminationTypes,
     managePaymentMethods,
+    manageSaveReasons,
     manageMedicines,
     manageClinics,
     showPatients,

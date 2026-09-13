@@ -140,9 +140,37 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
                       'Axis': cubit.rightAurorefAxis,
                     },
                   ),
+                  // Absent from almost every visit, so the block is skipped rather
+                  // than shown as a row of dashes.
+                  if (_hasCycloplegicReading(cubit))
+                    _buildSynchronizedExaminationSection(
+                      title: 'Cycloplegic Refraction',
+                      sectionIndex: 2,
+                      signedLabels: const {'Spherical', 'Cylindrical'},
+                      dataLE: {
+                        'Spherical': FormatHelper.formatPositiveValue(
+                            cubit.leftCycloplegicSpherical),
+                        'Cylindrical': FormatHelper.formatPositiveValue(
+                            cubit.leftCycloplegicCylindrical),
+                        'Axis': cubit.leftCycloplegicAxis,
+                      },
+                      dataRE: {
+                        'Spherical': FormatHelper.formatPositiveValue(
+                            cubit.rightCycloplegicSpherical),
+                        'Cylindrical': FormatHelper.formatPositiveValue(
+                            cubit.rightCycloplegicCylindrical),
+                        'Axis': cubit.rightCycloplegicAxis,
+                      },
+                    ),
                   _buildSynchronizedExaminationSection(
                     title: 'Refined Refraction',
                     sectionIndex: 2,
+                    // Axis is excluded: it is always 0-180, so a sign says nothing.
+                    signedLabels: const {
+                      'Spherical',
+                      'Cylindrical',
+                      'NearVision',
+                    },
                     dataLE: {
                       'Spherical': FormatHelper.formatPositiveValue(
                           cubit.leftRefinedRefractionSpherical),
@@ -428,6 +456,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
     required int sectionIndex,
     required Map<String, dynamic> dataLE,
     required Map<String, dynamic> dataRE,
+    Set<String> signedLabels = const {},
   }) {
     return IntrinsicHeight(
       child: Row(
@@ -440,6 +469,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
               data: dataRE,
               sectionIndex: sectionIndex,
               isLeft: false,
+              signedLabels: signedLabels,
             ),
           ),
           Expanded(
@@ -448,6 +478,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
               data: dataLE,
               sectionIndex: sectionIndex,
               isLeft: true,
+              signedLabels: signedLabels,
             ),
           ),
         ],
@@ -460,6 +491,7 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
     required Map<String, dynamic> data,
     required int sectionIndex,
     required bool isLeft,
+    Set<String> signedLabels = const {},
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 0),
@@ -494,7 +526,11 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
               spacing: 8,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: data.entries
-                  .map((entry) => _buildDataRow(entry.key, entry.value))
+                  .map((entry) => _buildDataRow(
+                        entry.key,
+                        entry.value,
+                        showSign: signedLabels.contains(entry.key),
+                      ))
                   .toList(),
             ),
           ],
@@ -503,20 +539,30 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
     );
   }
 
-  Widget _buildDataRow(String label, dynamic value) {
+  Widget _buildDataRow(String label, dynamic value, {bool showSign = false}) {
     final displayValue = value?.toString() ?? 'N/A';
     final isLongText = displayValue.length > 30;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).primaryColor,
-          ),
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+            ),
+            if (showSign) ...[
+              const SizedBox(width: 4),
+              _buildSignIndicator(value),
+            ],
+          ],
         ),
         const SizedBox(height: 4),
         Container(
@@ -538,6 +584,43 @@ class _ExaminationReviewScreenState extends State<ExaminationReviewScreen>
           ),
         ),
       ],
+    );
+  }
+
+  /// Whether either eye carries a cycloplegic reading worth showing.
+  bool _hasCycloplegicReading(ExaminationFormCubit cubit) => [
+        cubit.leftCycloplegicSpherical,
+        cubit.leftCycloplegicCylindrical,
+        cubit.leftCycloplegicAxis,
+        cubit.rightCycloplegicSpherical,
+        cubit.rightCycloplegicCylindrical,
+        cubit.rightCycloplegicAxis,
+      ].any((value) {
+        if (value == null) return false;
+        final text = value.toString().trim();
+        return text.isNotEmpty && text != '-' && text != 'N/A';
+      });
+
+  /// Green outlined plus for a positive reading, red outlined minus for a negative
+  /// one. Mirrors the badge on the measurements step so the summary reads the same.
+  Widget _buildSignIndicator(dynamic value) {
+    final sign = FormatHelper.measurementSign(value);
+    if (sign == 0) return const SizedBox.shrink();
+
+    final isPositive = sign > 0;
+    final color = isPositive ? Colors.green : Colors.red;
+
+    return Container(
+      padding: const EdgeInsets.all(1),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: color, width: 1.5),
+      ),
+      child: Icon(
+        isPositive ? Icons.add : Icons.remove,
+        size: 12,
+        color: color,
+      ),
     );
   }
 

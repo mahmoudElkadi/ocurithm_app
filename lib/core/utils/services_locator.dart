@@ -38,6 +38,10 @@ import '../../modules/Doctor/presentation/manager/doctor_actions_cubit/doctor_ac
 import '../../modules/Doctor/presentation/manager/doctor_branch_actions_cubit/doctor_branch_actions_cubit.dart';
 import '../../modules/Doctor/presentation/manager/get_doctors_cubit/get_doctors_cubit.dart';
 import '../../modules/Doctor/presentation/manager/get_single_doctor_cubit/get_single_doctor_cubit.dart';
+import '../../modules/Save Reasons/data/repos/save_reason_repo.dart';
+import '../../modules/Save Reasons/data/repos/save_reason_repo_impl.dart';
+import '../../modules/Save Reasons/presentation/manager/get_save_reasons_cubit/get_save_reasons_cubit.dart';
+import '../../modules/Save Reasons/presentation/manager/save_reason_actions_cubit/save_reason_actions_cubit.dart';
 import '../../modules/Examination Type/data/repos/examination_type_repo.dart';
 import '../../modules/Examination Type/data/repos/examination_type_repo_impl.dart';
 import '../../modules/Examination Type/presentation/manager/examination_type_actions_cubit/examination_type_actions_cubit.dart';
@@ -147,6 +151,11 @@ class ServiceLocator {
         () => PaymentMethodActionsCubit(sl.call<PaymentMethodRepo>()));
     sl.registerFactory(
         () => GetSinglePaymentMethodCubit(sl.call<PaymentMethodRepo>()));
+
+    ///Save Reasons
+    sl.registerLazySingleton<SaveReasonRepo>(() => SaveReasonRepoImpl());
+    sl.registerFactory(() => GetSaveReasonsCubit(sl.call<SaveReasonRepo>()));
+    sl.registerFactory(() => SaveReasonActionsCubit(sl.call<SaveReasonRepo>()));
 
     ///Examination Types
     sl.registerLazySingleton<ExaminationTypeRepo>(

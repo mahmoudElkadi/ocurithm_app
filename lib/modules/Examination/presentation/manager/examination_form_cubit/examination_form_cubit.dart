@@ -147,6 +147,9 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
   dynamic leftRefinedRefractionCylindrical;
   dynamic leftRefinedRefractionAxis;
   dynamic leftNearVisionAddition;
+  dynamic leftCycloplegicSpherical;
+  dynamic leftCycloplegicCylindrical;
+  dynamic leftCycloplegicAxis;
   dynamic leftIOP;
   dynamic leftMeansOfMeasurement;
   dynamic leftAcquireAnotherIOPMeasurement;
@@ -197,6 +200,9 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
   dynamic rightRefinedRefractionCylindrical;
   dynamic rightRefinedRefractionAxis;
   dynamic rightNearVisionAddition;
+  dynamic rightCycloplegicSpherical;
+  dynamic rightCycloplegicCylindrical;
+  dynamic rightCycloplegicAxis;
   dynamic rightIOP;
   dynamic rightMeansOfMeasurement;
   dynamic rightAcquireAnotherIOPMeasurement;
@@ -277,6 +283,16 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
   }
 
   String? action;
+
+  /// Server-computed: this visit is parked and its last save was made for a reason
+  /// that allows cycloplegic refraction. Set from the saved examination, which is
+  /// only fetched for a saved visit in the first place.
+  bool allowCycloplegicRefraction = false;
+
+  /// Chosen in the save-reason sheet just before a draft save. Consumed by
+  /// [examinationData] and cleared by the caller after the save goes through, so a
+  /// later submit never carries a stale reason.
+  String? saveReasonId;
 
   @override
   Future<void> close() {
@@ -369,7 +385,10 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         "patient": appointmentData?.patient?.id,
         "appointment": appointmentData?.id,
         "type": appointmentData?.examinationType?.id,
-        "action": action
+        "action": action,
+        // Only meaningful on a draft save; the backend ignores it otherwise.
+        if (action == 'save' && saveReasonId != null)
+          "saveReason": saveReasonId,
       },
       "examinationHistory": examinationHistory,
       "examinationComplain": examinationComplain,
@@ -388,6 +407,9 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         "refinedRefractionCylindrical": leftRefinedRefractionCylindrical,
         "refinedRefractionAxis": leftRefinedRefractionAxis,
         "nearVisionAddition": leftNearVisionAddition,
+        "cycloplegicSpherical": leftCycloplegicSpherical,
+        "cycloplegicCylindrical": leftCycloplegicCylindrical,
+        "cycloplegicAxis": leftCycloplegicAxis,
         "iop": leftIOP,
         "meansOfMeasurement": leftMeansOfMeasurement,
         "acquireAnotherIOPMeasurement": leftAcquireAnotherIOPMeasurement,
@@ -454,6 +476,9 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         "palpableTemporalArtery": rightPapableTemporalArtery,
         "exophthalmometry": rightExophthalmometry,
         "nearVisionAddition": rightNearVisionAddition,
+        "cycloplegicSpherical": rightCycloplegicSpherical,
+        "cycloplegicCylindrical": rightCycloplegicCylindrical,
+        "cycloplegicAxis": rightCycloplegicAxis,
         "cornea": rightCornea,
         "anteriorChamber": rightAnteriorChambre,
         "iris": rightIris,
@@ -482,6 +507,7 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
     if (oneExamination.examinations.isEmpty) return;
 
     final exam = oneExamination.examinations[0];
+    allowCycloplegicRefraction = exam.allowCycloplegicRefraction;
     if (exam.measurements.isEmpty) return;
 
     // Find measurements by eye label
@@ -522,9 +548,17 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
     leftRefinedRefractionAxis = leftMeas.refinedRefractionAxis;
     leftNearVisionAddition = leftMeas.nearVisionAddition;
 
+    leftCycloplegicSpherical = leftMeas.cycloplegicSpherical;
+    leftCycloplegicCylindrical = leftMeas.cycloplegicCylindrical;
+    leftCycloplegicAxis = leftMeas.cycloplegicAxis;
+
     rightRefinedRefractionSpherical = rightMeas.refinedRefractionSpherical;
     rightRefinedRefractionCylindrical = rightMeas.refinedRefractionCylindrical;
     rightRefinedRefractionAxis = rightMeas.refinedRefractionAxis;
+
+    rightCycloplegicSpherical = rightMeas.cycloplegicSpherical;
+    rightCycloplegicCylindrical = rightMeas.cycloplegicCylindrical;
+    rightCycloplegicAxis = rightMeas.cycloplegicAxis;
     rightNearVisionAddition = rightMeas.nearVisionAddition;
 
     leftUCVA = leftMeas.ucva;
@@ -697,6 +731,15 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
       case 'nearVisionAddition':
         leftNearVisionAddition = value;
         break;
+      case 'cycloplegicSpherical':
+        leftCycloplegicSpherical = value;
+        break;
+      case 'cycloplegicCylindrical':
+        leftCycloplegicCylindrical = value;
+        break;
+      case 'cycloplegicAxis':
+        leftCycloplegicAxis = value;
+        break;
       case 'iop':
         leftIOP = value;
         break;
@@ -807,6 +850,15 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
         break;
       case 'nearVisionAddition':
         rightNearVisionAddition = value;
+        break;
+      case 'cycloplegicSpherical':
+        rightCycloplegicSpherical = value;
+        break;
+      case 'cycloplegicCylindrical':
+        rightCycloplegicCylindrical = value;
+        break;
+      case 'cycloplegicAxis':
+        rightCycloplegicAxis = value;
         break;
       case 'iop':
         rightIOP = value;
@@ -929,29 +981,47 @@ class ExaminationFormCubit extends Cubit<ExaminationFormState> {
 
   /// Copy autorefraction into refined refraction for one eye. Per-eye rather than
   /// both at once, matching the web form, so each side can be merged on its own.
-  void mergeRefinedWithAuto({required bool isLeftEye}) {
+  /// Copies an objective refraction into refined refraction for one eye. Unset
+  /// sources are skipped rather than copied, so merging never blanks a reading the
+  /// doctor already took.
+  void mergeRefinedFrom({
+    required bool isLeftEye,
+    RefinedMergeSource source = RefinedMergeSource.autorefraction,
+  }) {
+    final isAuto = source == RefinedMergeSource.autorefraction;
+
     if (isLeftEye) {
-      if (_hasReading(leftAurorefSpherical)) {
-        leftRefinedRefractionSpherical = leftAurorefSpherical;
+      final spherical =
+          isAuto ? leftAurorefSpherical : leftCycloplegicSpherical;
+      final cylindrical =
+          isAuto ? leftAurorefCylindrical : leftCycloplegicCylindrical;
+      final axis = isAuto ? leftAurorefAxis : leftCycloplegicAxis;
+
+      if (_hasReading(spherical)) leftRefinedRefractionSpherical = spherical;
+      if (_hasReading(cylindrical)) {
+        leftRefinedRefractionCylindrical = cylindrical;
       }
-      if (_hasReading(leftAurorefCylindrical)) {
-        leftRefinedRefractionCylindrical = leftAurorefCylindrical;
-      }
-      if (_hasReading(leftAurorefAxis)) {
-        leftRefinedRefractionAxis = leftAurorefAxis;
-      }
+      if (_hasReading(axis)) leftRefinedRefractionAxis = axis;
     } else {
-      if (_hasReading(rightAurorefSpherical)) {
-        rightRefinedRefractionSpherical = rightAurorefSpherical;
+      final spherical =
+          isAuto ? rightAurorefSpherical : rightCycloplegicSpherical;
+      final cylindrical =
+          isAuto ? rightAurorefCylindrical : rightCycloplegicCylindrical;
+      final axis = isAuto ? rightAurorefAxis : rightCycloplegicAxis;
+
+      if (_hasReading(spherical)) rightRefinedRefractionSpherical = spherical;
+      if (_hasReading(cylindrical)) {
+        rightRefinedRefractionCylindrical = cylindrical;
       }
-      if (_hasReading(rightAurorefCylindrical)) {
-        rightRefinedRefractionCylindrical = rightAurorefCylindrical;
-      }
-      if (_hasReading(rightAurorefAxis)) {
-        rightRefinedRefractionAxis = rightAurorefAxis;
-      }
+      if (_hasReading(axis)) rightRefinedRefractionAxis = axis;
     }
 
     emit(ExaminationFormUpdated());
   }
+
+  void mergeRefinedWithAuto({required bool isLeftEye}) =>
+      mergeRefinedFrom(isLeftEye: isLeftEye);
 }
+
+/// Which objective refraction a Merge copies into refined refraction.
+enum RefinedMergeSource { autorefraction, cycloplegic }

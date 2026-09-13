@@ -17,6 +17,7 @@ import 'package:ocurithm/modules/Examination%20Type/presentation/views/examinati
 import 'package:ocurithm/modules/Order/presentation/views/order_view.dart';
 import 'package:ocurithm/modules/Patient/presentation/views/Patient%20Dashboard/presentation/views/patient_view.dart';
 import 'package:ocurithm/modules/Payment%20Methods/presentation/views/payment_method_view.dart';
+import 'package:ocurithm/modules/Save%20Reasons/presentation/views/save_reason_view.dart';
 import 'package:ocurithm/modules/Product/presentation/views/product_view.dart';
 import 'package:ocurithm/modules/PurchaseOrder/presentation/views/purchase_order_view.dart';
 import 'package:ocurithm/modules/SubCategory/presentation/views/sub_category_view.dart';
@@ -184,6 +185,12 @@ class MainCubit extends Cubit<MainState> {
           page: PaymentMethodView(),
           icon: "assets/icons/payment.svg",
           anyOf: [CapabilityKeys.managePaymentMethods],
+        ),
+        _DrawerEntry(
+          title: "Save Reasons",
+          page: SaveReasonView(),
+          icon: "assets/icons/payment.svg",
+          anyOf: [CapabilityKeys.manageSaveReasons],
         ),
         _DrawerEntry(
           title: "Medicines",
