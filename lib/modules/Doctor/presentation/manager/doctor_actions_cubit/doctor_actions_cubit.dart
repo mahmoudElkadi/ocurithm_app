@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/modules/Doctor/data/model/doctor_model.dart';
 import 'package:ocurithm/modules/Doctor/data/repos/doctor_repo.dart';
+import 'package:ocurithm/core/utils/error_message.dart';
 
 part 'doctor_actions_state.dart';
 part 'doctor_actions_event.dart';
@@ -51,7 +52,7 @@ class DoctorActionsCubit extends Bloc<DoctorActionsEvent, DoctorActionsState> {
         emit(state.copyWith(
           state: DoctorActionsStatus.noConnection,
           actionType: DoctorActionType.add,
-          errorMessage: e.toString(),
+          errorMessage: readableError(e),
         ));
         return;
       }
@@ -61,7 +62,7 @@ class DoctorActionsCubit extends Bloc<DoctorActionsEvent, DoctorActionsState> {
       emit(state.copyWith(
         state: DoctorActionsStatus.error,
         actionType: DoctorActionType.add,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }
@@ -99,7 +100,7 @@ class DoctorActionsCubit extends Bloc<DoctorActionsEvent, DoctorActionsState> {
         emit(state.copyWith(
           state: DoctorActionsStatus.noConnection,
           actionType: DoctorActionType.update,
-          errorMessage: e.toString(),
+          errorMessage: readableError(e),
         ));
         return;
       }
@@ -109,7 +110,7 @@ class DoctorActionsCubit extends Bloc<DoctorActionsEvent, DoctorActionsState> {
       emit(state.copyWith(
         state: DoctorActionsStatus.error,
         actionType: DoctorActionType.update,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }
@@ -143,7 +144,7 @@ class DoctorActionsCubit extends Bloc<DoctorActionsEvent, DoctorActionsState> {
         emit(state.copyWith(
           state: DoctorActionsStatus.noConnection,
           actionType: DoctorActionType.delete,
-          errorMessage: e.toString(),
+          errorMessage: readableError(e),
         ));
         return;
       }
@@ -153,7 +154,7 @@ class DoctorActionsCubit extends Bloc<DoctorActionsEvent, DoctorActionsState> {
       emit(state.copyWith(
         state: DoctorActionsStatus.error,
         actionType: DoctorActionType.delete,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ocurithm/modules/Patient/data/model/patients_model.dart';
 import 'package:ocurithm/modules/Patient/data/repos/patient_repo.dart';
+import 'package:ocurithm/core/utils/error_message.dart';
 
 part 'patient_actions_state.dart';
 part 'patient_actions_event.dart';
@@ -53,7 +54,7 @@ class PatientActionsCubit
         emit(state.copyWith(
           state: PatientActionsStatus.noConnection,
           actionType: PatientActionType.add,
-          errorMessage: e.toString(),
+          errorMessage: readableError(e),
         ));
         return;
       }
@@ -63,7 +64,7 @@ class PatientActionsCubit
       emit(state.copyWith(
         state: PatientActionsStatus.error,
         actionType: PatientActionType.add,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }
@@ -101,7 +102,7 @@ class PatientActionsCubit
         emit(state.copyWith(
           state: PatientActionsStatus.noConnection,
           actionType: PatientActionType.update,
-          errorMessage: e.toString(),
+          errorMessage: readableError(e),
         ));
         return;
       }
@@ -111,7 +112,7 @@ class PatientActionsCubit
       emit(state.copyWith(
         state: PatientActionsStatus.error,
         actionType: PatientActionType.update,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }
@@ -145,7 +146,7 @@ class PatientActionsCubit
         emit(state.copyWith(
           state: PatientActionsStatus.noConnection,
           actionType: PatientActionType.delete,
-          errorMessage: e.toString(),
+          errorMessage: readableError(e),
         ));
         return;
       }
@@ -155,7 +156,7 @@ class PatientActionsCubit
       emit(state.copyWith(
         state: PatientActionsStatus.error,
         actionType: PatientActionType.delete,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }
@@ -188,14 +189,14 @@ class PatientActionsCubit
         emit(state.copyWith(
           state: PatientActionsStatus.noConnection,
           actionType: PatientActionType.transfer,
-          errorMessage: e.toString(),
+          errorMessage: readableError(e),
         ));
         return;
       }
       emit(state.copyWith(
         state: PatientActionsStatus.error,
         actionType: PatientActionType.transfer,
-        errorMessage: e.toString(),
+        errorMessage: readableError(e),
       ));
     }
   }

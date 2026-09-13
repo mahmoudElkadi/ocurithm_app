@@ -76,6 +76,14 @@ class PatientAppointment {
   final String? branchName;
   final String? description;
 
+  /// Set when the visit produced an examination, which is what makes the row
+  /// openable.
+  final String? examinationId;
+
+  /// What the doctor decided on that visit, so the history reads as decisions
+  /// rather than as a list of dates.
+  final List<PatientAppointmentAction> actions;
+
   PatientAppointment({
     this.id,
     this.typeName,
@@ -84,6 +92,8 @@ class PatientAppointment {
     this.date,
     this.branchName,
     this.description,
+    this.examinationId,
+    this.actions = const [],
   });
 
   factory PatientAppointment.fromJson(Map<String, dynamic> json) {
@@ -95,6 +105,27 @@ class PatientAppointment {
       date: json['date'],
       branchName: json['branchName'],
       description: json['description'],
+      examinationId: json['examinationId'],
+      actions: json['actions'] == null
+          ? const []
+          : List<PatientAppointmentAction>.from(json['actions']
+              .map((x) => PatientAppointmentAction.fromJson(x))),
+    );
+  }
+}
+
+class PatientAppointmentAction {
+  final String? action;
+  final String? eye;
+  final String? data;
+
+  PatientAppointmentAction({this.action, this.eye, this.data});
+
+  factory PatientAppointmentAction.fromJson(Map<String, dynamic> json) {
+    return PatientAppointmentAction(
+      action: json['action'],
+      eye: json['eye'],
+      data: json['data'],
     );
   }
 }

@@ -17,6 +17,7 @@ import 'package:ocurithm/modules/Examination/presentation/views/widgets/navigati
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/patient_bottom_sheet.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/review_examination.dart';
+import 'package:ocurithm/modules/Save%20Reasons/presentation/views/widgets/save_reason_picker.dart';
 
 import '../../../../../core/utils/app_style.dart';
 import '../../../../../core/utils/services_locator.dart';
@@ -466,6 +467,31 @@ class EyeExaminationView extends StatelessWidget {
                 children: [RightAutorefContent(), LeftAutorefContent()],
               ),
             ),
+            // Cycloplegic refraction only exists on a resumed visit whose last save
+            // was made for a reason that allows it; the API folds that whole rule
+            // into one flag.
+            if (cubit.allowCycloplegicRefraction) ...[
+              const HeightSpacer(size: 8),
+              Text(
+                "Cycloplegic Refraction",
+                style: appStyle(
+                    context,
+                    18,
+                    Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                    FontWeight.bold),
+              ),
+              const HeightSpacer(size: 4),
+              const IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 10,
+                  children: [
+                    RightCycloplegicRefractionContent(),
+                    LeftCycloplegicRefractionContent()
+                  ],
+                ),
+              ),
+            ],
             const HeightSpacer(size: 8),
             Text(
               "Refined Refraction",
@@ -623,12 +649,18 @@ class EyeExaminationView extends StatelessWidget {
               canGoBack: true,
               canContinue: cubit.currentStep < cubit.totalSteps - 1,
               onSave: () async {
-                if (cubit.appointmentData != null) {
-                  cubit.action = "save";
-                  context
-                      .read<ExaminationActionsCubit>()
-                      .createExamination(data: cubit.examinationData());
-                }
+                if (cubit.appointmentData == null) return;
+
+                // Cancelling the reason sheet cancels the save; a clinic with no
+                // reasons configured saves without one.
+                final pick = await promptForSaveReason(context);
+                if (pick == null || !context.mounted) return;
+
+                cubit.action = "save";
+                cubit.saveReasonId = pick.id;
+                context
+                    .read<ExaminationActionsCubit>()
+                    .createExamination(data: cubit.examinationData());
               },
               onConfirm: () async {
                 if (cubit.appointmentData != null) {
@@ -1363,6 +1395,7 @@ class RightRefinedRefractionContent extends StatelessWidget {
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.rightRefinedRefractionSpherical,
+                showSignIndicator: true,
                 onChanged: (selected) {
                   cubit.updateRightEyeField(
                       'refinedRefractionSpherical', selected);
@@ -1373,6 +1406,7 @@ class RightRefinedRefractionContent extends StatelessWidget {
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Cylindrical :",
                 selectedValue: cubit.rightRefinedRefractionCylindrical,
+                showSignIndicator: true,
                 onChanged: (selected) {
                   cubit.updateRightEyeField(
                       'refinedRefractionCylindrical', selected);
@@ -1392,6 +1426,7 @@ class RightRefinedRefractionContent extends StatelessWidget {
                 items: cubit.data['NearVisionAddition'] ?? [],
                 textRow: "Near vision addition :",
                 selectedValue: cubit.rightNearVisionAddition,
+                showSignIndicator: true,
                 onChanged: (selected) {
                   cubit.updateRightEyeField('nearVisionAddition', selected);
                 },
@@ -1402,6 +1437,108 @@ class RightRefinedRefractionContent extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Cycloplegic refraction for one eye. Same fields and ranges as autorefraction,
+/// with a Merge that pushes the reading into refined refraction — the step a doctor
+/// takes right after a cycloplegic reading.
+class _CycloplegicRefractionContent extends StatelessWidget {
+  const _CycloplegicRefractionContent({required this.isLeftEye});
+
+  final bool isLeftEye;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ExaminationFormCubit>();
+
+    return BlocBuilder<ExaminationFormCubit, ExaminationFormState>(
+      builder: (context, state) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              _MergeHeader(
+                title: isLeftEye ? "Left eye" : "Right eye",
+                onMerge: () => cubit.mergeRefinedFrom(
+                  isLeftEye: isLeftEye,
+                  source: RefinedMergeSource.cycloplegic,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ArrowTextField(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Spherical :",
+                selectedValue: isLeftEye
+                    ? cubit.leftCycloplegicSpherical
+                    : cubit.rightCycloplegicSpherical,
+                showSignIndicator: true,
+                onChanged: (selected) {
+                  if (isLeftEye) {
+                    cubit.updateLeftEyeField('cycloplegicSpherical', selected);
+                  } else {
+                    cubit.updateRightEyeField('cycloplegicSpherical', selected);
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              ArrowTextField(
+                items: cubit.data['AurorefSpherical'] ?? [],
+                textRow: "Cylindrical :",
+                selectedValue: isLeftEye
+                    ? cubit.leftCycloplegicCylindrical
+                    : cubit.rightCycloplegicCylindrical,
+                showSignIndicator: true,
+                onChanged: (selected) {
+                  if (isLeftEye) {
+                    cubit.updateLeftEyeField(
+                        'cycloplegicCylindrical', selected);
+                  } else {
+                    cubit.updateRightEyeField(
+                        'cycloplegicCylindrical', selected);
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              ArrowTextField(
+                items: cubit.data['AurorefAxis'] ?? [],
+                textRow: "Axis :",
+                selectedValue: isLeftEye
+                    ? cubit.leftCycloplegicAxis
+                    : cubit.rightCycloplegicAxis,
+                onChanged: (selected) {
+                  if (isLeftEye) {
+                    cubit.updateLeftEyeField('cycloplegicAxis', selected);
+                  } else {
+                    cubit.updateRightEyeField('cycloplegicAxis', selected);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RightCycloplegicRefractionContent extends StatelessWidget {
+  const RightCycloplegicRefractionContent({super.key});
+
+  @override
+  Widget build(BuildContext context) =>
+      const _CycloplegicRefractionContent(isLeftEye: false);
+}
+
+class LeftCycloplegicRefractionContent extends StatelessWidget {
+  const LeftCycloplegicRefractionContent({super.key});
+
+  @override
+  Widget build(BuildContext context) =>
+      const _CycloplegicRefractionContent(isLeftEye: true);
 }
 
 class LeftRefinedRefractionContent extends StatelessWidget {
@@ -1430,6 +1567,7 @@ class LeftRefinedRefractionContent extends StatelessWidget {
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Spherical :",
                 selectedValue: cubit.leftRefinedRefractionSpherical,
+                showSignIndicator: true,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField(
                       'refinedRefractionSpherical', selected);
@@ -1440,6 +1578,7 @@ class LeftRefinedRefractionContent extends StatelessWidget {
                 items: cubit.data['AurorefSpherical'] ?? [],
                 textRow: "Cylindrical :",
                 selectedValue: cubit.leftRefinedRefractionCylindrical,
+                showSignIndicator: true,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField(
                       'refinedRefractionCylindrical', selected);
@@ -1458,6 +1597,7 @@ class LeftRefinedRefractionContent extends StatelessWidget {
                 items: cubit.data['NearVisionAddition'] ?? [],
                 textRow: "Near vision addition :",
                 selectedValue: cubit.leftNearVisionAddition,
+                showSignIndicator: true,
                 onChanged: (selected) {
                   cubit.updateLeftEyeField('nearVisionAddition', selected);
                 },

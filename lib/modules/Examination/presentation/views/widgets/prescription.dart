@@ -11,9 +11,12 @@ import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescrip
 import 'package:ocurithm/modules/Make_Appointment/presentation/views/make_appointment_view.dart';
 import 'package:ocurithm/modules/Patient/data/model/one_exam.dart'
     hide Appointment;
+import 'package:ocurithm/modules/Save%20Reasons/presentation/views/widgets/save_reason_picker.dart';
 import 'package:rxdart/rxdart.dart'; // For robust stream handling
 
 import '../../../../../core/utils/format_helper.dart';
+import '../../../../../core/utils/glasses_prescription.dart';
+import '../../../../../core/widgets/arrow_text_field.dart';
 import '../../../../../core/widgets/DropdownPackage.dart';
 import '../../../../../core/widgets/confirmation_popuo.dart';
 import '../../../../../core/widgets/custom_column_section.dart';
@@ -77,6 +80,10 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
   String? selectedMainOption;
   String? selectedGlassesType;
   final TextEditingController IPDController = TextEditingController();
+
+  /// How the near-vision row is printed on a glasses prescription. Defaults to
+  /// manual, matching how the printout behaved before the setting existed.
+  String selectedNStyle = GlassesPrescription.nStyleManual;
   final TextEditingController typeOfLens = TextEditingController();
   final TextEditingController diagnosisController = TextEditingController();
 
@@ -401,13 +408,18 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
   /// [action] is `'save'` for a draft the doctor will come back to, or `'create'`
   /// to finalize the visit. The backend keeps the appointment in `Saved` for a
   /// draft and only counts the prescription on `'create'`.
-  Map<String, dynamic> getFinalizationData({String action = 'create'}) {
+  Map<String, dynamic> getFinalizationData({
+    String action = 'create',
+    String? saveReasonId,
+  }) {
     return {
       'diagnosis':
           unDiagnosedYet ? null : diagnosisController.text.toLowerCase(),
       'medicine': medicationsList.map((m) => m.toJson()).toList(),
       'actions': prescriptionsList.map((action) => action.toJson()).toList(),
       'action': action,
+      // Only meaningful on a draft save; the backend ignores it otherwise.
+      if (action == 'save' && saveReasonId != null) 'saveReason': saveReasonId,
     };
   }
 
@@ -463,7 +475,11 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
 
     switch (option) {
       case 'Prescribe glasses':
-        prescription.data = IPDController.text.toLowerCase();
+        // Numeric now; strip any "IPD:" a doctor typed back when the printout
+        // carried no label of its own.
+        prescription.data =
+            GlassesPrescription.normalizeIpd(IPDController.text);
+        prescription.nStyle = selectedNStyle;
         break;
 
       case 'Prescribe medications':
@@ -935,10 +951,66 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
                   ),
                 ),
                 Divider(height: 24.h),
-                TextField(
-                  controller: IPDController,
-                  maxLines: 1,
-                  decoration: _getInputDecoration('Enter IPD...'),
+                // Whole millimetres between 1 and 180 — the same arrow field the
+                // measurements step uses, so IPD cannot be free text any more.
+                ArrowTextField(
+                  items: List.generate(
+                    GlassesPrescription.ipdMax - GlassesPrescription.ipdMin + 1,
+                    (index) => '${GlassesPrescription.ipdMin + index}',
+                  ),
+                  textRow: '',
+                  selectedValue:
+                      GlassesPrescription.normalizeIpd(IPDController.text),
+                  onChanged: (selected) {
+                    IPDController.text = selected;
+                  },
+                ),
+                const HeightSpacer(size: 10),
+                Text(
+                  "N Style",
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colorz.primaryColor,
+                  ),
+                ),
+                Divider(height: 24.h),
+                DropdownItem(
+                  radius: 8,
+                  border: Theme.of(context).dividerColor,
+                  color: Theme.of(context).cardColor,
+                  isShadow: false,
+                  height: 14,
+                  iconData: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
+                  items: const [
+                    GlassesPrescription.nStyleManual,
+                    GlassesPrescription.nStyleAuto,
+                  ],
+                  isLoading: false,
+                  selectedValue: selectedNStyle,
+                  hintText: 'Select N style',
+                  itemAsString: (item) =>
+                      FormatHelper.capitalizeFirstLetter(item.toString()),
+                  onItemSelected: (item) {
+                    setState(() {
+                      selectedNStyle = item.toString();
+                    });
+                  },
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 6.h),
+                  child: Text(
+                    selectedNStyle == GlassesPrescription.nStyleAuto
+                        ? 'Prints the near addition folded into the spherical on the N row.'
+                        : 'Prints "add <value>" on the N row and leaves the arithmetic to the optician.',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.grey,
+                    ),
+                  ),
                 ),
                 const HeightSpacer(size: 10),
                 Row(
@@ -1905,12 +1977,20 @@ class _MedicalTreeFormBodyState extends State<_MedicalTreeFormBody> {
       height: 48,
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: () {
+        onPressed: () async {
+          // Cancelling the reason sheet cancels the save; a clinic with no
+          // reasons configured saves without one.
+          final pick = await promptForSaveReason(context);
+          if (pick == null || !context.mounted) return;
+
           _syncSelectedPrescriptions();
           _isDraftSave = true;
           context.read<ExaminationActionsCubit>().makeFinalization(
                 id: widget.examination?.id ?? '',
-                data: getFinalizationData(action: 'save'),
+                data: getFinalizationData(
+                  action: 'save',
+                  saveReasonId: pick.id,
+                ),
               );
         },
         style: OutlinedButton.styleFrom(

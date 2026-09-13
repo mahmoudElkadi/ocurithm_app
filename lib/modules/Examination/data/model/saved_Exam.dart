@@ -38,7 +38,13 @@ class Examination {
     required this.complain,
     required this.history,
     required this.id,
+    this.allowCycloplegicRefraction = false,
   });
+
+  /// Server-computed: this visit is parked and its last save was made for a reason
+  /// that allows cycloplegic refraction. The whole rule lives on the API, so neither
+  /// client re-derives it.
+  final bool allowCycloplegicRefraction;
 
   final String? clinic;
   final Appointment? appointment;
@@ -71,6 +77,7 @@ class Examination {
       complain: json["complain"] == null ? null : Complain.fromJson(json["complain"]),
       history: json["history"] == null ? null : History.fromJson(json["history"]),
       id: json["id"],
+      allowCycloplegicRefraction: json["allowCycloplegicRefraction"] == true,
     );
   }
 
@@ -265,6 +272,9 @@ class Measurement {
     required this.refinedRefractionAxis,
     required this.refinedRefractionCylindrical,
     required this.refinedRefractionSpherical,
+    this.cycloplegicSpherical,
+    this.cycloplegicCylindrical,
+    this.cycloplegicAxis,
     required this.sclera,
     required this.topLeft,
     required this.topRight,
@@ -322,6 +332,12 @@ class Measurement {
   final String? refinedRefractionAxis;
   final String? refinedRefractionCylindrical;
   final String? refinedRefractionSpherical;
+
+  // Cycloplegic refraction — only recorded on a resumed visit whose save reason
+  // allowed it, so absent from almost every examination.
+  final String? cycloplegicSpherical;
+  final String? cycloplegicCylindrical;
+  final String? cycloplegicAxis;
   final String? sclera;
   final num? topLeft;
   final num? topRight;
@@ -380,6 +396,9 @@ class Measurement {
       refinedRefractionAxis: json["refinedRefractionAxis"],
       refinedRefractionCylindrical: json["refinedRefractionCylindrical"],
       refinedRefractionSpherical: json["refinedRefractionSpherical"],
+      cycloplegicSpherical: json["cycloplegicSpherical"],
+      cycloplegicCylindrical: json["cycloplegicCylindrical"],
+      cycloplegicAxis: json["cycloplegicAxis"],
       sclera: json["sclera"],
       topLeft: json["topLeft"],
       topRight: json["topRight"],

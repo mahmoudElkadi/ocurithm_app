@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../utils/app_style.dart';
+import '../utils/format_helper.dart';
 
 class ArrowTextField extends StatefulWidget {
   final List<dynamic> items;
@@ -8,12 +9,18 @@ class ArrowTextField extends StatefulWidget {
   final String? selectedValue;
   final Function(String) onChanged;
 
+  /// Shows a green outlined plus for a positive reading and a red outlined minus
+  /// for a negative one, next to the label. Refined refraction only — a leading
+  /// "-" is easy to miss at a glance.
+  final bool showSignIndicator;
+
   const ArrowTextField({
     Key? key,
     required this.items,
     required this.textRow,
     required this.selectedValue,
     required this.onChanged,
+    this.showSignIndicator = false,
   }) : super(key: key);
 
   @override
@@ -151,6 +158,35 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
     widget.onChanged(newValue);
   }
 
+  /// Driven by the controller rather than by `widget.selectedValue`: the arrows and
+  /// the keyboard both write straight to the controller, and the parent only learns
+  /// the new value on blur.
+  Widget _buildSignIndicator() {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: _controller,
+      builder: (context, value, _) {
+        final sign = FormatHelper.measurementSign(value.text);
+        if (sign == 0) return const SizedBox.shrink();
+
+        final isPositive = sign > 0;
+        final color = isPositive ? Colors.green : Colors.red;
+
+        return Container(
+          padding: const EdgeInsets.all(1),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: 1.5),
+          ),
+          child: Icon(
+            isPositive ? Icons.add : Icons.remove,
+            size: 12,
+            color: color,
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -166,13 +202,24 @@ class _ArrowTextFieldState extends State<ArrowTextField> {
         if (widget.textRow.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0, left: 12),
-            child: Text(
-              widget.textRow,
-              style: appStyle(
-                  context,
-                  14,
-                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.grey,
-                  FontWeight.w600),
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    widget.textRow,
+                    style: appStyle(
+                        context,
+                        14,
+                        Theme.of(context).textTheme.bodyLarge?.color ??
+                            Colors.grey,
+                        FontWeight.w600),
+                  ),
+                ),
+                if (widget.showSignIndicator) ...[
+                  const SizedBox(width: 4),
+                  _buildSignIndicator(),
+                ],
+              ],
             ),
           ),
         Container(

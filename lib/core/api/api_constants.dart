@@ -136,11 +136,22 @@ class ApiConstants {
 
   static String get paymentMethods => "paymentMethods";
 
+  static String get saveReasons => "saveReasons";
+
   static String get appointments => "appointments";
 
   static String get clinics => "clinics";
 
   static String get examination => "examinations";
+
+  // Examination sessions — the one-examiner-per-appointment lock.
+  static String get examinationSessionStart => "examinations/sessions/start";
+
+  static String examinationSessionHeartbeat(String id) =>
+      "examinations/sessions/$id/heartbeat";
+
+  static String examinationSessionClose(String id) =>
+      "examinations/sessions/$id/close";
 
   static String get capabilities => "capabilities";
 

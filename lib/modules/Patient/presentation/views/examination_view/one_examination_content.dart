@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart' hide Action;
 import 'package:ocurithm/core/utils/colors.dart';
 import 'package:ocurithm/core/utils/format_helper.dart';
+import 'package:ocurithm/core/utils/glasses_prescription.dart';
 import 'package:ocurithm/core/widgets/height_spacer.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/circle_view.dart';
 import 'package:ocurithm/modules/Examination/presentation/views/widgets/prescription_pdf.dart';
 import 'package:ocurithm/modules/Examination/data/catalog/history_catalog.dart';
 import 'package:ocurithm/modules/Examination/data/catalog/complain_catalog.dart';
 import 'package:ocurithm/modules/Patient/data/model/one_exam.dart';
+
+/// Whether either eye carries a cycloplegic reading worth showing.
+bool _hasCycloplegicReading(ExaminationModel examination) {
+  final measurements = examination.examination?.measurements ?? const [];
+
+  return measurements.any((m) => [
+        m.cycloplegicSpherical,
+        m.cycloplegicCylindrical,
+        m.cycloplegicAxis,
+      ].any((value) {
+        if (value == null) return false;
+        final text = value.toString().trim();
+        return text.isNotEmpty && text != '-' && text != 'N/A';
+      }));
+}
 
 class OneExaminationContent extends StatelessWidget {
   final ExaminationModel examination;
@@ -207,7 +223,10 @@ class OneExaminationContent extends StatelessWidget {
         _buildDetailItem(
           context,
           title: FormatHelper.capitalizeFirstLetter(action.action ?? ""),
-          content: "IPD: ${action.data ?? 'N/A'}",
+          // Older records hold "IPD: 63" typed by hand; strip it so the label
+          // this view adds is not doubled up.
+          content:
+              "IPD: ${GlassesPrescription.normalizeIpd(action.data).isEmpty ? 'N/A' : GlassesPrescription.normalizeIpd(action.data)}",
           onTap: () {
             generateAndPrintPrescription(
               examination: examinationModel,
@@ -1116,6 +1135,28 @@ class OneExaminationContent extends StatelessWidget {
                   : examination.examination?.measurements[1].autorefAxis,
             },
           ),
+          // Absent from almost every visit, so the block is skipped rather than
+          // shown as a row of dashes.
+          if (_hasCycloplegicReading(examination))
+            _buildSectionComparison(
+              context,
+              title: 'Cycloplegic Refraction',
+              icon: Icons.remove_red_eye_outlined,
+              examination: examination,
+              isDark: isDark,
+              theme: theme,
+              sectionIndex: 2,
+              dataMapper: (isLeft) => {
+                'Spherical': FormatHelper.formatPositiveValue(
+                    examination.examination?.measurements[isLeft ? 0 : 1]
+                        .cycloplegicSpherical),
+                'Cylindrical': FormatHelper.formatPositiveValue(
+                    examination.examination?.measurements[isLeft ? 0 : 1]
+                        .cycloplegicCylindrical),
+                'Axis': examination
+                    .examination?.measurements[isLeft ? 0 : 1].cycloplegicAxis,
+              },
+            ),
           _buildSectionComparison(
             context,
             title: 'Refined Refraction',

@@ -33,7 +33,7 @@ if (flutterVersionName == null) {
 android {
     namespace = "com.ocurithm.ocurithmapp"
     compileSdk = 36
-    ndkVersion = "29.0.14033849"
+    // ndkVersion = "29.0.14033849" // rc4 preview NDK; no plugin builds native code, so it is not required
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
